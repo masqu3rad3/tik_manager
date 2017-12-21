@@ -42,6 +42,8 @@ class TikManager(dict):
             self.userList = {"Generic":"gn"}
         self.validCategories = ["Model", "Shading", "Rig", "Layout", "Animation",   "Render", "Other"]
         self.padding = 3
+        dump, self.subProjectList = self.scanScenes(self.validCategories[0])
+
 
     def dumpJson(self, data,file):
         with open(file, "w") as f:
@@ -62,7 +64,7 @@ class TikManager(dict):
         if not os.path.isdir(folder):
             os.makedirs(folder)
 
-    def saveNewScene(self, category, userName, shotName, makeReference=True, *args, **kwargs):
+    def saveNewScene(self, category, userName, shotName, subProject="Default", makeReference=True, *args, **kwargs):
         """
         Saves the scene with formatted name and creates a json file for the scene
         Args:
@@ -75,6 +77,8 @@ class TikManager(dict):
         Returns: None
 
         """
+        print "HGERE", subProject
+
         ## TODO // make sure for the unique naming
         projectPath = pm.workspace(q=1, rd=1)
         dataPath = os.path.normpath(os.path.join(projectPath, "data"))
@@ -87,10 +91,28 @@ class TikManager(dict):
         self.folderCheck(scenesPath)
         categoryPath = os.path.normpath(os.path.join(scenesPath, category))
         self.folderCheck(category)
-        shotPath = os.path.normpath(os.path.join(categoryPath, shotName))
-        self.folderCheck(shotPath)
 
-        jsonFile = os.path.join(jsonCategoryPath, "{}.json".format(shotName))
+        ## eger subproject olarak bakiliyorsa
+        if not subProject == "Default":
+            subProjectPath = os.path.normpath(os.path.join(categoryPath, subProject))
+            self.folderCheck(subProjectPath)
+            shotPath = os.path.normpath(os.path.join(subProjectPath, shotName))
+            self.folderCheck(shotPath)
+
+            jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
+            self.folderCheck(jsonCategoryPath)
+            jsonCategorySubPath = os.path.normpath(os.path.join(jsonCategoryPath, subProject))
+            self.folderCheck(jsonCategorySubPath)
+            jsonFile = os.path.join(jsonCategorySubPath, "{}.json".format(shotName))
+        else:
+            shotPath = os.path.normpath(os.path.join(categoryPath, shotName))
+            self.folderCheck(shotPath)
+
+            jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
+            self.folderCheck(jsonCategoryPath)
+            jsonFile = os.path.join(jsonCategoryPath, "{}.json".format(shotName))
+
+        # jsonFile = os.path.join(jsonCategoryPath, "{}.json".format(shotName))
 
         version=1
         sceneName = "{0}_{1}_{2}_v{3}".format(shotName, category, userName, str(version).zfill(self.padding))
@@ -175,13 +197,32 @@ class TikManager(dict):
                 jsonInfo["ReferencedVersion"] = currentVersion
             self.dumpJson(jsonInfo, jsonFile)
 
+    def createSubProject(self, nameOfSubProject):
+        if (nameOfSubProject.lower()) == "default":
+            pm.warning("Naming mismatch")
+            return None
+        projectPath = pm.workspace(q=1, rd=1)
+        dataPath = os.path.normpath(os.path.join(projectPath, "data"))
+        self.folderCheck(dataPath)
+        jsonPath = os.path.normpath(os.path.join(dataPath, "json"))
+        self.folderCheck(jsonPath)
+        subPjson = os.path.normpath(os.path.join(jsonPath, "subPdata.json"))
+        subInfo = []
+        if os.path.isfile(subPjson):
+            subInfo=self.loadJson(subPjson)
+
+        subInfo.append(nameOfSubProject)
+        self.dumpJson(subInfo, subPjson)
+        return subInfo
+
+
     def scanScenes(self, category):
         """
         Scans the folder for json files. Instead of scanning all of the json files at once, It will scan only the target category to speed up the process.
         Args:
             category: (String) This is the category which will be scanned
 
-        Returns: List of all json files in the category
+        Returns: List of all json files in the category, sub-project json file
 
         """
         projectPath = pm.workspace(q=1, rd=1)
@@ -189,6 +230,11 @@ class TikManager(dict):
         self.folderCheck(dataPath)
         jsonPath = os.path.normpath(os.path.join(dataPath, "json"))
         self.folderCheck(jsonPath)
+
+        subPjson = os.path.normpath(os.path.join(jsonPath, "subPdata.json"))
+        if not os.path.isfile(subPjson):
+            self.dumpJson([], subPjson)
+
         jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
         self.folderCheck(jsonCategoryPath)
 
@@ -197,7 +243,7 @@ class TikManager(dict):
         for file in os.listdir(jsonCategoryPath):
             file=os.path.join(jsonCategoryPath, file)
             allJsonFiles.append(file)
-        return allJsonFiles
+        return allJsonFiles, subPjson
 
     def loadScene(self, jsonFile, version=None, force=False):
         """
@@ -287,6 +333,8 @@ class TikManager(dict):
 
 
 class MainUI(QtWidgets.QMainWindow):
+
+    ## // TODO make the UI unique (should close the prior one)
     def __init__(self):
         for entry in QtWidgets.QApplication.allWidgets():
             if entry.objectName() == "SceneManager":
@@ -362,7 +410,7 @@ class MainUI(QtWidgets.QMainWindow):
 
 
         self.loadMode_radioButton = QtWidgets.QRadioButton(self.centralwidget)
-        self.loadMode_radioButton.setGeometry(QtCore.QRect(30, 67, 82, 31))
+        self.loadMode_radioButton.setGeometry(QtCore.QRect(30, 70, 82, 31))
         self.loadMode_radioButton.setToolTip((""))
         self.loadMode_radioButton.setStatusTip((""))
         self.loadMode_radioButton.setWhatsThis((""))
@@ -373,7 +421,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.loadMode_radioButton.setObjectName(("loadMode_radioButton"))
 
         self.referenceMode_radioButton = QtWidgets.QRadioButton(self.centralwidget)
-        self.referenceMode_radioButton.setGeometry(QtCore.QRect(130, 67, 101, 31))
+        self.referenceMode_radioButton.setGeometry(QtCore.QRect(110, 70, 101, 31))
         self.referenceMode_radioButton.setToolTip((""))
         self.referenceMode_radioButton.setStatusTip((""))
         self.referenceMode_radioButton.setWhatsThis((""))
@@ -390,15 +438,13 @@ class MainUI(QtWidgets.QMainWindow):
         self.userName_comboBox.setAccessibleName((""))
         self.userName_comboBox.setAccessibleDescription((""))
         self.userName_comboBox.setObjectName(("userName_comboBox"))
-
         userListSorted = sorted(self.manager.userList.keys())
         for num in range (len(userListSorted)):
             self.userName_comboBox.addItem((userListSorted[num]))
             self.userName_comboBox.setItemText(num, (userListSorted[num]))
 
         # self.userName_comboBox.addItem((""))
-        # self.userName_comboBox.setItemText(0, ("Arda Kutlu"))
-
+        # self.userName_comboBox.setItemText(0, ("Arda Kutlu")
 
         self.userName_label = QtWidgets.QLabel(self.centralwidget)
         self.userName_label.setGeometry(QtCore.QRect(520, 70, 31, 31))
@@ -409,6 +455,35 @@ class MainUI(QtWidgets.QMainWindow):
         self.userName_label.setAccessibleDescription((""))
         self.userName_label.setText(("User:"))
         self.userName_label.setObjectName(("userName_label"))
+
+        self.subProject_label = QtWidgets.QLabel(self.centralwidget)
+        self.subProject_label.setGeometry(QtCore.QRect(240, 70, 100, 31))
+        self.subProject_label.setToolTip((""))
+        self.subProject_label.setStatusTip((""))
+        self.subProject_label.setWhatsThis((""))
+        self.subProject_label.setAccessibleName((""))
+        self.subProject_label.setAccessibleDescription((""))
+        self.subProject_label.setText(("Sub-Project:"))
+        self.subProject_label.setObjectName(("subProject_label"))
+
+        self.subProject_comboBox = QtWidgets.QComboBox(self.centralwidget)
+        self.subProject_comboBox.setGeometry(QtCore.QRect(305, 70, 165, 31))
+        self.subProject_comboBox.setToolTip((""))
+        self.subProject_comboBox.setStatusTip((""))
+        self.subProject_comboBox.setWhatsThis((""))
+        self.subProject_comboBox.setAccessibleName((""))
+        self.subProject_comboBox.setAccessibleDescription((""))
+        self.subProject_comboBox.setObjectName(("subProject_comboBox"))
+
+        self.subProject_pushbutton = QtWidgets.QPushButton("+", self.centralwidget)
+        self.subProject_pushbutton.setGeometry(QtCore.QRect(475, 70, 31, 31))
+        self.subProject_pushbutton.setToolTip((""))
+        self.subProject_pushbutton.setStatusTip((""))
+        self.subProject_pushbutton.setWhatsThis((""))
+        self.subProject_pushbutton.setAccessibleName((""))
+        self.subProject_pushbutton.setAccessibleDescription((""))
+        self.subProject_pushbutton.setObjectName(("subProject_pushbutton"))
+
 
         self.scenes_listWidget = QtWidgets.QListWidget(self.centralwidget)
         self.scenes_listWidget.setGeometry(QtCore.QRect(30, 140, 381, 351))
@@ -532,15 +607,24 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.saveScene_pushButton.clicked.connect(self.saveDialogUI)
 
+        self.subProject_pushbutton.clicked.connect(self.createSubProjectUI)
+
         self.populateScenes()
+
+    def createSubProjectUI(self):
+        nama = raw_input()
+        self.manager.subProjectList = self.manager.createSubProject(nama)
+        self.populateScenes()
+        print self.manager.subProjectList
+
 
     def saveDialogUI(self):
         self.save_Dialog = QtWidgets.QDialog(parent=self)
         self.save_Dialog.setModal(True)
         self.save_Dialog.setObjectName(("save_Dialog"))
-        self.save_Dialog.resize(255, 200)
-        self.save_Dialog.setMinimumSize(QtCore.QSize(255, 200))
-        self.save_Dialog.setMaximumSize(QtCore.QSize(255, 200))
+        self.save_Dialog.resize(255, 240)
+        self.save_Dialog.setMinimumSize(QtCore.QSize(255, 240))
+        self.save_Dialog.setMaximumSize(QtCore.QSize(255, 240))
         self.save_Dialog.setWindowTitle(("Save New Base Scene"))
         self.save_Dialog.setToolTip((""))
         self.save_Dialog.setStatusTip((""))
@@ -548,8 +632,30 @@ class MainUI(QtWidgets.QMainWindow):
         self.save_Dialog.setAccessibleName((""))
         self.save_Dialog.setAccessibleDescription((""))
 
+        self.sdSubP_label = QtWidgets.QLabel(self.save_Dialog)
+        self.sdSubP_label.setGeometry(QtCore.QRect(20, 30, 61, 20))
+        self.sdSubP_label.setToolTip((""))
+        self.sdSubP_label.setStatusTip((""))
+        self.sdSubP_label.setWhatsThis((""))
+        self.sdSubP_label.setAccessibleName((""))
+        self.sdSubP_label.setAccessibleDescription((""))
+        self.sdSubP_label.setFrameShape(QtWidgets.QFrame.Box)
+        self.sdSubP_label.setText(("Sub-Project"))
+        self.sdSubP_label.setObjectName(("sdSubP_label"))
+
+        self.sdSubP_comboBox = QtWidgets.QComboBox(self.save_Dialog)
+        self.sdSubP_comboBox.setFocus()
+        self.sdSubP_comboBox.setGeometry(QtCore.QRect(90, 30, 151, 22))
+        self.sdSubP_comboBox.setToolTip((""))
+        self.sdSubP_comboBox.setStatusTip((""))
+        self.sdSubP_comboBox.setWhatsThis((""))
+        self.sdSubP_comboBox.setAccessibleName((""))
+        self.sdSubP_comboBox.setAccessibleDescription((""))
+        self.sdSubP_comboBox.setObjectName(("sdCategory_comboBox"))
+        self.sdSubP_comboBox.addItems(["Default"] + (self.manager.subProjectList))
+
         self.sdName_label = QtWidgets.QLabel(self.save_Dialog)
-        self.sdName_label.setGeometry(QtCore.QRect(20, 30, 61, 20))
+        self.sdName_label.setGeometry(QtCore.QRect(20, 70, 61, 20))
         self.sdName_label.setToolTip((""))
         self.sdName_label.setStatusTip((""))
         self.sdName_label.setWhatsThis((""))
@@ -560,7 +666,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.sdName_label.setObjectName(("sdName_label"))
 
         self.sdName_lineEdit = QtWidgets.QLineEdit(self.save_Dialog)
-        self.sdName_lineEdit.setGeometry(QtCore.QRect(90, 30, 151, 20))
+        self.sdName_lineEdit.setGeometry(QtCore.QRect(90, 70, 151, 20))
         self.sdName_lineEdit.setToolTip((""))
         self.sdName_lineEdit.setStatusTip((""))
         self.sdName_lineEdit.setWhatsThis((""))
@@ -572,7 +678,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.sdName_lineEdit.setObjectName(("sdName_lineEdit"))
 
         self.sdCategory_label = QtWidgets.QLabel(self.save_Dialog)
-        self.sdCategory_label.setGeometry(QtCore.QRect(20, 70, 61, 20))
+        self.sdCategory_label.setGeometry(QtCore.QRect(20, 110, 61, 20))
         self.sdCategory_label.setToolTip((""))
         self.sdCategory_label.setStatusTip((""))
         self.sdCategory_label.setWhatsThis((""))
@@ -584,7 +690,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.sdCategory_comboBox = QtWidgets.QComboBox(self.save_Dialog)
         self.sdCategory_comboBox.setFocus()
-        self.sdCategory_comboBox.setGeometry(QtCore.QRect(90, 70, 151, 22))
+        self.sdCategory_comboBox.setGeometry(QtCore.QRect(90, 110, 151, 22))
         self.sdCategory_comboBox.setToolTip((""))
         self.sdCategory_comboBox.setStatusTip((""))
         self.sdCategory_comboBox.setWhatsThis((""))
@@ -596,10 +702,10 @@ class MainUI(QtWidgets.QMainWindow):
             self.sdCategory_comboBox.setItemText(i, (self.manager.validCategories[i]))
 
         self.sdMakeReference_checkbox = QtWidgets.QCheckBox("Make it Reference", self.save_Dialog)
-        self.sdMakeReference_checkbox.setGeometry(QtCore.QRect(130, 110, 151, 22))
+        self.sdMakeReference_checkbox.setGeometry(QtCore.QRect(130, 150, 151, 22))
 
         self.sd_buttonBox = QtWidgets.QDialogButtonBox(self.save_Dialog)
-        self.sd_buttonBox.setGeometry(QtCore.QRect(20, 150, 220, 32))
+        self.sd_buttonBox.setGeometry(QtCore.QRect(20, 190, 220, 32))
         self.sd_buttonBox.setToolTip((""))
         self.sd_buttonBox.setStatusTip((""))
         self.sd_buttonBox.setWhatsThis((""))
@@ -619,7 +725,8 @@ class MainUI(QtWidgets.QMainWindow):
 
     def saveBaseScene(self):
         userInitials = self.manager.userList[self.userName_comboBox.currentText()]
-        self.manager.saveNewScene(self.sdCategory_comboBox.currentText(), userInitials, self.sdName_lineEdit.text(), self.sdMakeReference_checkbox.checkState())
+        subProject = self.sdSubP_comboBox.currentText()
+        self.manager.saveNewScene(self.sdCategory_comboBox.currentText(), userInitials, self.sdName_lineEdit.text(), subProject = subProject, makeReference= self.sdMakeReference_checkbox.checkState())
         self.populateScenes()
 
     def setProject(self):
@@ -651,7 +758,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.scenes_listWidget.clear()
         self.version_comboBox.clear()
         self.notes_textEdit.clear()
-        self.scenesInCategory=self.manager.scanScenes(self.category_tabWidget.currentWidget().objectName())
+        self.scenesInCategory, subProjectFile=self.manager.scanScenes(self.category_tabWidget.currentWidget().objectName())
         if self.referenceMode_radioButton.isChecked():
             for i in self.scenesInCategory:
                 jsonFile = self.manager.loadJson()
@@ -662,6 +769,9 @@ class MainUI(QtWidgets.QMainWindow):
             # self.scenes_listWidget.addItems(self.scenesInCategory)
             for i in self.scenesInCategory:
                 self.scenes_listWidget.addItem(self.pathOps(i, "filename"))
+
+        self.manager.subProjectList = self.manager.loadJson(subProjectFile)
+        self.subProject_comboBox.addItems(["Default"] + (self.manager.subProjectList))
 
         # print scenesInCategory
 
