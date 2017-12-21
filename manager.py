@@ -3,6 +3,8 @@ import json
 import os, fnmatch
 from shutil import copyfile
 import maya.mel as mel
+import socket
+
 
 #### Import for UI
 import Qt
@@ -33,7 +35,12 @@ class TikManager(dict):
     def __init__(self):
         super(TikManager, self).__init__()
         self.currentProject = pm.workspace(q=1, rd=1)
-        self.validCategories = ["Model", "Animation", "Rig", "Shading", "Render", "Other"]
+        self.userDB = "M://Projects//__database//sceneManagerUsers.json"
+        if os.path.isfile(self.userDB):
+            self.userList = self.loadJson(self.userDB)
+        else:
+            self.userList = {"Generic":"gn"}
+        self.validCategories = ["Model", "Shading", "Rig", "Layout", "Animation",   "Render", "Other"]
         self.padding = 3
 
     def dumpJson(self, data,file):
@@ -55,7 +62,7 @@ class TikManager(dict):
         if not os.path.isdir(folder):
             os.makedirs(folder)
 
-    def saveNewScene(self, category, userName, shotName, *args, **kwargs):
+    def saveNewScene(self, category, userName, shotName, makeReference=True, *args, **kwargs):
         """
         Saves the scene with formatted name and creates a json file for the scene
         Args:
@@ -90,22 +97,30 @@ class TikManager(dict):
         sceneFile = os.path.join(shotPath, "{0}.mb".format(sceneName))
         pm.saveAs(sceneFile)
 
-        referenceName = "{0}_{1}_forReference".format(shotName, category)
-        referenceFile = os.path.join(shotPath, "{0}.mb".format(referenceName))
-        copyfile(sceneFile, referenceFile)
-
         jsonInfo = {}
+
+        if makeReference:
+            referenceName = "{0}_{1}_forReference".format(shotName, category)
+            referenceFile = os.path.join(shotPath, "{0}.mb".format(referenceName))
+            copyfile(sceneFile, referenceFile)
+            jsonInfo["ReferenceFile"] = referenceFile
+            jsonInfo["ReferencedVersion"] = version
+        else:
+            jsonInfo["ReferenceFile"] = None
+            jsonInfo["ReferencedVersion"] = None
+
         jsonInfo["Name"]=shotName
         jsonInfo["Path"]=shotPath
         jsonInfo["Category"]=category
         jsonInfo["Creator"]=userName
+        jsonInfo["CreatorHost"]=(socket.gethostname())
         # jsonInfo["CurrentVersion"]=001
         # jsonInfo["LastVersion"] = version
-        jsonInfo["ReferenceFile"]=referenceFile
-        jsonInfo["ReferencedVersion"]=version
+        # jsonInfo["ReferenceFile"]=referenceFile
+        # jsonInfo["ReferencedVersion"]=version
         jsonInfo["Versions"]=[[sceneFile, "Initial Save", userName]]
         self.dumpJson(jsonInfo, jsonFile)
-        print "New Scene Saved as %s" %sceneName
+        print "Base Scene Saved as %s" %sceneName
 
     def saveVersion(self, userName, makeReference=True, versionNotes="", *args, **kwargs):
         """
@@ -150,7 +165,7 @@ class TikManager(dict):
             sceneName = "{0}_{1}_{2}_v{3}".format(jsonInfo["Name"], jsonInfo["Category"], userName, str(currentVersion).zfill(self.padding))
             sceneFile = os.path.join(jsonInfo["Path"], "{0}.mb".format(sceneName))
             pm.saveAs(sceneFile)
-            jsonInfo["Versions"].append([sceneFile, versionNotes, userName])
+            jsonInfo["Versions"].append([sceneFile, versionNotes, userName, (socket.gethostname())])
 
             if makeReference:
                 referenceName = "{0}_{1}_forReference".format(shotName, category)
@@ -218,14 +233,20 @@ class TikManager(dict):
         Returns: None
 
         """
-
         jsonInfo = self.loadJson(jsonFile)
-        sceneFile = jsonInfo["Versions"][version][0]
+
+        if version == 0 or version > len(jsonInfo["Versions"]):
+            pm.error("version number mismatch - (makeReference method)")
+            return
+        print "anan", version
+        sceneFile = jsonInfo["Versions"][version-1][0]
         referenceName = "{0}_{1}_forReference".format(jsonInfo["Name"], jsonInfo["Category"])
-        referenceFile = os.path.join(jsonInfo["Path"]), "{0}.mb".format(referenceName)
+        referenceFile = os.path.join(jsonInfo["Path"], "{0}.mb".format(referenceName))
         copyfile(sceneFile, referenceFile)
         jsonInfo["ReferenceFile"] = referenceFile
         jsonInfo["ReferencedVersion"] = version
+
+        print referenceFile, version
         self.dumpJson(jsonInfo, jsonFile)
 
     def loadReference(self, jsonFile):
@@ -274,6 +295,7 @@ class MainUI(QtWidgets.QMainWindow):
         super(MainUI, self).__init__(parent=parent)
 
         self.manager = TikManager()
+        self.scenesInCategory = None
 
         self.setObjectName(("MainWindow"))
         self.resize(680, 600)
@@ -332,25 +354,12 @@ class MainUI(QtWidgets.QMainWindow):
         self.category_tabWidget.setAccessibleDescription((""))
         self.category_tabWidget.setDocumentMode(True)
         self.category_tabWidget.setObjectName(("category_tabWidget"))
-        
-        self.model_tab = QtWidgets.QWidget()
-        self.model_tab.setObjectName(("model_tab"))
-        self.category_tabWidget.addTab(self.model_tab, ("Model"))
-        self.shading_tab = QtWidgets.QWidget()
-        self.shading_tab.setObjectName(("shading_tab"))
-        self.category_tabWidget.addTab(self.shading_tab, ("Shading"))
-        self.rig_tab = QtWidgets.QWidget()
-        self.rig_tab.setObjectName(("rig_tab"))
-        self.category_tabWidget.addTab(self.rig_tab, ("Rig"))
-        self.animation_tab = QtWidgets.QWidget()
-        self.animation_tab.setObjectName(("animation_tab"))
-        self.category_tabWidget.addTab(self.animation_tab, ("Animation"))
-        self.render_tab = QtWidgets.QWidget()
-        self.render_tab.setObjectName(("render_tab"))
-        self.category_tabWidget.addTab(self.render_tab, ("Render"))
-        self.other_tab = QtWidgets.QWidget()
-        self.other_tab.setObjectName(("other_tab"))
-        self.category_tabWidget.addTab(self.other_tab, ("Other"))
+
+        for i in self.manager.validCategories:
+            self.preTab = QtWidgets.QWidget()
+            self.preTab.setObjectName((i))
+            self.category_tabWidget.addTab(self.preTab, (i))
+
 
         self.loadMode_radioButton = QtWidgets.QRadioButton(self.centralwidget)
         self.loadMode_radioButton.setGeometry(QtCore.QRect(30, 67, 82, 31))
@@ -381,18 +390,15 @@ class MainUI(QtWidgets.QMainWindow):
         self.userName_comboBox.setAccessibleName((""))
         self.userName_comboBox.setAccessibleDescription((""))
         self.userName_comboBox.setObjectName(("userName_comboBox"))
-        self.userName_comboBox.addItem((""))
-        self.userName_comboBox.setItemText(0, ("Arda Kutlu"))
-        self.userName_comboBox.addItem((""))
-        self.userName_comboBox.setItemText(1, ("Ilhan Yilmaz"))
-        self.userName_comboBox.addItem((""))
-        self.userName_comboBox.setItemText(2, ("Sinan Iren"))
-        self.userName_comboBox.addItem((""))
-        self.userName_comboBox.setItemText(3, ("Cihan Cicekel"))
-        self.userName_comboBox.addItem((""))
-        self.userName_comboBox.setItemText(4, ("Emir Karasakal"))
-        self.userName_comboBox.addItem((""))
-        self.userName_comboBox.setItemText(5, ("Orcun Ozdemir"))
+
+        userListSorted = sorted(self.manager.userList.keys())
+        for num in range (len(userListSorted)):
+            self.userName_comboBox.addItem((userListSorted[num]))
+            self.userName_comboBox.setItemText(num, (userListSorted[num]))
+
+        # self.userName_comboBox.addItem((""))
+        # self.userName_comboBox.setItemText(0, ("Arda Kutlu"))
+
 
         self.userName_label = QtWidgets.QLabel(self.centralwidget)
         self.userName_label.setGeometry(QtCore.QRect(520, 70, 31, 31))
@@ -513,11 +519,181 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.loadMode_radioButton.toggled.connect(lambda: self.load_pushButton.setText("Load Scene"))
         self.referenceMode_radioButton.toggled.connect(lambda: self.load_pushButton.setText("Reference Scene"))
+        self.loadMode_radioButton.toggled.connect(self.populateScenes)
+        self.referenceMode_radioButton.toggled.connect(self.populateScenes)
 
-        self.setProject_pushButton.clicked.connect(lambda: mel.eval("SetProject;"))
+        self.setProject_pushButton.clicked.connect(self.setProject)
+
+        self.category_tabWidget.currentChanged.connect(self.populateScenes)
+
+        self.scenes_listWidget.currentItemChanged.connect(self.sceneInfo)
+
+        self.makeReference_pushButton.clicked.connect(self.makeReference)
+
+        self.saveScene_pushButton.clicked.connect(self.saveDialogUI)
+
+        self.populateScenes()
+
+    def saveDialogUI(self):
+        self.save_Dialog = QtWidgets.QDialog(parent=self)
+        self.save_Dialog.setModal(True)
+        self.save_Dialog.setObjectName(("save_Dialog"))
+        self.save_Dialog.resize(255, 200)
+        self.save_Dialog.setMinimumSize(QtCore.QSize(255, 200))
+        self.save_Dialog.setMaximumSize(QtCore.QSize(255, 200))
+        self.save_Dialog.setWindowTitle(("Save New Base Scene"))
+        self.save_Dialog.setToolTip((""))
+        self.save_Dialog.setStatusTip((""))
+        self.save_Dialog.setWhatsThis((""))
+        self.save_Dialog.setAccessibleName((""))
+        self.save_Dialog.setAccessibleDescription((""))
+
+        self.sdName_label = QtWidgets.QLabel(self.save_Dialog)
+        self.sdName_label.setGeometry(QtCore.QRect(20, 30, 61, 20))
+        self.sdName_label.setToolTip((""))
+        self.sdName_label.setStatusTip((""))
+        self.sdName_label.setWhatsThis((""))
+        self.sdName_label.setAccessibleName((""))
+        self.sdName_label.setAccessibleDescription((""))
+        self.sdName_label.setFrameShape(QtWidgets.QFrame.Box)
+        self.sdName_label.setText(("Name"))
+        self.sdName_label.setObjectName(("sdName_label"))
+
+        self.sdName_lineEdit = QtWidgets.QLineEdit(self.save_Dialog)
+        self.sdName_lineEdit.setGeometry(QtCore.QRect(90, 30, 151, 20))
+        self.sdName_lineEdit.setToolTip((""))
+        self.sdName_lineEdit.setStatusTip((""))
+        self.sdName_lineEdit.setWhatsThis((""))
+        self.sdName_lineEdit.setAccessibleName((""))
+        self.sdName_lineEdit.setAccessibleDescription((""))
+        self.sdName_lineEdit.setText((""))
+        self.sdName_lineEdit.setCursorPosition(0)
+        self.sdName_lineEdit.setPlaceholderText(("Choose an unique name"))
+        self.sdName_lineEdit.setObjectName(("sdName_lineEdit"))
+
+        self.sdCategory_label = QtWidgets.QLabel(self.save_Dialog)
+        self.sdCategory_label.setGeometry(QtCore.QRect(20, 70, 61, 20))
+        self.sdCategory_label.setToolTip((""))
+        self.sdCategory_label.setStatusTip((""))
+        self.sdCategory_label.setWhatsThis((""))
+        self.sdCategory_label.setAccessibleName((""))
+        self.sdCategory_label.setAccessibleDescription((""))
+        self.sdCategory_label.setFrameShape(QtWidgets.QFrame.Box)
+        self.sdCategory_label.setText(("Category"))
+        self.sdCategory_label.setObjectName(("sdCategory_label"))
+
+        self.sdCategory_comboBox = QtWidgets.QComboBox(self.save_Dialog)
+        self.sdCategory_comboBox.setFocus()
+        self.sdCategory_comboBox.setGeometry(QtCore.QRect(90, 70, 151, 22))
+        self.sdCategory_comboBox.setToolTip((""))
+        self.sdCategory_comboBox.setStatusTip((""))
+        self.sdCategory_comboBox.setWhatsThis((""))
+        self.sdCategory_comboBox.setAccessibleName((""))
+        self.sdCategory_comboBox.setAccessibleDescription((""))
+        self.sdCategory_comboBox.setObjectName(("sdCategory_comboBox"))
+        for i in range (len(self.manager.validCategories)):
+            self.sdCategory_comboBox.addItem((self.manager.validCategories[i]))
+            self.sdCategory_comboBox.setItemText(i, (self.manager.validCategories[i]))
+
+        self.sdMakeReference_checkbox = QtWidgets.QCheckBox("Make it Reference", self.save_Dialog)
+        self.sdMakeReference_checkbox.setGeometry(QtCore.QRect(130, 110, 151, 22))
+
+        self.sd_buttonBox = QtWidgets.QDialogButtonBox(self.save_Dialog)
+        self.sd_buttonBox.setGeometry(QtCore.QRect(20, 150, 220, 32))
+        self.sd_buttonBox.setToolTip((""))
+        self.sd_buttonBox.setStatusTip((""))
+        self.sd_buttonBox.setWhatsThis((""))
+        self.sd_buttonBox.setAccessibleName((""))
+        self.sd_buttonBox.setAccessibleDescription((""))
+        self.sd_buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        self.sd_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
+        self.sd_buttonBox.setObjectName(("sd_buttonBox"))
+
+
+        self.sd_buttonBox.accepted.connect(self.saveBaseScene)
+        self.sd_buttonBox.accepted.connect(self.save_Dialog.accept)
+        self.sd_buttonBox.rejected.connect(self.save_Dialog.reject)
+        QtCore.QMetaObject.connectSlotsByName(self.save_Dialog)
+
+        self.save_Dialog.show()
+
+    def saveBaseScene(self):
+        userInitials = self.manager.userList[self.userName_comboBox.currentText()]
+        self.manager.saveNewScene(self.sdCategory_comboBox.currentText(), userInitials, self.sdName_lineEdit.text(), self.sdMakeReference_checkbox.checkState())
+        self.populateScenes()
 
     def setProject(self):
         mel.eval("SetProject;")
         self.manager.currentProject = pm.workspace(q=1, rd=1)
+        self.projectPath_lineEdit.setText(self.manager.currentProject)
         ## TODO INIT AGAIN
 
+    def testMethod(self):
+        print self.category_tabWidget.currentIndex()
+        print self.category_tabWidget.currentWidget().objectName()
+
+    def sceneInfo(self):
+        sceneData = self.manager.loadJson(self.scenesInCategory[self.scenes_listWidget.currentRow()])
+
+        self.version_comboBox.clear()
+        for num in range (len(sceneData["Versions"])):
+            self.version_comboBox.addItem("v{0}".format(str(num+1).zfill(3)))
+
+        if sceneData["ReferencedVersion"]:
+            self.version_comboBox.setCurrentIndex(sceneData["ReferencedVersion"]-1)
+        else:
+            self.version_comboBox.setCurrentIndex(len(sceneData["Versions"]))
+
+
+
+    def populateScenes(self):
+        # print self.category_tabWidget
+        self.scenes_listWidget.clear()
+        self.version_comboBox.clear()
+        self.notes_textEdit.clear()
+        self.scenesInCategory=self.manager.scanScenes(self.category_tabWidget.currentWidget().objectName())
+        if self.referenceMode_radioButton.isChecked():
+            for i in self.scenesInCategory:
+                jsonFile = self.manager.loadJson()
+                if jsonFile["ReferenceFile"]:
+                    self.scenes_listWidget.addItem(self.pathOps(i, "filename"))
+
+        else:
+            # self.scenes_listWidget.addItems(self.scenesInCategory)
+            for i in self.scenesInCategory:
+                self.scenes_listWidget.addItem(self.pathOps(i, "filename"))
+
+        # print scenesInCategory
+
+    def makeReference(self):
+        jsonFile = self.scenesInCategory[self.scenes_listWidget.currentRow()]
+        version = self.version_comboBox.currentIndex()
+        self.manager.makeReference(jsonFile, version+1)
+        # self.sceneInfo()
+
+    def pathOps(self, fullPath, mode):
+        """
+        performs basic path operations.
+        Args:
+            fullPath: (Unicode) Absolute Path
+            mode: (String) Valid modes are 'path', 'basename', 'filename', 'extension', 'drive'
+
+        Returns:
+            Unicode
+
+        """
+
+        if mode == "drive":
+            drive = os.path.splitdrive(fullPath)
+            return drive
+
+        path, basename = os.path.split(fullPath)
+        if mode == "path":
+            return path
+        if mode == "basename":
+            return basename
+        filename, ext = os.path.splitext(basename)
+        if mode == "filename":
+            return filename
+        if mode == "extension":
+            return ext
