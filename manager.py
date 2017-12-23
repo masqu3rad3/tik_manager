@@ -90,7 +90,7 @@ class TikManager(dict):
             self.userList = loadJson(self.userDB)
         else:
             self.userList = {"Generic":"gn"}
-        self.validCategories = ["Model", "Shading", "Rig", "Layout", "Animation",   "Render", "Other"]
+        self.validCategories = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
         self.padding = 3
         dump, self.subProjectList = self.scanScenes(self.validCategories[0])
 
@@ -102,6 +102,10 @@ class TikManager(dict):
             category: (String) Category if the scene. Valid categories are 'Model', 'Animation', 'Rig', 'Shading', 'Other'
             userName: (String) Predefined user who initiates the process
             shotName: (String) Base name of the scene. Eg. 'Shot01', 'CharacterA', 'BookRig' etc...
+            subProject: (Integer) The scene will be saved under the sub-project according to the given integer value. The 'self.subProjectList' will be
+                searched with that integer.
+            makeReference: (Boolean) If set True, a copy of the scene will be saved as forReference
+            versionNotes: (String) This string will be stored in the json file as version notes.
             *args: 
             **kwargs: 
 
@@ -346,8 +350,8 @@ class TikManager(dict):
 
         sceneFile = jsonInfo["Versions"][version][0] ## this is the absolute scene path of the specified version
 
-
-        pm.openFile(sceneFile, prompt=False, force=force)
+        cmds.file(sceneFile, o=True, force=force)
+        # pm.openFile(sceneFile, prompt=False, force=force)
 
     def makeReference(self, jsonFile, version):
         """
@@ -662,9 +666,10 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.makeReference_pushButton.clicked.connect(self.makeReference)
 
-        self.saveScene_pushButton.clicked.connect(self.saveDialogUI)
+        self.saveScene_pushButton.clicked.connect(self.saveBaseSceneDialog)
 
-        self.saveAsVersion_pushButton.clicked.connect(self.onSaveAsVersion)
+        self.saveAsVersion_pushButton.clicked.connect(self.saveAsVersionDialog)
+        # self.saveAsVersion_pushButton.clicked.connect(self.onSaveAsVersion)
 
         self.subProject_pushbutton.clicked.connect(self.createSubProjectUI)
 
@@ -674,10 +679,43 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.version_comboBox.activated.connect(self.refreshNotes)
 
+        self.scenes_listWidget.doubleClicked.connect(self.onloadScene)
+
+        ## RIGHT CLICK MENUS
+        self.scenes_listWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.scenes_listWidget.customContextMenuRequested.connect(self.on_context_menu)
+        self.popMenu = QtWidgets.QMenu()
+
+        rcAction_1 = QtWidgets.QAction('Show in Explorer', self)
+        self.popMenu.addAction(rcAction_1)
+        rcAction_1.triggered.connect(lambda : self.rcAction("showInExplorer"))
+
+        # swAction = QtWidgets.QAction('Show Wireframe', self)
+        # self.popMenu.addAction(swAction)
+        # swAction.triggered.connect(lambda item='swPath': self.actionTrigger(item))
+
+        # self.popMenu.addSeparator()
+
+        # importWithCopyAction = QtWidgets.QAction('Import and Copy Textures', self)
+        # self.popMenu.addAction(importWithCopyAction)
+        # importWithCopyAction.triggered.connect(lambda item='importWithCopy': self.actionTrigger(item))
+
+        #######
+
         self.populateScenes()
 
+    def rcAction(self, command):
+        if command == "showInExplorer":
+            print self.scenesInCategory
+            row = self.scenes_listWidget.currentRow()
+            if not row == -1:
+                sceneData = loadJson(self.scenesInCategory[row])
+                os.startfile(sceneData["Path"])
 
 
+    def on_context_menu(self, point):
+        # show context menu
+        self.popMenu.exec_(self.scenes_listWidget.mapToGlobal(point))
 
     def onSubProjectChanged(self):
         self.manager.currentSubProject=self.subProject_comboBox.currentIndex()
@@ -690,7 +728,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.populateScenes()
 
 
-    def saveDialogUI(self):
+    def saveBaseSceneDialog(self):
         self.save_Dialog = QtWidgets.QDialog(parent=self)
         self.save_Dialog.setModal(True)
         self.save_Dialog.setObjectName(("save_Dialog"))
@@ -827,10 +865,74 @@ class MainUI(QtWidgets.QMainWindow):
         else:
             self.infoPop(textHeader="Save Base Scene FAILED", textInfo="", textTitle="ERROR: Saving Base Scene", type="C")
 
+    def saveAsVersionDialog(self):
+        saveV_Dialog = QtWidgets.QDialog(parent=self)
+        saveV_Dialog.setModal(True)
+        saveV_Dialog.setObjectName(("saveV_Dialog"))
+        saveV_Dialog.resize(255, 290)
+        saveV_Dialog.setMinimumSize(QtCore.QSize(255, 290))
+        saveV_Dialog.setMaximumSize(QtCore.QSize(255, 290))
+        saveV_Dialog.setWindowTitle(("Save As Version"))
+        saveV_Dialog.setToolTip((""))
+        saveV_Dialog.setStatusTip((""))
+        saveV_Dialog.setWhatsThis((""))
+        saveV_Dialog.setAccessibleName((""))
+        saveV_Dialog.setAccessibleDescription((""))
+
+        svNotes_label = QtWidgets.QLabel(saveV_Dialog)
+        svNotes_label.setGeometry(QtCore.QRect(15, 15, 61, 20))
+        svNotes_label.setToolTip((""))
+        svNotes_label.setStatusTip((""))
+        svNotes_label.setWhatsThis((""))
+        svNotes_label.setAccessibleName((""))
+        svNotes_label.setAccessibleDescription((""))
+        svNotes_label.setText(("Version Notes"))
+        svNotes_label.setObjectName(("sdNotes_label"))
+
+        self.svNotes_textEdit = QtWidgets.QTextEdit(saveV_Dialog)
+        self.svNotes_textEdit.setGeometry(QtCore.QRect(15, 40, 215, 170))
+        self.svNotes_textEdit.setToolTip((""))
+        self.svNotes_textEdit.setStatusTip((""))
+        self.svNotes_textEdit.setWhatsThis((""))
+        self.svNotes_textEdit.setAccessibleName((""))
+        self.svNotes_textEdit.setAccessibleDescription((""))
+        self.svNotes_textEdit.setObjectName(("sdNotes_textEdit"))
+
+
+        self.svMakeReference_checkbox = QtWidgets.QCheckBox("Make it Reference", saveV_Dialog)
+        self.svMakeReference_checkbox.setGeometry(QtCore.QRect(130, 215, 151, 22))
+        self.svMakeReference_checkbox.setChecked(True)
+
+        sv_buttonBox = QtWidgets.QDialogButtonBox(saveV_Dialog)
+        sv_buttonBox.setGeometry(QtCore.QRect(20, 250, 220, 32))
+        sv_buttonBox.setToolTip((""))
+        sv_buttonBox.setStatusTip((""))
+        sv_buttonBox.setWhatsThis((""))
+        sv_buttonBox.setAccessibleName((""))
+        sv_buttonBox.setAccessibleDescription((""))
+        sv_buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        sv_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Save | QtWidgets.QDialogButtonBox.Cancel)
+
+        buttonS = sv_buttonBox.button(QtWidgets.QDialogButtonBox.Save)
+        buttonS.setText('Save As Version')
+        buttonC = sv_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel)
+        buttonC.setText('Cancel')
+
+
+        sv_buttonBox.setObjectName(("sd_buttonBox"))
+
+
+        sv_buttonBox.accepted.connect(self.onSaveAsVersion)
+        sv_buttonBox.accepted.connect(saveV_Dialog.accept)
+        sv_buttonBox.rejected.connect(saveV_Dialog.reject)
+        QtCore.QMetaObject.connectSlotsByName(saveV_Dialog)
+
+        saveV_Dialog.show()
+
 
     def onSaveAsVersion(self):
         userInitials = self.manager.userList[self.userName_comboBox.currentText()]
-        sceneFile=self.manager.saveVersion(userInitials)
+        sceneFile=self.manager.saveVersion(userInitials, makeReference=self.svMakeReference_checkbox.checkState(), versionNotes=self.svNotes_textEdit.toPlainText())
         self.populateScenes()
         if not sceneFile == -1:
             self.infoPop(textHeader="Save Version Successfull",textInfo="New Version of Base Scene saved as {0}".format(sceneFile),textTitle="Saved New Version", type="I")
@@ -850,8 +952,13 @@ class MainUI(QtWidgets.QMainWindow):
 
     def sceneInfo(self):
         ## //TODO : SHOW REFERENCED SCENES WITH DIFFERENT COLOR
-        sceneData = loadJson(self.scenesInCategory[self.scenes_listWidget.currentRow()])
         self.version_comboBox.clear()
+
+        row = self.scenes_listWidget.currentRow()
+        if row == -1:
+            return
+        sceneData = loadJson(self.scenesInCategory[row])
+
         for num in range (len(sceneData["Versions"])):
             self.version_comboBox.addItem("v{0}".format(str(num+1).zfill(3)))
 
@@ -865,9 +972,11 @@ class MainUI(QtWidgets.QMainWindow):
         self.notes_textEdit.setPlainText(sceneData["Versions"][currentIndex][1])
 
     def refreshNotes(self):
-        sceneData = loadJson(self.scenesInCategory[self.scenes_listWidget.currentRow()])
-        currentIndex = self.version_comboBox.currentIndex()
-        self.notes_textEdit.setPlainText(sceneData["Versions"][currentIndex][1])
+        row = self.scenes_listWidget.currentRow()
+        if not row == -1:
+            sceneData = loadJson(self.scenesInCategory[row])
+            currentIndex = self.version_comboBox.currentIndex()
+            self.notes_textEdit.setPlainText(sceneData["Versions"][currentIndex][1])
 
     def populateScenes(self):
         self.scenes_listWidget.clear()
@@ -892,8 +1001,15 @@ class MainUI(QtWidgets.QMainWindow):
         self.subProject_comboBox.setCurrentIndex(self.manager.currentSubProject)
 
     def onloadScene(self):
-        print "HERE"
-        sceneJson = self.scenesInCategory[self.scenes_listWidget.currentRow()]
+
+        # print "cirt:", self.scenes_listWidget.currentItem()
+        # print "cort:", self.scenes_listWidget.currentRow()
+        row = self.scenes_listWidget.currentRow()
+        if row == -1:
+            pm.warning("no scene selected")
+            return
+        sceneJson = self.scenesInCategory[row]
+
         if self.loadMode_radioButton.isChecked():
             fileCheckState = cmds.file(q=True, modified=True)
             ## Eger dosya save edilmemisse:
@@ -926,10 +1042,12 @@ class MainUI(QtWidgets.QMainWindow):
 
 
     def makeReference(self):
-        jsonFile = self.scenesInCategory[self.scenes_listWidget.currentRow()]
-        version = self.version_comboBox.currentIndex()
-        self.manager.makeReference(jsonFile, version+1)
-        # self.sceneInfo()
+        row = self.scenes_listWidget.currentRow()
+        if not row == -1:
+            jsonFile = self.scenesInCategory[row]
+            version = self.version_comboBox.currentIndex()
+            self.manager.makeReference(jsonFile, version+1)
+            # self.sceneInfo()
 
 
     def infoPop(self, textTitle="info", textHeader="", textInfo="", type="I"):
