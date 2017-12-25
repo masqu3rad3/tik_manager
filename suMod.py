@@ -3,3 +3,4 @@ class SuManager(object):
         super(SuManager, self).__init__()
 
     def passwCheck(self):
+        pass
