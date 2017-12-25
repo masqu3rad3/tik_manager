@@ -6,6 +6,8 @@ import maya.mel as mel
 import maya.cmds as cmds
 import socket
 import filecmp
+import re
+import unicodedata
 
 
 #### Import for UI
@@ -53,6 +55,36 @@ def dumpJson(data, file):
     with open(file, "w") as f:
         json.dump(data, f, indent=4)
 
+def nameCheck(text):
+    # if isinstance(text, unicode):
+    #     try:
+    #         text.encode('ascii')
+    #     except UnicodeEncodeError:
+    #         return -1
+    # else:
+    #     try:
+    #         text.decode('ascii')
+    #     except UnicodeDecodeError:
+    #         return -1
+    # text = text.replace(" ", "_")
+    # return text
+
+    if re.match("^[A-Za-z0-9_-]*$", text):
+        text = text.replace(" ", "_")
+        return text
+    else:
+        return -1
+
+        # unicodedata.normalize('NFKD', title).encode('ascii', 'ignore')
+    # 'Kluft skrams infor pa federal electoral groe'
+    # if not type(name) == unicode:
+    #     unicode(name, "utf-8")
+    # fChars = {u'\xe7':"c", u'\xfc':"u", u'\xf6':"o", u' ':"_"}
+    # for f in fChars.keys():
+    #     if f in name:
+    #         name = name.replace(f, fChars[f])
+    # return name
+    #
 
 def pathOps(fullPath, mode):
     """
@@ -648,6 +680,24 @@ class MainUI(QtWidgets.QMainWindow):
         self.setStatusBar(self.statusbar)
         self.setStatusBar(self.statusbar)
 
+        file = self.menubar.addMenu("File")
+        settings = QtWidgets.QAction("&Settings", self)
+        reBuildDatabase = QtWidgets.QAction("&Re-build Project Database", self)
+        file.addAction(settings)
+        file.addAction(reBuildDatabase)
+
+        # settings.triggered.connect()
+        reBuildDatabase.triggered.connect(self.onRebuildDB)
+
+        tools = self.menubar.addMenu("Tools")
+        foolsMate = QtWidgets.QAction("&Fool's Mate", self)
+        tools.addAction(foolsMate)
+        submitToDeadline = QtWidgets.QAction("&Submit to Deadline", self)
+        tools.addAction(submitToDeadline)
+
+        # foolsMate.triggered.connect()
+        # submitToDeadline.triggered.connect()
+
         self.loadMode_radioButton.toggled.connect(lambda: self.version_comboBox.setEnabled(self.loadMode_radioButton.isChecked()))
         self.loadMode_radioButton.toggled.connect(lambda: self.version_label.setEnabled(self.loadMode_radioButton.isChecked()))
         self.loadMode_radioButton.toggled.connect(lambda: self.makeReference_pushButton.setEnabled(self.loadMode_radioButton.isChecked()))
@@ -706,6 +756,13 @@ class MainUI(QtWidgets.QMainWindow):
         #######
 
         self.populateScenes()
+
+    def onRebuildDB(self):
+        pass
+
+
+
+
 
     def rcAction(self, command):
         if command == "showInExplorer":
@@ -861,7 +918,13 @@ class MainUI(QtWidgets.QMainWindow):
     def onSaveBaseScene(self):
         userInitials = self.manager.userList[self.userName_comboBox.currentText()]
         subProject = self.sdSubP_comboBox.currentIndex()
-        sceneFile = self.manager.saveNewScene(self.sdCategory_comboBox.currentText(), userInitials, self.sdName_lineEdit.text(), subProject = subProject, makeReference= self.sdMakeReference_checkbox.checkState(), versionNotes=self.sdNotes_textEdit.toPlainText())
+
+        name = nameCheck(self.sdName_lineEdit.text())
+        if name == -1:
+            self.infoPop(textHeader="Invalid characters. Use <A-Z> and <0-9>", textInfo="", textTitle="ERROR: ASCII Error", type="C")
+            return
+
+        sceneFile = self.manager.saveNewScene(self.sdCategory_comboBox.currentText(), userInitials, name, subProject = subProject, makeReference= self.sdMakeReference_checkbox.checkState(), versionNotes=self.sdNotes_textEdit.toPlainText())
         self.populateScenes()
         if not sceneFile == -1:
             self.infoPop(textHeader="Save Base Scene Successfull",textInfo="New Version of Base Scene saved as {0}".format(sceneFile),textTitle="Saved Base Scene", type="I")
@@ -923,8 +986,6 @@ class MainUI(QtWidgets.QMainWindow):
 
 
         sv_buttonBox.setObjectName(("sd_buttonBox"))
-
-
         sv_buttonBox.accepted.connect(self.onSaveAsVersion)
         sv_buttonBox.accepted.connect(saveV_Dialog.accept)
         sv_buttonBox.rejected.connect(saveV_Dialog.reject)
@@ -944,25 +1005,18 @@ class MainUI(QtWidgets.QMainWindow):
                 refVersion = data["Versions"][data["ReferencedVersion"]-1][0]
                 refFile = data["ReferenceFile"]
                 if filecmp.cmp(refVersion, refFile):
-                    color = "green"
-                    # print path, color
-
-
+                    color = QtGui.QColor(0, 255, 0, 255) #"green"
 
                 else:
-                    color = "red"
-                    # print path, color
-                # print z["ReferencedVersion"]
-                # print data["Versions"][data["ReferencedVersion"]-1][0]
-                # print data["ReferenceFile"]
+                    color = QtGui.QColor(255, 0, 0, 255) #"red"
 
             else:
-                color = "yellow"
+                color = QtGui.QColor(255, 255, 0, 255) #"yellow"
                 # print path, color
 
             index = self.scenesInCategory.index(path)
             if self.scenes_listWidget.item(index):
-                self.scenes_listWidget.item(index).setForeground(QtGui.QColor(color))
+                self.scenes_listWidget.item(index).setForeground(color)
 
 
 
