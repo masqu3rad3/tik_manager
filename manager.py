@@ -5,6 +5,7 @@ from shutil import copyfile
 import maya.mel as mel
 import maya.cmds as cmds
 import socket
+import filecmp
 
 
 #### Import for UI
@@ -676,6 +677,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.subProject_comboBox.activated.connect(self.onSubProjectChanged)
 
         self.load_pushButton.clicked.connect(self.onloadScene)
+        # self.load_pushButton.clicked.connect(self.referenceCheck)
+
 
         self.version_comboBox.activated.connect(self.refreshNotes)
 
@@ -929,6 +932,41 @@ class MainUI(QtWidgets.QMainWindow):
 
         saveV_Dialog.show()
 
+    def referenceCheck(self):
+        # for a in range (self.scenes_listWidget.count()):
+        #     print self.scenes_listWidget.item(a).text()
+        #
+        # print self.scenes_listWidget.item(0).text()
+
+        for path in self.scenesInCategory:
+            data = loadJson(path)
+            if data["ReferenceFile"]:
+                refVersion = data["Versions"][data["ReferencedVersion"]-1][0]
+                refFile = data["ReferenceFile"]
+                if filecmp.cmp(refVersion, refFile):
+                    color = "green"
+                    # print path, color
+
+
+
+                else:
+                    color = "red"
+                    # print path, color
+                # print z["ReferencedVersion"]
+                # print data["Versions"][data["ReferencedVersion"]-1][0]
+                # print data["ReferenceFile"]
+
+            else:
+                color = "yellow"
+                # print path, color
+
+            index = self.scenesInCategory.index(path)
+            if self.scenes_listWidget.item(index):
+                self.scenes_listWidget.item(index).setForeground(QtGui.QColor(color))
+
+
+
+
 
     def onSaveAsVersion(self):
         userInitials = self.manager.userList[self.userName_comboBox.currentText()]
@@ -1000,6 +1038,8 @@ class MainUI(QtWidgets.QMainWindow):
         # index = self.manager.subProjectList.index(self.manager.currentSubProject)
         self.subProject_comboBox.setCurrentIndex(self.manager.currentSubProject)
 
+        self.referenceCheck()
+
     def onloadScene(self):
 
         # print "cirt:", self.scenes_listWidget.currentItem()
@@ -1048,6 +1088,7 @@ class MainUI(QtWidgets.QMainWindow):
             version = self.version_comboBox.currentIndex()
             self.manager.makeReference(jsonFile, version+1)
             # self.sceneInfo()
+            self.populateScenes()
 
 
     def infoPop(self, textTitle="info", textHeader="", textInfo="", type="I"):
