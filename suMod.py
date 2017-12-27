@@ -1,6 +1,46 @@
+import pymel.core as pm
+import os
+
 class SuManager(object):
     def __init__(self):
         super(SuManager, self).__init__()
 
     def passwCheck(self):
-        pass
+        passw = raw_input()
+        if passw == "682":
+            return True
+        else:
+            return False
+
+    def rebuildDatabase(self):
+        if not self.passwCheck():
+            pm.warning ("Incorrect Password")
+            return
+        print "Work In Progress"
+
+    def deleteItem(self, jsonPath, jsonData):
+        if not self.passwCheck():
+            pm.warning ("Incorrect Password")
+            return
+        # get the scenePath
+        ## delete everything
+        for s in jsonData["Versions"]:
+            try:
+                os.remove(s[0])
+            except:
+                pass
+        if jsonData["ReferenceFile"]:
+            try:
+                os.remove(jsonData["ReferenceFile"])
+            except:
+                pass
+        try:
+            os.rmdir(jsonData["Path"])
+        except:
+            pass
+        try:
+            os.remove(jsonPath)
+        except:
+            pass
+
+

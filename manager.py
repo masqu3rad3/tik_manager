@@ -7,8 +7,10 @@ import maya.cmds as cmds
 import socket
 import filecmp
 import re
+import suMod
+reload(suMod)
 import unicodedata
-
+import pprint
 
 #### Import for UI
 import Qt
@@ -35,11 +37,9 @@ def getMayaMainWindow():
     ptr = wrapInstance(long(win), QtWidgets.QMainWindow)
     return ptr
 
-
 def folderCheck(folder):
     if not os.path.isdir(os.path.normpath(folder)):
         os.makedirs(os.path.normpath(folder))
-
 
 def loadJson(file):
     if os.path.isfile(file):
@@ -49,7 +49,6 @@ def loadJson(file):
             return data
     else:
         return None
-
 
 def dumpJson(data, file):
     with open(file, "w") as f:
@@ -113,7 +112,7 @@ def pathOps(fullPath, mode):
     if mode == "extension":
         return ext
 
-class TikManager(dict):
+class TikManager(object):
     def __init__(self):
         super(TikManager, self).__init__()
         self.currentProject = pm.workspace(q=1, rd=1)
@@ -125,16 +124,41 @@ class TikManager(dict):
             self.userList = {"Generic":"gn"}
         self.validCategories = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
         self.padding = 3
-        dump, self.subProjectList = self.scanScenes(self.validCategories[0])
+        self.subProjectList = self.scanSubProjects()
+
+    def projectReport(self):
+
+        # // TODO Create a through REPORT
+        projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
+        dataPath = os.path.normpath(os.path.join(projectPath, "data"))
+        folderCheck(dataPath)
+        jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
+        folderCheck(jsonPath)
+        # get All json files:
+
+        report = {}
+        for subP in range (len(self.subProjectList)):
+            subReport={}
+            for category in self.validCategories:
+                categoryItems=(self.scanScenes(category, subProjectAs=subP)[0])
+                categoryItems = [x for x in categoryItems if x != []]
+                subReport[category]=categoryItems
+            # allItems.append(categoryItems)
+            report[self.subProjectList[subP]]=subReport
+        # L1 = "There are in total {0} Base Scenes in {1} Categories and {2} Sub-Projects".format
+        # pprint.pprint(report)
+        return report
 
 
-    def saveNewScene(self, category, userName, shotName, subProject=0, makeReference=True, versionNotes="", *args, **kwargs):
+
+
+    def saveNewScene(self, category, userName, baseName, subProject=0, makeReference=True, versionNotes="", *args, **kwargs):
         """
         Saves the scene with formatted name and creates a json file for the scene
         Args:
             category: (String) Category if the scene. Valid categories are 'Model', 'Animation', 'Rig', 'Shading', 'Other'
             userName: (String) Predefined user who initiates the process
-            shotName: (String) Base name of the scene. Eg. 'Shot01', 'CharacterA', 'BookRig' etc...
+            baseName: (String) Base name of the scene. Eg. 'Shot01', 'CharacterA', 'BookRig' etc...
             subProject: (Integer) The scene will be saved under the sub-project according to the given integer value. The 'self.subProjectList' will be
                 searched with that integer.
             makeReference: (Boolean) If set True, a copy of the scene will be saved as forReference
@@ -146,11 +170,21 @@ class TikManager(dict):
 
         """
 
+        scenesToCheck = self.scanScenes(category)[0]
+        for z in scenesToCheck:
+            if baseName == loadJson(z)["Name"]:
+                pm.warning("Choose an unique name")
+                return -1
+
+
+        # checkScenes = [c for c in self.scanScenes(category) if c["Name"] == baseName]
+        # print "checkScenes", checkScenes
+
         ## TODO // make sure for the unique naming
         projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
         dataPath = os.path.normpath(os.path.join(projectPath, "data"))
         folderCheck(dataPath)
-        jsonPath = os.path.normpath(os.path.join(dataPath, "json"))
+        jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
         folderCheck(jsonPath)
         jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
         folderCheck(jsonCategoryPath)
@@ -163,33 +197,33 @@ class TikManager(dict):
         if not subProject == 0:
             subProjectPath = os.path.normpath(os.path.join(categoryPath, self.subProjectList[subProject]))
             folderCheck(subProjectPath)
-            shotPath = os.path.normpath(os.path.join(subProjectPath, shotName))
+            shotPath = os.path.normpath(os.path.join(subProjectPath, baseName))
             folderCheck(shotPath)
 
             jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
             folderCheck(jsonCategoryPath)
             jsonCategorySubPath = os.path.normpath(os.path.join(jsonCategoryPath, self.subProjectList[subProject]))
             folderCheck(jsonCategorySubPath)
-            jsonFile = os.path.join(jsonCategorySubPath, "{}.json".format(shotName))
+            jsonFile = os.path.join(jsonCategorySubPath, "{}.json".format(baseName))
         else:
-            shotPath = os.path.normpath(os.path.join(categoryPath, shotName))
+            shotPath = os.path.normpath(os.path.join(categoryPath, baseName))
             folderCheck(shotPath)
 
             jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
             folderCheck(jsonCategoryPath)
-            jsonFile = os.path.join(jsonCategoryPath, "{}.json".format(shotName))
+            jsonFile = os.path.join(jsonCategoryPath, "{}.json".format(baseName))
 
         # jsonFile = os.path.join(jsonCategoryPath, "{}.json".format(shotName))
 
         version=1
-        sceneName = "{0}_{1}_{2}_v{3}".format(shotName, category, userName, str(version).zfill(self.padding))
+        sceneName = "{0}_{1}_{2}_v{3}".format(baseName, category, userName, str(version).zfill(self.padding))
         sceneFile = os.path.join(shotPath, "{0}.mb".format(sceneName))
         pm.saveAs(sceneFile)
 
         jsonInfo = {}
 
         if makeReference:
-            referenceName = "{0}_{1}_forReference".format(shotName, category)
+            referenceName = "{0}_{1}_forReference".format(baseName, category)
             referenceFile = os.path.join(shotPath, "{0}.mb".format(referenceName))
             copyfile(sceneFile, referenceFile)
             jsonInfo["ReferenceFile"] = referenceFile
@@ -198,7 +232,9 @@ class TikManager(dict):
             jsonInfo["ReferenceFile"] = None
             jsonInfo["ReferencedVersion"] = None
 
-        jsonInfo["Name"]=shotName
+        jsonInfo["ID"]="SceneManager_sceneFile"
+        jsonInfo["MayaVersion"]=pm.versions.current()
+        jsonInfo["Name"]=baseName
         jsonInfo["Path"]=shotPath
         jsonInfo["Category"]=category
         jsonInfo["Creator"]=userName
@@ -233,7 +269,7 @@ class TikManager(dict):
         projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
         dataPath = os.path.normpath(os.path.join(projectPath, "data"))
         folderCheck(dataPath)
-        jsonPath = os.path.normpath(os.path.join(dataPath, "json"))
+        jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
         folderCheck(jsonPath)
 
         # print "projectPath", projectPath
@@ -306,7 +342,7 @@ class TikManager(dict):
         projectPath = pm.workspace(q=1, rd=1)
         dataPath = os.path.normpath(os.path.join(projectPath, "data"))
         folderCheck(dataPath)
-        jsonPath = os.path.normpath(os.path.join(dataPath, "json"))
+        jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
         folderCheck(jsonPath)
         subPjson = os.path.normpath(os.path.join(jsonPath, "subPdata.json"))
         subInfo = []
@@ -318,8 +354,23 @@ class TikManager(dict):
         dumpJson(subInfo, subPjson)
         return subInfo
 
+    def scanSubProjects(self):
+        projectPath = pm.workspace(q=1, rd=1)
+        dataPath = os.path.normpath(os.path.join(projectPath, "data"))
+        folderCheck(dataPath)
+        jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
+        folderCheck(jsonPath)
+        subPjson = os.path.normpath(os.path.join(jsonPath, "subPdata.json"))
+        if not os.path.isfile(subPjson):
+            subInfo = ["None"]
+            dumpJson(subInfo, subPjson)
 
-    def scanScenes(self, category):
+        else:
+            subInfo=loadJson(subPjson)
+        return subInfo
+
+
+    def scanScenes(self, category, subProjectAs=None):
         """
         Scans the folder for json files. Instead of scanning all of the json files at once, It will scan only the target category to speed up the process.
         Args:
@@ -328,10 +379,16 @@ class TikManager(dict):
         Returns: List of all json files in the category, sub-project json file
 
         """
+        # print self.currentSubProject
+        if not subProjectAs == None:
+            subProjectIndex = subProjectAs
+        else:
+            subProjectIndex = self.currentSubProject
+
         projectPath = pm.workspace(q=1, rd=1)
         dataPath = os.path.normpath(os.path.join(projectPath, "data"))
         folderCheck(dataPath)
-        jsonPath = os.path.normpath(os.path.join(dataPath, "json"))
+        jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
         folderCheck(jsonPath)
 
         subPjson = os.path.normpath(os.path.join(jsonPath, "subPdata.json"))
@@ -344,10 +401,13 @@ class TikManager(dict):
 
 
         # eger subproject olarak kaydedilecekse
-        if not (self.currentSubProject == 0):
+        if not (subProjectIndex == 0):
             jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
             folderCheck(jsonCategoryPath)
-            jsonCategorySubPath = os.path.normpath(os.path.join(jsonCategoryPath, self.subProjectList[self.currentSubProject]))
+
+            jsonCategorySubPath = os.path.normpath(os.path.join(jsonCategoryPath, (self.subProjectList)[subProjectIndex]))
+            # print "jsonCategorySubPath", jsonCategorySubPath
+
             folderCheck(jsonCategorySubPath)
             searchFolder = jsonCategorySubPath
         else:
@@ -682,12 +742,21 @@ class MainUI(QtWidgets.QMainWindow):
 
         file = self.menubar.addMenu("File")
         settings = QtWidgets.QAction("&Settings", self)
+        deleteFile = QtWidgets.QAction("&Delete Selected Base Scene", self)
         reBuildDatabase = QtWidgets.QAction("&Re-build Project Database", self)
+        projectReport = QtWidgets.QAction("&Project Report", self)
         file.addAction(settings)
+        file.addAction(deleteFile)
         file.addAction(reBuildDatabase)
+        file.addAction(projectReport)
 
         # settings.triggered.connect()
-        reBuildDatabase.triggered.connect(self.onRebuildDB)
+        deleteFile.triggered.connect(lambda: suMod.SuManager().deleteItem(self.scenesInCategory[self.scenes_listWidget.currentRow()], loadJson(self.scenesInCategory[self.scenes_listWidget.currentRow()])))
+        deleteFile.triggered.connect(self.populateScenes)
+        reBuildDatabase.triggered.connect(lambda: suMod.SuManager().rebuildDatabase())
+        # projectReport.triggered.connect(lambda: self.manager.projectReport())
+        projectReport.triggered.connect(lambda: self.passwordBridge())
+
 
         tools = self.menubar.addMenu("Tools")
         foolsMate = QtWidgets.QAction("&Fool's Mate", self)
@@ -757,12 +826,28 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.populateScenes()
 
-    def onRebuildDB(self):
-        pass
+    def rememberChanges(self, save=True):
+        homedir = os.path.expanduser("~")
+        settingsFilePath = os.path.join(homedir, "smSettings.json")
+        if os.path.isfile(settingsFilePath):
+            settingsData = loadJson(settingsFilePath)
+        else:
+            currentTabIndex = self.category_tabWidget.currentIndex()
+            currentSubIndex = self.subProject_comboBox.setCurrentIndex(self.manager.currentSubProject)
+            currentUserIndex = self.userName_comboBox.currentIndex()
+            if self.referenceMode_radioButton.isChecked():
+                currentMode = 1
+            else:
+                currentMode = 0
+
+            settingsData = {"currentTabIndex":currentTabIndex, "currentSubIndex":currentSubIndex, "currentUserIndex":currentUserIndex, "currentMode":currentMode}
+
+            dumpJson(settingsData, settingsFilePath)
 
 
 
-
+        # self.sdCategory_comboBox.setCurrentIndex(self.category_tabWidget.currentIndex())
+        # self.subProject_comboBox.setCurrentIndex(self.manager.currentSubProject)
 
     def rcAction(self, command):
         if command == "showInExplorer":
@@ -771,7 +856,6 @@ class MainUI(QtWidgets.QMainWindow):
             if not row == -1:
                 sceneData = loadJson(self.scenesInCategory[row])
                 os.startfile(sceneData["Path"])
-
 
     def on_context_menu(self, point):
         # show context menu
@@ -786,7 +870,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.subProject_comboBox.clear()
         self.manager.subProjectList = self.manager.createSubProject(nama)
         self.populateScenes()
-
 
     def saveBaseSceneDialog(self):
         self.save_Dialog = QtWidgets.QDialog(parent=self)
@@ -929,7 +1012,7 @@ class MainUI(QtWidgets.QMainWindow):
         if not sceneFile == -1:
             self.infoPop(textHeader="Save Base Scene Successfull",textInfo="New Version of Base Scene saved as {0}".format(sceneFile),textTitle="Saved Base Scene", type="I")
         else:
-            self.infoPop(textHeader="Save Base Scene FAILED", textInfo="", textTitle="ERROR: Saving Base Scene", type="C")
+            self.infoPop(textHeader="Save Base Scene FAILED. A Base Scene with the same name already exists in the same sub-project and same category. Choose an unique one.", textInfo="", textTitle="ERROR: Saving Base Scene", type="C")
 
     def saveAsVersionDialog(self):
         saveV_Dialog = QtWidgets.QDialog(parent=self)
@@ -1004,23 +1087,27 @@ class MainUI(QtWidgets.QMainWindow):
             if data["ReferenceFile"]:
                 refVersion = data["Versions"][data["ReferencedVersion"]-1][0]
                 refFile = data["ReferenceFile"]
-                if filecmp.cmp(refVersion, refFile):
-                    color = QtGui.QColor(0, 255, 0, 255) #"green"
+                if not os.path.isfile(refFile):
+                    # reference file does not exist at all
+                    color = QtGui.QColor(255, 0, 0, 255)  # "red"
 
                 else:
-                    color = QtGui.QColor(255, 0, 0, 255) #"red"
+                    if filecmp.cmp(refVersion, refFile):
+                        # no problem
+                        color = QtGui.QColor(0, 255, 0, 255) #"green"
+
+                    else:
+                        # checksum mismatch
+                        color = QtGui.QColor(255, 0, 0, 255) #"red"
 
             else:
+                #no reference defined for the base scene
                 color = QtGui.QColor(255, 255, 0, 255) #"yellow"
                 # print path, color
 
             index = self.scenesInCategory.index(path)
             if self.scenes_listWidget.item(index):
                 self.scenes_listWidget.item(index).setForeground(color)
-
-
-
-
 
     def onSaveAsVersion(self):
         userInitials = self.manager.userList[self.userName_comboBox.currentText()]
@@ -1036,14 +1123,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.manager.currentProject = pm.workspace(q=1, rd=1)
         self.projectPath_lineEdit.setText(self.manager.currentProject)
         self.populateScenes()
-        ## TODO INIT AGAIN
-
-    # def testMethod(self):
-    #     print self.category_tabWidget.currentIndex()
-    #     print self.category_tabWidget.currentWidget().objectName()
 
     def sceneInfo(self):
-        ## //TODO : SHOW REFERENCED SCENES WITH DIFFERENT COLOR
         self.version_comboBox.clear()
 
         row = self.scenes_listWidget.currentRow()
@@ -1071,11 +1152,17 @@ class MainUI(QtWidgets.QMainWindow):
             self.notes_textEdit.setPlainText(sceneData["Versions"][currentIndex][1])
 
     def populateScenes(self):
+
         self.scenes_listWidget.clear()
         self.version_comboBox.clear()
         self.notes_textEdit.clear()
         self.subProject_comboBox.clear()
+        # currentTabName = self.category_tabWidget.currentWidget().objectName()
+        # scannedScenes = self.manager.scanScenes(currentTabName)
+
         self.scenesInCategory, subProjectFile=self.manager.scanScenes(self.category_tabWidget.currentWidget().objectName())
+
+        # print "subProjectFile", subProjectFile
         if self.referenceMode_radioButton.isChecked():
             for i in self.scenesInCategory:
                 jsonFile = loadJson(i)
@@ -1086,13 +1173,17 @@ class MainUI(QtWidgets.QMainWindow):
             # self.scenes_listWidget.addItems(self.scenesInCategory)
             for i in self.scenesInCategory:
                 self.scenes_listWidget.addItem(pathOps(i, "filename"))
+            self.referenceCheck()
+        # self.manager.subProjectList = loadJson(subProjectFile)
 
-        self.manager.subProjectList = loadJson(subProjectFile)
+
         self.subProject_comboBox.addItems((self.manager.subProjectList))
         # index = self.manager.subProjectList.index(self.manager.currentSubProject)
+
+
         self.subProject_comboBox.setCurrentIndex(self.manager.currentSubProject)
 
-        self.referenceCheck()
+        # self.referenceCheck()
 
     def onloadScene(self):
 
@@ -1128,12 +1219,10 @@ class MainUI(QtWidgets.QMainWindow):
                 self.manager.loadScene(sceneJson, version=self.version_comboBox.currentIndex(), force=True)
 
         if self.referenceMode_radioButton.isChecked():
-            # print "ANAN?"
             self.manager.loadReference(sceneJson)
         #     self.manager.loadScene(sceneJson, version=self.version_comboBox.currentIndex(),force=True)
         # if self.referenceMode_radioButton.isChecked():
         #     pass
-
 
     def makeReference(self):
         row = self.scenes_listWidget.currentRow()
@@ -1143,7 +1232,6 @@ class MainUI(QtWidgets.QMainWindow):
             self.manager.makeReference(jsonFile, version+1)
             # self.sceneInfo()
             self.populateScenes()
-
 
     def infoPop(self, textTitle="info", textHeader="", textInfo="", type="I"):
         self.msg = QtWidgets.QMessageBox(parent=self)
@@ -1157,3 +1245,13 @@ class MainUI(QtWidgets.QMainWindow):
         self.msg.setWindowTitle(textTitle)
         self.msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
         self.msg.show()
+
+    def passwordBridge(self):
+        text, ok = QtWidgets.QInputDialog.getText(self, "TEXT INPUT DIAL", "Enter Admin Password:")
+        if ok:
+            return text
+        # pwDialog = QtWidgets.QDialog(parent=self)
+        # pwLabel = QtWidgets.QLabel("Enter the admin password", pwDialog)
+        # pw = QtWidgets.QLineEdit(pwDialog)
+        # pw.setEchoMode(QtWidgets.QLineEdit.Password)
+        # pwDialog.show()
