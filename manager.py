@@ -409,10 +409,7 @@ class TikManager(object):
                          compression='XVID',
                          forceOverwrite=True)
 
-            ### TODO // PUT THE INFO INTO JSON FILE
             ## find this version in the json data
-
-
             for i in jsonInfo["Versions"]:
                 if relVersionName == i[0]:
                     # print "bulundu", i
@@ -543,8 +540,10 @@ class TikManager(object):
         relSceneFile = jsonInfo["Versions"][version][0] ## this is the relative scene path of the specified version
         sceneFile = os.path.join(projectPath, relSceneFile)
         # sceneFile = "%s%s" %(projectPath, relSceneFile)
-
-        cmds.file(sceneFile, o=True, force=force)
+        if os.path.isfile(sceneFile):
+            cmds.file(sceneFile, o=True, force=force)
+        else:
+            pm.error("File in Scene Manager database doesnt exist")
 
     def makeReference(self, jsonFile, version):
         """
