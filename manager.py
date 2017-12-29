@@ -29,6 +29,14 @@ else:
     from shiboken2 import wrapInstance
     from Qt.QtCore import Signal
 
+def killTurtle():
+    print "turtle sikici"
+    if pm.ls('TurtleDefaultBakeLayer'):
+        pm.lockNode('TurtleDefaultBakeLayer', lock=False)
+        pm.delete('TurtleDefaultBakeLayer')
+        print "Turtle anani sikim"
+
+
 def getMayaMainWindow():
     """
     Gets the memory adress of the main window to connect Qt dialog to it.
@@ -88,6 +96,10 @@ def nameCheck(text):
     #         name = name.replace(f, fChars[f])
     # return name
     #
+#
+# def getRelativePath(projectPath, fullPath):
+#     cop, relativePath = os.path.normpath(fullPath).split(projectPath)
+#     return relativePath
 
 def pathOps(fullPath, mode):
     """
@@ -157,6 +169,7 @@ class TikManager(object):
 
 
 
+
     def saveNewScene(self, category, userName, baseName, subProject=0, makeReference=True, versionNotes="", *args, **kwargs):
         """
         Saves the scene with formatted name and creates a json file for the scene
@@ -218,6 +231,9 @@ class TikManager(object):
         version=1
         sceneName = "{0}_{1}_{2}_v{3}".format(baseName, category, userName, str(version).zfill(self.padding))
         sceneFile = os.path.join(shotPath, "{0}.mb".format(sceneName))
+        ## relativity update
+        relSceneFile = os.path.relpath(sceneFile, start=projectPath)
+        killTurtle()
         pm.saveAs(sceneFile)
 
         jsonInfo = {}
@@ -225,8 +241,10 @@ class TikManager(object):
         if makeReference:
             referenceName = "{0}_{1}_forReference".format(baseName, category)
             referenceFile = os.path.join(shotPath, "{0}.mb".format(referenceName))
+            ## relativity update
+            relReferenceFile = os.path.relpath(referenceFile, start=projectPath)
             copyfile(sceneFile, referenceFile)
-            jsonInfo["ReferenceFile"] = referenceFile
+            jsonInfo["ReferenceFile"] = relReferenceFile
             jsonInfo["ReferencedVersion"] = version
         else:
             jsonInfo["ReferenceFile"] = None
@@ -235,7 +253,7 @@ class TikManager(object):
         jsonInfo["ID"]="SceneManager_sceneFile"
         jsonInfo["MayaVersion"]=pm.versions.current()
         jsonInfo["Name"]=baseName
-        jsonInfo["Path"]=shotPath
+        jsonInfo["Path"]=os.path.relpath(shotPath, start=projectPath)
         jsonInfo["Category"]=category
         jsonInfo["Creator"]=userName
         jsonInfo["CreatorHost"]=(socket.gethostname())
@@ -243,10 +261,10 @@ class TikManager(object):
         # jsonInfo["LastVersion"] = version
         # jsonInfo["ReferenceFile"]=referenceFile
         # jsonInfo["ReferencedVersion"]=version
-        jsonInfo["Versions"]=[[sceneFile, versionNotes, userName, socket.gethostname(), None]] ## last item is for playplast
+        jsonInfo["Versions"]=[[relSceneFile, versionNotes, userName, socket.gethostname(), None]] ## last item is for playplast
         # jsonInfo["Playblast"]=None
         dumpJson(jsonInfo, jsonFile)
-        return sceneFile
+        return relSceneFile
 
     def saveVersion(self, userName, makeReference=True, versionNotes="", *args, **kwargs):
         """
@@ -306,21 +324,29 @@ class TikManager(object):
             currentVersion = len(jsonInfo["Versions"])+1
             # jsonInfo["LastVersion"] = jsonInfo["LastVersion"] + 1
             sceneName = "{0}_{1}_{2}_v{3}".format(jsonInfo["Name"], jsonInfo["Category"], userName, str(currentVersion).zfill(self.padding))
-            sceneFile = os.path.join(jsonInfo["Path"], "{0}.mb".format(sceneName))
+            relSceneFile = os.path.join(jsonInfo["Path"], "{0}.mb".format(sceneName))
+
+            # sceneFile = "%s%s" %(projectPath, relSceneFile)
+            sceneFile = os.path.join(projectPath, relSceneFile)
+
+            killTurtle()
             pm.saveAs(sceneFile)
-            jsonInfo["Versions"].append([sceneFile, versionNotes, userName, (socket.gethostname()), None]) ## last one is for playblast
+            jsonInfo["Versions"].append([relSceneFile, versionNotes, userName, (socket.gethostname()), None]) ## last one is for playblast
 
             if makeReference:
                 referenceName = "{0}_{1}_forReference".format(shotName, category)
-                referenceFile = os.path.join(jsonInfo["Path"], "{0}.mb".format(referenceName))
+                relReferenceFile = os.path.join(jsonInfo["Path"], "{0}.mb".format(referenceName))
+                # referenceFile = "%s%s" %(projectPath, relReferenceFile)
+                referenceFile = os.path.join(projectPath, relReferenceFile)
+
                 copyfile(sceneFile, referenceFile)
-                jsonInfo["ReferenceFile"] = referenceFile
+                jsonInfo["ReferenceFile"] = relReferenceFile
                 jsonInfo["ReferencedVersion"] = currentVersion
             dumpJson(jsonInfo, jsonFile)
         else:
             pm.warning("This is not a base scene (Json file cannot be found)")
             return -1
-        return sceneFile
+        return relSceneFile
 
     def createPlayblast(self, *args, **kwargs):
 
@@ -362,14 +388,21 @@ class TikManager(object):
 
         jsonFile = os.path.join(jsonPath, "{}.json".format(shotName))
 
+        playBlastRoot = os.path.normpath(os.path.join(projectPath, "Playblasts"))
+        folderCheck(playBlastRoot)
+        # playBlastPath =
+
         if os.path.isfile(jsonFile):
             jsonInfo = loadJson(jsonFile)
 
             versionName = pm.sceneName()
-            PlayBlastFile = "{0}_PB.avi".format (pathOps(versionName, mode="basename"))
+            relVersionName = os.path.relpath(versionName, start=projectPath)
+            relPlayBlastFile = "{0}_PB.avi".format (pathOps(versionName, mode="basename"))
+
+            playBlastFile = os.path.join(projectPath, relPlayBlastFile)
 
             pm.playblast(format='avi',
-                         filename=PlayBlastFile,
+                         filename=playBlastFile,
                          widthHeight=(1280, 720),
                          percent=100,
                          quality=100,
@@ -377,6 +410,15 @@ class TikManager(object):
                          forceOverwrite=True)
 
             ### TODO // PUT THE INFO INTO JSON FILE
+            ## find this version in the json data
+
+
+            for i in jsonInfo["Versions"]:
+                if relVersionName == i[0]:
+                    # print "bulundu", i
+                    i[4]=relPlayBlastFile
+
+            # print "jasohbn", jsonInfo
 
             # jsonInfo["Versions"].append([sceneFile, versionNotes, userName, (socket.gethostname())])
             dumpJson(jsonInfo, jsonFile)
@@ -388,8 +430,14 @@ class TikManager(object):
 
 
 
-    def playPlayblast(self):
-        pass
+    def playPlayblast(self, jsonFile, version=None):
+        projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
+        jsonInfo = loadJson(jsonFile)
+        relPBfile = jsonInfo["Versions"][version][4] ## this is the relative path of the playblast for specified version
+        PBfile = os.path.join(projectPath, relPBfile)
+        # PBfile = "%s%s" %(projectPath, relPBfile)
+        print "PBfile is:", PBfile
+        os.startfile(PBfile)
 
     def createSubProject(self, nameOfSubProject):
         if (nameOfSubProject.lower()) == "none":
@@ -424,7 +472,6 @@ class TikManager(object):
         else:
             subInfo=loadJson(subPjson)
         return subInfo
-
 
     def scanScenes(self, category, subProjectAs=None):
         """
@@ -490,16 +537,14 @@ class TikManager(object):
 
         """
         ## TODO // Check for the target path exists
-        jsonInfo = loadJson(jsonFile)
-        # if not version:
-        #     sceneFile = jsonInfo["Versions"][-1][0] ## this is the absolute scene path of the last saved version
-        # else:
-        #     sceneFile = jsonInfo["Versions"][version-1][0] ## this is the absolute scene path of the specified version
 
-        sceneFile = jsonInfo["Versions"][version][0] ## this is the absolute scene path of the specified version
+        projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
+        jsonInfo = loadJson(jsonFile)
+        relSceneFile = jsonInfo["Versions"][version][0] ## this is the relative scene path of the specified version
+        sceneFile = os.path.join(projectPath, relSceneFile)
+        # sceneFile = "%s%s" %(projectPath, relSceneFile)
 
         cmds.file(sceneFile, o=True, force=force)
-        # pm.openFile(sceneFile, prompt=False, force=force)
 
     def makeReference(self, jsonFile, version):
         """
@@ -513,25 +558,37 @@ class TikManager(object):
         Returns: None
 
         """
+
+        projectPath = pm.workspace(q=1, rd=1)
         jsonInfo = loadJson(jsonFile)
 
         if version == 0 or version > len(jsonInfo["Versions"]):
             pm.error("version number mismatch - (makeReference method)")
             return
-        sceneFile = jsonInfo["Versions"][version-1][0]
+        relSceneFile = jsonInfo["Versions"][version-1][0]
+
+        # sceneFile = "%s%s" %(projectPath, relSceneFile)
+        sceneFile = os.path.join(projectPath, relSceneFile)
+
         referenceName = "{0}_{1}_forReference".format(jsonInfo["Name"], jsonInfo["Category"])
-        referenceFile = os.path.join(jsonInfo["Path"], "{0}.mb".format(referenceName))
+        relReferenceFile = os.path.join(jsonInfo["Path"], "{0}.mb".format(referenceName))
+        # referenceFile = "%s%s" %(projectPath, relReferenceFile)
+        referenceFile = os.path.join(projectPath, relReferenceFile)
         copyfile(sceneFile, referenceFile)
-        jsonInfo["ReferenceFile"] = referenceFile
+        jsonInfo["ReferenceFile"] = relReferenceFile
         jsonInfo["ReferencedVersion"] = version
 
         dumpJson(jsonInfo, jsonFile)
 
     def loadReference(self, jsonFile):
+        projectPath = pm.workspace(q=1, rd=1)
         jsonInfo = loadJson(jsonFile)
-        referenceFile = jsonInfo["ReferenceFile"]
+        relReferenceFile = jsonInfo["ReferenceFile"]
+
         # os.path.isfile(referenceFile)
-        if referenceFile:
+        if relReferenceFile:
+            # referenceFile = "%s%s" % (projectPath, relReferenceFile)
+            referenceFile = os.path.join(projectPath, relReferenceFile)
             # pm.FileReference(referenceFile)
             cmds.file(os.path.normpath(referenceFile), reference=True)
         else:
@@ -735,6 +792,16 @@ class MainUI(QtWidgets.QMainWindow):
         self.version_label.setText(("Version:"))
         self.version_label.setObjectName(("version_label"))
 
+        self.showPB_pushButton = QtWidgets.QPushButton(self.centralwidget)
+        self.showPB_pushButton.setGeometry(QtCore.QRect(580, 151, 72, 28))
+        self.showPB_pushButton.setToolTip((""))
+        self.showPB_pushButton.setStatusTip((""))
+        self.showPB_pushButton.setWhatsThis((""))
+        self.showPB_pushButton.setAccessibleName((""))
+        self.showPB_pushButton.setAccessibleDescription((""))
+        self.showPB_pushButton.setText(("Show PB"))
+        self.showPB_pushButton.setObjectName(("showPB_pushButton"))
+
         self.makeReference_pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.makeReference_pushButton.setGeometry(QtCore.QRect(430, 200, 131, 23))
         self.makeReference_pushButton.setToolTip(("Creates a copy the scene as \'forReference\' file"))
@@ -802,10 +869,12 @@ class MainUI(QtWidgets.QMainWindow):
         deleteFile = QtWidgets.QAction("&Delete Selected Base Scene", self)
         reBuildDatabase = QtWidgets.QAction("&Re-build Project Database", self)
         projectReport = QtWidgets.QAction("&Project Report", self)
+        test = QtWidgets.QAction("&test", self)
         file.addAction(settings)
         file.addAction(deleteFile)
         file.addAction(reBuildDatabase)
         file.addAction(projectReport)
+        file.addAction(test)
 
         # settings.triggered.connect(self.userPrefSave)
         deleteFile.triggered.connect(lambda: self.passwordBridge(command="deleteItem"))
@@ -813,6 +882,7 @@ class MainUI(QtWidgets.QMainWindow):
         reBuildDatabase.triggered.connect(lambda: suMod.SuManager().rebuildDatabase())
         # projectReport.triggered.connect(lambda: self.manager.projectReport())
         projectReport.triggered.connect(lambda: self.passwordBridge())
+        test.triggered.connect(self.manager.createPlayblast)
 
 
         tools = self.menubar.addMenu("Tools")
@@ -824,16 +894,19 @@ class MainUI(QtWidgets.QMainWindow):
         # foolsMate.triggered.connect()
         # submitToDeadline.triggered.connect()
 
-        self.loadMode_radioButton.toggled.connect(lambda: self.version_comboBox.setEnabled(self.loadMode_radioButton.isChecked()))
-        self.loadMode_radioButton.toggled.connect(lambda: self.version_label.setEnabled(self.loadMode_radioButton.isChecked()))
-        self.loadMode_radioButton.toggled.connect(lambda: self.makeReference_pushButton.setEnabled(self.loadMode_radioButton.isChecked()))
-        self.loadMode_radioButton.toggled.connect(lambda: self.notes_label.setEnabled(self.loadMode_radioButton.isChecked()))
-        self.loadMode_radioButton.toggled.connect(lambda: self.notes_textEdit.setEnabled(self.loadMode_radioButton.isChecked()))
+        self.loadMode_radioButton.toggled.connect(self.onRadioButtonsToggled)
+        self.referenceMode_radioButton.toggled.connect(self.onRadioButtonsToggled)
 
-        self.loadMode_radioButton.toggled.connect(lambda: self.load_pushButton.setText("Load Scene"))
-        self.referenceMode_radioButton.toggled.connect(lambda: self.load_pushButton.setText("Reference Scene"))
-        self.loadMode_radioButton.toggled.connect(self.populateScenes)
-        self.referenceMode_radioButton.toggled.connect(self.populateScenes)
+        # self.loadMode_radioButton.toggled.connect(lambda: self.version_comboBox.setEnabled(self.loadMode_radioButton.isChecked()))
+        # self.loadMode_radioButton.toggled.connect(lambda: self.version_label.setEnabled(self.loadMode_radioButton.isChecked()))
+        # self.loadMode_radioButton.toggled.connect(lambda: self.makeReference_pushButton.setEnabled(self.loadMode_radioButton.isChecked()))
+        # self.loadMode_radioButton.toggled.connect(lambda: self.notes_label.setEnabled(self.loadMode_radioButton.isChecked()))
+        # self.loadMode_radioButton.toggled.connect(lambda: self.notes_textEdit.setEnabled(self.loadMode_radioButton.isChecked()))
+
+        # self.loadMode_radioButton.toggled.connect(lambda: self.load_pushButton.setText("Load Scene"))
+        # self.referenceMode_radioButton.toggled.connect(lambda: self.load_pushButton.setText("Reference Scene"))
+        # self.loadMode_radioButton.toggled.connect(self.populateScenes)
+        # self.referenceMode_radioButton.toggled.connect(self.populateScenes)
 
         self.setProject_pushButton.clicked.connect(self.onSetProject)
 
@@ -860,6 +933,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.scenes_listWidget.doubleClicked.connect(self.onloadScene)
 
+        self.showPB_pushButton.clicked.connect(self.onShowPBclicked)
+
         ## RIGHT CLICK MENUS
         self.scenes_listWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.scenes_listWidget.customContextMenuRequested.connect(self.on_context_menu)
@@ -885,6 +960,30 @@ class MainUI(QtWidgets.QMainWindow):
         self.userPrefLoad()
         self.populateScenes()
 
+    def onShowPBclicked(self):
+        row = self.scenes_listWidget.currentRow()
+        if row == -1:
+            pm.warning("no scene selected")
+            return
+        sceneJson = self.scenesInCategory[row]
+        version = self.version_comboBox.currentIndex()
+
+        self.manager.playPlayblast(sceneJson, version=version)
+
+
+
+    def onRadioButtonsToggled(self):
+        state=self.loadMode_radioButton.isChecked()
+        self.version_label.setEnabled(state)
+        self.makeReference_pushButton.setEnabled(state)
+        self.notes_label.setEnabled(state)
+        self.notes_textEdit.setEnabled(state)
+        self.showPB_pushButton.setEnabled(state)
+        if state:
+            self.load_pushButton.setText("Load Scene")
+        else:
+            self.load_pushButton.setText("Reference Scene")
+        self.populateScenes()
 
     # def closeEvent(self, event):
     #     print "Saving preferences..."
@@ -940,10 +1039,14 @@ class MainUI(QtWidgets.QMainWindow):
 
     def rcAction(self, command):
         if command == "showInExplorer":
+
             row = self.scenes_listWidget.currentRow()
             if not row == -1:
                 sceneData = loadJson(self.scenesInCategory[row])
-                os.startfile(sceneData["Path"])
+                # path = os.path.join(os.path.normpath(self.manager.currentProject), sceneData["Path"])
+                # path = "%s%s" %(os.path.normpath(self.manager.currentProject), os.path.normpath(sceneData["Path"]))
+                path = os.path.join(os.path.normpath(self.manager.currentProject), os.path.normpath(sceneData["Path"]))
+                os.startfile(path)
 
     def on_context_menu(self, point):
         # show context menu
@@ -1173,12 +1276,20 @@ class MainUI(QtWidgets.QMainWindow):
         saveV_Dialog.show()
 
     def referenceCheck(self):
-
+        projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
         for path in self.scenesInCategory:
             data = loadJson(path)
             if data["ReferenceFile"]:
-                refVersion = data["Versions"][data["ReferencedVersion"]-1][0]
-                refFile = data["ReferenceFile"]
+                relRefVersion = data["Versions"][data["ReferencedVersion"]-1][0]
+
+                # refVersion = "%s%s" %(projectPath, relRefVersion)
+                refVersion = os.path.join(projectPath, relRefVersion)
+
+                relRefFile = data["ReferenceFile"]
+
+                # refFile = "%s%s" %(projectPath, relRefFile)
+                refFile = os.path.join(projectPath, relRefFile)
+
                 if not os.path.isfile(refFile):
                     # reference file does not exist at all
                     color = QtGui.QColor(255, 0, 0, 255)  # "red"
@@ -1234,6 +1345,9 @@ class MainUI(QtWidgets.QMainWindow):
             # self.version_comboBox.setCurrentIndex(len(sceneData["Versions"])-1)
         self.version_comboBox.setCurrentIndex(currentIndex)
         self.notes_textEdit.setPlainText(sceneData["Versions"][currentIndex][1])
+        self.refreshNotes()
+
+
 
     def refreshNotes(self):
         row = self.scenes_listWidget.currentRow()
@@ -1241,6 +1355,14 @@ class MainUI(QtWidgets.QMainWindow):
             sceneData = loadJson(self.scenesInCategory[row])
             currentIndex = self.version_comboBox.currentIndex()
             self.notes_textEdit.setPlainText(sceneData["Versions"][currentIndex][1])
+
+            if sceneData["Versions"][currentIndex][4]:
+                self.showPB_pushButton.setEnabled(True)
+            else:
+                self.showPB_pushButton.setEnabled(False)
+        else:
+
+            self.showPB_pushButton.setEnabled(False)
 
     def populateScenes(self):
 
@@ -1272,7 +1394,7 @@ class MainUI(QtWidgets.QMainWindow):
 
 
         self.subProject_comboBox.setCurrentIndex(self.manager.currentSubProjectIndex)
-
+        self.refreshNotes()
         self.userPrefSave()
 
         # self.referenceCheck()
