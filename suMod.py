@@ -5,8 +5,8 @@ class SuManager(object):
     def __init__(self):
         super(SuManager, self).__init__()
 
-    def passwCheck(self):
-        passw = raw_input()
+    def passwCheck(self, passw):
+        # passw = raw_input()
         if passw == "682":
             return True
         else:
@@ -18,8 +18,8 @@ class SuManager(object):
             return
         print "Work In Progress"
 
-    def deleteItem(self, jsonPath, jsonData):
-        if not self.passwCheck():
+    def deleteItem(self, jsonPath, jsonData, passw):
+        if not self.passwCheck(passw):
             pm.warning ("Incorrect Password")
             return
         # get the scenePath

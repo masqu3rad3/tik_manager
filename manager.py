@@ -12,6 +12,8 @@ reload(suMod)
 import unicodedata
 import pprint
 
+
+
 #### Import for UI
 import Qt
 from Qt import QtWidgets, QtCore, QtGui
@@ -69,6 +71,8 @@ def nameCheck(text):
     # return text
 
     if re.match("^[A-Za-z0-9_-]*$", text):
+        if text == "":
+            return -1
         text = text.replace(" ", "_")
         return text
     else:
@@ -116,7 +120,8 @@ class TikManager(object):
     def __init__(self):
         super(TikManager, self).__init__()
         self.currentProject = pm.workspace(q=1, rd=1)
-        self.currentSubProject = 0
+        self.currentSubProjectIndex = 0
+
         self.userDB = "M://Projects//__database//sceneManagerUsers.json"
         if os.path.isfile(self.userDB):
             self.userList = loadJson(self.userDB)
@@ -170,17 +175,12 @@ class TikManager(object):
 
         """
 
-        scenesToCheck = self.scanScenes(category)[0]
+        scenesToCheck = self.scanScenes(category, subProjectAs=subProject)[0]
         for z in scenesToCheck:
             if baseName == loadJson(z)["Name"]:
                 pm.warning("Choose an unique name")
                 return -1
 
-
-        # checkScenes = [c for c in self.scanScenes(category) if c["Name"] == baseName]
-        # print "checkScenes", checkScenes
-
-        ## TODO // make sure for the unique naming
         projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
         dataPath = os.path.normpath(os.path.join(projectPath, "data"))
         folderCheck(dataPath)
@@ -243,7 +243,8 @@ class TikManager(object):
         # jsonInfo["LastVersion"] = version
         # jsonInfo["ReferenceFile"]=referenceFile
         # jsonInfo["ReferencedVersion"]=version
-        jsonInfo["Versions"]=[[sceneFile, versionNotes, userName]]
+        jsonInfo["Versions"]=[[sceneFile, versionNotes, userName, socket.gethostname(), None]] ## last item is for playplast
+        # jsonInfo["Playblast"]=None
         dumpJson(jsonInfo, jsonFile)
         return sceneFile
 
@@ -272,30 +273,19 @@ class TikManager(object):
         jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
         folderCheck(jsonPath)
 
-        # print "projectPath", projectPath
-        #
-        # print "dataPath", dataPath
-        #
-        # print "jsonPath", jsonPath
-
         # first get the parent dir
         shotDirectory = os.path.abspath(os.path.join(pm.sceneName(), os.pardir))
         shotName = os.path.basename(shotDirectory)
 
-        # print "shotDirectory", shotDirectory
-
         upperShotDir = os.path.abspath(os.path.join(shotDirectory, os.pardir))
         upperShot = os.path.basename(upperShotDir)
 
-        # print "upperShotDir", upperShotDir
 
         if upperShot in self.subProjectList:
             subProjectDir= upperShotDir
             subProject = upperShot
             categoryDir = os.path.abspath(os.path.join(subProjectDir, os.pardir))
             category = os.path.basename(categoryDir)
-            print "categoryDir", categoryDir
-            print "category", category
 
             jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
             folderCheck(jsonCategoryPath)
@@ -308,10 +298,7 @@ class TikManager(object):
             jsonPath = os.path.normpath(os.path.join(jsonPath, category))
             folderCheck(jsonPath)
 
-        # print "jsonCategoryPath", jsonCategoryPath
         jsonFile = os.path.join(jsonPath, "{}.json".format(shotName))
-
-        # print "jsonFile", jsonFile, os.path.isfile(jsonFile)
 
         if os.path.isfile(jsonFile):
             jsonInfo = loadJson(jsonFile)
@@ -321,7 +308,7 @@ class TikManager(object):
             sceneName = "{0}_{1}_{2}_v{3}".format(jsonInfo["Name"], jsonInfo["Category"], userName, str(currentVersion).zfill(self.padding))
             sceneFile = os.path.join(jsonInfo["Path"], "{0}.mb".format(sceneName))
             pm.saveAs(sceneFile)
-            jsonInfo["Versions"].append([sceneFile, versionNotes, userName, (socket.gethostname())])
+            jsonInfo["Versions"].append([sceneFile, versionNotes, userName, (socket.gethostname()), None]) ## last one is for playblast
 
             if makeReference:
                 referenceName = "{0}_{1}_forReference".format(shotName, category)
@@ -334,6 +321,75 @@ class TikManager(object):
             pm.warning("This is not a base scene (Json file cannot be found)")
             return -1
         return sceneFile
+
+    def createPlayblast(self, *args, **kwargs):
+
+        sceneName = pm.sceneName()
+        if not sceneName:
+            pm.warning("This is not a base scene. Scene must be saved as a base scene before playblasting.")
+            return -1
+
+        projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
+        dataPath = os.path.normpath(os.path.join(projectPath, "data"))
+        folderCheck(dataPath)
+        jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
+        folderCheck(jsonPath)
+
+        # first get the parent dir
+        shotDirectory = os.path.abspath(os.path.join(pm.sceneName(), os.pardir))
+        shotName = os.path.basename(shotDirectory)
+
+        upperShotDir = os.path.abspath(os.path.join(shotDirectory, os.pardir))
+        upperShot = os.path.basename(upperShotDir)
+
+
+        if upperShot in self.subProjectList:
+            subProjectDir= upperShotDir
+            subProject = upperShot
+            categoryDir = os.path.abspath(os.path.join(subProjectDir, os.pardir))
+            category = os.path.basename(categoryDir)
+
+            jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
+            folderCheck(jsonCategoryPath)
+            jsonPath = os.path.normpath(os.path.join(jsonCategoryPath, subProject))
+            folderCheck(jsonPath)
+
+        else:
+            categoryDir = upperShotDir
+            category = upperShot
+            jsonPath = os.path.normpath(os.path.join(jsonPath, category))
+            folderCheck(jsonPath)
+
+        jsonFile = os.path.join(jsonPath, "{}.json".format(shotName))
+
+        if os.path.isfile(jsonFile):
+            jsonInfo = loadJson(jsonFile)
+
+            versionName = pm.sceneName()
+            PlayBlastFile = "{0}_PB.avi".format (pathOps(versionName, mode="basename"))
+
+            pm.playblast(format='avi',
+                         filename=PlayBlastFile,
+                         widthHeight=(1280, 720),
+                         percent=100,
+                         quality=100,
+                         compression='XVID',
+                         forceOverwrite=True)
+
+            ### TODO // PUT THE INFO INTO JSON FILE
+
+            # jsonInfo["Versions"].append([sceneFile, versionNotes, userName, (socket.gethostname())])
+            dumpJson(jsonInfo, jsonFile)
+        else:
+            pm.warning("This is not a base scene (Json file cannot be found)")
+            return -1
+
+        #######
+
+
+
+    def playPlayblast(self):
+        pass
 
     def createSubProject(self, nameOfSubProject):
         if (nameOfSubProject.lower()) == "none":
@@ -350,7 +406,7 @@ class TikManager(object):
             subInfo= loadJson(subPjson)
 
         subInfo.append(nameOfSubProject)
-        self.currentSubProject = len(subInfo)-1 ## make the current sub project index the new created one.
+        self.currentSubProjectIndex = len(subInfo) - 1 ## make the current sub project index the new created one.
         dumpJson(subInfo, subPjson)
         return subInfo
 
@@ -379,11 +435,11 @@ class TikManager(object):
         Returns: List of all json files in the category, sub-project json file
 
         """
-        # print self.currentSubProject
+
         if not subProjectAs == None:
             subProjectIndex = subProjectAs
         else:
-            subProjectIndex = self.currentSubProject
+            subProjectIndex = self.currentSubProjectIndex
 
         projectPath = pm.workspace(q=1, rd=1)
         dataPath = os.path.normpath(os.path.join(projectPath, "data"))
@@ -400,13 +456,12 @@ class TikManager(object):
         # searchFolder = jsonCategoryPath
 
 
-        # eger subproject olarak kaydedilecekse
+        # eger subproject olarak aranilacaksa
         if not (subProjectIndex == 0):
             jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
             folderCheck(jsonCategoryPath)
 
             jsonCategorySubPath = os.path.normpath(os.path.join(jsonCategoryPath, (self.subProjectList)[subProjectIndex]))
-            # print "jsonCategorySubPath", jsonCategorySubPath
 
             folderCheck(jsonCategorySubPath)
             searchFolder = jsonCategorySubPath
@@ -476,7 +531,6 @@ class TikManager(object):
         jsonInfo = loadJson(jsonFile)
         referenceFile = jsonInfo["ReferenceFile"]
         # os.path.isfile(referenceFile)
-        # print "ANAN:", os.path.isfile(referenceFile)
         if referenceFile:
             # pm.FileReference(referenceFile)
             cmds.file(os.path.normpath(referenceFile), reference=True)
@@ -497,6 +551,9 @@ class MainUI(QtWidgets.QMainWindow):
         super(MainUI, self).__init__(parent=parent)
 
         self.manager = TikManager()
+
+
+
         self.scenesInCategory = None
 
         self.setObjectName(("SceneManager"))
@@ -750,8 +807,8 @@ class MainUI(QtWidgets.QMainWindow):
         file.addAction(reBuildDatabase)
         file.addAction(projectReport)
 
-        # settings.triggered.connect()
-        deleteFile.triggered.connect(lambda: suMod.SuManager().deleteItem(self.scenesInCategory[self.scenes_listWidget.currentRow()], loadJson(self.scenesInCategory[self.scenes_listWidget.currentRow()])))
+        # settings.triggered.connect(self.userPrefSave)
+        deleteFile.triggered.connect(lambda: self.passwordBridge(command="deleteItem"))
         deleteFile.triggered.connect(self.populateScenes)
         reBuildDatabase.triggered.connect(lambda: suMod.SuManager().rebuildDatabase())
         # projectReport.triggered.connect(lambda: self.manager.projectReport())
@@ -797,7 +854,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.load_pushButton.clicked.connect(self.onloadScene)
         # self.load_pushButton.clicked.connect(self.referenceCheck)
-
+        self.userName_comboBox.currentIndexChanged.connect(self.onUsernameChanged)
 
         self.version_comboBox.activated.connect(self.refreshNotes)
 
@@ -823,35 +880,66 @@ class MainUI(QtWidgets.QMainWindow):
         # importWithCopyAction.triggered.connect(lambda item='importWithCopy': self.actionTrigger(item))
 
         #######
+        shortcutRefresh = Qt.QtWidgets.QShortcut(Qt.QtGui.QKeySequence("F5"), self, self.populateScenes)
 
+        self.userPrefLoad()
         self.populateScenes()
 
-    def rememberChanges(self, save=True):
+
+    # def closeEvent(self, event):
+    #     print "Saving preferences..."
+    #     self.userPrefSave()
+    #     event.accept()
+
+    def userPrefSave(self):
+        # pass
+
+        homedir = os.path.expanduser("~")
+        settingsFilePath = os.path.join(homedir, "smSettings.json")
+
+        settingsData = {"currentTabIndex": self.category_tabWidget.currentIndex(),
+                        "currentSubIndex": self.subProject_comboBox.currentIndex(),
+                        "currentUserIndex": self.userName_comboBox.currentIndex(),
+                        "currentMode": self.referenceMode_radioButton.isChecked()}
+
+        dumpJson(settingsData, settingsFilePath)
+
+    def userPrefLoad(self):
+        # pass
         homedir = os.path.expanduser("~")
         settingsFilePath = os.path.join(homedir, "smSettings.json")
         if os.path.isfile(settingsFilePath):
             settingsData = loadJson(settingsFilePath)
         else:
-            currentTabIndex = self.category_tabWidget.currentIndex()
-            currentSubIndex = self.subProject_comboBox.setCurrentIndex(self.manager.currentSubProject)
-            currentUserIndex = self.userName_comboBox.currentIndex()
-            if self.referenceMode_radioButton.isChecked():
-                currentMode = 1
-            else:
-                currentMode = 0
-
-            settingsData = {"currentTabIndex":currentTabIndex, "currentSubIndex":currentSubIndex, "currentUserIndex":currentUserIndex, "currentMode":currentMode}
-
+            # return defaults
+            settingsData = {"currentTabIndex": 0, "currentSubIndex": 0, "currentUserIndex": 0, "currentMode": 0}
             dumpJson(settingsData, settingsFilePath)
 
+        self.referenceMode_radioButton.setChecked(settingsData["currentMode"])
+        self.loadMode_radioButton.setChecked(not settingsData["currentMode"])
 
+        if settingsData["currentUserIndex"] <= (len(self.manager.userList)):
+            currentUserIndex = settingsData["currentUserIndex"]
+        else:
+            currentUserIndex = 0
+        # self.manager.currentUserIndex=currentUserIndex
+        self.userName_comboBox.setCurrentIndex(currentUserIndex)
 
-        # self.sdCategory_comboBox.setCurrentIndex(self.category_tabWidget.currentIndex())
-        # self.subProject_comboBox.setCurrentIndex(self.manager.currentSubProject)
+        if settingsData["currentSubIndex"] <= (len(self.manager.subProjectList)):
+            currentSubIndex = settingsData["currentSubIndex"]
+        else:
+            currentSubIndex = 0
+
+        self.manager.currentSubProjectIndex=currentSubIndex
+        self.subProject_comboBox.setCurrentIndex(currentSubIndex)
+
+        self.category_tabWidget.setCurrentIndex(settingsData["currentTabIndex"])
+
+    def onUsernameChanged(self):
+        self.userPrefSave()
 
     def rcAction(self, command):
         if command == "showInExplorer":
-            print self.scenesInCategory
             row = self.scenes_listWidget.currentRow()
             if not row == -1:
                 sceneData = loadJson(self.scenesInCategory[row])
@@ -862,14 +950,20 @@ class MainUI(QtWidgets.QMainWindow):
         self.popMenu.exec_(self.scenes_listWidget.mapToGlobal(point))
 
     def onSubProjectChanged(self):
-        self.manager.currentSubProject=self.subProject_comboBox.currentIndex()
+        self.manager.currentSubProjectIndex=self.subProject_comboBox.currentIndex()
         self.populateScenes()
 
     def createSubProjectUI(self):
-        nama = raw_input()
-        self.subProject_comboBox.clear()
-        self.manager.subProjectList = self.manager.createSubProject(nama)
-        self.populateScenes()
+
+        newSub, ok = QtWidgets.QInputDialog.getText(self, "Create New Sub-Project", "Enter an unique Sub-Project name:")
+        if ok:
+            name = nameCheck(newSub)
+            if not name == -1:
+                self.subProject_comboBox.clear()
+                self.manager.subProjectList = self.manager.createSubProject(name)
+                self.populateScenes()
+            else:
+                self.infoPop(textTitle="Naming Error", textHeader="Naming Error", textInfo="Choose an unique name with latin characters", type="C")
 
     def saveBaseSceneDialog(self):
         self.save_Dialog = QtWidgets.QDialog(parent=self)
@@ -1001,6 +1095,7 @@ class MainUI(QtWidgets.QMainWindow):
     def onSaveBaseScene(self):
         userInitials = self.manager.userList[self.userName_comboBox.currentText()]
         subProject = self.sdSubP_comboBox.currentIndex()
+        print subProject
 
         name = nameCheck(self.sdName_lineEdit.text())
         if name == -1:
@@ -1008,11 +1103,12 @@ class MainUI(QtWidgets.QMainWindow):
             return
 
         sceneFile = self.manager.saveNewScene(self.sdCategory_comboBox.currentText(), userInitials, name, subProject = subProject, makeReference= self.sdMakeReference_checkbox.checkState(), versionNotes=self.sdNotes_textEdit.toPlainText())
-        self.populateScenes()
+
         if not sceneFile == -1:
             self.infoPop(textHeader="Save Base Scene Successfull",textInfo="New Version of Base Scene saved as {0}".format(sceneFile),textTitle="Saved Base Scene", type="I")
         else:
             self.infoPop(textHeader="Save Base Scene FAILED. A Base Scene with the same name already exists in the same sub-project and same category. Choose an unique one.", textInfo="", textTitle="ERROR: Saving Base Scene", type="C")
+        self.populateScenes()
 
     def saveAsVersionDialog(self):
         saveV_Dialog = QtWidgets.QDialog(parent=self)
@@ -1077,10 +1173,6 @@ class MainUI(QtWidgets.QMainWindow):
         saveV_Dialog.show()
 
     def referenceCheck(self):
-        # for a in range (self.scenes_listWidget.count()):
-        #     print self.scenes_listWidget.item(a).text()
-        #
-        # print self.scenes_listWidget.item(0).text()
 
         for path in self.scenesInCategory:
             data = loadJson(path)
@@ -1103,7 +1195,6 @@ class MainUI(QtWidgets.QMainWindow):
             else:
                 #no reference defined for the base scene
                 color = QtGui.QColor(255, 255, 0, 255) #"yellow"
-                # print path, color
 
             index = self.scenesInCategory.index(path)
             if self.scenes_listWidget.item(index):
@@ -1162,7 +1253,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.scenesInCategory, subProjectFile=self.manager.scanScenes(self.category_tabWidget.currentWidget().objectName())
 
-        # print "subProjectFile", subProjectFile
         if self.referenceMode_radioButton.isChecked():
             for i in self.scenesInCategory:
                 jsonFile = loadJson(i)
@@ -1181,14 +1271,14 @@ class MainUI(QtWidgets.QMainWindow):
         # index = self.manager.subProjectList.index(self.manager.currentSubProject)
 
 
-        self.subProject_comboBox.setCurrentIndex(self.manager.currentSubProject)
+        self.subProject_comboBox.setCurrentIndex(self.manager.currentSubProjectIndex)
+
+        self.userPrefSave()
 
         # self.referenceCheck()
 
     def onloadScene(self):
 
-        # print "cirt:", self.scenes_listWidget.currentItem()
-        # print "cort:", self.scenes_listWidget.currentRow()
         row = self.scenes_listWidget.currentRow()
         if row == -1:
             pm.warning("no scene selected")
@@ -1246,10 +1336,14 @@ class MainUI(QtWidgets.QMainWindow):
         self.msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
         self.msg.show()
 
-    def passwordBridge(self):
-        text, ok = QtWidgets.QInputDialog.getText(self, "TEXT INPUT DIAL", "Enter Admin Password:")
+    def passwordBridge(self, command):
+        passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query", "Enter Admin Password:", QtWidgets.QLineEdit.Password)
         if ok:
-            return text
+            if command == "deleteItem":
+                ## TODO // If no item is selected should skip it
+                suMod.SuManager().deleteItem(self.scenesInCategory[self.scenes_listWidget.currentRow()], loadJson(self.scenesInCategory[self.scenes_listWidget.currentRow()]),passw)
+
+            return passw
         # pwDialog = QtWidgets.QDialog(parent=self)
         # pwLabel = QtWidgets.QLabel("Enter the admin password", pwDialog)
         # pw = QtWidgets.QLineEdit(pwDialog)
