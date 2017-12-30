@@ -151,6 +151,8 @@ def getPathsFromScene(*args, **kwargs):
             returnList.append(scenesPath)
         if i=="playBlastRoot":
             returnList.append(playBlastRoot)
+    if len(returnList)<2:
+        returnList = returnList[0]
     return returnList
 
 class TikManager(object):
@@ -378,6 +380,28 @@ class TikManager(object):
             return -1
         return relSceneFile
 
+    def playblastSettings(self):
+
+        ## TODO / WIP
+
+        projectPath, playBlastRoot = getPathsFromScene("projectPath","playBlastRoot")
+
+        pbSettingsFile = "{0}PBsettings.json".format(os.path.join(projectPath, playBlastRoot))
+
+        if not os.path.isfile(pbSettingsFile):
+            defaultSettings={"Resolution":(1280,720),
+                             "Codec":"IYUV",
+                             "Percent":100,
+                             "Quality":100,
+                             "Username":True,
+                             "FrameNumber":True,
+                             "SceneName":False,
+                             "Category":False,
+                             "FPS":True,
+                             "PolygonOnly":True,
+
+            }
+
     def createPlayblast(self, *args, **kwargs):
 
         sceneName = pm.sceneName()
@@ -446,12 +470,15 @@ class TikManager(object):
             playBlastFile = os.path.join(pbPath, "{0}_PB.avi".format (pathOps(versionName, mode="filename")))
             relPlayBlastFile = os.path.relpath(playBlastFile, start=projectPath)
 
+            ## TODO // Prepare the scene and hud interface before
+            ## Check here: http://download.autodesk.com/us/maya/2011help/pymel/generated/functions/pymel.core.windows/pymel.core.windows.headsUpDisplay.html
+
             pm.playblast(format='avi',
                          filename=playBlastFile,
                          widthHeight=(1280, 720),
                          percent=100,
                          quality=100,
-                         compression='XVID',
+                         compression='IYUV',
                          forceOverwrite=True)
 
             ## find this version in the json data
@@ -604,9 +631,9 @@ class TikManager(object):
         Returns: None
 
         """
-        ## TODO // BURADA PROBLEM VAR
+
         # projectPath = pm.workspace(q=1, rd=1)
-        projectPath = getPathsFromScene("projectPath")[0]
+        projectPath = getPathsFromScene("projectPath")
         jsonInfo = loadJson(jsonFile)
 
         if version == 0 or version > len(jsonInfo["Versions"]):
