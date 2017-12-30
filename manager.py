@@ -605,7 +605,8 @@ class TikManager(object):
 
         """
         ## TODO // BURADA PROBLEM VAR
-        projectPath = getPathsFromScene("projectPath")
+        # projectPath = pm.workspace(q=1, rd=1)
+        projectPath = getPathsFromScene("projectPath")[0]
         jsonInfo = loadJson(jsonFile)
 
         if version == 0 or version > len(jsonInfo["Versions"]):
@@ -615,7 +616,6 @@ class TikManager(object):
 
         # sceneFile = "%s%s" %(projectPath, relSceneFile)
         sceneFile = os.path.join(projectPath, relSceneFile)
-
         referenceName = "{0}_{1}_forReference".format(jsonInfo["Name"], jsonInfo["Category"])
         relReferenceFile = os.path.join(jsonInfo["Path"], "{0}.mb".format(referenceName))
         # referenceFile = "%s%s" %(projectPath, relReferenceFile)
