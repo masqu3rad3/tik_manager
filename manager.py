@@ -128,6 +128,31 @@ def pathOps(fullPath, mode):
     if mode == "extension":
         return ext
 
+def getPathsFromScene(*args, **kwargs):
+
+    projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
+    dataPath = os.path.normpath(os.path.join(projectPath, "data"))
+    folderCheck(dataPath)
+    jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
+    folderCheck(jsonPath)
+    scenesPath = os.path.normpath(os.path.join(projectPath, "scenes"))
+    folderCheck(scenesPath)
+    playBlastRoot = os.path.normpath(os.path.join(projectPath, "Playblasts"))
+    folderCheck(playBlastRoot)
+    returnList = []
+    for i in args:
+        if i == "projectPath":
+            returnList.append(projectPath)
+        if i== "dataPath":
+            returnList.append(dataPath)
+        if i=="jsonPath":
+            returnList.append(jsonPath)
+        if i=="scenesPath":
+            returnList.append(scenesPath)
+        if i=="playBlastRoot":
+            returnList.append(playBlastRoot)
+    return returnList
+
 class TikManager(object):
     def __init__(self):
         super(TikManager, self).__init__()
@@ -142,6 +167,8 @@ class TikManager(object):
         self.validCategories = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
         self.padding = 3
         self.subProjectList = self.scanSubProjects()
+
+
 
     def projectReport(self):
 
@@ -165,10 +192,6 @@ class TikManager(object):
         # L1 = "There are in total {0} Base Scenes in {1} Categories and {2} Sub-Projects".format
         # pprint.pprint(report)
         return report
-
-
-
-
 
     def saveNewScene(self, category, userName, baseName, subProject=0, makeReference=True, versionNotes="", *args, **kwargs):
         """
@@ -194,17 +217,23 @@ class TikManager(object):
                 pm.warning("Choose an unique name")
                 return -1
 
-        projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
-        dataPath = os.path.normpath(os.path.join(projectPath, "data"))
-        folderCheck(dataPath)
-        jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
-        folderCheck(jsonPath)
-        jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
-        folderCheck(jsonCategoryPath)
-        scenesPath = os.path.normpath(os.path.join(projectPath, "scenes"))
-        folderCheck(scenesPath)
+        projectPath, jsonPath, scenesPath = getPathsFromScene("projectPath", "jsonPath", "scenesPath")
         categoryPath = os.path.normpath(os.path.join(scenesPath, category))
         folderCheck(category)
+
+        # projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
+        # dataPath = os.path.normpath(os.path.join(projectPath, "data"))
+        # folderCheck(dataPath)
+        # jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
+        # folderCheck(jsonPath)
+        # jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
+        # folderCheck(jsonCategoryPath)
+        # scenesPath = os.path.normpath(os.path.join(projectPath, "scenes"))
+        # folderCheck(scenesPath)
+        # categoryPath = os.path.normpath(os.path.join(scenesPath, category))
+        # folderCheck(category)
+
+
 
         ## eger subproject olarak kaydedilecekse
         if not subProject == 0:
@@ -285,11 +314,12 @@ class TikManager(object):
             pm.warning("This is not a base scene (Untitled)")
             return -1
 
-        projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
-        dataPath = os.path.normpath(os.path.join(projectPath, "data"))
-        folderCheck(dataPath)
-        jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
-        folderCheck(jsonPath)
+        projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
+        # projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
+        # dataPath = os.path.normpath(os.path.join(projectPath, "data"))
+        # folderCheck(dataPath)
+        # jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
+        # folderCheck(jsonPath)
 
         # first get the parent dir
         shotDirectory = os.path.abspath(os.path.join(pm.sceneName(), os.pardir))
@@ -355,11 +385,14 @@ class TikManager(object):
             pm.warning("This is not a base scene. Scene must be saved as a base scene before playblasting.")
             return -1
 
-        projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
-        dataPath = os.path.normpath(os.path.join(projectPath, "data"))
-        folderCheck(dataPath)
-        jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
-        folderCheck(jsonPath)
+        projectPath, jsonPath, playBlastRoot = getPathsFromScene("projectPath", "jsonPath", "playBlastRoot")
+        # projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
+        # dataPath = os.path.normpath(os.path.join(projectPath, "data"))
+        # folderCheck(dataPath)
+        # jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
+        # folderCheck(jsonPath)
+        # playBlastRoot = os.path.normpath(os.path.join(projectPath, "Playblasts"))
+        # folderCheck(playBlastRoot)
 
         # first get the parent dir
         shotDirectory = os.path.abspath(os.path.join(pm.sceneName(), os.pardir))
@@ -380,16 +413,29 @@ class TikManager(object):
             jsonPath = os.path.normpath(os.path.join(jsonCategoryPath, subProject))
             folderCheck(jsonPath)
 
+            pbCategoryPath = os.path.normpath(os.path.join(playBlastRoot, category))
+            folderCheck(pbCategoryPath)
+            pbSubPath = os.path.normpath(os.path.join(pbCategoryPath, subProject))
+            folderCheck(pbSubPath)
+            pbPath = os.path.normpath(os.path.join(pbSubPath, shotName))
+            folderCheck(pbPath)
+
         else:
-            categoryDir = upperShotDir
+            # categoryDir = upperShotDir
             category = upperShot
             jsonPath = os.path.normpath(os.path.join(jsonPath, category))
             folderCheck(jsonPath)
+            pbCategoryPath = os.path.normpath(os.path.join(playBlastRoot, category))
+            folderCheck(pbCategoryPath)
+            pbPath = os.path.normpath(os.path.join(pbCategoryPath, shotName))
+            folderCheck(pbPath)
 
         jsonFile = os.path.join(jsonPath, "{}.json".format(shotName))
 
-        playBlastRoot = os.path.normpath(os.path.join(projectPath, "Playblasts"))
-        folderCheck(playBlastRoot)
+        # relPbPath = os.path.relpath(pbPath, start=projectPath)
+        #strip the front of the json path
+        # print playBlastRoot, category
+
         # playBlastPath =
 
         if os.path.isfile(jsonFile):
@@ -397,9 +443,8 @@ class TikManager(object):
 
             versionName = pm.sceneName()
             relVersionName = os.path.relpath(versionName, start=projectPath)
-            relPlayBlastFile = "{0}_PB.avi".format (pathOps(versionName, mode="basename"))
-
-            playBlastFile = os.path.join(projectPath, relPlayBlastFile)
+            playBlastFile = os.path.join(pbPath, "{0}_PB.avi".format (pathOps(versionName, mode="filename")))
+            relPlayBlastFile = os.path.relpath(playBlastFile, start=projectPath)
 
             pm.playblast(format='avi',
                          filename=playBlastFile,
@@ -425,10 +470,9 @@ class TikManager(object):
 
         #######
 
-
-
     def playPlayblast(self, jsonFile, version=None):
-        projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
+        projectPath = getPathsFromScene("projectPath")
+        # projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
         jsonInfo = loadJson(jsonFile)
         relPBfile = jsonInfo["Versions"][version][4] ## this is the relative path of the playblast for specified version
         PBfile = os.path.join(projectPath, relPBfile)
@@ -440,11 +484,12 @@ class TikManager(object):
         if (nameOfSubProject.lower()) == "none":
             pm.warning("Naming mismatch")
             return None
-        projectPath = pm.workspace(q=1, rd=1)
-        dataPath = os.path.normpath(os.path.join(projectPath, "data"))
-        folderCheck(dataPath)
-        jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
-        folderCheck(jsonPath)
+        projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
+        # projectPath = pm.workspace(q=1, rd=1)
+        # dataPath = os.path.normpath(os.path.join(projectPath, "data"))
+        # folderCheck(dataPath)
+        # jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
+        # folderCheck(jsonPath)
         subPjson = os.path.normpath(os.path.join(jsonPath, "subPdata.json"))
         subInfo = []
         if os.path.isfile(subPjson):
@@ -456,11 +501,12 @@ class TikManager(object):
         return subInfo
 
     def scanSubProjects(self):
-        projectPath = pm.workspace(q=1, rd=1)
-        dataPath = os.path.normpath(os.path.join(projectPath, "data"))
-        folderCheck(dataPath)
-        jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
-        folderCheck(jsonPath)
+        projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
+        # projectPath = pm.workspace(q=1, rd=1)
+        # dataPath = os.path.normpath(os.path.join(projectPath, "data"))
+        # folderCheck(dataPath)
+        # jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
+        # folderCheck(jsonPath)
         subPjson = os.path.normpath(os.path.join(jsonPath, "subPdata.json"))
         if not os.path.isfile(subPjson):
             subInfo = ["None"]
@@ -484,12 +530,12 @@ class TikManager(object):
             subProjectIndex = subProjectAs
         else:
             subProjectIndex = self.currentSubProjectIndex
-
-        projectPath = pm.workspace(q=1, rd=1)
-        dataPath = os.path.normpath(os.path.join(projectPath, "data"))
-        folderCheck(dataPath)
-        jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
-        folderCheck(jsonPath)
+        projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
+        # projectPath = pm.workspace(q=1, rd=1)
+        # dataPath = os.path.normpath(os.path.join(projectPath, "data"))
+        # folderCheck(dataPath)
+        # jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
+        # folderCheck(jsonPath)
 
         subPjson = os.path.normpath(os.path.join(jsonPath, "subPdata.json"))
         if not os.path.isfile(subPjson):
@@ -534,8 +580,9 @@ class TikManager(object):
 
         """
         ## TODO // Check for the target path exists
+        projectPath = getPathsFromScene("projectPath")
 
-        projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
+        # projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
         jsonInfo = loadJson(jsonFile)
         relSceneFile = jsonInfo["Versions"][version][0] ## this is the relative scene path of the specified version
         sceneFile = os.path.join(projectPath, relSceneFile)
@@ -557,8 +604,8 @@ class TikManager(object):
         Returns: None
 
         """
-
-        projectPath = pm.workspace(q=1, rd=1)
+        ## TODO // BURADA PROBLEM VAR
+        projectPath = getPathsFromScene("projectPath")
         jsonInfo = loadJson(jsonFile)
 
         if version == 0 or version > len(jsonInfo["Versions"]):
@@ -580,7 +627,7 @@ class TikManager(object):
         dumpJson(jsonInfo, jsonFile)
 
     def loadReference(self, jsonFile):
-        projectPath = pm.workspace(q=1, rd=1)
+        projectPath = getPathsFromScene("projectPath")
         jsonInfo = loadJson(jsonFile)
         relReferenceFile = jsonInfo["ReferenceFile"]
 
