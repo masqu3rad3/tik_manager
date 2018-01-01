@@ -30,11 +30,11 @@ else:
     from Qt.QtCore import Signal
 
 def killTurtle():
-    print "turtle sikici"
+    # print "turtle sikici"
     if pm.ls('TurtleDefaultBakeLayer'):
         pm.lockNode('TurtleDefaultBakeLayer', lock=False)
         pm.delete('TurtleDefaultBakeLayer')
-        print "Turtle anani sikim"
+        # print "Turtle anani sikim"
 
 
 def getMayaMainWindow():
@@ -380,17 +380,18 @@ class TikManager(object):
             return -1
         return relSceneFile
 
-    def playblastSettings(self):
+    def getPBsettings(self):
 
         ## TODO / WIP
 
         projectPath, playBlastRoot = getPathsFromScene("projectPath","playBlastRoot")
 
-        pbSettingsFile = "{0}PBsettings.json".format(os.path.join(projectPath, playBlastRoot))
+        pbSettingsFile = "{0}\\PBsettings.json".format(os.path.join(projectPath, playBlastRoot))
 
         if not os.path.isfile(pbSettingsFile):
             defaultSettings={"Resolution":(1280,720),
-                             "Codec":"IYUV",
+                             "Format":'avi',
+                             "Codec":'IYUV',
                              "Percent":100,
                              "Quality":100,
                              "Username":True,
@@ -399,24 +400,21 @@ class TikManager(object):
                              "Category":False,
                              "FPS":True,
                              "PolygonOnly":True,
-
             }
+            dumpJson(defaultSettings, pbSettingsFile)
+            return defaultSettings
+        else:
+            pbSettings = loadJson(pbSettingsFile)
+            return pbSettings
 
     def createPlayblast(self, *args, **kwargs):
-
+        pbSettings = self.getPBsettings()
         sceneName = pm.sceneName()
         if not sceneName:
             pm.warning("This is not a base scene. Scene must be saved as a base scene before playblasting.")
             return -1
 
         projectPath, jsonPath, playBlastRoot = getPathsFromScene("projectPath", "jsonPath", "playBlastRoot")
-        # projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
-        # dataPath = os.path.normpath(os.path.join(projectPath, "data"))
-        # folderCheck(dataPath)
-        # jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
-        # folderCheck(jsonPath)
-        # playBlastRoot = os.path.normpath(os.path.join(projectPath, "Playblasts"))
-        # folderCheck(playBlastRoot)
 
         # first get the parent dir
         shotDirectory = os.path.abspath(os.path.join(pm.sceneName(), os.pardir))
@@ -473,12 +471,12 @@ class TikManager(object):
             ## TODO // Prepare the scene and hud interface before
             ## Check here: http://download.autodesk.com/us/maya/2011help/pymel/generated/functions/pymel.core.windows/pymel.core.windows.headsUpDisplay.html
 
-            pm.playblast(format='avi',
+            pm.playblast(format=pbSettings["Format"],
                          filename=playBlastFile,
-                         widthHeight=(1280, 720),
-                         percent=100,
-                         quality=100,
-                         compression='IYUV',
+                         widthHeight=pbSettings["Resolution"],
+                         percent=pbSettings["Percent"],
+                         quality=pbSettings["Quality"],
+                         compression=pbSettings["Codec"],
                          forceOverwrite=True)
 
             ## find this version in the json data
