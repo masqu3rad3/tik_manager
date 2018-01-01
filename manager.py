@@ -389,17 +389,21 @@ class TikManager(object):
         pbSettingsFile = "{0}\\PBsettings.json".format(os.path.join(projectPath, playBlastRoot))
 
         if not os.path.isfile(pbSettingsFile):
-            defaultSettings={"Resolution":(1280,720),
-                             "Format":'avi',
-                             "Codec":'IYUV',
-                             "Percent":100,
-                             "Quality":100,
-                             "Username":True,
-                             "FrameNumber":True,
-                             "SceneName":False,
-                             "Category":False,
-                             "FPS":True,
-                             "PolygonOnly":True,
+            defaultSettings={"Resolution":(1280,720), ## done
+                             "Format":'avi', ## done
+                             "Codec":'IYUV', ## done
+                             "Percent":100, ## done
+                             "Quality":100, ## done
+                             "ShowUsername":True,
+                             "ShowFrameNumber":True,
+                             "ShowSceneName":False,
+                             "ShowCategory":False,
+                             "ShowFPS":True,
+                             "PolygonOnly":True, ## done
+                             "ShowGrid": False, ## done
+                             "ClearSelection": True, ## done
+                             "DisplayTextures": True, ## done
+
             }
             dumpJson(defaultSettings, pbSettingsFile)
             return defaultSettings
@@ -461,6 +465,9 @@ class TikManager(object):
         # playBlastPath =
 
         if os.path.isfile(jsonFile):
+
+            selection = pm.ls(sl=True)
+            pm.select(d=pbSettings["ClearSelection"])
             jsonInfo = loadJson(jsonFile)
 
             versionName = pm.sceneName()
@@ -468,7 +475,43 @@ class TikManager(object):
             playBlastFile = os.path.join(pbPath, "{0}_PB.avi".format (pathOps(versionName, mode="filename")))
             relPlayBlastFile = os.path.relpath(playBlastFile, start=projectPath)
 
+            ## TODO // Make sure the file DOES NOT EXIST. IF THERE IS, TRY TO DELETE, IF NOT POSSIBLE GIVE WARNING AND QUIT
+
             ## TODO // Prepare the scene and hud interface before
+
+
+            ## CREATE A CUSTOM PANEL WITH DESIRED SETTINGS
+
+            tempWindow = pm.window(title="SM_Playblast", widthHeight=pbSettings["Resolution"], tlc=(0,0))
+            # panel = pm.getPanel(wf=True)
+
+            pm.paneLayout()
+            currentCam = pm.modelPanel(pm.getPanel(wf=True), q=True, cam=True)
+            pbPanel = pm.modelPanel(camera=currentCam)
+            pm.showWindow(tempWindow)
+            pm.setFocus(pbPanel)
+
+            pm.modelEditor(pbPanel, e=1,
+                           allObjects=not pbSettings["PolygonOnly"],
+                           da="smoothShaded",
+                           displayTextures=pbSettings["DisplayTextures"],
+                           wireframeOnShaded=False,
+                           grid=pbSettings["ShowGrid"],
+                           polymeshes=True
+                           )
+
+            pm.camera(currentCam, e=True, overscan=True, displayFilmGate=False, displayResolution=False)
+
+            if pbSettings["ShowUsername"]:
+                pass
+            if pbSettings["ShowFrameNumber"]:
+                pass
+            if pbSettings["ShowSceneName"]:
+                pass
+            if pbSettings["ShowCategory"]:
+                pass
+            if pbSettings["ShowFPS"]:
+                pass
             ## Check here: http://download.autodesk.com/us/maya/2011help/pymel/generated/functions/pymel.core.windows/pymel.core.windows.headsUpDisplay.html
 
             pm.playblast(format=pbSettings["Format"],
@@ -478,6 +521,12 @@ class TikManager(object):
                          quality=pbSettings["Quality"],
                          compression=pbSettings["Codec"],
                          forceOverwrite=True)
+
+            ## remove window when pb is donw
+            pm.deleteUI(tempWindow)
+
+            pm.select(selection)
+
 
             ## find this version in the json data
             for i in jsonInfo["Versions"]:
