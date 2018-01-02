@@ -65,18 +65,6 @@ def dumpJson(data, file):
         json.dump(data, f, indent=4)
 
 def nameCheck(text):
-    # if isinstance(text, unicode):
-    #     try:
-    #         text.encode('ascii')
-    #     except UnicodeEncodeError:
-    #         return -1
-    # else:
-    #     try:
-    #         text.decode('ascii')
-    #     except UnicodeDecodeError:
-    #         return -1
-    # text = text.replace(" ", "_")
-    # return text
 
     if re.match("^[A-Za-z0-9_-]*$", text):
         if text == "":
@@ -86,20 +74,6 @@ def nameCheck(text):
     else:
         return -1
 
-        # unicodedata.normalize('NFKD', title).encode('ascii', 'ignore')
-    # 'Kluft skrams infor pa federal electoral groe'
-    # if not type(name) == unicode:
-    #     unicode(name, "utf-8")
-    # fChars = {u'\xe7':"c", u'\xfc':"u", u'\xf6':"o", u' ':"_"}
-    # for f in fChars.keys():
-    #     if f in name:
-    #         name = name.replace(f, fChars[f])
-    # return name
-    #
-#
-# def getRelativePath(projectPath, fullPath):
-#     cop, relativePath = os.path.normpath(fullPath).split(projectPath)
-#     return relativePath
 
 def pathOps(fullPath, mode):
     """
@@ -223,20 +197,6 @@ class TikManager(object):
         categoryPath = os.path.normpath(os.path.join(scenesPath, category))
         folderCheck(category)
 
-        # projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
-        # dataPath = os.path.normpath(os.path.join(projectPath, "data"))
-        # folderCheck(dataPath)
-        # jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
-        # folderCheck(jsonPath)
-        # jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
-        # folderCheck(jsonCategoryPath)
-        # scenesPath = os.path.normpath(os.path.join(projectPath, "scenes"))
-        # folderCheck(scenesPath)
-        # categoryPath = os.path.normpath(os.path.join(scenesPath, category))
-        # folderCheck(category)
-
-
-
         ## eger subproject olarak kaydedilecekse
         if not subProject == 0:
             subProjectPath = os.path.normpath(os.path.join(categoryPath, self.subProjectList[subProject]))
@@ -256,8 +216,6 @@ class TikManager(object):
             jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
             folderCheck(jsonCategoryPath)
             jsonFile = os.path.join(jsonCategoryPath, "{}.json".format(baseName))
-
-        # jsonFile = os.path.join(jsonCategoryPath, "{}.json".format(shotName))
 
         version=1
         sceneName = "{0}_{1}_{2}_v{3}".format(baseName, category, userName, str(version).zfill(self.padding))
@@ -288,12 +246,7 @@ class TikManager(object):
         jsonInfo["Category"]=category
         jsonInfo["Creator"]=userName
         jsonInfo["CreatorHost"]=(socket.gethostname())
-        # jsonInfo["CurrentVersion"]=001
-        # jsonInfo["LastVersion"] = version
-        # jsonInfo["ReferenceFile"]=referenceFile
-        # jsonInfo["ReferencedVersion"]=version
         jsonInfo["Versions"]=[[relSceneFile, versionNotes, userName, socket.gethostname(), None]] ## last item is for playplast
-        # jsonInfo["Playblast"]=None
         dumpJson(jsonInfo, jsonFile)
         return relSceneFile
 
@@ -317,11 +270,6 @@ class TikManager(object):
             return -1
 
         projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
-        # projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
-        # dataPath = os.path.normpath(os.path.join(projectPath, "data"))
-        # folderCheck(dataPath)
-        # jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
-        # folderCheck(jsonPath)
 
         # first get the parent dir
         shotDirectory = os.path.abspath(os.path.join(pm.sceneName(), os.pardir))
@@ -354,11 +302,9 @@ class TikManager(object):
             jsonInfo = loadJson(jsonFile)
 
             currentVersion = len(jsonInfo["Versions"])+1
-            # jsonInfo["LastVersion"] = jsonInfo["LastVersion"] + 1
             sceneName = "{0}_{1}_{2}_v{3}".format(jsonInfo["Name"], jsonInfo["Category"], userName, str(currentVersion).zfill(self.padding))
             relSceneFile = os.path.join(jsonInfo["Path"], "{0}.mb".format(sceneName))
 
-            # sceneFile = "%s%s" %(projectPath, relSceneFile)
             sceneFile = os.path.join(projectPath, relSceneFile)
 
             killTurtle()
@@ -394,7 +340,6 @@ class TikManager(object):
                              "Codec":'IYUV', ## done
                              "Percent":100, ## done
                              "Quality":100, ## done
-                             "ShowUsername":True,
                              "ShowFrameNumber":True,
                              "ShowSceneName":False,
                              "ShowCategory":False,
@@ -403,7 +348,6 @@ class TikManager(object):
                              "ShowGrid": False, ## done
                              "ClearSelection": True, ## done
                              "DisplayTextures": True, ## done
-
             }
             dumpJson(defaultSettings, pbSettingsFile)
             return defaultSettings
@@ -412,6 +356,7 @@ class TikManager(object):
             return pbSettings
 
     def createPlayblast(self, *args, **kwargs):
+
         pbSettings = self.getPBsettings()
         sceneName = pm.sceneName()
         if not sceneName:
@@ -458,12 +403,6 @@ class TikManager(object):
 
         jsonFile = os.path.join(jsonPath, "{}.json".format(shotName))
 
-        # relPbPath = os.path.relpath(pbPath, start=projectPath)
-        #strip the front of the json path
-        # print playBlastRoot, category
-
-        # playBlastPath =
-
         if os.path.isfile(jsonFile):
 
             selection = pm.ls(sl=True)
@@ -475,14 +414,19 @@ class TikManager(object):
             playBlastFile = os.path.join(pbPath, "{0}_PB.avi".format (pathOps(versionName, mode="filename")))
             relPlayBlastFile = os.path.relpath(playBlastFile, start=projectPath)
 
-            ## TODO // Make sure the file DOES NOT EXIST. IF THERE IS, TRY TO DELETE, IF NOT POSSIBLE GIVE WARNING AND QUIT
+            if os.path.isfile(playBlastFile):
+                try:
+                    os.remove(playBlastFile)
+                except WindowsError:
+                    pm.warning("The file is open somewhere else")
+                    return -1
 
-            ## TODO // Prepare the scene and hud interface before
+
 
 
             ## CREATE A CUSTOM PANEL WITH DESIRED SETTINGS
 
-            tempWindow = pm.window(title="SM_Playblast", widthHeight=pbSettings["Resolution"], tlc=(0,0))
+            tempWindow = pm.window(title="SM_Playblast", widthHeight=(pbSettings["Resolution"][0]*1.1,pbSettings["Resolution"][1]*1.1), tlc=(0,0))
             # panel = pm.getPanel(wf=True)
 
             pm.paneLayout()
@@ -497,23 +441,43 @@ class TikManager(object):
                            displayTextures=pbSettings["DisplayTextures"],
                            wireframeOnShaded=False,
                            grid=pbSettings["ShowGrid"],
-                           polymeshes=True
+                           polymeshes=True,
+                           hud=True
                            )
 
             pm.camera(currentCam, e=True, overscan=True, displayFilmGate=False, displayResolution=False)
 
-            if pbSettings["ShowUsername"]:
-                pass
-            if pbSettings["ShowFrameNumber"]:
-                pass
-            if pbSettings["ShowSceneName"]:
-                pass
-            if pbSettings["ShowCategory"]:
-                pass
-            if pbSettings["ShowFPS"]:
-                pass
-            ## Check here: http://download.autodesk.com/us/maya/2011help/pymel/generated/functions/pymel.core.windows/pymel.core.windows.headsUpDisplay.html
+            ## TODO // Prepare the scene and hud interface before
 
+            ## get previous HUD States and turn them all off
+            hudPreStates = {}
+            HUDS = pm.headsUpDisplay(lh=True)
+            for hud in HUDS:
+                hudPreStates[hud] = pm.headsUpDisplay(hud, q=True, vis=True)
+                pm.headsUpDisplay(hud, e=True, vis=False)
+
+            ## clear the custom HUDS
+            customHuds=['SMFrame', 'SMScene', 'SMCategory', 'SMFPS', 'SMCameraName']
+            for hud in customHuds:
+                if pm.headsUpDisplay(hud, ex=True):
+                    pm.headsUpDisplay(hud, rem=True)
+
+            if pbSettings["ShowFrameNumber"]:
+                freeBl = pm.headsUpDisplay(nfb=5) ## this is the next free block on section 5
+                pm.headsUpDisplay('SMFrame', s=5, b=freeBl, label="Frame", preset="currentFrame", dfs="large", lfs="large")
+            if pbSettings["ShowSceneName"]:
+                freeBl = pm.headsUpDisplay(nfb=5) ## this is the next free block on section 5
+                pm.headsUpDisplay('SMScene', s=5, b=freeBl, label="Scene: %s"%(pathOps(versionName, mode="filename")), lfs="large")
+            if pbSettings["ShowCategory"]:
+                freeBl = pm.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
+                pm.headsUpDisplay('SMCategory', s=5, b=freeBl, label="Category: %s"%(jsonInfo["Category"]), lfs="large")
+            if pbSettings["ShowFPS"]:
+                freeBl = pm.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
+                pm.headsUpDisplay('SMFPS', s=5, b=freeBl, label="Time Unit: %s" % (pm.currentUnit(q=True, time=True)), lfs="large")
+
+            pm.headsUpDisplay('SMCameraName', s=2, b=2, ba='center', dw=50, pre='cameraNames')
+
+            ## Check here: http://download.autodesk.com/us/maya/2011help/pymel/generated/functions/pymel.core.windows/pymel.core.windows.headsUpDisplay.html
             pm.playblast(format=pbSettings["Format"],
                          filename=playBlastFile,
                          widthHeight=pbSettings["Resolution"],
@@ -521,22 +485,32 @@ class TikManager(object):
                          quality=pbSettings["Quality"],
                          compression=pbSettings["Codec"],
                          forceOverwrite=True)
-
             ## remove window when pb is donw
             pm.deleteUI(tempWindow)
 
+            ## remove the custom HUdS
+            if pbSettings["ShowFrameNumber"]:
+                pm.headsUpDisplay('SMFrame', rem=True)
+            if pbSettings["ShowSceneName"]:
+                pm.headsUpDisplay('SMScene', rem=True)
+            if pbSettings["ShowCategory"]:
+                pm.headsUpDisplay('SMCategory', rem=True)
+            if pbSettings["ShowFPS"]:
+                pm.headsUpDisplay('SMFPS', rem=True)
+
+            pm.headsUpDisplay('SMCameraName', rem=True)
+
+            ## get back the previous state of HUDS
+            for hud in hudPreStates.keys():
+                pm.headsUpDisplay(hud, e=True, vis=hudPreStates[hud])
+
             pm.select(selection)
-
-
             ## find this version in the json data
             for i in jsonInfo["Versions"]:
                 if relVersionName == i[0]:
                     # print "bulundu", i
                     i[4]=relPlayBlastFile
 
-            # print "jasohbn", jsonInfo
-
-            # jsonInfo["Versions"].append([sceneFile, versionNotes, userName, (socket.gethostname())])
             dumpJson(jsonInfo, jsonFile)
         else:
             pm.warning("This is not a base scene (Json file cannot be found)")
@@ -546,12 +520,9 @@ class TikManager(object):
 
     def playPlayblast(self, jsonFile, version=None):
         projectPath = getPathsFromScene("projectPath")
-        # projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
         jsonInfo = loadJson(jsonFile)
         relPBfile = jsonInfo["Versions"][version][4] ## this is the relative path of the playblast for specified version
         PBfile = os.path.join(projectPath, relPBfile)
-        # PBfile = "%s%s" %(projectPath, relPBfile)
-        print "PBfile is:", PBfile
         os.startfile(PBfile)
 
     def createSubProject(self, nameOfSubProject):
@@ -559,11 +530,6 @@ class TikManager(object):
             pm.warning("Naming mismatch")
             return None
         projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
-        # projectPath = pm.workspace(q=1, rd=1)
-        # dataPath = os.path.normpath(os.path.join(projectPath, "data"))
-        # folderCheck(dataPath)
-        # jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
-        # folderCheck(jsonPath)
         subPjson = os.path.normpath(os.path.join(jsonPath, "subPdata.json"))
         subInfo = []
         if os.path.isfile(subPjson):
@@ -576,11 +542,6 @@ class TikManager(object):
 
     def scanSubProjects(self):
         projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
-        # projectPath = pm.workspace(q=1, rd=1)
-        # dataPath = os.path.normpath(os.path.join(projectPath, "data"))
-        # folderCheck(dataPath)
-        # jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
-        # folderCheck(jsonPath)
         subPjson = os.path.normpath(os.path.join(jsonPath, "subPdata.json"))
         if not os.path.isfile(subPjson):
             subInfo = ["None"]
@@ -599,27 +560,15 @@ class TikManager(object):
         Returns: List of all json files in the category, sub-project json file
 
         """
-
         if not subProjectAs == None:
             subProjectIndex = subProjectAs
         else:
             subProjectIndex = self.currentSubProjectIndex
         projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
-        # projectPath = pm.workspace(q=1, rd=1)
-        # dataPath = os.path.normpath(os.path.join(projectPath, "data"))
-        # folderCheck(dataPath)
-        # jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
-        # folderCheck(jsonPath)
 
         subPjson = os.path.normpath(os.path.join(jsonPath, "subPdata.json"))
         if not os.path.isfile(subPjson):
             dumpJson(["None"], subPjson)
-
-        # jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
-        # folderCheck(jsonCategoryPath)
-        # searchFolder = jsonCategoryPath
-
-
         # eger subproject olarak aranilacaksa
         if not (subProjectIndex == 0):
             jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
@@ -728,8 +677,6 @@ class MainUI(QtWidgets.QMainWindow):
         super(MainUI, self).__init__(parent=parent)
 
         self.manager = TikManager()
-
-
 
         self.scenesInCategory = None
 
@@ -882,7 +829,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.scenes_listWidget.setAccessibleDescription((""))
         self.scenes_listWidget.setObjectName(("scenes_listWidget"))
 
-        self.notes_textEdit = QtWidgets.QTextEdit(self.centralwidget)
+        self.notes_textEdit = QtWidgets.QTextEdit(self.centralwidget, readOnly=True)
         self.notes_textEdit.setGeometry(QtCore.QRect(430, 260, 221, 231))
         self.notes_textEdit.setToolTip((""))
         self.notes_textEdit.setStatusTip((""))
@@ -989,12 +936,12 @@ class MainUI(QtWidgets.QMainWindow):
         deleteFile = QtWidgets.QAction("&Delete Selected Base Scene", self)
         reBuildDatabase = QtWidgets.QAction("&Re-build Project Database", self)
         projectReport = QtWidgets.QAction("&Project Report", self)
-        test = QtWidgets.QAction("&test", self)
+        createPB = QtWidgets.QAction("&Create PlayBlast", self)
         file.addAction(settings)
         file.addAction(deleteFile)
         file.addAction(reBuildDatabase)
         file.addAction(projectReport)
-        file.addAction(test)
+        file.addAction(createPB)
 
         # settings.triggered.connect(self.userPrefSave)
         deleteFile.triggered.connect(lambda: self.passwordBridge(command="deleteItem"))
@@ -1002,7 +949,7 @@ class MainUI(QtWidgets.QMainWindow):
         reBuildDatabase.triggered.connect(lambda: suMod.SuManager().rebuildDatabase())
         # projectReport.triggered.connect(lambda: self.manager.projectReport())
         projectReport.triggered.connect(lambda: self.passwordBridge())
-        test.triggered.connect(self.manager.createPlayblast)
+        createPB.triggered.connect(self.manager.createPlayblast)
 
 
         tools = self.menubar.addMenu("Tools")
@@ -1090,8 +1037,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.manager.playPlayblast(sceneJson, version=version)
 
-
-
     def onRadioButtonsToggled(self):
         state=self.loadMode_radioButton.isChecked()
         self.version_label.setEnabled(state)
@@ -1104,11 +1049,6 @@ class MainUI(QtWidgets.QMainWindow):
         else:
             self.load_pushButton.setText("Reference Scene")
         self.populateScenes()
-
-    # def closeEvent(self, event):
-    #     print "Saving preferences..."
-    #     self.userPrefSave()
-    #     event.accept()
 
     def userPrefSave(self):
         # pass
@@ -1444,6 +1384,9 @@ class MainUI(QtWidgets.QMainWindow):
         mel.eval("SetProject;")
         self.manager.currentProject = pm.workspace(q=1, rd=1)
         self.projectPath_lineEdit.setText(self.manager.currentProject)
+        # self.onSubProjectChanged()
+        self.manager.subProjectList=self.manager.scanSubProjects()
+
         self.populateScenes()
 
     def sceneInfo(self):
@@ -1466,8 +1409,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.version_comboBox.setCurrentIndex(currentIndex)
         self.notes_textEdit.setPlainText(sceneData["Versions"][currentIndex][1])
         self.refreshNotes()
-
-
 
     def refreshNotes(self):
         row = self.scenes_listWidget.currentRow()
