@@ -29,6 +29,21 @@ else:
     from shiboken2 import wrapInstance
     from Qt.QtCore import Signal
 
+def getOldestFile(rootfolder, extension=".avi"):
+    return min(
+        (os.path.join(dirname, filename)
+        for dirname, dirnames, filenames in os.walk(rootfolder)
+        for filename in filenames
+        if filename.endswith(extension)),
+        key=lambda fn: os.stat(fn).st_mtime)
+def getNewestFile(rootfolder, extension=".avi"):
+    return max(
+        (os.path.join(dirname, filename)
+        for dirname, dirnames, filenames in os.walk(rootfolder)
+        for filename in filenames
+        if filename.endswith(extension)),
+        key=lambda fn: os.stat(fn).st_mtime)
+
 def killTurtle():
     # print "turtle sikici"
     if pm.ls('TurtleDefaultBakeLayer'):
@@ -149,12 +164,15 @@ class TikManager(object):
     def projectReport(self):
 
         # // TODO Create a through REPORT
-        projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
-        dataPath = os.path.normpath(os.path.join(projectPath, "data"))
-        folderCheck(dataPath)
-        jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
-        folderCheck(jsonPath)
+        projectPath, dataPath, jsonPath, scenesPath, playBlastRoot = getPathsFromScene("projectPath", "dataPath", "jsonPath", "scenesPath", "playBlastRoot")
         # get All json files:
+        oldestFile = getOldestFile(scenesPath, extension=(".mb", ".ma"))
+        oldestTime = os.stat(oldestFile).st_mtime
+        newestFile = getNewestFile(scenesPath, extension=(".mb", ".ma"))
+        newestTime = os.stat(newestFile ).st_mtime
+
+        L1 = "Oldest Scene file {0} created at {1}".format (oldestFile, oldestTime)
+        L2 = "Newest Scene file {0} created at {1}".format (newestFile, newestTime)
 
         report = {}
         for subP in range (len(self.subProjectList)):
@@ -165,8 +183,9 @@ class TikManager(object):
                 subReport[category]=categoryItems
             # allItems.append(categoryItems)
             report[self.subProjectList[subP]]=subReport
-        # L1 = "There are in total {0} Base Scenes in {1} Categories and {2} Sub-Projects".format
-        # pprint.pprint(report)
+
+        # L3 = "There are total {0} Base Scenes in {1} Categories and {2} Sub-Projects".format
+        pprint.pprint(report)
         return report
 
     def saveNewScene(self, category, userName, baseName, subProject=0, makeReference=True, versionNotes="", *args, **kwargs):
@@ -239,14 +258,14 @@ class TikManager(object):
             jsonInfo["ReferenceFile"] = None
             jsonInfo["ReferencedVersion"] = None
 
-        jsonInfo["ID"]="SceneManager_sceneFile"
+        jsonInfo["ID"]="SceneManagerV01_sceneFile"
         jsonInfo["MayaVersion"]=pm.versions.current()
         jsonInfo["Name"]=baseName
         jsonInfo["Path"]=os.path.relpath(shotPath, start=projectPath)
         jsonInfo["Category"]=category
         jsonInfo["Creator"]=userName
         jsonInfo["CreatorHost"]=(socket.gethostname())
-        jsonInfo["Versions"]=[[relSceneFile, versionNotes, userName, socket.gethostname(), None]] ## last item is for playplast
+        jsonInfo["Versions"]=[[relSceneFile, versionNotes, userName, socket.gethostname(), {}]] ## last item is for playplast
         dumpJson(jsonInfo, jsonFile)
         return relSceneFile
 
@@ -309,7 +328,7 @@ class TikManager(object):
 
             killTurtle()
             pm.saveAs(sceneFile)
-            jsonInfo["Versions"].append([relSceneFile, versionNotes, userName, (socket.gethostname()), None]) ## last one is for playblast
+            jsonInfo["Versions"].append([relSceneFile, versionNotes, userName, (socket.gethostname()), {}]) ## last one is for playblast
 
             if makeReference:
                 referenceName = "{0}_{1}_forReference".format(shotName, category)
@@ -409,9 +428,11 @@ class TikManager(object):
             pm.select(d=pbSettings["ClearSelection"])
             jsonInfo = loadJson(jsonFile)
 
+            currentCam = pm.modelPanel(pm.getPanel(wf=True), q=True, cam=True)
+
             versionName = pm.sceneName()
             relVersionName = os.path.relpath(versionName, start=projectPath)
-            playBlastFile = os.path.join(pbPath, "{0}_PB.avi".format (pathOps(versionName, mode="filename")))
+            playBlastFile = os.path.join(pbPath, "{0}_{1}_PB.avi".format (pathOps(versionName, mode="filename"), currentCam))
             relPlayBlastFile = os.path.relpath(playBlastFile, start=projectPath)
 
             if os.path.isfile(playBlastFile):
@@ -430,7 +451,7 @@ class TikManager(object):
             # panel = pm.getPanel(wf=True)
 
             pm.paneLayout()
-            currentCam = pm.modelPanel(pm.getPanel(wf=True), q=True, cam=True)
+
             pbPanel = pm.modelPanel(camera=currentCam)
             pm.showWindow(tempWindow)
             pm.setFocus(pbPanel)
@@ -508,8 +529,7 @@ class TikManager(object):
             ## find this version in the json data
             for i in jsonInfo["Versions"]:
                 if relVersionName == i[0]:
-                    # print "bulundu", i
-                    i[4]=relPlayBlastFile
+                    i[4][currentCam]=relPlayBlastFile
 
             dumpJson(jsonInfo, jsonFile)
         else:
@@ -518,11 +538,19 @@ class TikManager(object):
 
         #######
 
-    def playPlayblast(self, jsonFile, version=None):
+    # def playPlayblast(self, jsonFile, camera, version=None):
+    #     projectPath = getPathsFromScene("projectPath")
+    #     jsonInfo = loadJson(jsonFile)
+    #     relPBfile = jsonInfo["Versions"][version][4][camera]  ## this is the relative path of the playblast for specified version
+    #
+    #
+    #     PBfile = os.path.join(projectPath, relPBfile)
+    #     os.startfile(PBfile)
+
+    def playPlayblast(self, relativePath):
         projectPath = getPathsFromScene("projectPath")
-        jsonInfo = loadJson(jsonFile)
-        relPBfile = jsonInfo["Versions"][version][4] ## this is the relative path of the playblast for specified version
-        PBfile = os.path.join(projectPath, relPBfile)
+
+        PBfile = os.path.join(projectPath, relativePath)
         os.startfile(PBfile)
 
     def createSubProject(self, nameOfSubProject):
@@ -947,8 +975,8 @@ class MainUI(QtWidgets.QMainWindow):
         deleteFile.triggered.connect(lambda: self.passwordBridge(command="deleteItem"))
         deleteFile.triggered.connect(self.populateScenes)
         reBuildDatabase.triggered.connect(lambda: suMod.SuManager().rebuildDatabase())
-        # projectReport.triggered.connect(lambda: self.manager.projectReport())
-        projectReport.triggered.connect(lambda: self.passwordBridge())
+        projectReport.triggered.connect(lambda: self.manager.projectReport())
+        # projectReport.triggered.connect(lambda: self.passwordBridge())
         createPB.triggered.connect(self.manager.createPlayblast)
 
 
@@ -1007,9 +1035,19 @@ class MainUI(QtWidgets.QMainWindow):
         self.scenes_listWidget.customContextMenuRequested.connect(self.on_context_menu)
         self.popMenu = QtWidgets.QMenu()
 
-        rcAction_1 = QtWidgets.QAction('Show in Explorer', self)
+        rcAction_1 = QtWidgets.QAction('Show Maya Folder in Explorer', self)
         self.popMenu.addAction(rcAction_1)
-        rcAction_1.triggered.connect(lambda : self.rcAction("showInExplorer"))
+        rcAction_1.triggered.connect(lambda : self.rcAction("showInExplorerMaya"))
+
+
+        rcAction_2 = QtWidgets.QAction('Show Playblast Folder in Explorer', self)
+        self.popMenu.addAction(rcAction_2)
+        rcAction_2.triggered.connect(lambda : self.rcAction("showInExplorerPB"))
+
+
+        rcAction_3 = QtWidgets.QAction('Show Data Folder in Explorer', self)
+        self.popMenu.addAction(rcAction_3)
+        rcAction_3.triggered.connect(lambda : self.rcAction("showInExplorerData"))
 
         # swAction = QtWidgets.QAction('Show Wireframe', self)
         # self.popMenu.addAction(swAction)
@@ -1026,107 +1064,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.userPrefLoad()
         self.populateScenes()
-
-    def onShowPBclicked(self):
-        row = self.scenes_listWidget.currentRow()
-        if row == -1:
-            pm.warning("no scene selected")
-            return
-        sceneJson = self.scenesInCategory[row]
-        version = self.version_comboBox.currentIndex()
-
-        self.manager.playPlayblast(sceneJson, version=version)
-
-    def onRadioButtonsToggled(self):
-        state=self.loadMode_radioButton.isChecked()
-        self.version_label.setEnabled(state)
-        self.makeReference_pushButton.setEnabled(state)
-        self.notes_label.setEnabled(state)
-        self.notes_textEdit.setEnabled(state)
-        self.showPB_pushButton.setEnabled(state)
-        if state:
-            self.load_pushButton.setText("Load Scene")
-        else:
-            self.load_pushButton.setText("Reference Scene")
-        self.populateScenes()
-
-    def userPrefSave(self):
-        # pass
-
-        homedir = os.path.expanduser("~")
-        settingsFilePath = os.path.join(homedir, "smSettings.json")
-
-        settingsData = {"currentTabIndex": self.category_tabWidget.currentIndex(),
-                        "currentSubIndex": self.subProject_comboBox.currentIndex(),
-                        "currentUserIndex": self.userName_comboBox.currentIndex(),
-                        "currentMode": self.referenceMode_radioButton.isChecked()}
-
-        dumpJson(settingsData, settingsFilePath)
-
-    def userPrefLoad(self):
-        # pass
-        homedir = os.path.expanduser("~")
-        settingsFilePath = os.path.join(homedir, "smSettings.json")
-        if os.path.isfile(settingsFilePath):
-            settingsData = loadJson(settingsFilePath)
-        else:
-            # return defaults
-            settingsData = {"currentTabIndex": 0, "currentSubIndex": 0, "currentUserIndex": 0, "currentMode": 0}
-            dumpJson(settingsData, settingsFilePath)
-
-        self.referenceMode_radioButton.setChecked(settingsData["currentMode"])
-        self.loadMode_radioButton.setChecked(not settingsData["currentMode"])
-
-        if settingsData["currentUserIndex"] <= (len(self.manager.userList)):
-            currentUserIndex = settingsData["currentUserIndex"]
-        else:
-            currentUserIndex = 0
-        # self.manager.currentUserIndex=currentUserIndex
-        self.userName_comboBox.setCurrentIndex(currentUserIndex)
-
-        if settingsData["currentSubIndex"] <= (len(self.manager.subProjectList)):
-            currentSubIndex = settingsData["currentSubIndex"]
-        else:
-            currentSubIndex = 0
-
-        self.manager.currentSubProjectIndex=currentSubIndex
-        self.subProject_comboBox.setCurrentIndex(currentSubIndex)
-
-        self.category_tabWidget.setCurrentIndex(settingsData["currentTabIndex"])
-
-    def onUsernameChanged(self):
-        self.userPrefSave()
-
-    def rcAction(self, command):
-        if command == "showInExplorer":
-
-            row = self.scenes_listWidget.currentRow()
-            if not row == -1:
-                sceneData = loadJson(self.scenesInCategory[row])
-                # path = os.path.join(os.path.normpath(self.manager.currentProject), sceneData["Path"])
-                # path = "%s%s" %(os.path.normpath(self.manager.currentProject), os.path.normpath(sceneData["Path"]))
-                path = os.path.join(os.path.normpath(self.manager.currentProject), os.path.normpath(sceneData["Path"]))
-                os.startfile(path)
-
-    def on_context_menu(self, point):
-        # show context menu
-        self.popMenu.exec_(self.scenes_listWidget.mapToGlobal(point))
-
-    def onSubProjectChanged(self):
-        self.manager.currentSubProjectIndex=self.subProject_comboBox.currentIndex()
-        self.populateScenes()
-
-    def createSubProjectUI(self):
-
-        newSub, ok = QtWidgets.QInputDialog.getText(self, "Create New Sub-Project", "Enter an unique Sub-Project name:")
-        if ok:
-            name = nameCheck(newSub)
-            if not name == -1:
-                self.subProject_comboBox.clear()
-                self.manager.subProjectList = self.manager.createSubProject(name)
-                self.populateScenes()
-            else:
-                self.infoPop(textTitle="Naming Error", textHeader="Naming Error", textInfo="Choose an unique name with latin characters", type="C")
 
     def saveBaseSceneDialog(self):
         self.save_Dialog = QtWidgets.QDialog(parent=self)
@@ -1255,24 +1192,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.save_Dialog.show()
 
-    def onSaveBaseScene(self):
-        userInitials = self.manager.userList[self.userName_comboBox.currentText()]
-        subProject = self.sdSubP_comboBox.currentIndex()
-        print subProject
-
-        name = nameCheck(self.sdName_lineEdit.text())
-        if name == -1:
-            self.infoPop(textHeader="Invalid characters. Use <A-Z> and <0-9>", textInfo="", textTitle="ERROR: ASCII Error", type="C")
-            return
-
-        sceneFile = self.manager.saveNewScene(self.sdCategory_comboBox.currentText(), userInitials, name, subProject = subProject, makeReference= self.sdMakeReference_checkbox.checkState(), versionNotes=self.sdNotes_textEdit.toPlainText())
-
-        if not sceneFile == -1:
-            self.infoPop(textHeader="Save Base Scene Successfull",textInfo="New Version of Base Scene saved as {0}".format(sceneFile),textTitle="Saved Base Scene", type="I")
-        else:
-            self.infoPop(textHeader="Save Base Scene FAILED. A Base Scene with the same name already exists in the same sub-project and same category. Choose an unique one.", textInfo="", textTitle="ERROR: Saving Base Scene", type="C")
-        self.populateScenes()
-
     def saveAsVersionDialog(self):
         saveV_Dialog = QtWidgets.QDialog(parent=self)
         saveV_Dialog.setModal(True)
@@ -1335,6 +1254,204 @@ class MainUI(QtWidgets.QMainWindow):
 
         saveV_Dialog.show()
 
+    def onSaveBaseScene(self):
+        userInitials = self.manager.userList[self.userName_comboBox.currentText()]
+        subProject = self.sdSubP_comboBox.currentIndex()
+        print subProject
+
+        name = nameCheck(self.sdName_lineEdit.text())
+        if name == -1:
+            self.infoPop(textHeader="Invalid characters. Use <A-Z> and <0-9>", textInfo="", textTitle="ERROR: ASCII Error", type="C")
+            return
+
+        sceneFile = self.manager.saveNewScene(self.sdCategory_comboBox.currentText(), userInitials, name, subProject = subProject, makeReference= self.sdMakeReference_checkbox.checkState(), versionNotes=self.sdNotes_textEdit.toPlainText())
+
+        if not sceneFile == -1:
+            self.infoPop(textHeader="Save Base Scene Successfull",textInfo="New Version of Base Scene saved as {0}".format(sceneFile),textTitle="Saved Base Scene", type="I")
+        else:
+            self.infoPop(textHeader="Save Base Scene FAILED. A Base Scene with the same name already exists in the same sub-project and same category. Choose an unique one.", textInfo="", textTitle="ERROR: Saving Base Scene", type="C")
+        self.populateScenes()
+
+    def onSaveAsVersion(self):
+        userInitials = self.manager.userList[self.userName_comboBox.currentText()]
+        sceneFile=self.manager.saveVersion(userInitials, makeReference=self.svMakeReference_checkbox.checkState(), versionNotes=self.svNotes_textEdit.toPlainText())
+        self.populateScenes()
+        if not sceneFile == -1:
+            self.infoPop(textHeader="Save Version Successfull",textInfo="New Version of Base Scene saved as {0}".format(sceneFile),textTitle="Saved New Version", type="I")
+        else:
+            self.infoPop(textHeader="Save Version FAILED", textInfo="Cannot Find The Database. The File is not saved as a Base Scene, or database file is missing".format(sceneFile), textTitle="ERROR: Saving New Version", type="C")
+
+    def onloadScene(self):
+
+        row = self.scenes_listWidget.currentRow()
+        if row == -1:
+            pm.warning("no scene selected")
+            return
+        sceneJson = self.scenesInCategory[row]
+
+        if self.loadMode_radioButton.isChecked():
+            fileCheckState = cmds.file(q=True, modified=True)
+            ## Eger dosya save edilmemisse:
+            if fileCheckState:
+                q = QtWidgets.QMessageBox(parent=self)
+                q.setIcon(QtWidgets.QMessageBox.Question)
+                q.setText("Save changes to")
+                q.setInformativeText(pm.sceneName())
+                q.setWindowTitle("Save Changes")
+                q.setStandardButtons(QtWidgets.QMessageBox.Save | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Cancel)
+                ret = q.exec_()
+                if ret == QtWidgets.QMessageBox.Save:
+                    pm.saveFile()
+                    self.manager.loadScene(sceneJson, version=self.version_comboBox.currentIndex(), force=True)
+                elif ret == QtWidgets.QMessageBox.No:
+                    self.manager.loadScene(sceneJson, version=self.version_comboBox.currentIndex(), force=True)
+                elif ret == QtWidgets.QMessageBox.Cancel:
+                    pass
+                    # elif ret == QtWidgets.QMessageBox.No:
+            ## Dosya saveli ise devam
+            else:
+                self.manager.loadScene(sceneJson, version=self.version_comboBox.currentIndex(), force=True)
+
+        if self.referenceMode_radioButton.isChecked():
+            self.manager.loadReference(sceneJson)
+        #     self.manager.loadScene(sceneJson, version=self.version_comboBox.currentIndex(),force=True)
+        # if self.referenceMode_radioButton.isChecked():
+        #     pass
+
+    def onShowPBclicked(self):
+        row = self.scenes_listWidget.currentRow()
+        if row == -1:
+            pm.warning("no scene selected")
+            return
+        sceneJson = self.scenesInCategory[row]
+        version = self.version_comboBox.currentIndex()
+        # print version
+        sceneInfo = loadJson(sceneJson)
+        # print sceneInfo
+        # print sceneInfo["Versions"][version][4].keys()
+        pbDict = sceneInfo["Versions"][version][4]
+        if len(pbDict.keys()) == 1:
+            path=pbDict[pbDict.keys()[0]]
+            # print path
+            self.manager.playPlayblast(path)
+        else:
+            zortMenu = QtWidgets.QMenu()
+
+            for z in pbDict.keys():
+                tempAction = QtWidgets.QAction(z, self)
+                zortMenu.addAction(tempAction )
+                tempAction.triggered.connect(lambda item=pbDict[z]: self.manager.playPlayblast(item)) ## Take note about the usage of lambda "item=pbDict[z]" makes it possible using the loop
+
+            zortMenu.exec_((QtGui.QCursor.pos()))
+
+    def onRadioButtonsToggled(self):
+        state=self.loadMode_radioButton.isChecked()
+        self.version_label.setEnabled(state)
+        self.makeReference_pushButton.setEnabled(state)
+        self.notes_label.setEnabled(state)
+        self.notes_textEdit.setEnabled(state)
+        self.showPB_pushButton.setEnabled(state)
+        if state:
+            self.load_pushButton.setText("Load Scene")
+        else:
+            self.load_pushButton.setText("Reference Scene")
+        self.populateScenes()
+
+    def userPrefSave(self):
+        # pass
+
+        homedir = os.path.expanduser("~")
+        settingsFilePath = os.path.join(homedir, "smSettings.json")
+
+        settingsData = {"currentTabIndex": self.category_tabWidget.currentIndex(),
+                        "currentSubIndex": self.subProject_comboBox.currentIndex(),
+                        "currentUserIndex": self.userName_comboBox.currentIndex(),
+                        "currentMode": self.referenceMode_radioButton.isChecked()}
+
+        dumpJson(settingsData, settingsFilePath)
+
+    def userPrefLoad(self):
+        # pass
+        homedir = os.path.expanduser("~")
+        settingsFilePath = os.path.join(homedir, "smSettings.json")
+        if os.path.isfile(settingsFilePath):
+            settingsData = loadJson(settingsFilePath)
+        else:
+            # return defaults
+            settingsData = {"currentTabIndex": 0, "currentSubIndex": 0, "currentUserIndex": 0, "currentMode": 0}
+            dumpJson(settingsData, settingsFilePath)
+
+        self.referenceMode_radioButton.setChecked(settingsData["currentMode"])
+        self.loadMode_radioButton.setChecked(not settingsData["currentMode"])
+
+        if settingsData["currentUserIndex"] <= (len(self.manager.userList)):
+            currentUserIndex = settingsData["currentUserIndex"]
+        else:
+            currentUserIndex = 0
+        # self.manager.currentUserIndex=currentUserIndex
+        self.userName_comboBox.setCurrentIndex(currentUserIndex)
+
+        if settingsData["currentSubIndex"] < (len(self.manager.subProjectList)):
+            currentSubIndex = settingsData["currentSubIndex"]
+        else:
+            currentSubIndex = 0
+
+        self.manager.currentSubProjectIndex=currentSubIndex
+        print "index", self.manager.currentSubProjectIndex
+        self.subProject_comboBox.setCurrentIndex(currentSubIndex)
+
+        self.category_tabWidget.setCurrentIndex(settingsData["currentTabIndex"])
+
+    def onUsernameChanged(self):
+        self.userPrefSave()
+
+    def rcAction(self, command):
+        if command == "showInExplorerMaya":
+            row = self.scenes_listWidget.currentRow()
+            if not row == -1:
+                sceneData = loadJson(self.scenesInCategory[row])
+                path = os.path.join(os.path.normpath(self.manager.currentProject), os.path.normpath(sceneData["Path"]))
+                os.startfile(path)
+
+        if command == "showInExplorerPB":
+            row = self.scenes_listWidget.currentRow()
+            if not row == -1:
+                sceneData = loadJson(self.scenesInCategory[row])
+
+                path = os.path.join(os.path.normpath(self.manager.currentProject), os.path.normpath(sceneData["Path"]))
+                path = path.replace("scenes", "Playblasts")
+                print path
+                if os.path.isdir(path):
+                    os.startfile(path)
+                else:
+                    self.infoPop(textTitle="", textHeader="Scene does not have a playblast", textInfo="There is no playblast folder created for this scene yet")
+
+        if command == "showInExplorerData":
+            row = self.scenes_listWidget.currentRow()
+            if not row == -1:
+                path = pathOps(self.scenesInCategory[row], "path")
+                os.startfile(path)
+
+    def on_context_menu(self, point):
+        # show context menu
+        self.popMenu.exec_(self.scenes_listWidget.mapToGlobal(point))
+
+    def onSubProjectChanged(self):
+        self.manager.currentSubProjectIndex=self.subProject_comboBox.currentIndex()
+        self.populateScenes()
+
+    def createSubProjectUI(self):
+
+        newSub, ok = QtWidgets.QInputDialog.getText(self, "Create New Sub-Project", "Enter an unique Sub-Project name:")
+        if ok:
+            name = nameCheck(newSub)
+            if not name == -1:
+                self.subProject_comboBox.clear()
+                self.manager.subProjectList = self.manager.createSubProject(name)
+                self.populateScenes()
+            else:
+                self.infoPop(textTitle="Naming Error", textHeader="Naming Error", textInfo="Choose an unique name with latin characters", type="C")
+
     def referenceCheck(self):
         projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
         for path in self.scenesInCategory:
@@ -1370,15 +1487,6 @@ class MainUI(QtWidgets.QMainWindow):
             index = self.scenesInCategory.index(path)
             if self.scenes_listWidget.item(index):
                 self.scenes_listWidget.item(index).setForeground(color)
-
-    def onSaveAsVersion(self):
-        userInitials = self.manager.userList[self.userName_comboBox.currentText()]
-        sceneFile=self.manager.saveVersion(userInitials, makeReference=self.svMakeReference_checkbox.checkState(), versionNotes=self.svNotes_textEdit.toPlainText())
-        self.populateScenes()
-        if not sceneFile == -1:
-            self.infoPop(textHeader="Save Version Successfull",textInfo="New Version of Base Scene saved as {0}".format(sceneFile),textTitle="Saved New Version", type="I")
-        else:
-            self.infoPop(textHeader="Save Version FAILED", textInfo="Cannot Find The Database. The File is not saved as a Base Scene, or database file is missing".format(sceneFile), textTitle="ERROR: Saving New Version", type="C")
 
     def onSetProject(self):
         mel.eval("SetProject;")
@@ -1417,7 +1525,7 @@ class MainUI(QtWidgets.QMainWindow):
             currentIndex = self.version_comboBox.currentIndex()
             self.notes_textEdit.setPlainText(sceneData["Versions"][currentIndex][1])
 
-            if sceneData["Versions"][currentIndex][4]:
+            if sceneData["Versions"][currentIndex][4].keys():
                 self.showPB_pushButton.setEnabled(True)
             else:
                 self.showPB_pushButton.setEnabled(False)
@@ -1459,43 +1567,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.userPrefSave()
 
         # self.referenceCheck()
-
-    def onloadScene(self):
-
-        row = self.scenes_listWidget.currentRow()
-        if row == -1:
-            pm.warning("no scene selected")
-            return
-        sceneJson = self.scenesInCategory[row]
-
-        if self.loadMode_radioButton.isChecked():
-            fileCheckState = cmds.file(q=True, modified=True)
-            ## Eger dosya save edilmemisse:
-            if fileCheckState:
-                q = QtWidgets.QMessageBox(parent=self)
-                q.setIcon(QtWidgets.QMessageBox.Question)
-                q.setText("Save changes to")
-                q.setInformativeText(pm.sceneName())
-                q.setWindowTitle("Save Changes")
-                q.setStandardButtons(QtWidgets.QMessageBox.Save | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Cancel)
-                ret = q.exec_()
-                if ret == QtWidgets.QMessageBox.Save:
-                    pm.saveFile()
-                    self.manager.loadScene(sceneJson, version=self.version_comboBox.currentIndex(), force=True)
-                elif ret == QtWidgets.QMessageBox.No:
-                    self.manager.loadScene(sceneJson, version=self.version_comboBox.currentIndex(), force=True)
-                elif ret == QtWidgets.QMessageBox.Cancel:
-                    pass
-                    # elif ret == QtWidgets.QMessageBox.No:
-            ## Dosya saveli ise devam
-            else:
-                self.manager.loadScene(sceneJson, version=self.version_comboBox.currentIndex(), force=True)
-
-        if self.referenceMode_radioButton.isChecked():
-            self.manager.loadReference(sceneJson)
-        #     self.manager.loadScene(sceneJson, version=self.version_comboBox.currentIndex(),force=True)
-        # if self.referenceMode_radioButton.isChecked():
-        #     pass
 
     def makeReference(self):
         row = self.scenes_listWidget.currentRow()
