@@ -619,13 +619,14 @@ class TikManager(object):
                 allJsonFiles.append(file)
         return allJsonFiles, subPjson
 
-    def loadScene(self, jsonFile, version=None, force=False):
+    def loadScene(self, jsonFile, version=None, force=False, importFile=False):
         """
         Opens the scene with the related json file and given version.
         Args:
             jsonFile: (String) This is the path of the json file which holds the scene properties.
             version: (integer) The version specified in this flag will be loaded. If not specified, last saved version will be used. Default=None
             force: (Boolean) If True, it forces the scene to load LOSING ALL THE UNSAVED CHANGES in the current scene. Default is 'False' 
+            importFile: (Boolean) If True, it imports the file instead of opening it.
 
         Returns: None
 
@@ -639,7 +640,10 @@ class TikManager(object):
         sceneFile = os.path.join(projectPath, relSceneFile)
         # sceneFile = "%s%s" %(projectPath, relSceneFile)
         if os.path.isfile(sceneFile):
-            cmds.file(sceneFile, o=True, force=force)
+            if importFile:
+                cmds.file(sceneFile, i=True, force=force)
+            else:
+                cmds.file(sceneFile, o=True, force=force)
         else:
             pm.error("File in Scene Manager database doesnt exist")
 
@@ -1035,6 +1039,12 @@ class MainUI(QtWidgets.QMainWindow):
         self.scenes_listWidget.customContextMenuRequested.connect(self.on_context_menu)
         self.popMenu = QtWidgets.QMenu()
 
+        rcAction_0 = QtWidgets.QAction('Import Scene', self)
+        self.popMenu.addAction(rcAction_0)
+        rcAction_0.triggered.connect(lambda : self.rcAction("importScene"))
+
+        self.popMenu.addSeparator()
+
         rcAction_1 = QtWidgets.QAction('Show Maya Folder in Explorer', self)
         self.popMenu.addAction(rcAction_1)
         rcAction_1.triggered.connect(lambda : self.rcAction("showInExplorerMaya"))
@@ -1406,6 +1416,14 @@ class MainUI(QtWidgets.QMainWindow):
         self.userPrefSave()
 
     def rcAction(self, command):
+        if command == "importScene":
+            row = self.scenes_listWidget.currentRow()
+            if not row == -1:
+                # sceneData = loadJson(self.scenesInCategory[row])
+                # path = os.path.join(os.path.normpath(self.manager.currentProject), os.path.normpath(sceneData["Path"]))
+                self.manager.loadScene(self.scenesInCategory[row], version=self.version_comboBox.currentIndex(), importFile=True)
+                # os.startfile(path)
+
         if command == "showInExplorerMaya":
             row = self.scenes_listWidget.currentRow()
             if not row == -1:
