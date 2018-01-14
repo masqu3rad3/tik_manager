@@ -8,6 +8,7 @@ import socket
 import filecmp
 import re
 import suMod
+import ctypes
 reload(suMod)
 import unicodedata
 import pprint
@@ -51,6 +52,12 @@ def killTurtle():
         pm.delete('TurtleDefaultBakeLayer')
         # print "Turtle anani sikim"
 
+def checkAdminRights():
+    try:
+        is_admin = os.getuid() == 0
+    except AttributeError:
+        is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
+    return is_admin
 
 def getMayaMainWindow():
     """
@@ -702,11 +709,27 @@ class TikManager(object):
 class MainUI(QtWidgets.QMainWindow):
 
     def __init__(self):
+
+
+
         for entry in QtWidgets.QApplication.allWidgets():
             if entry.objectName() == "SceneManager":
                 entry.close()
         parent = getMayaMainWindow()
         super(MainUI, self).__init__(parent=parent)
+
+        if not checkAdminRights():
+            q = QtWidgets.QMessageBox()
+            q.setIcon(QtWidgets.QMessageBox.Information)
+            q.setText("Maya does not have the administrator rights")
+            q.setInformativeText("You need to run Maya as administrator to work with Scene Manager")
+            q.setWindowTitle("Admin Rights")
+            q.setStandardButtons(QtWidgets.QMessageBox.Ok)
+
+            ret = q.exec_()
+            if ret == QtWidgets.QMessageBox.Ok:
+                self.close()
+                self.deleteLater()
 
         self.manager = TikManager()
 
@@ -1468,7 +1491,7 @@ class MainUI(QtWidgets.QMainWindow):
                 self.manager.subProjectList = self.manager.createSubProject(name)
                 self.populateScenes()
             else:
-                self.infoPop(textTitle="Naming Error", textHeader="Naming Error", textInfo="Choose an unique name with latin characters", type="C")
+                self.infoPop(textTitle="Naming Error", textHeader="Naming Error", textInfo="Choose an unique name with latin characters without spaces", type="C")
 
     def referenceCheck(self):
         projectPath = os.path.normpath(pm.workspace(q=1, rd=1))

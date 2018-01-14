@@ -12,10 +12,17 @@ class SuManager(object):
         else:
             return False
 
-    def rebuildDatabase(self):
-        if not self.passwCheck():
+    def rebuildDatabase(self, passw):
+        if not self.passwCheck(passw):
             pm.warning ("Incorrect Password")
             return
+
+        # Gather all scene json data
+
+
+
+
+
         print "Work In Progress"
 
     def deleteItem(self, jsonPath, jsonData, passw):
