@@ -373,7 +373,7 @@ class TikManager(object):
                              "PolygonOnly":True, ## done
                              "ShowGrid": False, ## done
                              "ClearSelection": True, ## done
-                             "DisplayTextures": True, ## done
+                             "DisplayTextures": True ## done
             }
             dumpJson(defaultSettings, pbSettingsFile)
             return defaultSettings
@@ -384,6 +384,14 @@ class TikManager(object):
     def createPlayblast(self, *args, **kwargs):
 
         pbSettings = self.getPBsettings()
+
+        # Quicktime format is missing the final frame all the time. Add an extra frame to compansate
+        if pbSettings["Format"] == 'qt':
+            maxTime = pm.playbackOptions(q=True, maxTime=True)
+            endTime = pm.playbackOptions(q=True, animationEndTime=True)
+            pm.playbackOptions(maxTime=maxTime+1)
+            pm.playbackOptions(animationEndTime=endTime+1)
+
         sceneName = pm.sceneName()
         if not sceneName:
             pm.warning("This is not a base scene. Scene must be saved as a base scene before playblasting.")
@@ -515,6 +523,11 @@ class TikManager(object):
                          forceOverwrite=True)
             ## remove window when pb is donw
             pm.deleteUI(tempWindow)
+
+            # Get back to the original frame range if the codec is Quick Time
+            if pbSettings["Format"] == 'qt':
+                pm.playbackOptions(maxTime=maxTime)
+                pm.playbackOptions(animationEndTime=endTime)
 
             ## remove the custom HUdS
             if pbSettings["ShowFrameNumber"]:
@@ -987,12 +1000,12 @@ class MainUI(QtWidgets.QMainWindow):
         self.setStatusBar(self.statusbar)
 
         file = self.menubar.addMenu("File")
-        settings = QtWidgets.QAction("&Settings", self)
+        pb_settings = QtWidgets.QAction("&Playblast Settings", self)
         deleteFile = QtWidgets.QAction("&Delete Selected Base Scene", self)
         reBuildDatabase = QtWidgets.QAction("&Re-build Project Database", self)
         projectReport = QtWidgets.QAction("&Project Report", self)
         createPB = QtWidgets.QAction("&Create PlayBlast", self)
-        file.addAction(settings)
+        file.addAction(pb_settings)
         file.addAction(deleteFile)
         file.addAction(reBuildDatabase)
         file.addAction(projectReport)
@@ -1004,16 +1017,18 @@ class MainUI(QtWidgets.QMainWindow):
         reBuildDatabase.triggered.connect(lambda: suMod.SuManager().rebuildDatabase())
         projectReport.triggered.connect(lambda: self.manager.projectReport())
         # projectReport.triggered.connect(lambda: self.passwordBridge())
+        pb_settings.triggered.connect(self.pbSettingsUI)
         createPB.triggered.connect(self.manager.createPlayblast)
+
 
 
         tools = self.menubar.addMenu("Tools")
         foolsMate = QtWidgets.QAction("&Fool's Mate", self)
         tools.addAction(foolsMate)
-        submitToDeadline = QtWidgets.QAction("&Submit to Deadline", self)
-        tools.addAction(submitToDeadline)
+        # submitToDeadline = QtWidgets.QAction("&Submit to Deadline", self)
+        # tools.addAction(submitToDeadline)
 
-        # foolsMate.triggered.connect()
+        foolsMate.triggered.connect(self.onFoolsMate)
         # submitToDeadline.triggered.connect()
 
         self.loadMode_radioButton.toggled.connect(self.onRadioButtonsToggled)
@@ -1097,6 +1112,335 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.userPrefLoad()
         self.populateScenes()
+        
+    def pbSettingsUI(self):
+
+        if not self.passwordBridge(command="simpleCheck"):
+            self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
+            return
+
+        currentSettings = self.manager.getPBsettings()
+
+        self.pbSettings_dialog = QtWidgets.QDialog(parent=self)
+        self.pbSettings_dialog.setModal(True)
+        self.pbSettings_dialog.setObjectName(("Playblast_Dialog"))
+        self.pbSettings_dialog.resize(380, 483)
+        self.pbSettings_dialog.setMinimumSize(QtCore.QSize(380, 483))
+        self.pbSettings_dialog.setMaximumSize(QtCore.QSize(380, 483))
+        self.pbSettings_dialog.setWindowTitle(("Set Playblast Settings"))
+        self.pbSettings_dialog.setToolTip((""))
+        self.pbSettings_dialog.setStatusTip((""))
+        self.pbSettings_dialog.setWhatsThis((""))
+        self.pbSettings_dialog.setAccessibleName((""))
+        self.pbSettings_dialog.setAccessibleDescription((""))
+
+        self.pbsettings_buttonBox = QtWidgets.QDialogButtonBox(self.pbSettings_dialog)
+        self.pbsettings_buttonBox.setGeometry(QtCore.QRect(20, 440, 341, 30))
+        self.pbsettings_buttonBox.setToolTip((""))
+        self.pbsettings_buttonBox.setStatusTip((""))
+        self.pbsettings_buttonBox.setWhatsThis((""))
+        self.pbsettings_buttonBox.setAccessibleName((""))
+        self.pbsettings_buttonBox.setAccessibleDescription((""))
+        self.pbsettings_buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        self.pbsettings_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Save)
+        self.pbsettings_buttonBox.setObjectName(("pbsettings_buttonBox"))
+
+        self.videoproperties_groupBox = QtWidgets.QGroupBox(self.pbSettings_dialog)
+        self.videoproperties_groupBox.setGeometry(QtCore.QRect(10, 20, 361, 191))
+        self.videoproperties_groupBox.setToolTip((""))
+        self.videoproperties_groupBox.setStatusTip((""))
+        self.videoproperties_groupBox.setWhatsThis((""))
+        self.videoproperties_groupBox.setAccessibleName((""))
+        self.videoproperties_groupBox.setAccessibleDescription((""))
+        self.videoproperties_groupBox.setTitle(("Video Properties"))
+        self.videoproperties_groupBox.setObjectName(("videoproperties_groupBox"))
+
+        self.fileformat_label = QtWidgets.QLabel(self.videoproperties_groupBox)
+        self.fileformat_label.setGeometry(QtCore.QRect(20, 30, 71, 20))
+        self.fileformat_label.setToolTip((""))
+        self.fileformat_label.setStatusTip((""))
+        self.fileformat_label.setWhatsThis((""))
+        self.fileformat_label.setAccessibleName((""))
+        self.fileformat_label.setAccessibleDescription((""))
+        self.fileformat_label.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.fileformat_label.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.fileformat_label.setText(("Format"))
+        self.fileformat_label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.fileformat_label.setObjectName(("fileformat_label"))
+
+        self.fileformat_comboBox = QtWidgets.QComboBox(self.videoproperties_groupBox)
+        self.fileformat_comboBox.setGeometry(QtCore.QRect(100, 30, 111, 22))
+        self.fileformat_comboBox.setToolTip((""))
+        self.fileformat_comboBox.setStatusTip((""))
+        self.fileformat_comboBox.setWhatsThis((""))
+        self.fileformat_comboBox.setAccessibleName((""))
+        self.fileformat_comboBox.setAccessibleDescription((""))
+        self.fileformat_comboBox.setObjectName(("fileformat_comboBox"))
+        formats = pm.playblast(query = True, format = True)
+        self.fileformat_comboBox.addItems(formats)
+
+        # get the index number from the name in the settings file and make that index active
+        ffindex = self.fileformat_comboBox.findText(currentSettings["Format"], QtCore.Qt.MatchFixedString)
+        if ffindex >= 0:
+            self.fileformat_comboBox.setCurrentIndex(ffindex)
+
+        self.codec_label = QtWidgets.QLabel(self.videoproperties_groupBox)
+        self.codec_label.setGeometry(QtCore.QRect(30, 70, 61, 20))
+        self.codec_label.setToolTip((""))
+        self.codec_label.setStatusTip((""))
+        self.codec_label.setWhatsThis((""))
+        self.codec_label.setAccessibleName((""))
+        self.codec_label.setAccessibleDescription((""))
+        self.codec_label.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.codec_label.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.codec_label.setText(("Codec"))
+        self.codec_label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.codec_label.setObjectName(("codec_label"))
+
+        self.codec_comboBox = QtWidgets.QComboBox(self.videoproperties_groupBox)
+        self.codec_comboBox.setGeometry(QtCore.QRect(100, 70, 111, 22))
+        self.codec_comboBox.setToolTip((""))
+        self.codec_comboBox.setStatusTip((""))
+        self.codec_comboBox.setWhatsThis((""))
+        self.codec_comboBox.setAccessibleName((""))
+        self.codec_comboBox.setAccessibleDescription((""))
+        self.codec_comboBox.setObjectName(("codec_comboBox"))
+        self.updateCodecs()
+
+        self.fileformat_comboBox.currentIndexChanged.connect(self.updateCodecs)
+
+        # get the index number from the name in the settings file and make that index active
+        print currentSettings["Codec"]
+        cindex = self.codec_comboBox.findText(currentSettings["Codec"], QtCore.Qt.MatchFixedString)
+        if cindex >= 0:
+            self.codec_comboBox.setCurrentIndex(cindex)
+
+        self.quality_label = QtWidgets.QLabel(self.videoproperties_groupBox)
+        self.quality_label.setGeometry(QtCore.QRect(30, 110, 61, 20))
+        self.quality_label.setToolTip((""))
+        self.quality_label.setStatusTip((""))
+        self.quality_label.setWhatsThis((""))
+        self.quality_label.setAccessibleName((""))
+        self.quality_label.setAccessibleDescription((""))
+        self.quality_label.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.quality_label.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.quality_label.setText(("Quality"))
+        self.quality_label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.quality_label.setObjectName(("quality_label"))
+
+        self.quality_spinBox = QtWidgets.QSpinBox(self.videoproperties_groupBox)
+        self.quality_spinBox.setGeometry(QtCore.QRect(100, 110, 41, 21))
+        self.quality_spinBox.setToolTip((""))
+        self.quality_spinBox.setStatusTip((""))
+        self.quality_spinBox.setWhatsThis((""))
+        self.quality_spinBox.setAccessibleName((""))
+        self.quality_spinBox.setAccessibleDescription((""))
+        self.quality_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        self.quality_spinBox.setMinimum(1)
+        self.quality_spinBox.setMaximum(100)
+        self.quality_spinBox.setProperty("value", currentSettings["Quality"])
+        self.quality_spinBox.setObjectName(("quality_spinBox"))
+
+        self.quality_horizontalSlider = QtWidgets.QSlider(self.videoproperties_groupBox)
+        self.quality_horizontalSlider.setGeometry(QtCore.QRect(150, 110, 191, 21))
+        self.quality_horizontalSlider.setToolTip((""))
+        self.quality_horizontalSlider.setStatusTip((""))
+        self.quality_horizontalSlider.setWhatsThis((""))
+        self.quality_horizontalSlider.setAccessibleName((""))
+        self.quality_horizontalSlider.setAccessibleDescription((""))
+        self.quality_horizontalSlider.setMinimum(1)
+        self.quality_horizontalSlider.setMaximum(100)
+        self.quality_horizontalSlider.setProperty("value", currentSettings["Quality"])
+        self.quality_horizontalSlider.setOrientation(QtCore.Qt.Horizontal)
+        self.quality_horizontalSlider.setTickInterval(0)
+        self.quality_horizontalSlider.setObjectName(("quality_horizontalSlider"))
+
+        self.resolution_label = QtWidgets.QLabel(self.videoproperties_groupBox)
+        self.resolution_label.setGeometry(QtCore.QRect(30, 150, 61, 20))
+        self.resolution_label.setToolTip((""))
+        self.resolution_label.setStatusTip((""))
+        self.resolution_label.setWhatsThis((""))
+        self.resolution_label.setAccessibleName((""))
+        self.resolution_label.setAccessibleDescription((""))
+        self.resolution_label.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.resolution_label.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.resolution_label.setText(("Resolution"))
+        self.resolution_label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.resolution_label.setObjectName(("resolution_label"))
+
+        self.resolutionx_spinBox = QtWidgets.QSpinBox(self.videoproperties_groupBox)
+        self.resolutionx_spinBox.setGeometry(QtCore.QRect(100, 150, 61, 21))
+        self.resolutionx_spinBox.setToolTip((""))
+        self.resolutionx_spinBox.setStatusTip((""))
+        self.resolutionx_spinBox.setWhatsThis((""))
+        self.resolutionx_spinBox.setAccessibleName((""))
+        self.resolutionx_spinBox.setAccessibleDescription((""))
+        self.resolutionx_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        self.resolutionx_spinBox.setMinimum(0)
+        self.resolutionx_spinBox.setMaximum(4096)
+        self.resolutionx_spinBox.setProperty("value", currentSettings["Resolution"][0])
+        self.resolutionx_spinBox.setObjectName(("resolutionx_spinBox"))
+
+        self.resolutiony_spinBox = QtWidgets.QSpinBox(self.videoproperties_groupBox)
+        self.resolutiony_spinBox.setGeometry(QtCore.QRect(170, 150, 61, 21))
+        self.resolutiony_spinBox.setToolTip((""))
+        self.resolutiony_spinBox.setStatusTip((""))
+        self.resolutiony_spinBox.setWhatsThis((""))
+        self.resolutiony_spinBox.setAccessibleName((""))
+        self.resolutiony_spinBox.setAccessibleDescription((""))
+        self.resolutiony_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        self.resolutiony_spinBox.setMinimum(1)
+        self.resolutiony_spinBox.setMaximum(4096)
+        self.resolutiony_spinBox.setProperty("value", currentSettings["Resolution"][1])
+        self.resolutiony_spinBox.setObjectName(("resolutiony_spinBox"))
+
+        self.viewportoptions_groupBox = QtWidgets.QGroupBox(self.pbSettings_dialog)
+        self.viewportoptions_groupBox.setGeometry(QtCore.QRect(10, 230, 361, 91))
+        self.viewportoptions_groupBox.setTitle(("Viewport Options"))
+        self.viewportoptions_groupBox.setObjectName(("viewportoptions_groupBox"))
+
+        self.polygononly_checkBox = QtWidgets.QCheckBox(self.viewportoptions_groupBox)
+        self.polygononly_checkBox.setGeometry(QtCore.QRect(60, 30, 91, 20))
+        self.polygononly_checkBox.setToolTip((""))
+        self.polygononly_checkBox.setStatusTip((""))
+        self.polygononly_checkBox.setWhatsThis((""))
+        self.polygononly_checkBox.setAccessibleName((""))
+        self.polygononly_checkBox.setAccessibleDescription((""))
+        self.polygononly_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.polygononly_checkBox.setText(("Polygon Only"))
+        self.polygononly_checkBox.setChecked(currentSettings["PolygonOnly"])
+        self.polygononly_checkBox.setObjectName(("polygononly_checkBox"))
+
+        self.showgrid_checkBox = QtWidgets.QCheckBox(self.viewportoptions_groupBox)
+        self.showgrid_checkBox.setGeometry(QtCore.QRect(210, 30, 91, 20))
+        self.showgrid_checkBox.setToolTip((""))
+        self.showgrid_checkBox.setStatusTip((""))
+        self.showgrid_checkBox.setWhatsThis((""))
+        self.showgrid_checkBox.setAccessibleName((""))
+        self.showgrid_checkBox.setAccessibleDescription((""))
+        self.showgrid_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.showgrid_checkBox.setText(("Show Grid"))
+        self.showgrid_checkBox.setChecked(currentSettings["ShowGrid"])
+        self.showgrid_checkBox.setObjectName(("showgrid_checkBox"))
+
+        self.clearselection_checkBox = QtWidgets.QCheckBox(self.viewportoptions_groupBox)
+        self.clearselection_checkBox.setGeometry(QtCore.QRect(60, 60, 91, 20))
+        self.clearselection_checkBox.setToolTip((""))
+        self.clearselection_checkBox.setStatusTip((""))
+        self.clearselection_checkBox.setWhatsThis((""))
+        self.clearselection_checkBox.setAccessibleName((""))
+        self.clearselection_checkBox.setAccessibleDescription((""))
+        self.clearselection_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.clearselection_checkBox.setText(("Clear Selection"))
+        self.clearselection_checkBox.setChecked(currentSettings["ClearSelection"])
+        self.clearselection_checkBox.setObjectName(("clearselection_checkBox"))
+
+        self.displaytextures_checkBox = QtWidgets.QCheckBox(self.viewportoptions_groupBox)
+        self.displaytextures_checkBox.setGeometry(QtCore.QRect(190, 60, 111, 20))
+        self.displaytextures_checkBox.setToolTip((""))
+        self.displaytextures_checkBox.setStatusTip((""))
+        self.displaytextures_checkBox.setWhatsThis((""))
+        self.displaytextures_checkBox.setAccessibleName((""))
+        self.displaytextures_checkBox.setAccessibleDescription((""))
+        self.displaytextures_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.displaytextures_checkBox.setText(("Display Textures"))
+        self.displaytextures_checkBox.setChecked(currentSettings["DisplayTextures"])
+        self.displaytextures_checkBox.setObjectName(("displaytextures_checkBox"))
+
+        self.hudoptions_groupBox = QtWidgets.QGroupBox(self.pbSettings_dialog)
+        self.hudoptions_groupBox.setGeometry(QtCore.QRect(10, 340, 361, 81))
+        self.hudoptions_groupBox.setToolTip((""))
+        self.hudoptions_groupBox.setStatusTip((""))
+        self.hudoptions_groupBox.setWhatsThis((""))
+        self.hudoptions_groupBox.setAccessibleName((""))
+        self.hudoptions_groupBox.setAccessibleDescription((""))
+        self.hudoptions_groupBox.setTitle(("HUD Options"))
+        self.hudoptions_groupBox.setObjectName(("hudoptions_groupBox"))
+
+        self.showframenumber_checkBox = QtWidgets.QCheckBox(self.hudoptions_groupBox)
+        self.showframenumber_checkBox.setGeometry(QtCore.QRect(20, 20, 131, 20))
+        self.showframenumber_checkBox.setToolTip((""))
+        self.showframenumber_checkBox.setStatusTip((""))
+        self.showframenumber_checkBox.setWhatsThis((""))
+        self.showframenumber_checkBox.setAccessibleName((""))
+        self.showframenumber_checkBox.setAccessibleDescription((""))
+        self.showframenumber_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.showframenumber_checkBox.setText(("Show Frame Number"))
+        self.showframenumber_checkBox.setChecked(currentSettings["ShowFrameNumber"])
+        self.showframenumber_checkBox.setObjectName(("showframenumber_checkBox"))
+
+        self.showscenename_checkBox = QtWidgets.QCheckBox(self.hudoptions_groupBox)
+        self.showscenename_checkBox.setGeometry(QtCore.QRect(20, 50, 131, 20))
+        self.showscenename_checkBox.setToolTip((""))
+        self.showscenename_checkBox.setStatusTip((""))
+        self.showscenename_checkBox.setWhatsThis((""))
+        self.showscenename_checkBox.setAccessibleName((""))
+        self.showscenename_checkBox.setAccessibleDescription((""))
+        self.showscenename_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.showscenename_checkBox.setText(("Show Scene Name"))
+        self.showscenename_checkBox.setChecked(currentSettings["ShowSceneName"])
+        self.showscenename_checkBox.setObjectName(("showscenename_checkBox"))
+
+        self.showcategory_checkBox = QtWidgets.QCheckBox(self.hudoptions_groupBox)
+        self.showcategory_checkBox.setGeometry(QtCore.QRect(200, 20, 101, 20))
+        self.showcategory_checkBox.setToolTip((""))
+        self.showcategory_checkBox.setStatusTip((""))
+        self.showcategory_checkBox.setWhatsThis((""))
+        self.showcategory_checkBox.setAccessibleName((""))
+        self.showcategory_checkBox.setAccessibleDescription((""))
+        self.showcategory_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.showcategory_checkBox.setText(("Show Category"))
+        self.showcategory_checkBox.setChecked(currentSettings["ShowCategory"])
+        self.showcategory_checkBox.setObjectName(("showcategory_checkBox"))
+
+        self.showfps_checkBox = QtWidgets.QCheckBox(self.hudoptions_groupBox)
+        self.showfps_checkBox.setGeometry(QtCore.QRect(200, 50, 101, 20))
+        self.showfps_checkBox.setToolTip((""))
+        self.showfps_checkBox.setStatusTip((""))
+        self.showfps_checkBox.setWhatsThis((""))
+        self.showfps_checkBox.setAccessibleName((""))
+        self.showfps_checkBox.setAccessibleDescription((""))
+        self.showfps_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.showfps_checkBox.setText(("Show FPS"))
+        self.showfps_checkBox.setChecked(currentSettings["ShowFPS"])
+        self.showfps_checkBox.setObjectName(("showfps_checkBox"))
+
+        self.pbsettings_buttonBox.accepted.connect(self.pbSettings_dialog.accept)
+        self.pbsettings_buttonBox.accepted.connect(self.onPbSettingsAccept)
+        self.pbsettings_buttonBox.rejected.connect(self.pbSettings_dialog.reject)
+        self.quality_spinBox.valueChanged.connect(self.quality_horizontalSlider.setValue)
+        self.quality_horizontalSlider.valueChanged.connect(self.quality_spinBox.setValue)
+
+        self.pbSettings_dialog.show()
+
+    def updateCodecs(self):
+        codecs = pm.mel.eval('playblast -format "{0}" -q -compression;'.format(self.fileformat_comboBox.currentText()))
+        self.codec_comboBox.clear()
+        self.codec_comboBox.addItems(codecs)
+
+    def onPbSettingsAccept(self):
+        projectPath, playBlastRoot = getPathsFromScene("projectPath","playBlastRoot")
+
+        pbSettingsFile = "{0}\\PBsettings.json".format(os.path.join(projectPath, playBlastRoot))
+
+        newPbSettings = {"Resolution": (self.resolutionx_spinBox.value(), self.resolutiony_spinBox.value()),
+                           "Format": self.fileformat_comboBox.currentText(),
+                           "Codec": self.codec_comboBox.currentText(),
+                           "Percent": 100, ## this one never changes
+                           "Quality": self.quality_spinBox.value(),
+                           "ShowFrameNumber": self.showframenumber_checkBox.isChecked(),
+                           "ShowSceneName": self.showscenename_checkBox.isChecked(),
+                           "ShowCategory": self.showcategory_checkBox.isChecked(),
+                           "ShowFPS": self.showfps_checkBox.isChecked(),
+                           "PolygonOnly": self.polygononly_checkBox.isChecked(),
+                           "ShowGrid": self.showgrid_checkBox.isChecked(),
+                           "ClearSelection": self.clearselection_checkBox.isChecked(),
+                           "DisplayTextures": self.displaytextures_checkBox.isChecked()
+                         }
+        dumpJson(newPbSettings, pbSettingsFile)
+    def onFoolsMate(self):
+        import foolsMate
+        foolsMate.startFoolin()
 
     def saveBaseSceneDialog(self):
         self.save_Dialog = QtWidgets.QDialog(parent=self)
@@ -1637,7 +1981,8 @@ class MainUI(QtWidgets.QMainWindow):
             if command == "deleteItem":
                 ## TODO // If no item is selected should skip it
                 suMod.SuManager().deleteItem(self.scenesInCategory[self.scenes_listWidget.currentRow()], loadJson(self.scenesInCategory[self.scenes_listWidget.currentRow()]),passw)
-
+            if command == "simpleCheck":
+                return suMod.SuManager().passwCheck(passw)
             return passw
         # pwDialog = QtWidgets.QDialog(parent=self)
         # pwLabel = QtWidgets.QLabel("Enter the admin password", pwDialog)
