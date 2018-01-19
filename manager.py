@@ -558,15 +558,6 @@ class TikManager(object):
 
         #######
 
-    # def playPlayblast(self, jsonFile, camera, version=None):
-    #     projectPath = getPathsFromScene("projectPath")
-    #     jsonInfo = loadJson(jsonFile)
-    #     relPBfile = jsonInfo["Versions"][version][4][camera]  ## this is the relative path of the playblast for specified version
-    #
-    #
-    #     PBfile = os.path.join(projectPath, relPBfile)
-    #     os.startfile(PBfile)
-
     def playPlayblast(self, relativePath):
         projectPath = getPathsFromScene("projectPath")
 
@@ -598,6 +589,55 @@ class TikManager(object):
         else:
             subInfo=loadJson(subPjson)
         return subInfo
+
+    # def renameScene(self, jsonFile, newName, version=None):
+    #
+    #     projectPath = getPathsFromScene("projectPath")
+    #     jsonInfo = loadJson(jsonFile)
+    #     category = jsonInfo["Category"]
+    #
+    #     # PSUEDO CODE:
+    #
+    #     # subproject = get the scenes sub-project
+    #
+    #     versionCount = 0
+    #     for version in jsonInfo["Versions"]:
+    #         versionCount += 1
+    #         rel_scene_file = version[0]
+    #         scene_file = os.path.join(projectPath, rel_scene_file)
+    #
+    #         newSceneName = "{0}_{1}_{2}_v{3}".format(newName, category, version[2], str(versionCount).zfill(self.padding))
+    #
+    #
+    #         # Change the name of the actual file
+    #
+    #         # Update the jsonInfo with the me
+    #             # for pb in all playblasts in this version
+    #                 # Change the name of the playblast
+    #
+    # def moveToSubProject(self, newSubproject):
+    #     # // TODO write subproject moving method
+    #     pass
+
+
+
+
+        # relSceneFile = jsonInfo["Versions"][version][0] ## this is the relative scene path of the specified version
+        # sceneFile = os.path.join(projectPath, relSceneFile)
+        #
+        # # check name for duplicate
+        # scenesToCheck = self.scanScenes(jsonInfo["Category"], subProjectAs=subProject)[0]
+        # for z in scenesToCheck:
+        #     if newName == loadJson(z)["Name"]:
+        #         pm.warning("Choose an unique name")
+        #         return -1
+        #
+        # # check name for invalid characters
+        # if nameCheck(newName) == -1:
+        #     pm.warning("Give a unique and proper name with latin characters, without spaces")
+        #     return -1
+
+    # // TODO // Create a method to delete playblasts (or change the playblast load method with scanning directories)
 
     def scanScenes(self, category, subProjectAs=None):
         """
@@ -651,14 +691,11 @@ class TikManager(object):
         Returns: None
 
         """
-        ## TODO // Check for the target path exists
         projectPath = getPathsFromScene("projectPath")
-
-        # projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
         jsonInfo = loadJson(jsonFile)
         relSceneFile = jsonInfo["Versions"][version][0] ## this is the relative scene path of the specified version
         sceneFile = os.path.join(projectPath, relSceneFile)
-        # sceneFile = "%s%s" %(projectPath, relSceneFile)
+
         if os.path.isfile(sceneFile):
             if importFile:
                 cmds.file(sceneFile, i=True, force=force)
