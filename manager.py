@@ -1,3 +1,11 @@
+# version 1.1
+
+# version 1.1 changes:
+# "Frame Range" Hud option is added to playblast settings.
+# In "Reference Mode" Scene List highlighted with red border for visual reference.
+
+# version 1.0 initial
+
 import pymel.core as pm
 import json
 import os, fnmatch
@@ -369,6 +377,7 @@ class TikManager(object):
                              "ShowFrameNumber":True,
                              "ShowSceneName":False,
                              "ShowCategory":False,
+                             "ShowFrameRange":True,
                              "ShowFPS":True,
                              "PolygonOnly":True, ## done
                              "ShowGrid": False, ## done
@@ -511,6 +520,14 @@ class TikManager(object):
                 freeBl = pm.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
                 pm.headsUpDisplay('SMFPS', s=5, b=freeBl, label="Time Unit: %s" % (pm.currentUnit(q=True, time=True)), lfs="large")
 
+            # v1.1 SPECIFIC
+            try:
+                if pbSettings["ShowFrameRange"]:
+                    freeBl = pm.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
+                    pm.headsUpDisplay('SMFrange', s=5, b=freeBl, label="Frame Range: {} - {}".format(int(pm.playbackOptions(q=True, minTime=True)), int(pm.playbackOptions(q=True, maxTime=True))), lfs="large")
+            except KeyError:
+                pass
+
             pm.headsUpDisplay('SMCameraName', s=2, b=2, ba='center', dw=50, pre='cameraNames')
 
             ## Check here: http://download.autodesk.com/us/maya/2011help/pymel/generated/functions/pymel.core.windows/pymel.core.windows.headsUpDisplay.html
@@ -538,6 +555,11 @@ class TikManager(object):
                 pm.headsUpDisplay('SMCategory', rem=True)
             if pbSettings["ShowFPS"]:
                 pm.headsUpDisplay('SMFPS', rem=True)
+            try:
+                if pbSettings["ShowFrameRange"]:
+                    pm.headsUpDisplay('SMFrange', rem=True)
+            except KeyError:
+                pass
 
             pm.headsUpDisplay('SMCameraName', rem=True)
 
@@ -933,6 +955,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.scenes_listWidget.setAccessibleName((""))
         self.scenes_listWidget.setAccessibleDescription((""))
         self.scenes_listWidget.setObjectName(("scenes_listWidget"))
+        self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: grey;")
 
         self.notes_textEdit = QtWidgets.QTextEdit(self.centralwidget, readOnly=True)
         self.notes_textEdit.setGeometry(QtCore.QRect(430, 260, 221, 231))
@@ -1162,8 +1185,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.pbSettings_dialog.setModal(True)
         self.pbSettings_dialog.setObjectName(("Playblast_Dialog"))
         self.pbSettings_dialog.resize(380, 483)
-        self.pbSettings_dialog.setMinimumSize(QtCore.QSize(380, 483))
-        self.pbSettings_dialog.setMaximumSize(QtCore.QSize(380, 483))
+        self.pbSettings_dialog.setMinimumSize(QtCore.QSize(380, 520))
+        self.pbSettings_dialog.setMaximumSize(QtCore.QSize(380, 520))
         self.pbSettings_dialog.setWindowTitle(("Set Playblast Settings"))
         self.pbSettings_dialog.setToolTip((""))
         self.pbSettings_dialog.setStatusTip((""))
@@ -1172,7 +1195,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.pbSettings_dialog.setAccessibleDescription((""))
 
         self.pbsettings_buttonBox = QtWidgets.QDialogButtonBox(self.pbSettings_dialog)
-        self.pbsettings_buttonBox.setGeometry(QtCore.QRect(20, 440, 341, 30))
+        self.pbsettings_buttonBox.setGeometry(QtCore.QRect(20, 470, 341, 30))
         self.pbsettings_buttonBox.setToolTip((""))
         self.pbsettings_buttonBox.setStatusTip((""))
         self.pbsettings_buttonBox.setWhatsThis((""))
@@ -1385,7 +1408,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.displaytextures_checkBox.setObjectName(("displaytextures_checkBox"))
 
         self.hudoptions_groupBox = QtWidgets.QGroupBox(self.pbSettings_dialog)
-        self.hudoptions_groupBox.setGeometry(QtCore.QRect(10, 340, 361, 81))
+        self.hudoptions_groupBox.setGeometry(QtCore.QRect(10, 340, 361, 110))
         self.hudoptions_groupBox.setToolTip((""))
         self.hudoptions_groupBox.setStatusTip((""))
         self.hudoptions_groupBox.setWhatsThis((""))
@@ -1442,6 +1465,23 @@ class MainUI(QtWidgets.QMainWindow):
         self.showfps_checkBox.setChecked(currentSettings["ShowFPS"])
         self.showfps_checkBox.setObjectName(("showfps_checkBox"))
 
+        self.showframerange_checkBox = QtWidgets.QCheckBox(self.hudoptions_groupBox)
+        self.showframerange_checkBox.setGeometry(QtCore.QRect(20, 80, 131, 20))
+        self.showframerange_checkBox.setToolTip((""))
+        self.showframerange_checkBox.setStatusTip((""))
+        self.showframerange_checkBox.setWhatsThis((""))
+        self.showframerange_checkBox.setAccessibleName((""))
+        self.showframerange_checkBox.setAccessibleDescription((""))
+        self.showframerange_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.showframerange_checkBox.setText(("Show Frame Range"))
+        # v1.1 SPECIFIC
+        try:
+            self.showframerange_checkBox.setChecked(currentSettings["ShowFrameRange"])
+        except KeyError:
+            self.showframerange_checkBox.setChecked(True)
+        self.showframerange_checkBox.setObjectName(("showframerange_checkBox"))
+
+
         self.pbsettings_buttonBox.accepted.connect(self.pbSettings_dialog.accept)
         self.pbsettings_buttonBox.accepted.connect(self.onPbSettingsAccept)
         self.pbsettings_buttonBox.rejected.connect(self.pbSettings_dialog.reject)
@@ -1469,6 +1509,7 @@ class MainUI(QtWidgets.QMainWindow):
                            "ShowSceneName": self.showscenename_checkBox.isChecked(),
                            "ShowCategory": self.showcategory_checkBox.isChecked(),
                            "ShowFPS": self.showfps_checkBox.isChecked(),
+                           "ShowFrameRange": self.showframerange_checkBox.isChecked(),
                            "PolygonOnly": self.polygononly_checkBox.isChecked(),
                            "ShowGrid": self.showgrid_checkBox.isChecked(),
                            "ClearSelection": self.clearselection_checkBox.isChecked(),
@@ -1701,7 +1742,16 @@ class MainUI(QtWidgets.QMainWindow):
         if row == -1:
             pm.warning("no scene selected")
             return
-        sceneJson = self.scenesInCategory[row]
+
+        sceneName = "%s.json" %self.scenes_listWidget.currentItem().text()
+        # takethefirstjson as example for rootpath
+
+
+        sceneJson = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
+
+
+
+        # sceneJson = self.scenesInCategory[row]
 
         if self.loadMode_radioButton.isChecked():
             fileCheckState = cmds.file(q=True, modified=True)
@@ -1737,7 +1787,12 @@ class MainUI(QtWidgets.QMainWindow):
         if row == -1:
             pm.warning("no scene selected")
             return
-        sceneJson = self.scenesInCategory[row]
+
+        sceneName = "%s.json" %self.scenes_listWidget.currentItem().text()
+        # takethefirstjson as example for rootpath
+        sceneJson = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
+
+        # sceneJson = self.scenesInCategory[row]
         version = self.version_comboBox.currentIndex()
         # print version
         sceneInfo = loadJson(sceneJson)
@@ -1767,8 +1822,10 @@ class MainUI(QtWidgets.QMainWindow):
         self.showPB_pushButton.setEnabled(state)
         if state:
             self.load_pushButton.setText("Load Scene")
+            self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: grey;")
         else:
             self.load_pushButton.setText("Reference Scene")
+            self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: red;")
         self.populateScenes()
 
     def userPrefSave(self):
@@ -1825,20 +1882,36 @@ class MainUI(QtWidgets.QMainWindow):
             if not row == -1:
                 # sceneData = loadJson(self.scenesInCategory[row])
                 # path = os.path.join(os.path.normpath(self.manager.currentProject), os.path.normpath(sceneData["Path"]))
-                self.manager.loadScene(self.scenesInCategory[row], version=self.version_comboBox.currentIndex(), importFile=True)
+                sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
+                # takethefirstjson as example for rootpath
+                jsonPath = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
+                self.manager.loadScene(jsonPath, version=self.version_comboBox.currentIndex(), importFile=True)
+
+                # self.manager.loadScene(self.scenesInCategory[row], version=self.version_comboBox.currentIndex(), importFile=True)
                 # os.startfile(path)
 
         if command == "showInExplorerMaya":
             row = self.scenes_listWidget.currentRow()
             if not row == -1:
-                sceneData = loadJson(self.scenesInCategory[row])
+                sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
+                # takethefirstjson as example for rootpath
+                jPath = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
+
+                sceneData = loadJson(os.path.join(jPath, sceneName))
+                # sceneData = loadJson(self.scenesInCategory[row])
+
                 path = os.path.join(os.path.normpath(self.manager.currentProject), os.path.normpath(sceneData["Path"]))
                 os.startfile(path)
 
         if command == "showInExplorerPB":
             row = self.scenes_listWidget.currentRow()
             if not row == -1:
-                sceneData = loadJson(self.scenesInCategory[row])
+                sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
+                # takethefirstjson as example for rootpath
+                jPath = pathOps(self.scenesInCategory[0], "path")
+
+                sceneData = loadJson(os.path.join(jPath, sceneName))
+                # sceneData = loadJson(self.scenesInCategory[row])
 
                 path = os.path.join(os.path.normpath(self.manager.currentProject), os.path.normpath(sceneData["Path"]))
                 path = path.replace("scenes", "Playblasts")
@@ -1851,7 +1924,10 @@ class MainUI(QtWidgets.QMainWindow):
         if command == "showInExplorerData":
             row = self.scenes_listWidget.currentRow()
             if not row == -1:
-                path = pathOps(self.scenesInCategory[row], "path")
+                try:
+                    path = pathOps(self.scenesInCategory[row], "path")
+                except:
+                    path = pathOps(self.scenesInCategory[0], "path")
                 os.startfile(path)
 
     def on_context_menu(self, point):
@@ -1925,7 +2001,15 @@ class MainUI(QtWidgets.QMainWindow):
         row = self.scenes_listWidget.currentRow()
         if row == -1:
             return
-        sceneData = loadJson(self.scenesInCategory[row])
+
+        sceneName = "%s.json" %self.scenes_listWidget.currentItem().text()
+        # takethefirstjson as example for rootpath
+        jPath = pathOps(self.scenesInCategory[0], "path")
+
+        sceneData = loadJson(os.path.join(jPath, sceneName))
+
+        #
+        # sceneData = loadJson(self.scenesInCategory[row])
 
         for num in range (len(sceneData["Versions"])):
             self.version_comboBox.addItem("v{0}".format(str(num+1).zfill(3)))
@@ -1943,7 +2027,12 @@ class MainUI(QtWidgets.QMainWindow):
     def refreshNotes(self):
         row = self.scenes_listWidget.currentRow()
         if not row == -1:
-            sceneData = loadJson(self.scenesInCategory[row])
+            sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
+            # takethefirstjson as example for rootpath
+            jPath = pathOps(self.scenesInCategory[0], "path")
+
+            sceneData = loadJson(os.path.join(jPath, sceneName))
+            # sceneData = loadJson(self.scenesInCategory[row])
             currentIndex = self.version_comboBox.currentIndex()
             self.notes_textEdit.setPlainText(sceneData["Versions"][currentIndex][1])
 
@@ -1971,12 +2060,15 @@ class MainUI(QtWidgets.QMainWindow):
                 jsonFile = loadJson(i)
                 if jsonFile["ReferenceFile"]:
                     self.scenes_listWidget.addItem(pathOps(i, "filename"))
+            self.version_comboBox.setEnabled(False)
+
 
         else:
             # self.scenes_listWidget.addItems(self.scenesInCategory)
             for i in self.scenesInCategory:
                 self.scenes_listWidget.addItem(pathOps(i, "filename"))
             self.referenceCheck()
+            self.version_comboBox.setEnabled(True)
         # self.manager.subProjectList = loadJson(subProjectFile)
 
 
@@ -1993,7 +2085,12 @@ class MainUI(QtWidgets.QMainWindow):
     def makeReference(self):
         row = self.scenes_listWidget.currentRow()
         if not row == -1:
-            jsonFile = self.scenesInCategory[row]
+            sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
+            # takethefirstjson as example for rootpath
+            jPath = pathOps(self.scenesInCategory[0], "path")
+
+            jsonFile = loadJson(os.path.join(jPath, sceneName))
+            # jsonFile = self.scenesInCategory[row]
             version = self.version_comboBox.currentIndex()
             self.manager.makeReference(jsonFile, version+1)
             # self.sceneInfo()
@@ -2016,8 +2113,13 @@ class MainUI(QtWidgets.QMainWindow):
         passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query", "Enter Admin Password:", QtWidgets.QLineEdit.Password)
         if ok:
             if command == "deleteItem":
-                ## TODO // If no item is selected should skip it
-                suMod.SuManager().deleteItem(self.scenesInCategory[self.scenes_listWidget.currentRow()], loadJson(self.scenesInCategory[self.scenes_listWidget.currentRow()]),passw)
+                row = self.scenes_listWidget.currentRow()
+                if not row == -1:
+                    ## TODO // If no item is selected should skip it
+                    sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
+                    jPath = pathOps(self.scenesInCategory[0], "path")
+                    jsonFile = loadJson(os.path.join(jPath, sceneName))
+                    suMod.SuManager().deleteItem(jsonFile, loadJson(jsonFile),passw)
             if command == "simpleCheck":
                 return suMod.SuManager().passwCheck(passw)
             return passw
