@@ -671,6 +671,8 @@ class TikManager(object):
         Scans the folder for json files. Instead of scanning all of the json files at once, It will scan only the target category to speed up the process.
         Args:
             category: (String) This is the category which will be scanned
+            subProjectAs: (String / None) If a sub project is given Scans the given sub project. If None, it scans the current sub-project
+                declared the classes 'currentSubProjectIndex' variable. Default = None
 
         Returns: List of all json files in the category, sub-project json file
 
