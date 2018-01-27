@@ -1,4 +1,9 @@
-# version 1.1
+# version 1.2
+
+# version 1.2 changes:
+# fixed the loading and referencing system. Now it checks for the selected rows 'name' not the list number id.
+# fixed the name check for duplicate base scenes. It doesnt allow creating base scenes with the same name disregarding it
+    # has lower case or upper case characters.
 
 # version 1.1 changes:
 # "Frame Range" Hud option is added to playblast settings.
@@ -223,7 +228,7 @@ class TikManager(object):
 
         scenesToCheck = self.scanScenes(category, subProjectAs=subProject)[0]
         for z in scenesToCheck:
-            if baseName == loadJson(z)["Name"]:
+            if baseName.lower() == loadJson(z)["Name"].lower():
                 pm.warning("Choose an unique name")
                 return -1
 
