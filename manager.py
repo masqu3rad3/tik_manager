@@ -1904,8 +1904,7 @@ class MainUI(QtWidgets.QMainWindow):
                 # takethefirstjson as example for rootpath
                 jPath = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
 
-                sceneData = loadJson(os.path.join(jPath, sceneName))
-                # sceneData = loadJson(self.scenesInCategory[row])
+                sceneData = loadJson(jPath)
 
                 path = os.path.join(os.path.normpath(self.manager.currentProject), os.path.normpath(sceneData["Path"]))
                 os.startfile(path)
@@ -1915,10 +1914,10 @@ class MainUI(QtWidgets.QMainWindow):
             if not row == -1:
                 sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
                 # takethefirstjson as example for rootpath
-                jPath = pathOps(self.scenesInCategory[0], "path")
+                jPath = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
 
-                sceneData = loadJson(os.path.join(jPath, sceneName))
-                # sceneData = loadJson(self.scenesInCategory[row])
+                # sceneData = loadJson(os.path.join(jPath, sceneName))
+                sceneData = loadJson(jPath)
 
                 path = os.path.join(os.path.normpath(self.manager.currentProject), os.path.normpath(sceneData["Path"]))
                 path = path.replace("scenes", "Playblasts")
