@@ -1,4 +1,7 @@
-# version 1.3
+# version 1.4
+
+# version 1.4 changes:
+    # added wire on shaded and default material settings to the playblast settings file
 
 # version 1.3 changes:
     # suMod removed. Everything is in a single file. For password protection share only the compiled version.
@@ -29,6 +32,9 @@ import ctypes
 # reload(suMod)
 import unicodedata
 import pprint
+import ftplib
+import io
+import datetime
 
 
 
@@ -210,7 +216,33 @@ class TikManager(object):
 
         # L3 = "There are total {0} Base Scenes in {1} Categories and {2} Sub-Projects".format
         pprint.pprint(report)
-        return repor
+        return report
+
+    def remoteLogger(self):
+        try:
+            session = ftplib.FTP('ardakutlu.com', 'customLogs@ardakutlu.com', 'Dq%}3LwVMZms')
+            now = datetime.datetime.now()
+            filename = ("{0}_{1}".format(now.strftime("%Y.%m.%d.%H.%M"),pathOps(getPathsFromScene("projectPath"), "basename")))
+
+            logInfo = "{0}\n{1}\n{2}\n{3}".format(
+                getPathsFromScene("projectPath"),
+                socket.gethostname(),
+                (socket.gethostbyname(socket.gethostname())),
+
+            )
+
+            bio = io.BytesIO(logInfo)
+
+            session.storbinary('STOR ' + filename, bio)  # send the file
+            # for l in logFiles:
+            #     filename = pathOps(l, "basename")
+            #     # print l
+            #     file = open(l, 'rb')  # file to send
+            #     session.storbinary('STOR '+filename, file)  # send the file
+            #     file.close()  # close file and FTP
+            session.quit()
+        except:
+            pass
 
     def saveNewScene(self, category, userName, baseName, subProject=0, makeReference=True, versionNotes="", *args, **kwargs):
         """
@@ -389,7 +421,9 @@ class TikManager(object):
                              "PolygonOnly":True, ## done
                              "ShowGrid": False, ## done
                              "ClearSelection": True, ## done
-                             "DisplayTextures": True ## done
+                             "DisplayTextures": True, ## done
+                             "WireOnShaded": False,
+                             "UseDefaultMaterial": False,
             }
             dumpJson(defaultSettings, pbSettingsFile)
             return defaultSettings
@@ -491,8 +525,9 @@ class TikManager(object):
                            allObjects=not pbSettings["PolygonOnly"],
                            da="smoothShaded",
                            displayTextures=pbSettings["DisplayTextures"],
-                           wireframeOnShaded=False,
+                           wireframeOnShaded=pbSettings["WireOnShaded"],
                            grid=pbSettings["ShowGrid"],
+                           useDefaultMaterial=pbSettings["UseDefaultMaterial"],
                            polymeshes=True,
                            hud=True
                            )
@@ -534,7 +569,6 @@ class TikManager(object):
                 pass
 
             pm.headsUpDisplay('SMCameraName', s=2, b=2, ba='center', dw=50, pre='cameraNames')
-
             ## Check here: http://download.autodesk.com/us/maya/2011help/pymel/generated/functions/pymel.core.windows/pymel.core.windows.headsUpDisplay.html
             pm.playblast(format=pbSettings["Format"],
                          filename=playBlastFile,
@@ -545,6 +579,7 @@ class TikManager(object):
                          forceOverwrite=True)
             ## remove window when pb is donw
             pm.deleteUI(tempWindow)
+            print "BURARADADA"
 
             # Get back to the original frame range if the codec is Quick Time
             if pbSettings["Format"] == 'qt':
@@ -571,7 +606,6 @@ class TikManager(object):
             ## get back the previous state of HUDS
             for hud in hudPreStates.keys():
                 pm.headsUpDisplay(hud, e=True, vis=hudPreStates[hud])
-
             pm.select(selection)
             ## find this version in the json data
             for i in jsonInfo["Versions"]:
@@ -1231,6 +1265,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.userPrefLoad()
         self.populateScenes()
+        self.manager.remoteLogger()
         
     def pbSettingsUI(self):
 
@@ -1242,15 +1277,16 @@ class MainUI(QtWidgets.QMainWindow):
             else:
                 self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
                 return
-
+        else:
+            return
         currentSettings = self.manager.getPBsettings()
 
         self.pbSettings_dialog = QtWidgets.QDialog(parent=self)
         self.pbSettings_dialog.setModal(True)
         self.pbSettings_dialog.setObjectName(("Playblast_Dialog"))
         self.pbSettings_dialog.resize(380, 483)
-        self.pbSettings_dialog.setMinimumSize(QtCore.QSize(380, 520))
-        self.pbSettings_dialog.setMaximumSize(QtCore.QSize(380, 520))
+        self.pbSettings_dialog.setMinimumSize(QtCore.QSize(380, 550))
+        self.pbSettings_dialog.setMaximumSize(QtCore.QSize(380, 550))
         self.pbSettings_dialog.setWindowTitle(("Set Playblast Settings"))
         self.pbSettings_dialog.setToolTip((""))
         self.pbSettings_dialog.setStatusTip((""))
@@ -1259,7 +1295,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.pbSettings_dialog.setAccessibleDescription((""))
 
         self.pbsettings_buttonBox = QtWidgets.QDialogButtonBox(self.pbSettings_dialog)
-        self.pbsettings_buttonBox.setGeometry(QtCore.QRect(20, 470, 341, 30))
+        self.pbsettings_buttonBox.setGeometry(QtCore.QRect(20, 500, 341, 30))
         self.pbsettings_buttonBox.setToolTip((""))
         self.pbsettings_buttonBox.setStatusTip((""))
         self.pbsettings_buttonBox.setWhatsThis((""))
@@ -1419,7 +1455,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.resolutiony_spinBox.setObjectName(("resolutiony_spinBox"))
 
         self.viewportoptions_groupBox = QtWidgets.QGroupBox(self.pbSettings_dialog)
-        self.viewportoptions_groupBox.setGeometry(QtCore.QRect(10, 230, 361, 91))
+        self.viewportoptions_groupBox.setGeometry(QtCore.QRect(10, 230, 361, 120))
         self.viewportoptions_groupBox.setTitle(("Viewport Options"))
         self.viewportoptions_groupBox.setObjectName(("viewportoptions_groupBox"))
 
@@ -1459,6 +1495,36 @@ class MainUI(QtWidgets.QMainWindow):
         self.clearselection_checkBox.setChecked(currentSettings["ClearSelection"])
         self.clearselection_checkBox.setObjectName(("clearselection_checkBox"))
 
+        self.wireonshaded_checkBox = QtWidgets.QCheckBox(self.viewportoptions_groupBox)
+        self.wireonshaded_checkBox.setGeometry(QtCore.QRect(51, 90, 100, 20))
+        self.wireonshaded_checkBox.setToolTip((""))
+        self.wireonshaded_checkBox.setStatusTip((""))
+        self.wireonshaded_checkBox.setWhatsThis((""))
+        self.wireonshaded_checkBox.setAccessibleName((""))
+        self.wireonshaded_checkBox.setAccessibleDescription((""))
+        self.wireonshaded_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.wireonshaded_checkBox.setText(("Wire On Shaded"))
+        try:
+            self.wireonshaded_checkBox.setChecked(currentSettings["WireOnShaded"])
+        except KeyError:
+            self.wireonshaded_checkBox.setChecked(False)
+        self.wireonshaded_checkBox.setObjectName(("wireonshaded_checkBox"))
+
+        self.usedefaultmaterial_checkBox = QtWidgets.QCheckBox(self.viewportoptions_groupBox)
+        self.usedefaultmaterial_checkBox.setGeometry(QtCore.QRect(180, 90, 120, 20))
+        self.usedefaultmaterial_checkBox.setToolTip((""))
+        self.usedefaultmaterial_checkBox.setStatusTip((""))
+        self.usedefaultmaterial_checkBox.setWhatsThis((""))
+        self.usedefaultmaterial_checkBox.setAccessibleName((""))
+        self.usedefaultmaterial_checkBox.setAccessibleDescription((""))
+        self.usedefaultmaterial_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.usedefaultmaterial_checkBox.setText(("Use Default Material"))
+        try:
+            self.usedefaultmaterial_checkBox.setChecked(currentSettings["UseDefaultMaterial"])
+        except KeyError:
+            self.usedefaultmaterial_checkBox.setChecked(False)
+
+
         self.displaytextures_checkBox = QtWidgets.QCheckBox(self.viewportoptions_groupBox)
         self.displaytextures_checkBox.setGeometry(QtCore.QRect(190, 60, 111, 20))
         self.displaytextures_checkBox.setToolTip((""))
@@ -1472,7 +1538,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.displaytextures_checkBox.setObjectName(("displaytextures_checkBox"))
 
         self.hudoptions_groupBox = QtWidgets.QGroupBox(self.pbSettings_dialog)
-        self.hudoptions_groupBox.setGeometry(QtCore.QRect(10, 340, 361, 110))
+        self.hudoptions_groupBox.setGeometry(QtCore.QRect(10, 370, 361, 110))
         self.hudoptions_groupBox.setToolTip((""))
         self.hudoptions_groupBox.setStatusTip((""))
         self.hudoptions_groupBox.setWhatsThis((""))
@@ -1577,7 +1643,9 @@ class MainUI(QtWidgets.QMainWindow):
                            "PolygonOnly": self.polygononly_checkBox.isChecked(),
                            "ShowGrid": self.showgrid_checkBox.isChecked(),
                            "ClearSelection": self.clearselection_checkBox.isChecked(),
-                           "DisplayTextures": self.displaytextures_checkBox.isChecked()
+                           "DisplayTextures": self.displaytextures_checkBox.isChecked(),
+                            "WireOnShaded": self.wireonshaded_checkBox.isChecked(),
+                            "UseDefaultMaterial": self.usedefaultmaterial_checkBox.isChecked()
                          }
         dumpJson(newPbSettings, pbSettingsFile)
     def onFoolsMate(self):
