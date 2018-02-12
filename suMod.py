@@ -26,28 +26,42 @@ class SuManager(object):
         print "Work In Progress"
 
     def deleteItem(self, jsonPath, jsonData, passw):
+
         if not self.passwCheck(passw):
             pm.warning ("Incorrect Password")
             return
         # get the scenePath
         ## delete everything
+
         for s in jsonData["Versions"]:
-            try:
-                os.remove(s[0])
-            except:
-                pass
+            os.remove(s[0])
+
+
         if jsonData["ReferenceFile"]:
-            try:
-                os.remove(jsonData["ReferenceFile"])
-            except:
-                pass
-        try:
-            os.rmdir(jsonData["Path"])
-        except:
-            pass
-        try:
-            os.remove(jsonPath)
-        except:
-            pass
+            os.remove(jsonData["ReferenceFile"])
+
+        os.rmdir(jsonData["Path"])
+        os.remove(jsonPath)
+
+
+
+        # for s in jsonData["Versions"]:
+        #     try:
+        #         os.remove(s[0])
+        #     except:
+        #         pass
+        # if jsonData["ReferenceFile"]:
+        #     try:
+        #         os.remove(jsonData["ReferenceFile"])
+        #     except:
+        #         pass
+        # try:
+        #     os.rmdir(jsonData["Path"])
+        # except:
+        #     pass
+        # try:
+        #     os.remove(jsonPath)
+        # except:
+        #     pass
 
 

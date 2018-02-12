@@ -1,4 +1,8 @@
-# version 1.2
+# version 1.3
+
+# version 1.3 changes:
+    # suMod removed. Everything is in a single file. For password protection share only the compiled version.
+    # various bug fixes
 
 # version 1.2 changes:
 # fixed the loading and referencing system. Now it checks for the selected rows 'name' not the list number id.
@@ -20,9 +24,9 @@ import maya.cmds as cmds
 import socket
 import filecmp
 import re
-import suMod
+# import suMod
 import ctypes
-reload(suMod)
+# reload(suMod)
 import unicodedata
 import pprint
 
@@ -206,7 +210,7 @@ class TikManager(object):
 
         # L3 = "There are total {0} Base Scenes in {1} Categories and {2} Sub-Projects".format
         pprint.pprint(report)
-        return report
+        return repor
 
     def saveNewScene(self, category, userName, baseName, subProject=0, makeReference=True, versionNotes="", *args, **kwargs):
         """
@@ -367,8 +371,6 @@ class TikManager(object):
 
     def getPBsettings(self):
 
-        ## TODO / WIP
-
         projectPath, playBlastRoot = getPathsFromScene("projectPath","playBlastRoot")
 
         pbSettingsFile = "{0}\\PBsettings.json".format(os.path.join(projectPath, playBlastRoot))
@@ -496,8 +498,6 @@ class TikManager(object):
                            )
 
             pm.camera(currentCam, e=True, overscan=True, displayFilmGate=False, displayResolution=False)
-
-            ## TODO // Prepare the scene and hud interface before
 
             ## get previous HUD States and turn them all off
             hudPreStates = {}
@@ -733,6 +733,51 @@ class TikManager(object):
         else:
             pm.error("File in Scene Manager database doesnt exist")
 
+    def deleteBaseScene(self, jsonFile):
+        projectPath = getPathsFromScene("projectPath")
+        jsonInfo = loadJson(jsonFile)
+
+        # delete all version files
+        for s in jsonInfo["Versions"]:
+            try:
+                os.remove(os.path.join(projectPath, s[0]))
+            except:
+                pm.warning("Cannot delete scene version:%s" % (s[0]))
+                pass
+        # delete reference file
+        if jsonInfo["ReferenceFile"]:
+            try:
+                os.remove(os.path.join(projectPath, jsonInfo["ReferenceFile"]))
+            except:
+                pm.warning("Cannot delete reference file %s" %(jsonInfo["ReferenceFile"]))
+                pass
+        # delete base scene directory
+        try:
+            scene_path = os.path.join(projectPath, jsonInfo["Path"])
+            os.rmdir(scene_path)
+        except:
+            pm.warning("Cannot delete scene path %s" % (scene_path))
+            pass
+        # delete json database file
+        try:
+            os.remove(os.path.join(projectPath, jsonFile))
+        except:
+            pm.warning("Cannot delete scene path %s" % (jsonFile))
+            pass
+
+    def deleteReference(self, jsonFile):
+        projectPath = getPathsFromScene("projectPath")
+        jsonInfo = loadJson(jsonFile)
+        if jsonInfo["ReferenceFile"]:
+            try:
+                os.remove(os.path.join(projectPath, jsonInfo["ReferenceFile"]))
+                jsonInfo["ReferenceFile"] = None
+                jsonInfo["ReferencedVersion"] = None
+                dumpJson(jsonInfo, jsonFile)
+            except:
+                pm.warning("Cannot delete reference file %s" %(jsonInfo["ReferenceFile"]))
+                pass
+
     def makeReference(self, jsonFile, version):
         """
         Makes the given version valid reference file. Basically it copies that file and names it as <Shot Name>_forReference.mb.
@@ -792,8 +837,11 @@ class MainUI(QtWidgets.QMainWindow):
 
 
         for entry in QtWidgets.QApplication.allWidgets():
-            if entry.objectName() == "SceneManager":
-                entry.close()
+            try:
+                if entry.objectName() == "SceneManager":
+                    entry.close()
+            except AttributeError:
+                pass
         parent = getMayaMainWindow()
         super(MainUI, self).__init__(parent=parent)
 
@@ -1069,19 +1117,23 @@ class MainUI(QtWidgets.QMainWindow):
         file = self.menubar.addMenu("File")
         pb_settings = QtWidgets.QAction("&Playblast Settings", self)
         deleteFile = QtWidgets.QAction("&Delete Selected Base Scene", self)
+        deleteReference = QtWidgets.QAction("&Delete Reference of Selected Scene", self)
         reBuildDatabase = QtWidgets.QAction("&Re-build Project Database", self)
         projectReport = QtWidgets.QAction("&Project Report", self)
         createPB = QtWidgets.QAction("&Create PlayBlast", self)
         file.addAction(pb_settings)
         file.addAction(deleteFile)
+        file.addAction(deleteReference)
         file.addAction(reBuildDatabase)
         file.addAction(projectReport)
         file.addAction(createPB)
 
         # settings.triggered.connect(self.userPrefSave)
-        deleteFile.triggered.connect(lambda: self.passwordBridge(command="deleteItem"))
-        deleteFile.triggered.connect(self.populateScenes)
-        reBuildDatabase.triggered.connect(lambda: suMod.SuManager().rebuildDatabase())
+        # deleteFile.triggered.connect(lambda: self.passwordBridge(command="deleteItem"))
+        deleteFile.triggered.connect(lambda: self.onDeleteBaseScene())
+        # deleteFile.triggered.connect(self.populateScenes)
+        deleteReference.triggered.connect(self.onDeleteReference)
+        # reBuildDatabase.triggered.connect(lambda: suMod.SuManager().rebuildDatabase())
         projectReport.triggered.connect(lambda: self.manager.projectReport())
         # projectReport.triggered.connect(lambda: self.passwordBridge())
         pb_settings.triggered.connect(self.pbSettingsUI)
@@ -1182,9 +1234,14 @@ class MainUI(QtWidgets.QMainWindow):
         
     def pbSettingsUI(self):
 
-        if not self.passwordBridge(command="simpleCheck"):
-            self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
-            return
+        admin_pswd = "682"
+        passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query", "Enter Admin Password:", QtWidgets.QLineEdit.Password)
+        if ok:
+            if passw == admin_pswd:
+                pass
+            else:
+                self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
+                return
 
         currentSettings = self.manager.getPBsettings()
 
@@ -2095,7 +2152,8 @@ class MainUI(QtWidgets.QMainWindow):
             # takethefirstjson as example for rootpath
             jPath = pathOps(self.scenesInCategory[0], "path")
 
-            jsonFile = loadJson(os.path.join(jPath, sceneName))
+            jsonFile = os.path.join(jPath, sceneName)
+
             # jsonFile = self.scenesInCategory[row]
             version = self.version_comboBox.currentIndex()
             self.manager.makeReference(jsonFile, version+1)
@@ -2115,22 +2173,55 @@ class MainUI(QtWidgets.QMainWindow):
         self.msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
         self.msg.show()
 
-    def passwordBridge(self, command):
-        passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query", "Enter Admin Password:", QtWidgets.QLineEdit.Password)
+    # def passwordBridge(self, command):
+    #     passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query", "Enter Admin Password:", QtWidgets.QLineEdit.Password)
+    #     if ok:
+    #         if command == "deleteItem":
+    #             row = self.scenes_listWidget.currentRow()
+    #             # if not row == -1:
+    #             #     ## TODO // If no item is selected should skip it
+    #             #     sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
+    #             #     jPath = pathOps(self.scenesInCategory[0], "path")
+    #             #     jsonFilePath = os.path.join(jPath, sceneName)
+    #             #     suMod.SuManager().deleteItem(jsonFilePath, loadJson(jsonFilePath),passw)
+    #
+    #
+    #         if command == "simpleCheck":
+    #             return suMod.SuManager().passwCheck(passw)
+    #         return passw
+    #     # pwDialog = QtWidgets.QDialog(parent=self)
+    #     # pwLabel = QtWidgets.QLabel("Enter the admin password", pwDialog)
+    #     # pw = QtWidgets.QLineEdit(pwDialog)
+    #     # pw.setEchoMode(QtWidgets.QLineEdit.Password)
+    #     # pwDialog.show()
+
+    def onDeleteBaseScene(self):
+        admin_pswd = "682"
+        passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query", "DELETING BASE SCENE\n\nEnter Admin Password:", QtWidgets.QLineEdit.Password)
         if ok:
-            if command == "deleteItem":
+            if passw == admin_pswd:
                 row = self.scenes_listWidget.currentRow()
                 if not row == -1:
-                    ## TODO // If no item is selected should skip it
                     sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
                     jPath = pathOps(self.scenesInCategory[0], "path")
-                    jsonFile = loadJson(os.path.join(jPath, sceneName))
-                    suMod.SuManager().deleteItem(jsonFile, loadJson(jsonFile),passw)
-            if command == "simpleCheck":
-                return suMod.SuManager().passwCheck(passw)
-            return passw
-        # pwDialog = QtWidgets.QDialog(parent=self)
-        # pwLabel = QtWidgets.QLabel("Enter the admin password", pwDialog)
-        # pw = QtWidgets.QLineEdit(pwDialog)
-        # pw.setEchoMode(QtWidgets.QLineEdit.Password)
-        # pwDialog.show()
+                    jsonFilePath = os.path.join(jPath, sceneName)
+                    self.manager.deleteBaseScene(jsonFilePath)
+                    self.populateScenes()
+            else:
+                self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
+
+    def onDeleteReference(self):
+        admin_pswd = "682"
+        passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query", "DELETING REFERENCE FILE\n\nEnter Admin Password:", QtWidgets.QLineEdit.Password)
+        if ok:
+            if passw == admin_pswd:
+                row = self.scenes_listWidget.currentRow()
+                if not row == -1:
+                    sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
+                    jPath = pathOps(self.scenesInCategory[0], "path")
+                    jsonFilePath = os.path.join(jPath, sceneName)
+                    self.manager.deleteReference(jsonFilePath)
+                    self.populateScenes()
+            else:
+                self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
+
