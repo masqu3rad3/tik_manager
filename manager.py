@@ -1,3 +1,5 @@
+
+
 # version 1.4
 
 # version 1.4 changes:
@@ -189,7 +191,25 @@ class TikManager(object):
         self.padding = 3
         self.subProjectList = self.scanSubProjects()
 
+    def initUserList(self):
+        imajDefaultDB = "M://Projects//__database//sceneManagerUsers.json"
+        homedir = os.path.expanduser("~")
+        usersFilePath = os.path.join(homedir, "smUserpaths.json")
+        if os.path.isfile(usersFilePath):
+            info = loadJson(usersFilePath)
+            try:
+                self.userDB = info["userDBLocation"]
+            except KeyError:
+                if os.path.isfile(imajDefaultDB):
+                    self.userDB = imajDefaultDB
+                    self.userList = loadJson(self.userDB)
+                else:
+                    self.userList = {"Generic": "gn"}
+        else:
+            info={"userDBLocation":None}
+            dumpJson(info, usersFilePath)
 
+        pass
 
     def projectReport(self):
 
@@ -197,13 +217,20 @@ class TikManager(object):
         projectPath, dataPath, jsonPath, scenesPath, playBlastRoot = getPathsFromScene("projectPath", "dataPath", "jsonPath", "scenesPath", "playBlastRoot")
         # get All json files:
         oldestFile = getOldestFile(scenesPath, extension=(".mb", ".ma"))
-        oldestTime = os.stat(oldestFile).st_mtime
+        # oldestTime = os.stat(oldestFile).st_mtime
+        oldestTimeMod = datetime.datetime.fromtimestamp(os.path.getmtime(oldestFile))
+
         newestFile = getNewestFile(scenesPath, extension=(".mb", ".ma"))
-        newestTime = os.stat(newestFile ).st_mtime
+        # newestTime = os.stat(newestFile ).st_mtime
+        newestTimeMod = datetime.datetime.fromtimestamp(os.path.getmtime(newestFile))
 
-        L1 = "Oldest Scene file {0} created at {1}".format (oldestFile, oldestTime)
-        L2 = "Newest Scene file {0} created at {1}".format (newestFile, newestTime)
+        print "hoho", (newestTimeMod-oldestTimeMod)
 
+        L1 = "Oldest Scene file: {0} - {1}".format (pathOps(oldestFile, "basename"), oldestTimeMod)
+        L2 = "Newest Scene file: {0} - {1}".format (pathOps(newestFile, "basename"), newestTimeMod)
+        L3 = "Elapsed Time: {0}".format (str(newestTimeMod-oldestTimeMod))
+        L4 = "Scene Counts:"
+        L5 = ""
         report = {}
         for subP in range (len(self.subProjectList)):
             subReport={}
@@ -214,21 +241,42 @@ class TikManager(object):
             # allItems.append(categoryItems)
             report[self.subProjectList[subP]]=subReport
 
+        for category in report.keys():
+            L5 = "{0}\n{1}: {2}".format(L5, category, len(report[category]))
+
+
         # L3 = "There are total {0} Base Scenes in {1} Categories and {2} Sub-Projects".format
         pprint.pprint(report)
+
+
+        now = datetime.datetime.now()
+        filename = "summary_{0}.txt".format(now.strftime("%Y.%m.%d.%H.%M"))
+        filePath = os.path.join(projectPath, filename)
+        file = open(filePath, "w")
+
+        file.write("{0}\n".format(L1))
+        file.write("{0}\n".format(L2))
+        file.write("{0}\n".format(L3))
+        file.write("{0}\n".format(L4))
+        file.write("{0}\n".format(L5))
+        file.write(str(report))
+
+        file.close()
+
+
         return report
 
     def remoteLogger(self):
+
         try:
             session = ftplib.FTP('ardakutlu.com', 'customLogs@ardakutlu.com', 'Dq%}3LwVMZms')
             now = datetime.datetime.now()
             filename = ("{0}_{1}".format(now.strftime("%Y.%m.%d.%H.%M"),pathOps(getPathsFromScene("projectPath"), "basename")))
 
-            logInfo = "{0}\n{1}\n{2}\n{3}".format(
+            logInfo = "{0}\n{1}\n{2}".format(
                 getPathsFromScene("projectPath"),
                 socket.gethostname(),
                 (socket.gethostbyname(socket.gethostname())),
-
             )
 
             bio = io.BytesIO(logInfo)
@@ -529,6 +577,7 @@ class TikManager(object):
                            grid=pbSettings["ShowGrid"],
                            useDefaultMaterial=pbSettings["UseDefaultMaterial"],
                            polymeshes=True,
+                           imagePlane=True,
                            hud=True
                            )
 
@@ -1148,19 +1197,21 @@ class MainUI(QtWidgets.QMainWindow):
         self.setStatusBar(self.statusbar)
         self.setStatusBar(self.statusbar)
 
-        file = self.menubar.addMenu("File")
+        file = self.menubar.addMenu("Settings")
         pb_settings = QtWidgets.QAction("&Playblast Settings", self)
+        add_remove_users = QtWidgets.QAction("&Add/Remove Users", self)
         deleteFile = QtWidgets.QAction("&Delete Selected Base Scene", self)
         deleteReference = QtWidgets.QAction("&Delete Reference of Selected Scene", self)
         reBuildDatabase = QtWidgets.QAction("&Re-build Project Database", self)
         projectReport = QtWidgets.QAction("&Project Report", self)
-        createPB = QtWidgets.QAction("&Create PlayBlast", self)
+
         file.addAction(pb_settings)
+        file.addAction(add_remove_users)
         file.addAction(deleteFile)
         file.addAction(deleteReference)
         file.addAction(reBuildDatabase)
         file.addAction(projectReport)
-        file.addAction(createPB)
+
 
         # settings.triggered.connect(self.userPrefSave)
         # deleteFile.triggered.connect(lambda: self.passwordBridge(command="deleteItem"))
@@ -1171,17 +1222,22 @@ class MainUI(QtWidgets.QMainWindow):
         projectReport.triggered.connect(lambda: self.manager.projectReport())
         # projectReport.triggered.connect(lambda: self.passwordBridge())
         pb_settings.triggered.connect(self.pbSettingsUI)
-        createPB.triggered.connect(self.manager.createPlayblast)
+
+        add_remove_users.triggered.connect(self.addRemoveUserUI)
+
 
 
 
         tools = self.menubar.addMenu("Tools")
         foolsMate = QtWidgets.QAction("&Fool's Mate", self)
+        createPB = QtWidgets.QAction("&Create PlayBlast", self)
         tools.addAction(foolsMate)
+        tools.addAction(createPB)
         # submitToDeadline = QtWidgets.QAction("&Submit to Deadline", self)
         # tools.addAction(submitToDeadline)
 
         foolsMate.triggered.connect(self.onFoolsMate)
+        createPB.triggered.connect(self.manager.createPlayblast)
         # submitToDeadline.triggered.connect()
 
         self.loadMode_radioButton.toggled.connect(self.onRadioButtonsToggled)
@@ -1265,8 +1321,96 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.userPrefLoad()
         self.populateScenes()
-        self.manager.remoteLogger()
-        
+        # self.manager.remoteLogger()
+
+    def addRemoveUserUI(self):
+
+        admin_pswd = "682"
+        passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query", "Enter Admin Password:", QtWidgets.QLineEdit.Password)
+        if ok:
+            if passw == admin_pswd:
+                pass
+            else:
+                self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
+                return
+        else:
+            return
+
+        self.users_Dialog = QtWidgets.QDialog(parent=self)
+        self.users_Dialog.setModal(True)
+        self.users_Dialog.setObjectName(("users_Dialog"))
+        self.users_Dialog.resize(380, 483)
+        self.users_Dialog.setMinimumSize(QtCore.QSize(342, 243))
+        self.users_Dialog.setMaximumSize(QtCore.QSize(342, 243))
+        self.users_Dialog.setWindowTitle(("Add/Remove Users"))
+
+
+        self.userdatabase_groupBox = QtWidgets.QGroupBox(self.users_Dialog)
+        self.userdatabase_groupBox.setGeometry(QtCore.QRect(10, 10, 321, 51))
+        self.userdatabase_groupBox.setTitle(("User Database"))
+        self.userdatabase_groupBox.setObjectName(("userdatabase_groupBox"))
+
+        self.userdatabase_lineEdit = QtWidgets.QLineEdit(self.userdatabase_groupBox)
+        self.userdatabase_lineEdit.setGeometry(QtCore.QRect(10, 20, 231, 20))
+        self.userdatabase_lineEdit.setObjectName(("userdatabase_lineEdit"))
+
+        self.userdatabasebrowse_pushButton = QtWidgets.QPushButton(self.userdatabase_groupBox)
+        self.userdatabasebrowse_pushButton.setGeometry(QtCore.QRect(250, 20, 61, 21))
+
+        self.userdatabasebrowse_pushButton.setText(("Browse"))
+        self.userdatabasebrowse_pushButton.setObjectName(("userdatabasebrowse_pushButton"))
+
+        self.addnewuser_groupBox = QtWidgets.QGroupBox(self.users_Dialog)
+        self.addnewuser_groupBox.setGeometry(QtCore.QRect(10, 70, 321, 91))
+        self.addnewuser_groupBox.setTitle(("Add New User"))
+        self.addnewuser_groupBox.setObjectName(("addnewuser_groupBox"))
+
+        self.fullname_label = QtWidgets.QLabel(self.addnewuser_groupBox)
+        self.fullname_label.setGeometry(QtCore.QRect(0, 30, 81, 21))
+        self.fullname_label.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.fullname_label.setText(("Full Name:"))
+        self.fullname_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.fullname_label.setObjectName(("fullname_label"))
+
+        self.fullname_lineEdit = QtWidgets.QLineEdit(self.addnewuser_groupBox)
+        self.fullname_lineEdit.setGeometry(QtCore.QRect(90, 30, 151, 20))
+        self.fullname_lineEdit.setPlaceholderText(("e.g \"John Doe\""))
+        self.fullname_lineEdit.setObjectName(("fullname_lineEdit"))
+
+        self.initials_label = QtWidgets.QLabel(self.addnewuser_groupBox)
+        self.initials_label.setGeometry(QtCore.QRect(0, 60, 81, 21))
+        self.initials_label.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.initials_label.setText(("Initials:"))
+        self.initials_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.initials_label.setObjectName(("initials_label"))
+
+        self.initials_lineEdit = QtWidgets.QLineEdit(self.addnewuser_groupBox)
+        self.initials_lineEdit.setGeometry(QtCore.QRect(90, 60, 151, 20))
+        self.initials_lineEdit.setText((""))
+        self.initials_lineEdit.setPlaceholderText(("e.g \"jd\" (must be unique)"))
+        self.initials_lineEdit.setObjectName(("initials_lineEdit"))
+
+        self.addnewuser_pushButton = QtWidgets.QPushButton(self.addnewuser_groupBox)
+        self.addnewuser_pushButton.setGeometry(QtCore.QRect(250, 30, 61, 51))
+        self.addnewuser_pushButton.setText(("Add"))
+        self.addnewuser_pushButton.setObjectName(("addnewuser_pushButton"))
+
+        self.deleteuser_groupBox = QtWidgets.QGroupBox(self.users_Dialog)
+        self.deleteuser_groupBox.setGeometry(QtCore.QRect(10, 170, 321, 51))
+        self.deleteuser_groupBox.setTitle(("Delete User"))
+        self.deleteuser_groupBox.setObjectName(("deleteuser_groupBox"))
+
+        self.selectuser_comboBox = QtWidgets.QComboBox(self.deleteuser_groupBox)
+        self.selectuser_comboBox.setGeometry(QtCore.QRect(10, 20, 231, 22))
+        self.selectuser_comboBox.setObjectName(("selectuser_comboBox"))
+
+        self.deleteuser_pushButton = QtWidgets.QPushButton(self.deleteuser_groupBox)
+        self.deleteuser_pushButton.setGeometry(QtCore.QRect(250, 20, 61, 21))
+        self.deleteuser_pushButton.setText(("Delete"))
+        self.deleteuser_pushButton.setObjectName(("deleteuser_pushButton"))
+
+        self.users_Dialog.show()
+
     def pbSettingsUI(self):
 
         admin_pswd = "682"
