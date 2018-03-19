@@ -1,14 +1,13 @@
 
 
-# version 1.4
+# version 1.42
 
-# version 1.4 changes:
-    # added wire on shaded and default material settings to the playblast settings file
-
+# version 1.42 changes:# sceneInfo right click menu added for base scenes
+# version 1.41 changes:# namespace added while referencing a scene
+# version 1.4 changes: # added wire on shaded and default material settings to the playblast settings file
 # version 1.3 changes:
     # suMod removed. Everything is in a single file. For password protection share only the compiled version.
     # various bug fixes
-
 # version 1.2 changes:
 # fixed the loading and referencing system. Now it checks for the selected rows 'name' not the list number id.
 # fixed the name check for duplicate base scenes. It doesnt allow creating base scenes with the same name disregarding it
@@ -905,7 +904,9 @@ class TikManager(object):
             # referenceFile = "%s%s" % (projectPath, relReferenceFile)
             referenceFile = os.path.join(projectPath, relReferenceFile)
             # pm.FileReference(referenceFile)
-            cmds.file(os.path.normpath(referenceFile), reference=True)
+            namespace = pathOps(referenceFile, "filename")
+            cmds.file(os.path.normpath(referenceFile), reference=True, gl=True, mergeNamespacesOnClash=False, namespace=namespace)
+
         else:
             pm.warning("There is no reference set for this scene. Nothing changed")
 
@@ -1305,6 +1306,13 @@ class MainUI(QtWidgets.QMainWindow):
         rcAction_3 = QtWidgets.QAction('Show Data Folder in Explorer', self)
         self.popMenu.addAction(rcAction_3)
         rcAction_3.triggered.connect(lambda : self.rcAction("showInExplorerData"))
+
+        self.popMenu.addSeparator()
+
+        rcAction_4 = QtWidgets.QAction('Scene Info', self)
+        self.popMenu.addAction(rcAction_4)
+        rcAction_4.triggered.connect(lambda: self.onSceneInfo())
+
 
         # swAction = QtWidgets.QAction('Show Wireframe', self)
         # self.popMenu.addAction(swAction)
@@ -2272,29 +2280,20 @@ class MainUI(QtWidgets.QMainWindow):
 
     def sceneInfo(self):
         self.version_comboBox.clear()
-
         row = self.scenes_listWidget.currentRow()
         if row == -1:
             return
-
         sceneName = "%s.json" %self.scenes_listWidget.currentItem().text()
         # takethefirstjson as example for rootpath
         jPath = pathOps(self.scenesInCategory[0], "path")
-
         sceneData = loadJson(os.path.join(jPath, sceneName))
-
-        #
-        # sceneData = loadJson(self.scenesInCategory[row])
 
         for num in range (len(sceneData["Versions"])):
             self.version_comboBox.addItem("v{0}".format(str(num+1).zfill(3)))
-
         if sceneData["ReferencedVersion"]:
             currentIndex = sceneData["ReferencedVersion"]-1
-            # self.version_comboBox.setCurrentIndex(sceneData["ReferencedVersion"]-1)
         else:
             currentIndex = len(sceneData["Versions"])-1
-            # self.version_comboBox.setCurrentIndex(len(sceneData["Versions"])-1)
         self.version_comboBox.setCurrentIndex(currentIndex)
         self.notes_textEdit.setPlainText(sceneData["Versions"][currentIndex][1])
         self.refreshNotes()
@@ -2318,6 +2317,55 @@ class MainUI(QtWidgets.QMainWindow):
         else:
 
             self.showPB_pushButton.setEnabled(False)
+
+    def onSceneInfo(self):
+        row = self.scenes_listWidget.currentRow()
+        if not row == -1:
+            sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
+            # takethefirstjson as example for rootpath
+            jPath = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
+            sceneData = loadJson(jPath)
+            textInfo = pprint.pformat(sceneData)
+            # self.infoPop(textInfo=textInfo, type="I")
+            # pprint.pprint(sceneData)
+            self.messageDialog = QtWidgets.QDialog()
+            self.messageDialog.setWindowTitle("Initial Spine Help")
+
+            self.messageDialog.resize(800, 700)
+            self.messageDialog.show()
+            messageLayout = QtWidgets.QVBoxLayout(self.messageDialog)
+            messageLayout.setContentsMargins(0, 0, 0, 0)
+            helpText = QtWidgets.QTextEdit()
+            helpText.setReadOnly(True)
+
+            helpText.setStyleSheet("background-color: rgb(255, 255, 255);")
+            helpText.setStyleSheet(""
+                                   "border: 20px solid black;"
+                                   "background-color: black;"
+                                   "font-size: 16px"
+                                   "")
+            helpText.setText(textInfo)
+            # testLabel = QtWidgets.QLabel("TESTING")
+            # helpText.textCursor().insertHtml("""
+            # <h1><span style="color: #ff6600;">Creating Initial Spine Joints</span></h1>
+            # <p><span style="font-weight: 400;">This section is for creating or defining </span><em><span style="font-weight: 400;">Spine Initialization Joints.</span></em></p>
+            # <p><span style="font-weight: 400;">These joints will inform the rigging module about the locations of spine joints and pass various options through extra attributes.</span></p>
+            # <h3><strong><span style="color: #ff6600;">How To use?</span></strong></h3>
+            # <p><span style="font-weight: 400;">Pressing the <em>Create</em>&nbsp;button will create number of joints defined by the </span><span style="font-weight: 400; color: #800080;"><strong>Segments</strong> </span><span style="font-weight: 400;">value.</span></p>
+            # <p><span style="font-weight: 400;">Pressing the CTRL will change the mode to define mode which allows defining pre-existing joints as spine.</span></p>
+            # <p><span style="font-weight: 400;">To define existing joints, first select all the joints that you wish to define with the correct order (starting from the root of spine), then CTRL+click <em>Create</em>&nbsp;button.</span></p>
+            # <p><strong><span style="color: #800080;">Segments</span></strong><span style="font-weight: 400;"> value is </span><strong>not </strong><span style="font-weight: 400;">the final resolution of the spine rig. <strong><span style="color: #800080;">Segments</span> </strong>are used to tell the rig module, where and how many controllers will be on the spine rig.</span></p>
+            # <h3><span style="color: #ff6600;">What next?</span></h3>
+            # <p><span style="font-weight: 400;">After creating (or defining) the initial spine joints, various options can be reached through the Spine Root. These options are stored in extra attributes. During the rigging process, these options will be derived by the rigging module.</span></p>
+            # <p><span style="font-weight: 400;">These extra attributes are:</span></p>
+            # <p><span style="font-weight: 400;"><span style="color: #3366ff;"><strong>Resolution:</strong></span>&nbsp;</span><span style="font-weight: 400;">This is the actual final joint resolution for the spine deformation joints.</span></p>
+            # <p><span style="font-weight: 400;"><span style="color: #3366ff;"><strong>DropOff:</strong></span>&nbsp;</span><span style="font-weight: 400;">This value will change the way the controllers are affecting the spline IK chain. Usually the default value is ok. If the rig have too many segments (This means more controllers will be created) then tweaking this value may be necessary.</span></p>
+            #
+            #         """)
+            messageLayout.addWidget(helpText)
+
+
+        pass
 
     def populateScenes(self):
 
