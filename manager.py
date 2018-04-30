@@ -1,7 +1,9 @@
-
-
-# version 1.42
-
+# version 1.55 changes:
+    # regularSaveUpdate function added for Save callback
+    # sound problem fixed with playblasts
+# version 1.45 changes:# Create New Project Function added, Settings menu renamed as File
+# version 1.44 changes:# Bug fix with playblasts Maya 2017 (hud display camera location was inproper)
+# version 1.43 changes:# current scene info line added to the top of the window
 # version 1.42 changes:# sceneInfo right click menu added for base scenes
 # version 1.41 changes:# namespace added while referencing a scene
 # version 1.4 changes: # added wire on shaded and default material settings to the playblast settings file
@@ -18,6 +20,17 @@
 # In "Reference Mode" Scene List highlighted with red border for visual reference.
 
 # version 1.0 initial
+
+##### CALLBACK FUnction for SAVE #####
+# Add these lines to usersetup.py under scripts folder (Or create the file)
+
+# import maya.utils
+# import maya.OpenMaya as OpenMaya
+# def smUpdate(*args):
+#     import sceneManager
+#     m = sceneManager.TikManager()
+#     m.regularSaveUpdate()
+# maya.utils.executeDeferred('SMid = OpenMaya.MSceneMessage.addCallback(OpenMaya.MSceneMessage.kAfterSave, smUpdate)')
 
 import pymel.core as pm
 import json
@@ -36,6 +49,7 @@ import pprint
 import ftplib
 import io
 import datetime
+import maya.mel
 
 
 
@@ -119,7 +133,6 @@ def nameCheck(text):
         return text
     else:
         return -1
-
 
 def pathOps(fullPath, mode):
     """
@@ -210,6 +223,64 @@ class TikManager(object):
 
         pass
 
+    def createNewProject(self, projectPath):
+        # projectDate = datetime.datetime.now().strftime("%y%m%d")
+        # if brandName:
+        #     brandName = "%s_" %brandName
+        # else:
+        #     brandName = ""
+        # fullName = "{0}{1}_{2}_{3}".format(brandName, projectName, clientName, projectDate)
+        # fullPath = os.path.join(projectPath, fullName)
+        # check if there is a duplicate
+        if not os.path.isdir(os.path.normpath(projectPath)):
+            os.makedirs(os.path.normpath(projectPath))
+        else:
+            print "Project already exists"
+            return
+
+        # create Directory structure:
+        os.mkdir(os.path.join(projectPath, "_COMP"))
+        os.makedirs(os.path.join(projectPath, "_MAX\\Animation"))
+        os.makedirs(os.path.join(projectPath, "_MAX\\Model"))
+        os.makedirs(os.path.join(projectPath, "_MAX\\Render"))
+        os.mkdir(os.path.join(projectPath, "_SCULPT"))
+        os.mkdir(os.path.join(projectPath, "_REALFLOW"))
+        os.mkdir(os.path.join(projectPath, "_HOUDINI"))
+        os.mkdir(os.path.join(projectPath, "_REF"))
+        os.mkdir(os.path.join(projectPath, "_TRACK"))
+        os.makedirs(os.path.join(projectPath, "_TRANSFER\\FBX"))
+        os.makedirs(os.path.join(projectPath, "_TRANSFER\\ALEMBIC"))
+        os.makedirs(os.path.join(projectPath, "_TRANSFER\\OBJ"))
+        os.makedirs(os.path.join(projectPath, "_TRANSFER\\MA"))
+        os.mkdir(os.path.join(projectPath, "assets"))
+        os.mkdir(os.path.join(projectPath, "cache"))
+        os.mkdir(os.path.join(projectPath, "clips"))
+        os.mkdir(os.path.join(projectPath, "data"))
+        os.makedirs(os.path.join(projectPath, "images\\_CompRenders"))
+        os.mkdir(os.path.join(projectPath, "movies"))
+        os.mkdir(os.path.join(projectPath, "particles"))
+        os.mkdir(os.path.join(projectPath, "Playblasts"))
+        os.makedirs(os.path.join(projectPath, "renderData\\depth"))
+        os.makedirs(os.path.join(projectPath, "renderData\\fur"))
+        os.makedirs(os.path.join(projectPath, "renderData\\iprImages"))
+        os.makedirs(os.path.join(projectPath, "renderData\\mentalray"))
+        os.makedirs(os.path.join(projectPath, "renderData\\shaders"))
+        os.mkdir(os.path.join(projectPath, "scenes"))
+        os.mkdir(os.path.join(projectPath, "scripts"))
+        os.mkdir(os.path.join(projectPath, "sound"))
+        os.makedirs(os.path.join(projectPath, "sourceimages\\_FOOTAGE"))
+        os.makedirs(os.path.join(projectPath, "sourceimages\\_HDR"))
+
+        filePath = os.path.join(projectPath, "workspace.mel")
+        file = open(filePath, "w")
+        # file.write("{0}\n".format(L1))
+        # file.write("{0}\n".format(L2))
+        # file.write("{0}\n".format(L3))
+        # file.write("{0}\n".format(L4))
+        # file.write("{0}\n".format(L5))
+        file.close()
+        pass
+
     def projectReport(self):
 
         # // TODO Create a through REPORT
@@ -223,29 +294,32 @@ class TikManager(object):
         # newestTime = os.stat(newestFile ).st_mtime
         newestTimeMod = datetime.datetime.fromtimestamp(os.path.getmtime(newestFile))
 
-        print "hoho", (newestTimeMod-oldestTimeMod)
+
 
         L1 = "Oldest Scene file: {0} - {1}".format (pathOps(oldestFile, "basename"), oldestTimeMod)
         L2 = "Newest Scene file: {0} - {1}".format (pathOps(newestFile, "basename"), newestTimeMod)
         L3 = "Elapsed Time: {0}".format (str(newestTimeMod-oldestTimeMod))
         L4 = "Scene Counts:"
-        L5 = ""
+        # L5 = ""
         report = {}
         for subP in range (len(self.subProjectList)):
             subReport={}
             for category in self.validCategories:
+
                 categoryItems=(self.scanScenes(category, subProjectAs=subP)[0])
                 categoryItems = [x for x in categoryItems if x != []]
+
+                L4 = "{0}\n{1}: {2}".format(L4, category, len(categoryItems))
                 subReport[category]=categoryItems
             # allItems.append(categoryItems)
             report[self.subProjectList[subP]]=subReport
 
-        for category in report.keys():
-            L5 = "{0}\n{1}: {2}".format(L5, category, len(report[category]))
+        # for category in report.keys():
+        #     L5 = "{0}\n{1}: {2}".format(L5, category, len(report[category]))
 
 
         # L3 = "There are total {0} Base Scenes in {1} Categories and {2} Sub-Projects".format
-        pprint.pprint(report)
+        report = pprint.pformat(report)
 
 
         now = datetime.datetime.now()
@@ -257,8 +331,8 @@ class TikManager(object):
         file.write("{0}\n".format(L2))
         file.write("{0}\n".format(L3))
         file.write("{0}\n".format(L4))
-        file.write("{0}\n".format(L5))
-        file.write(str(report))
+        # file.write("{0}\n".format(L5))
+        file.write((report))
 
         file.close()
 
@@ -290,6 +364,57 @@ class TikManager(object):
             session.quit()
         except:
             pass
+
+    def regularSaveUpdate(self):
+        sceneName = os.path.normpath(pm.sceneName())
+
+        # if the scene is untitled, dont bother to continue
+        if not sceneName:
+            return
+
+        projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
+
+        shotDirectory = os.path.abspath(os.path.join(pm.sceneName(), os.pardir))
+        shotName = os.path.basename(shotDirectory)
+
+        upperShotDir = os.path.abspath(os.path.join(shotDirectory, os.pardir))
+        upperShot = os.path.basename(upperShotDir)
+
+
+        if upperShot in self.subProjectList:
+            subProjectDir= upperShotDir
+            subProject = upperShot
+            categoryDir = os.path.abspath(os.path.join(subProjectDir, os.pardir))
+            category = os.path.basename(categoryDir)
+
+            jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
+            folderCheck(jsonCategoryPath)
+            jsonPath = os.path.normpath(os.path.join(jsonCategoryPath, subProject))
+            folderCheck(jsonPath)
+
+        else:
+            categoryDir = upperShotDir
+            category = upperShot
+            jsonPath = os.path.normpath(os.path.join(jsonPath, category))
+            folderCheck(jsonPath)
+
+        jsonFile = os.path.join(jsonPath, "{}.json".format(shotName))
+
+        # check if the saved file be
+        if os.path.isfile(jsonFile):
+            jsonInfo = loadJson(jsonFile)
+            # check is the baseScene has a reference file
+            if jsonInfo["ReferenceFile"]:
+                absRefFile = os.path.join(projectPath, jsonInfo["ReferenceFile"])
+                absBaseSceneVersion = os.path.join(projectPath, jsonInfo["Versions"][int(jsonInfo["ReferencedVersion"])-1][0])
+                # if the refererenced scene file is the saved file (saved or saved as)
+                if sceneName == absBaseSceneVersion:
+                    # copy over the forReference file
+                    try:
+                        copyfile(sceneName, absRefFile)
+                        print "Scene Manager Update:\nReference File Updated"
+                    except:
+                        pass
 
     def saveNewScene(self, category, userName, baseName, subProject=0, makeReference=True, versionNotes="", *args, **kwargs):
         """
@@ -371,6 +496,46 @@ class TikManager(object):
         jsonInfo["Versions"]=[[relSceneFile, versionNotes, userName, socket.gethostname(), {}]] ## last item is for playplast
         dumpJson(jsonInfo, jsonFile)
         return relSceneFile
+
+    def getScene(self, *args, **kwargs):
+
+        sceneName = pm.sceneName()
+        if not sceneName:
+            pm.warning("This is not a base scene (Untitled)")
+            return ""
+
+        projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
+
+        # first get the parent dir
+        shotDirectory = os.path.abspath(os.path.join(pm.sceneName(), os.pardir))
+        shotName = os.path.basename(shotDirectory)
+
+        upperShotDir = os.path.abspath(os.path.join(shotDirectory, os.pardir))
+        upperShot = os.path.basename(upperShotDir)
+
+        if upperShot in self.subProjectList:
+            subProjectDir = upperShotDir
+            subProject = upperShot
+            categoryDir = os.path.abspath(os.path.join(subProjectDir, os.pardir))
+            category = os.path.basename(categoryDir)
+
+            jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
+            folderCheck(jsonCategoryPath)
+            jsonPath = os.path.normpath(os.path.join(jsonCategoryPath, subProject))
+
+        else:
+            subProject = ""
+            categoryDir = upperShotDir
+            category = upperShot
+            jsonPath = os.path.normpath(os.path.join(jsonPath, category))
+
+        jsonFile = os.path.join(jsonPath, "{}.json".format(shotName))
+
+        if os.path.isfile(jsonFile):
+            return "%s ==> %s ==> %s" %(subProject, category, shotName)
+
+        else:
+            return ""
 
     def saveVersion(self, userName, makeReference=True, versionNotes="", *args, **kwargs):
         """
@@ -616,7 +781,14 @@ class TikManager(object):
             except KeyError:
                 pass
 
-            pm.headsUpDisplay('SMCameraName', s=2, b=2, ba='center', dw=50, pre='cameraNames')
+            freeBl = pm.headsUpDisplay(nfb=2)
+            pm.headsUpDisplay('SMCameraName', s=2, b=freeBl, ba='center', dw=50, pre='cameraNames')
+
+            ## Get the active sound
+
+            aPlayBackSliderPython = maya.mel.eval('$tmpVar=$gPlayBackSlider')
+            activeSound = pm.timeControl(aPlayBackSliderPython, q=True, sound=True)
+
             ## Check here: http://download.autodesk.com/us/maya/2011help/pymel/generated/functions/pymel.core.windows/pymel.core.windows.headsUpDisplay.html
             pm.playblast(format=pbSettings["Format"],
                          filename=playBlastFile,
@@ -624,10 +796,10 @@ class TikManager(object):
                          percent=pbSettings["Percent"],
                          quality=pbSettings["Quality"],
                          compression=pbSettings["Codec"],
-                         forceOverwrite=True)
+                         sound=activeSound,
+                         uts=True)
             ## remove window when pb is donw
             pm.deleteUI(tempWindow)
-            print "BURARADADA"
 
             # Get back to the original frame range if the codec is Quick Time
             if pbSettings["Format"] == 'qt':
@@ -959,8 +1131,45 @@ class MainUI(QtWidgets.QMainWindow):
         self.centralwidget = QtWidgets.QWidget(self)
         self.centralwidget.setObjectName(("centralwidget"))
 
+        self.baseScene_label = QtWidgets.QLabel(self.centralwidget)
+        self.baseScene_label.setGeometry(QtCore.QRect(12, 10, 68, 21))
+        self.baseScene_label.setToolTip((""))
+        self.baseScene_label.setStatusTip((""))
+        self.baseScene_label.setWhatsThis((""))
+        self.baseScene_label.setAccessibleName((""))
+        self.baseScene_label.setAccessibleDescription((""))
+        self.baseScene_label.setFrameShape(QtWidgets.QFrame.Box)
+        self.baseScene_label.setLineWidth(1)
+        self.baseScene_label.setText(("Base Scene:"))
+        self.baseScene_label.setTextFormat(QtCore.Qt.AutoText)
+        self.baseScene_label.setScaledContents(False)
+        self.baseScene_label.setObjectName(("baseScene_label"))
+
+        # self.baseScene_lineEdit = QtWidgets.QLineEdit(self.centralwidget)
+        # self.baseScene_lineEdit.setGeometry(QtCore.QRect(90, 10, 471, 21))
+        # self.baseScene_lineEdit.setToolTip((""))
+        # self.baseScene_lineEdit.setStatusTip((""))
+        # self.baseScene_lineEdit.setWhatsThis((""))
+        # self.baseScene_lineEdit.setAccessibleName((""))
+        # self.baseScene_lineEdit.setAccessibleDescription((""))
+        # self.baseScene_lineEdit.setText("")
+        # self.baseScene_lineEdit.setReadOnly(True)
+        # self.baseScene_lineEdit.setObjectName(("baseScene_lineEdit"))
+        # self.baseScene_lineEdit.setStyleSheet("QLineEdit {color:cyan}")
+
+        self.baseScene_lineEdit = QtWidgets.QLabel(self.centralwidget)
+        self.baseScene_lineEdit.setGeometry(QtCore.QRect(90, 10, 471, 21))
+        self.baseScene_lineEdit.setToolTip((""))
+        self.baseScene_lineEdit.setStatusTip((""))
+        self.baseScene_lineEdit.setWhatsThis((""))
+        self.baseScene_lineEdit.setAccessibleName((""))
+        self.baseScene_lineEdit.setAccessibleDescription((""))
+        self.baseScene_lineEdit.setText("")
+        self.baseScene_lineEdit.setObjectName(("baseScene_lineEdit"))
+        self.baseScene_lineEdit.setStyleSheet("QLabel {color:cyan}")
+
         self.projectPath_label = QtWidgets.QLabel(self.centralwidget)
-        self.projectPath_label.setGeometry(QtCore.QRect(30, 30, 51, 21))
+        self.projectPath_label.setGeometry(QtCore.QRect(30, 36, 51, 21))
         self.projectPath_label.setToolTip((""))
         self.projectPath_label.setStatusTip((""))
         self.projectPath_label.setWhatsThis((""))
@@ -974,7 +1183,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.projectPath_label.setObjectName(("projectPath_label"))
 
         self.projectPath_lineEdit = QtWidgets.QLineEdit(self.centralwidget)
-        self.projectPath_lineEdit.setGeometry(QtCore.QRect(90, 30, 471, 21))
+        self.projectPath_lineEdit.setGeometry(QtCore.QRect(90, 36, 471, 21))
         self.projectPath_lineEdit.setToolTip((""))
         self.projectPath_lineEdit.setStatusTip((""))
         self.projectPath_lineEdit.setWhatsThis((""))
@@ -985,7 +1194,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.projectPath_lineEdit.setObjectName(("projectPath_lineEdit"))
 
         self.setProject_pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.setProject_pushButton.setGeometry(QtCore.QRect(580, 30, 75, 23))
+        self.setProject_pushButton.setGeometry(QtCore.QRect(580, 36, 75, 23))
         self.setProject_pushButton.setToolTip((""))
         self.setProject_pushButton.setStatusTip((""))
         self.setProject_pushButton.setWhatsThis((""))
@@ -1198,7 +1407,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.setStatusBar(self.statusbar)
         self.setStatusBar(self.statusbar)
 
-        file = self.menubar.addMenu("Settings")
+        file = self.menubar.addMenu("File")
+        create_project = QtWidgets.QAction("&Create Project", self)
         pb_settings = QtWidgets.QAction("&Playblast Settings", self)
         add_remove_users = QtWidgets.QAction("&Add/Remove Users", self)
         deleteFile = QtWidgets.QAction("&Delete Selected Base Scene", self)
@@ -1206,6 +1416,7 @@ class MainUI(QtWidgets.QMainWindow):
         reBuildDatabase = QtWidgets.QAction("&Re-build Project Database", self)
         projectReport = QtWidgets.QAction("&Project Report", self)
 
+        file.addAction(create_project)
         file.addAction(pb_settings)
         file.addAction(add_remove_users)
         file.addAction(deleteFile)
@@ -1213,7 +1424,7 @@ class MainUI(QtWidgets.QMainWindow):
         file.addAction(reBuildDatabase)
         file.addAction(projectReport)
 
-
+        create_project.triggered.connect(self.createProjectUI)
         # settings.triggered.connect(self.userPrefSave)
         # deleteFile.triggered.connect(lambda: self.passwordBridge(command="deleteItem"))
         deleteFile.triggered.connect(lambda: self.onDeleteBaseScene())
@@ -1418,6 +1629,156 @@ class MainUI(QtWidgets.QMainWindow):
         self.deleteuser_pushButton.setObjectName(("deleteuser_pushButton"))
 
         self.users_Dialog.show()
+
+    def createProjectUI(self):
+
+        self.createproject_Dialog = QtWidgets.QDialog(parent=self)
+        self.createproject_Dialog.setObjectName(("createproject_Dialog"))
+        self.createproject_Dialog.resize(419, 249)
+        self.createproject_Dialog.setWindowTitle(("Create New Project"))
+        self.createproject_Dialog.setToolTip((""))
+        self.createproject_Dialog.setStatusTip((""))
+        self.createproject_Dialog.setWhatsThis((""))
+        self.createproject_Dialog.setAccessibleName((""))
+        self.createproject_Dialog.setAccessibleDescription((""))
+
+        self.projectroot_label = QtWidgets.QLabel(self.createproject_Dialog)
+        self.projectroot_label.setGeometry(QtCore.QRect(20, 30, 71, 20))
+        self.projectroot_label.setText(("Project Path:"))
+        self.projectroot_label.setObjectName(("projectpath_label"))
+
+        currentProjects = os.path.abspath(os.path.join(self.manager.currentProject, os.pardir))
+        self.projectroot_lineEdit = QtWidgets.QLineEdit(self.createproject_Dialog)
+        self.projectroot_lineEdit.setGeometry(QtCore.QRect(90, 30, 241, 21))
+        self.projectroot_lineEdit.setText((currentProjects))
+        self.projectroot_lineEdit.setPlaceholderText((""))
+        self.projectroot_lineEdit.setObjectName(("projectpath_lineEdit"))
+
+        self.browse_pushButton = QtWidgets.QPushButton(self.createproject_Dialog)
+        self.browse_pushButton.setText(("Browse"))
+        self.browse_pushButton.setGeometry(QtCore.QRect(340, 30, 61, 21))
+        self.browse_pushButton.setObjectName(("browse_pushButton"))
+
+        self.resolvedpath_label = QtWidgets.QLabel(self.createproject_Dialog)
+        self.resolvedpath_label.setGeometry(QtCore.QRect(20, 70, 381, 21))
+        self.resolvedpath_label.setObjectName(("resolvedpath_label"))
+
+        self.brandname_label = QtWidgets.QLabel(self.createproject_Dialog)
+        self.brandname_label.setGeometry(QtCore.QRect(20, 110, 111, 20))
+        self.brandname_label.setFrameShape(QtWidgets.QFrame.Box)
+        self.brandname_label.setText(("Brand Name"))
+        self.brandname_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.brandname_label.setObjectName(("brandname_label"))
+
+        self.projectname_label = QtWidgets.QLabel(self.createproject_Dialog)
+        self.projectname_label.setGeometry(QtCore.QRect(140, 110, 131, 20))
+        self.projectname_label.setFrameShape(QtWidgets.QFrame.Box)
+        self.projectname_label.setText(("Project Name"))
+        self.projectname_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.projectname_label.setObjectName(("projectname_label"))
+
+        self.client_label = QtWidgets.QLabel(self.createproject_Dialog)
+        self.client_label.setGeometry(QtCore.QRect(280, 110, 121, 20))
+        self.client_label.setFrameShape(QtWidgets.QFrame.Box)
+        self.client_label.setText(("Client"))
+        self.client_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.client_label.setObjectName(("client_label"))
+
+        self.brandname_lineEdit = QtWidgets.QLineEdit(self.createproject_Dialog)
+        self.brandname_lineEdit.setGeometry(QtCore.QRect(20, 140, 111, 21))
+        self.brandname_lineEdit.setText((""))
+        self.brandname_lineEdit.setPlaceholderText(("(optional)"))
+        self.brandname_lineEdit.setObjectName(("brandname_lineEdit"))
+
+        self.projectname_lineEdit = QtWidgets.QLineEdit(self.createproject_Dialog)
+        self.projectname_lineEdit.setGeometry(QtCore.QRect(140, 140, 131, 21))
+        self.projectname_lineEdit.setText((""))
+        self.projectname_lineEdit.setPlaceholderText(("Mandatory Field"))
+        self.projectname_lineEdit.setObjectName(("projectname_lineEdit"))
+
+        self.client_lineEdit = QtWidgets.QLineEdit(self.createproject_Dialog)
+        self.client_lineEdit.setGeometry(QtCore.QRect(280, 140, 121, 21))
+        self.client_lineEdit.setText((""))
+        self.client_lineEdit.setPlaceholderText(("Mandatory Field"))
+        self.client_lineEdit.setObjectName(("client_lineEdit"))
+
+        self.createproject_buttonBox = QtWidgets.QDialogButtonBox(self.createproject_Dialog)
+        self.createproject_buttonBox.setGeometry(QtCore.QRect(30, 190, 371, 32))
+        self.createproject_buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        self.createproject_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
+        self.createproject_buttonBox.setObjectName(("buttonBox"))
+
+        self.createproject_Dialog.show()
+
+        self.resolveProjectPath()
+        self.browse_pushButton.clicked.connect(self.browseProjectRoot)
+        self.brandname_lineEdit.textEdited.connect(self.resolveProjectPath)
+        self.projectname_lineEdit.textEdited.connect(self.resolveProjectPath)
+        self.client_lineEdit.textEdited.connect(self.resolveProjectPath)
+
+        self.createproject_buttonBox.accepted.connect(self.onAcceptNewProject)
+        self.createproject_buttonBox.rejected.connect(self.createproject_Dialog.reject)
+
+    def onAcceptNewProject(self):
+
+        self.resolveProjectPath()
+
+        if self.newProjectPath:
+            self.manager.createNewProject(self.newProjectPath)
+            self.createproject_Dialog.accept()
+            melProofPath = self.newProjectPath.replace("\\", "\\\\")
+            evalstr = 'setProject("' +  (melProofPath) + '");'  # OK
+            print("evalstr=" + evalstr);
+            mel.eval(evalstr)  # OK
+
+            # mel.eval('setProject \"' + os.path.normpath(self.newProjectPath) + '\"')
+            self.manager.currentProject = pm.workspace(q=1, rd=1)
+            self.projectPath_lineEdit.setText(self.manager.currentProject)
+            # self.onSubProjectChanged()
+            self.manager.subProjectList = self.manager.scanSubProjects()
+            self.populateScenes()
+
+            return
+        else:
+            self.infoPop(textTitle="Missing Fields", textHeader="There are missing fields", textInfo="Project Root, Brand Name and Project Names must be filled", type="C")
+            return
+
+    def resolveProjectPath(self):
+        if self.projectname_lineEdit.text() == "" or self.client_lineEdit.text() == "" or self.projectroot_lineEdit.text() == "":
+            self.resolvedpath_label.setText("Fill the mandatory fields")
+            self.newProjectPath = None
+            return
+        projectDate = datetime.datetime.now().strftime("%y%m%d")
+        brandname = self.brandname_lineEdit.text()
+        projectname = self.projectname_lineEdit.text()
+        clientname = self.client_lineEdit.text()
+        projectroot = self.projectroot_lineEdit.text()
+        if brandname:
+            brandname = "%s_" %brandname
+        else:
+            brandname = ""
+        fullName = "{0}{1}_{2}_{3}".format(brandname, projectname, clientname, projectDate)
+        self.newProjectPath = os.path.join(projectroot, fullName)
+        self.resolvedpath_label.setText(self.newProjectPath)
+
+    def browseProjectRoot(self, updateLine=None):
+        dlg = QtWidgets.QFileDialog()
+        dlg.setFileMode(QtWidgets.QFileDialog.Directory)
+        # dlg.setFilter("Text files (*.txt)")
+        # filenames = QStringList()
+
+        if dlg.exec_():
+            selectedroot = os.path.normpath(dlg.selectedFiles()[0])
+            self.projectroot_lineEdit.setText(selectedroot)
+            self.resolveProjectPath()
+            # return dlg.selectedFiles()
+
+        #     filenames = dlg.selectedFiles()
+        #     f = open(filenames[0], 'r')
+        #
+        #     with f:
+        #         data = f.read()
+        #         self.contents.setText(data)
 
     def pbSettingsUI(self):
 
@@ -2253,13 +2614,14 @@ class MainUI(QtWidgets.QMainWindow):
                     color = QtGui.QColor(255, 0, 0, 255)  # "red"
 
                 else:
-                    if filecmp.cmp(refVersion, refFile):
-                        # no problem
-                        color = QtGui.QColor(0, 255, 0, 255) #"green"
-
-                    else:
-                        # checksum mismatch
-                        color = QtGui.QColor(255, 0, 0, 255) #"red"
+                    color = QtGui.QColor(0, 255, 0, 255)  # "green"
+                    # if filecmp.cmp(refVersion, refFile):
+                    #     # no problem
+                    #     color = QtGui.QColor(0, 255, 0, 255) #"green"
+                    #
+                    # else:
+                    #     # checksum mismatch
+                    #     color = QtGui.QColor(255, 0, 0, 255) #"red"
 
             else:
                 #no reference defined for the base scene
@@ -2400,6 +2762,9 @@ class MainUI(QtWidgets.QMainWindow):
 
 
         self.subProject_comboBox.setCurrentIndex(self.manager.currentSubProjectIndex)
+
+        self.baseScene_lineEdit.setText(self.manager.getScene())
+
         self.refreshNotes()
         self.userPrefSave()
 
