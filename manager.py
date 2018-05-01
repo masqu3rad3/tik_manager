@@ -1,3 +1,4 @@
+# version 1.56 changes:# After loading new scene menu refreshes
 # version 1.55 changes:
     # regularSaveUpdate function added for Save callback
     # sound problem fixed with playblasts
@@ -2426,6 +2427,7 @@ class MainUI(QtWidgets.QMainWindow):
         #     self.manager.loadScene(sceneJson, version=self.version_comboBox.currentIndex(),force=True)
         # if self.referenceMode_radioButton.isChecked():
         #     pass
+        self.populateScenes()
 
     def onShowPBclicked(self):
         row = self.scenes_listWidget.currentRow()
