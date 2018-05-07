@@ -1,3 +1,6 @@
+# version 1.57 changes:
+    # Kill Turtle method updated
+    # Version Number added to the scene dialog
 # version 1.56 changes:# After loading new scene menu refreshes
 # version 1.55 changes:
     # regularSaveUpdate function added for Save callback
@@ -32,6 +35,8 @@
 #     m = sceneManager.TikManager()
 #     m.regularSaveUpdate()
 # maya.utils.executeDeferred('SMid = OpenMaya.MSceneMessage.addCallback(OpenMaya.MSceneMessage.kAfterSave, smUpdate)')
+
+SM_Version = "SceneManager v1.57"
 
 import pymel.core as pm
 import json
@@ -85,11 +90,27 @@ def getNewestFile(rootfolder, extension=".avi"):
         key=lambda fn: os.stat(fn).st_mtime)
 
 def killTurtle():
-    # print "turtle sikici"
-    if pm.ls('TurtleDefaultBakeLayer'):
-        pm.lockNode('TurtleDefaultBakeLayer', lock=False)
+    try:
+        pm.lockNode( 'TurtleDefaultBakeLayer', lock=False )
         pm.delete('TurtleDefaultBakeLayer')
-        # print "Turtle anani sikim"
+    except:
+        pass
+    try:
+        pm.lockNode( 'TurtleBakeLayerManager', lock=False )
+        pm.delete('TurtleBakeLayerManager')
+    except:
+        pass
+    try:
+        pm.lockNode( 'TurtleRenderOptions', lock=False )
+        pm.delete('TurtleRenderOptions')
+    except:
+        pass
+    try:
+        pm.lockNode( 'TurtleUIOptions', lock=False )
+        pm.delete('TurtleUIOptions')
+    except:
+        pass
+    pm.unloadPlugin("Turtle.mll", f=True)
 
 def checkAdminRights():
     try:
@@ -1095,7 +1116,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         for entry in QtWidgets.QApplication.allWidgets():
             try:
-                if entry.objectName() == "SceneManager":
+                if entry.objectName() == SM_Version:
                     entry.close()
             except AttributeError:
                 pass
@@ -1119,10 +1140,10 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.scenesInCategory = None
 
-        self.setObjectName(("SceneManager"))
+        self.setObjectName((SM_Version))
         self.resize(680, 600)
         self.setMaximumSize(QtCore.QSize(680, 600))
-        self.setWindowTitle(("Scene Manager"))
+        self.setWindowTitle((SM_Version))
         self.setToolTip((""))
         self.setStatusTip((""))
         self.setWhatsThis((""))
@@ -1145,18 +1166,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.baseScene_label.setTextFormat(QtCore.Qt.AutoText)
         self.baseScene_label.setScaledContents(False)
         self.baseScene_label.setObjectName(("baseScene_label"))
-
-        # self.baseScene_lineEdit = QtWidgets.QLineEdit(self.centralwidget)
-        # self.baseScene_lineEdit.setGeometry(QtCore.QRect(90, 10, 471, 21))
-        # self.baseScene_lineEdit.setToolTip((""))
-        # self.baseScene_lineEdit.setStatusTip((""))
-        # self.baseScene_lineEdit.setWhatsThis((""))
-        # self.baseScene_lineEdit.setAccessibleName((""))
-        # self.baseScene_lineEdit.setAccessibleDescription((""))
-        # self.baseScene_lineEdit.setText("")
-        # self.baseScene_lineEdit.setReadOnly(True)
-        # self.baseScene_lineEdit.setObjectName(("baseScene_lineEdit"))
-        # self.baseScene_lineEdit.setStyleSheet("QLineEdit {color:cyan}")
 
         self.baseScene_lineEdit = QtWidgets.QLabel(self.centralwidget)
         self.baseScene_lineEdit.setGeometry(QtCore.QRect(90, 10, 471, 21))
@@ -1416,6 +1425,7 @@ class MainUI(QtWidgets.QMainWindow):
         deleteReference = QtWidgets.QAction("&Delete Reference of Selected Scene", self)
         reBuildDatabase = QtWidgets.QAction("&Re-build Project Database", self)
         projectReport = QtWidgets.QAction("&Project Report", self)
+        checkReferences = QtWidgets.QAction("&Check References", self)
 
         file.addAction(create_project)
         file.addAction(pb_settings)
@@ -1424,6 +1434,7 @@ class MainUI(QtWidgets.QMainWindow):
         file.addAction(deleteReference)
         file.addAction(reBuildDatabase)
         file.addAction(projectReport)
+        file.addAction(checkReferences)
 
         create_project.triggered.connect(self.createProjectUI)
         # settings.triggered.connect(self.userPrefSave)
@@ -1435,6 +1446,8 @@ class MainUI(QtWidgets.QMainWindow):
         projectReport.triggered.connect(lambda: self.manager.projectReport())
         # projectReport.triggered.connect(lambda: self.passwordBridge())
         pb_settings.triggered.connect(self.pbSettingsUI)
+
+        checkReferences.triggered.connect(lambda: self.referenceCheck(deepCheck=True))
 
         add_remove_users.triggered.connect(self.addRemoveUserUI)
 
@@ -2329,7 +2342,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.svMakeReference_checkbox = QtWidgets.QCheckBox("Make it Reference", saveV_Dialog)
         self.svMakeReference_checkbox.setGeometry(QtCore.QRect(130, 215, 151, 22))
-        self.svMakeReference_checkbox.setChecked(True)
+        self.svMakeReference_checkbox.setChecked(False)
 
         sv_buttonBox = QtWidgets.QDialogButtonBox(saveV_Dialog)
         sv_buttonBox.setGeometry(QtCore.QRect(20, 250, 220, 32))
@@ -2596,7 +2609,7 @@ class MainUI(QtWidgets.QMainWindow):
             else:
                 self.infoPop(textTitle="Naming Error", textHeader="Naming Error", textInfo="Choose an unique name with latin characters without spaces", type="C")
 
-    def referenceCheck(self):
+    def referenceCheck(self, deepCheck=False):
         projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
         for path in self.scenesInCategory:
             data = loadJson(path)
@@ -2616,14 +2629,16 @@ class MainUI(QtWidgets.QMainWindow):
                     color = QtGui.QColor(255, 0, 0, 255)  # "red"
 
                 else:
-                    color = QtGui.QColor(0, 255, 0, 255)  # "green"
-                    # if filecmp.cmp(refVersion, refFile):
-                    #     # no problem
-                    #     color = QtGui.QColor(0, 255, 0, 255) #"green"
-                    #
-                    # else:
-                    #     # checksum mismatch
-                    #     color = QtGui.QColor(255, 0, 0, 255) #"red"
+                    if deepCheck:
+                        if filecmp.cmp(refVersion, refFile):
+                            # no problem
+                            color = QtGui.QColor(0, 255, 0, 255) #"green"
+
+                        else:
+                            # checksum mismatch
+                            color = QtGui.QColor(255, 0, 0, 255) #"red"
+                    else:
+                        color = QtGui.QColor(0, 255, 0, 255)  # "green"
 
             else:
                 #no reference defined for the base scene
