@@ -1,3 +1,5 @@
+# version 1.58 changes:
+    # minor bug fixes with createPlayblast method
 # version 1.57 changes:
     # Kill Turtle method updated
     # Version Number added to the scene dialog
@@ -36,7 +38,7 @@
 #     m.regularSaveUpdate()
 # maya.utils.executeDeferred('SMid = OpenMaya.MSceneMessage.addCallback(OpenMaya.MSceneMessage.kAfterSave, smUpdate)')
 
-SM_Version = "SceneManager v1.57"
+SM_Version = "SceneManager v1.58"
 
 import pymel.core as pm
 import json
@@ -110,7 +112,11 @@ def killTurtle():
         pm.delete('TurtleUIOptions')
     except:
         pass
-    pm.unloadPlugin("Turtle.mll", f=True)
+    # pm.unloadPlugin("Turtle.mll", f=True)
+    try:
+        pm.unloadPlugin("Turtle.mll")
+    except:
+        pass
 
 def checkAdminRights():
     try:
@@ -147,11 +153,12 @@ def dumpJson(data, file):
         json.dump(data, f, indent=4)
 
 def nameCheck(text):
-
+    text = text.replace("|", "__")
     if re.match("^[A-Za-z0-9_-]*$", text):
         if text == "":
             return -1
         text = text.replace(" ", "_")
+        # text = text.replace("|", "__")
         return text
     else:
         return -1
@@ -491,7 +498,7 @@ class TikManager(object):
         sceneFile = os.path.join(shotPath, "{0}.mb".format(sceneName))
         ## relativity update
         relSceneFile = os.path.relpath(sceneFile, start=projectPath)
-        killTurtle()
+        # killTurtle()
         pm.saveAs(sceneFile)
 
         jsonInfo = {}
@@ -616,7 +623,7 @@ class TikManager(object):
 
             sceneFile = os.path.join(projectPath, relSceneFile)
 
-            killTurtle()
+            # killTurtle()
             pm.saveAs(sceneFile)
             jsonInfo["Versions"].append([relSceneFile, versionNotes, userName, (socket.gethostname()), {}]) ## last one is for playblast
 
@@ -666,7 +673,6 @@ class TikManager(object):
             return pbSettings
 
     def createPlayblast(self, *args, **kwargs):
-
         pbSettings = self.getPBsettings()
 
         # Quicktime format is missing the final frame all the time. Add an extra frame to compansate
@@ -729,9 +735,18 @@ class TikManager(object):
 
             currentCam = pm.modelPanel(pm.getPanel(wf=True), q=True, cam=True)
 
+            validName="_"
+            if not nameCheck(currentCam) == -1:
+                validName = nameCheck(currentCam)
+            else:
+                pm.displayError("Camera name is not Valid")
+                return
+
+
+
             versionName = pm.sceneName()
             relVersionName = os.path.relpath(versionName, start=projectPath)
-            playBlastFile = os.path.join(pbPath, "{0}_{1}_PB.avi".format (pathOps(versionName, mode="filename"), currentCam))
+            playBlastFile = os.path.join(pbPath, "{0}_{1}_PB.avi".format (pathOps(versionName, mode="filename"), validName))
             relPlayBlastFile = os.path.relpath(playBlastFile, start=projectPath)
 
             if os.path.isfile(playBlastFile):
@@ -777,7 +792,7 @@ class TikManager(object):
                 pm.headsUpDisplay(hud, e=True, vis=False)
 
             ## clear the custom HUDS
-            customHuds=['SMFrame', 'SMScene', 'SMCategory', 'SMFPS', 'SMCameraName']
+            customHuds=['SMFrame', 'SMScene', 'SMCategory', 'SMFPS', 'SMCameraName','SMFrange']
             for hud in customHuds:
                 if pm.headsUpDisplay(hud, ex=True):
                     pm.headsUpDisplay(hud, rem=True)
@@ -812,6 +827,9 @@ class TikManager(object):
             activeSound = pm.timeControl(aPlayBackSliderPython, q=True, sound=True)
 
             ## Check here: http://download.autodesk.com/us/maya/2011help/pymel/generated/functions/pymel.core.windows/pymel.core.windows.headsUpDisplay.html
+            print "playBlastFile", playBlastFile
+            normPB = os.path.normpath(playBlastFile)
+            print "normPath", normPB
             pm.playblast(format=pbSettings["Format"],
                          filename=playBlastFile,
                          widthHeight=pbSettings["Resolution"],
@@ -1897,7 +1915,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.fileformat_comboBox.currentIndexChanged.connect(self.updateCodecs)
 
         # get the index number from the name in the settings file and make that index active
-        print currentSettings["Codec"]
+        # print currentSettings["Codec"]
         cindex = self.codec_comboBox.findText(currentSettings["Codec"], QtCore.Qt.MatchFixedString)
         if cindex >= 0:
             self.codec_comboBox.setCurrentIndex(cindex)
