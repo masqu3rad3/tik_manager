@@ -1,3 +1,6 @@
+# version 1.6 changes:
+    # added "add note" function
+    # minor code improvements with the playblast, and note checking methods
 # version 1.58 changes:
     # minor bug fixes with createPlayblast method
 # version 1.57 changes:
@@ -38,7 +41,7 @@
 #     m.regularSaveUpdate()
 # maya.utils.executeDeferred('SMid = OpenMaya.MSceneMessage.addCallback(OpenMaya.MSceneMessage.kAfterSave, smUpdate)')
 
-SM_Version = "SceneManager v1.58"
+SM_Version = "SceneManager v1.6"
 
 import pymel.core as pm
 import json
@@ -462,6 +465,9 @@ class TikManager(object):
         Returns: None
 
         """
+        fullName = self.userList.keys()[self.userList.values().index(userName)]
+        now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
+        completeNote = "[%s] on %s\n%s\n" %(fullName, now, versionNotes)
 
         scenesToCheck = self.scanScenes(category, subProjectAs=subProject)[0]
         for z in scenesToCheck:
@@ -522,7 +528,7 @@ class TikManager(object):
         jsonInfo["Category"]=category
         jsonInfo["Creator"]=userName
         jsonInfo["CreatorHost"]=(socket.gethostname())
-        jsonInfo["Versions"]=[[relSceneFile, versionNotes, userName, socket.gethostname(), {}]] ## last item is for playplast
+        jsonInfo["Versions"]=[[relSceneFile, completeNote, userName, socket.gethostname(), {}]] ## last item is for playplast
         dumpJson(jsonInfo, jsonFile)
         return relSceneFile
 
@@ -566,6 +572,25 @@ class TikManager(object):
         else:
             return ""
 
+    def getVersionNotes(self, jsonFile, version=None):
+        """
+        Returns: [versionNotes, playBlastDictionary]
+        """
+        jsonInfo = loadJson(jsonFile)
+        return jsonInfo["Versions"][version][1], jsonInfo["Versions"][version][4]
+
+    def addVersionNotes(self, additionalNote, jsonFile, version, user):
+        jsonInfo = loadJson(jsonFile)
+        currentNotes = jsonInfo["Versions"][version][1]
+        ## add username and date to the beginning of the note:
+        now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
+        completeNote = "%s\n[%s] on %s\n%s\n" %(currentNotes, user, now, additionalNote)
+        jsonInfo["Versions"][version][1] = completeNote
+        ##
+        dumpJson(jsonInfo, jsonFile)
+
+
+
     def saveVersion(self, userName, makeReference=True, versionNotes="", *args, **kwargs):
         """
         Saves a version for the predefined scene. The scene json file must be present at the /data/[Category] folder.
@@ -580,6 +605,10 @@ class TikManager(object):
 
         """
 
+        # get the full username
+        fullName = self.userList.keys()[self.userList.values().index(userName)]
+        now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
+        completeNote = "[%s] on %s\n%s\n" %(fullName, now, versionNotes)
         sceneName = pm.sceneName()
         if not sceneName:
             pm.warning("This is not a base scene (Untitled)")
@@ -625,7 +654,7 @@ class TikManager(object):
 
             # killTurtle()
             pm.saveAs(sceneFile)
-            jsonInfo["Versions"].append([relSceneFile, versionNotes, userName, (socket.gethostname()), {}]) ## last one is for playblast
+            jsonInfo["Versions"].append([relSceneFile, completeNote, userName, (socket.gethostname()), {}]) ## last one is for playblast
 
             if makeReference:
                 referenceName = "{0}_{1}_forReference".format(shotName, category)
@@ -878,6 +907,7 @@ class TikManager(object):
             return -1
 
         #######
+
 
     def playPlayblast(self, relativePath):
         projectPath = getPathsFromScene("projectPath")
@@ -1374,7 +1404,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.showPB_pushButton.setObjectName(("showPB_pushButton"))
 
         self.makeReference_pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.makeReference_pushButton.setGeometry(QtCore.QRect(430, 200, 131, 23))
+        self.makeReference_pushButton.setGeometry(QtCore.QRect(430, 200, 102, 23))
         self.makeReference_pushButton.setToolTip(("Creates a copy the scene as \'forReference\' file"))
         self.makeReference_pushButton.setStatusTip((""))
         self.makeReference_pushButton.setWhatsThis((""))
@@ -1383,6 +1413,17 @@ class MainUI(QtWidgets.QMainWindow):
         self.makeReference_pushButton.setText(("Make Reference"))
         self.makeReference_pushButton.setShortcut((""))
         self.makeReference_pushButton.setObjectName(("makeReference_pushButton"))
+
+        self.addNotes_pushButton = QtWidgets.QPushButton(self.centralwidget)
+        self.addNotes_pushButton.setGeometry(QtCore.QRect(550, 200, 102, 23))
+        self.addNotes_pushButton.setToolTip(("adds additional version notes"))
+        self.addNotes_pushButton.setStatusTip((""))
+        self.addNotes_pushButton.setWhatsThis((""))
+        self.addNotes_pushButton.setAccessibleName((""))
+        self.addNotes_pushButton.setAccessibleDescription((""))
+        self.addNotes_pushButton.setText(("Add Note"))
+        self.addNotes_pushButton.setShortcut((""))
+        self.addNotes_pushButton.setObjectName(("addNotes_pushButton"))
 
         self.notes_label = QtWidgets.QLabel(self.centralwidget)
         self.notes_label.setGeometry(QtCore.QRect(430, 240, 70, 13))
@@ -1505,6 +1546,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.scenes_listWidget.currentItemChanged.connect(self.sceneInfo)
 
         self.makeReference_pushButton.clicked.connect(self.makeReference)
+        self.addNotes_pushButton.clicked.connect(self.onAddNotes)
 
         self.saveScene_pushButton.clicked.connect(self.saveBaseSceneDialog)
 
@@ -2469,14 +2511,10 @@ class MainUI(QtWidgets.QMainWindow):
         sceneName = "%s.json" %self.scenes_listWidget.currentItem().text()
         # takethefirstjson as example for rootpath
         sceneJson = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
-
-        # sceneJson = self.scenesInCategory[row]
         version = self.version_comboBox.currentIndex()
-        # print version
-        sceneInfo = loadJson(sceneJson)
-        # print sceneInfo
-        # print sceneInfo["Versions"][version][4].keys()
-        pbDict = sceneInfo["Versions"][version][4]
+        # sceneInfo = loadJson(sceneJson)
+        # pbDict = sceneInfo["Versions"][version][4]
+        notes, pbDict = self.manager.getVersionNotes(sceneJson, version=version)
         if len(pbDict.keys()) == 1:
             path=pbDict[pbDict.keys()[0]]
             # print path
@@ -2490,6 +2528,79 @@ class MainUI(QtWidgets.QMainWindow):
                 tempAction.triggered.connect(lambda item=pbDict[z]: self.manager.playPlayblast(item)) ## Take note about the usage of lambda "item=pbDict[z]" makes it possible using the loop
 
             zortMenu.exec_((QtGui.QCursor.pos()))
+
+    def onAddNotes(self):
+
+        row = self.scenes_listWidget.currentRow()
+        if row == -1:
+            return
+
+        sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
+        # takethefirstjson as example for rootpath
+        sceneJson = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
+        version = self.version_comboBox.currentIndex()
+        userName = self.userName_comboBox.currentText()
+
+
+
+        addNotes_Dialog = QtWidgets.QDialog(parent=self)
+        addNotes_Dialog.setModal(True)
+        addNotes_Dialog.setObjectName(("addNotes_Dialog"))
+        addNotes_Dialog.resize(255, 290)
+        addNotes_Dialog.setMinimumSize(QtCore.QSize(255, 290))
+        addNotes_Dialog.setMaximumSize(QtCore.QSize(255, 290))
+        addNotes_Dialog.setWindowTitle(("Add Notes"))
+        addNotes_Dialog.setToolTip((""))
+        addNotes_Dialog.setStatusTip((""))
+        addNotes_Dialog.setWhatsThis((""))
+        addNotes_Dialog.setAccessibleName((""))
+        addNotes_Dialog.setAccessibleDescription((""))
+
+        addNotes_label = QtWidgets.QLabel(addNotes_Dialog)
+        addNotes_label.setGeometry(QtCore.QRect(15, 15, 100, 20))
+        addNotes_label.setToolTip((""))
+        addNotes_label.setStatusTip((""))
+        addNotes_label.setWhatsThis((""))
+        addNotes_label.setAccessibleName((""))
+        addNotes_label.setAccessibleDescription((""))
+        addNotes_label.setText(("Additional Notes"))
+        addNotes_label.setObjectName(("addNotes_label"))
+
+        addNotes_textEdit = QtWidgets.QTextEdit(addNotes_Dialog)
+        addNotes_textEdit.setGeometry(QtCore.QRect(15, 40, 215, 170))
+        addNotes_textEdit.setToolTip((""))
+        addNotes_textEdit.setStatusTip((""))
+        addNotes_textEdit.setWhatsThis((""))
+        addNotes_textEdit.setAccessibleName((""))
+        addNotes_textEdit.setAccessibleDescription((""))
+        addNotes_textEdit.setObjectName(("addNotes_textEdit"))
+
+        addNotes_buttonBox = QtWidgets.QDialogButtonBox(addNotes_Dialog)
+        addNotes_buttonBox.setGeometry(QtCore.QRect(20, 250, 220, 32))
+        addNotes_buttonBox.setToolTip((""))
+        addNotes_buttonBox.setStatusTip((""))
+        addNotes_buttonBox.setWhatsThis((""))
+        addNotes_buttonBox.setAccessibleName((""))
+        addNotes_buttonBox.setAccessibleDescription((""))
+        addNotes_buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        addNotes_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Save | QtWidgets.QDialogButtonBox.Cancel)
+
+        buttonS = addNotes_buttonBox.button(QtWidgets.QDialogButtonBox.Save)
+        buttonS.setText('Add Notes')
+        buttonC = addNotes_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel)
+        buttonC.setText('Cancel')
+
+        addNotes_buttonBox.setObjectName(("addNotes_buttonBox"))
+        addNotes_buttonBox.accepted.connect(lambda: self.manager.addVersionNotes(addNotes_textEdit.toPlainText(), sceneJson, version, userName))
+        addNotes_buttonBox.accepted.connect(self.populateScenes)
+        addNotes_buttonBox.accepted.connect(addNotes_Dialog.accept)
+
+        addNotes_buttonBox.rejected.connect(addNotes_Dialog.reject)
+        QtCore.QMetaObject.connectSlotsByName(addNotes_Dialog)
+
+        addNotes_Dialog.show()
+
+
 
     def onRadioButtonsToggled(self):
         state=self.loadMode_radioButton.isChecked()
@@ -2700,20 +2811,26 @@ class MainUI(QtWidgets.QMainWindow):
         if not row == -1:
             sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
             # takethefirstjson as example for rootpath
-            jPath = pathOps(self.scenesInCategory[0], "path")
+            # jPath = pathOps(self.scenesInCategory[0], "path")
+            sceneJson = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
 
-            sceneData = loadJson(os.path.join(jPath, sceneName))
-            # sceneData = loadJson(self.scenesInCategory[row])
-            currentIndex = self.version_comboBox.currentIndex()
-            self.notes_textEdit.setPlainText(sceneData["Versions"][currentIndex][1])
+            # sceneData = loadJson(os.path.join(jPath, sceneName))
+            version = self.version_comboBox.currentIndex()
+            # self.notes_textEdit.setPlainText(sceneData["Versions"][currentIndex][1])
+            notes, pbDict = self.manager.getVersionNotes(sceneJson, version)
 
-            if sceneData["Versions"][currentIndex][4].keys():
+            # if sceneData["Versions"][currentIndex][4].keys():
+            if pbDict.keys():
                 self.showPB_pushButton.setEnabled(True)
             else:
                 self.showPB_pushButton.setEnabled(False)
+            self.addNotes_pushButton.setEnabled(True)
+            self.makeReference_pushButton.setEnabled(True)
         else:
 
             self.showPB_pushButton.setEnabled(False)
+            self.addNotes_pushButton.setEnabled(False)
+            self.makeReference_pushButton.setEnabled(False)
 
     def onSceneInfo(self):
         row = self.scenes_listWidget.currentRow()
@@ -2765,7 +2882,7 @@ class MainUI(QtWidgets.QMainWindow):
         pass
 
     def populateScenes(self):
-
+        row = self.scenes_listWidget.currentRow()
         self.scenes_listWidget.clear()
         self.version_comboBox.clear()
         self.notes_textEdit.clear()
@@ -2800,6 +2917,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.baseScene_lineEdit.setText(self.manager.getScene())
 
+        self.scenes_listWidget.setCurrentRow(row)
         self.refreshNotes()
         self.userPrefSave()
 
