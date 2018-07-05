@@ -166,6 +166,15 @@ def nameCheck(text):
     else:
         return -1
 
+def checkValidity(text, button, lineEdit):
+
+    if not re.match("^[A-Za-z0-9_-]*$", text):
+        lineEdit.setStyleSheet("background-color: red; color: black")
+        button.setEnabled(False)
+    else:
+        lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: white")
+        button.setEnabled(True)
+
 def pathOps(fullPath, mode):
     """
     performs basic path operations.
@@ -577,6 +586,8 @@ class TikManager(object):
         Returns: [versionNotes, playBlastDictionary]
         """
         jsonInfo = loadJson(jsonFile)
+        # print "versions\n"
+        # pprint.pprint(jsonInfo["Versions"][version][1])
         return jsonInfo["Versions"][version][1], jsonInfo["Versions"][version][4]
 
     def addVersionNotes(self, additionalNote, jsonFile, version, user):
@@ -1782,6 +1793,10 @@ class MainUI(QtWidgets.QMainWindow):
         self.createproject_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
         self.createproject_buttonBox.setObjectName(("buttonBox"))
 
+        self.cp_button = self.createproject_buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
+        self.cp_button.setText('Create Project')
+
+
         self.createproject_Dialog.show()
 
         self.resolveProjectPath()
@@ -1792,6 +1807,11 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.createproject_buttonBox.accepted.connect(self.onAcceptNewProject)
         self.createproject_buttonBox.rejected.connect(self.createproject_Dialog.reject)
+
+        self.brandname_lineEdit.textChanged.connect(lambda: checkValidity(self.brandname_lineEdit.text(), self.createproject_buttonBox, self.brandname_lineEdit))
+        self.projectname_lineEdit.textChanged.connect(lambda: checkValidity(self.projectname_lineEdit.text(), self.createproject_buttonBox, self.projectname_lineEdit))
+        self.client_lineEdit.textChanged.connect(lambda: checkValidity(self.client_lineEdit.text(), self.createproject_buttonBox, self.client_lineEdit))
+
 
     def onAcceptNewProject(self):
 
@@ -2358,6 +2378,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.sd_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
         self.sd_buttonBox.setObjectName(("sd_buttonBox"))
 
+        self.sdName_lineEdit.textChanged.connect(lambda: checkValidity(self.sdName_lineEdit.text(), self.sd_buttonBox, self.sdName_lineEdit))
 
         self.sd_buttonBox.accepted.connect(self.onSaveBaseScene)
         self.sd_buttonBox.accepted.connect(self.save_Dialog.accept)
@@ -2803,11 +2824,12 @@ class MainUI(QtWidgets.QMainWindow):
         else:
             currentIndex = len(sceneData["Versions"])-1
         self.version_comboBox.setCurrentIndex(currentIndex)
-        self.notes_textEdit.setPlainText(sceneData["Versions"][currentIndex][1])
+        # self.notes_textEdit.setPlainText(sceneData["Versions"][currentIndex][1])
         self.refreshNotes()
 
     def refreshNotes(self):
         row = self.scenes_listWidget.currentRow()
+
         if not row == -1:
             sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
             # takethefirstjson as example for rootpath
@@ -2817,9 +2839,14 @@ class MainUI(QtWidgets.QMainWindow):
             # sceneData = loadJson(os.path.join(jPath, sceneName))
             version = self.version_comboBox.currentIndex()
             # self.notes_textEdit.setPlainText(sceneData["Versions"][currentIndex][1])
+            # print "\nscene", sceneJson
+            # print "\nversion", version
+
             notes, pbDict = self.manager.getVersionNotes(sceneJson, version)
+            # print "notes", notes
 
             # if sceneData["Versions"][currentIndex][4].keys():
+            self.notes_textEdit.setPlainText(notes)
             if pbDict.keys():
                 self.showPB_pushButton.setEnabled(True)
             else:
