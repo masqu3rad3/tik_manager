@@ -42,7 +42,7 @@
 #     m.regularSaveUpdate()
 # maya.utils.executeDeferred('SMid = OpenMaya.MSceneMessage.addCallback(OpenMaya.MSceneMessage.kAfterSave, smUpdate)')
 
-SM_Version = "SceneManager v1.6"
+SM_Version = "SceneManager v1.61"
 
 import pymel.core as pm
 import json
