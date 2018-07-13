@@ -1,3 +1,5 @@
+# version 1.63 changes: # UI improvements
+# version 1.62 changes: # bugfix: when switching projects, subproject index will be reset to 0 now
 # version 1.61 changes: # create new project bugfix (workspace.mel creation)
 # version 1.6 changes:
     # added "add note" function
@@ -42,7 +44,7 @@
 #     m.regularSaveUpdate()
 # maya.utils.executeDeferred('SMid = OpenMaya.MSceneMessage.addCallback(OpenMaya.MSceneMessage.kAfterSave, smUpdate)')
 
-SM_Version = "SceneManager v1.61"
+SM_Version = "SceneManager v1.63"
 
 import pymel.core as pm
 import json
@@ -614,7 +616,7 @@ class TikManager(object):
 
         sceneName = pm.sceneName()
         if not sceneName:
-            pm.warning("This is not a base scene (Untitled)")
+            # pm.warning("This is not a base scene (Untitled)")
             return ""
 
         projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
@@ -2704,7 +2706,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: grey;")
         else:
             self.load_pushButton.setText("Reference Scene")
-            self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: red;")
+            self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: cyan;")
         self.populateScenes()
 
     def userPrefSave(self):
@@ -2873,7 +2875,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.projectPath_lineEdit.setText(self.manager.currentProject)
         # self.onSubProjectChanged()
         self.manager.subProjectList=self.manager.scanSubProjects()
-
+        self.manager.currentSubProjectIndex=0
         self.populateScenes()
 
     def sceneInfo(self):
@@ -3011,7 +3013,13 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.subProject_comboBox.setCurrentIndex(self.manager.currentSubProjectIndex)
 
-        self.baseScene_lineEdit.setText(self.manager.getScene())
+        baseName = self.manager.getScene()
+        if baseName == "":
+            self.baseScene_lineEdit.setText("Current Scene is not a Base Scene")
+            self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: red")
+        else:
+            self.baseScene_lineEdit.setText(baseName)
+            self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: cyan")
 
         self.scenes_listWidget.setCurrentRow(row)
         self.refreshNotes()
