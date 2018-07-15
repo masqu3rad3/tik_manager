@@ -13,7 +13,489 @@ from PySide import QtCore
 import os, ctypes
 import MaxPlus
 
+import json
+import os, fnmatch
+from shutil import copyfile
+import socket
+import filecmp
+import re
+import ctypes
+import unicodedata
+import pprint
+import ftplib
+import io
+import datetime
+
 SM_Version = "SceneManager"
+
+def getOldestFile(rootfolder, extension=".avi"):
+    return min(
+        (os.path.join(dirname, filename)
+        for dirname, dirnames, filenames in os.walk(rootfolder)
+        for filename in filenames
+        if filename.endswith(extension)),
+        key=lambda fn: os.stat(fn).st_mtime)
+
+def getNewestFile(rootfolder, extension=".avi"):
+    return max(
+        (os.path.join(dirname, filename)
+        for dirname, dirnames, filenames in os.walk(rootfolder)
+        for filename in filenames
+        if filename.endswith(extension)),
+        key=lambda fn: os.stat(fn).st_mtime)
+
+def folderCheck(folder):
+    if not os.path.isdir(os.path.normpath(folder)):
+        os.makedirs(os.path.normpath(folder))
+
+def loadJson(file):
+    if os.path.isfile(file):
+        with open(file, 'r') as f:
+            # The JSON module will read our file, and convert it to a python dictionary
+            data = json.load(f)
+            return data
+    else:
+        return None
+
+def dumpJson(data, file):
+    with open(file, "w") as f:
+        json.dump(data, f, indent=4)
+
+def nameCheck(text):
+    if re.match("^[A-Za-z0-9_-]*$", text):
+        if text == "":
+            return -1
+        text = text.replace(" ", "_")
+        return text
+    else:
+        return -1
+
+def pathOps(fullPath, mode):
+    """
+    performs basic path operations.
+    Args:
+        fullPath: (Unicode) Absolute Path
+        mode: (String) Valid modes are 'path', 'basename', 'filename', 'extension', 'drive'
+
+    Returns:
+        Unicode
+
+    """
+
+    if mode == "drive":
+        drive = os.path.splitdrive(fullPath)
+        return drive
+
+    path, basename = os.path.split(fullPath)
+    if mode == "path":
+        return path
+    if mode == "basename":
+        return basename
+    filename, ext = os.path.splitext(basename)
+    if mode == "filename":
+        return filename
+    if mode == "extension":
+        return ext
+
+def getPathsFromScene(*args, **kwargs):
+    ## TODO .. TEMPORARY STATIC PATH /FIX IT
+    projectPath = os.path.normpath(MaxPlus.Core.EvalMAXScript("maxfilepath").Get())
+    dataPath = os.path.normpath(os.path.join(projectPath, "data"))
+    folderCheck(dataPath)
+    jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
+    folderCheck(jsonPath)
+    scenesPath = os.path.normpath(os.path.join(projectPath, "scenes"))
+    folderCheck(scenesPath)
+    playBlastRoot = os.path.normpath(os.path.join(projectPath, "Playblasts"))
+    folderCheck(playBlastRoot)
+    returnList = []
+    for i in args:
+        if i == "projectPath":
+            returnList.append(projectPath)
+        if i== "dataPath":
+            returnList.append(dataPath)
+        if i=="jsonPath":
+            returnList.append(jsonPath)
+        if i=="scenesPath":
+            returnList.append(scenesPath)
+        if i=="playBlastRoot":
+            returnList.append(playBlastRoot)
+    if len(returnList)<2:
+        returnList = returnList[0]
+    return returnList
+
+class TikManager(object):
+    def __init__(self):
+        super(TikManager, self).__init__()
+        self.currentProject = MaxPlus.Core.EvalMAXScript("maxfilepath").Get()
+        self.currentSubProjectIndex = 0
+
+        self.userDB = "M://Projects//__database//sceneManagerUsers.json"
+        if os.path.isfile(self.userDB):
+            self.userList = loadJson(self.userDB)
+        else:
+            self.userList = {"Generic":"gn"}
+        self.validCategories = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
+        self.padding = 3
+        self.subProjectList = self.scanSubProjects()
+
+    def scanSubProjects(self):
+        projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
+        subPjson = os.path.normpath(os.path.join(jsonPath, "subPdata.json"))
+        if not os.path.isfile(subPjson):
+            subInfo = ["None"]
+            dumpJson(subInfo, subPjson)
+
+        else:
+            subInfo=loadJson(subPjson)
+        return subInfo
+
+    def scanScenes(self, category, subProjectAs=None):
+        """
+        Scans the folder for json files. Instead of scanning all of the json files at once, It will scan only the target category to speed up the process.
+        Args:
+            category: (String) This is the category which will be scanned
+            subProjectAs: (String / None) If a sub project is given Scans the given sub project. If None, it scans the current sub-project
+                declared the classes 'currentSubProjectIndex' variable. Default = None
+
+        Returns: List of all json files in the category, sub-project json file
+
+        """
+        if not subProjectAs == None:
+            subProjectIndex = subProjectAs
+        else:
+            subProjectIndex = self.currentSubProjectIndex
+        projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
+
+        subPjson = os.path.normpath(os.path.join(jsonPath, "subPdata.json"))
+        if not os.path.isfile(subPjson):
+            dumpJson(["None"], subPjson)
+        # eger subproject olarak aranilacaksa
+        if not (subProjectIndex == 0):
+            jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
+            folderCheck(jsonCategoryPath)
+
+            jsonCategorySubPath = os.path.normpath(os.path.join(jsonCategoryPath, (self.subProjectList)[subProjectIndex]))
+
+            folderCheck(jsonCategorySubPath)
+            searchFolder = jsonCategorySubPath
+        else:
+            jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
+            folderCheck(jsonCategoryPath)
+            searchFolder = jsonCategoryPath
+
+        allJsonFiles = []
+        # niceNames = []
+        for file in os.listdir(searchFolder):
+            if file.endswith('.json'):
+                file=os.path.join(searchFolder, file)
+                allJsonFiles.append(file)
+        return allJsonFiles, subPjson
+
+    def getScene(self, *args, **kwargs):
+
+        sceneName = MaxPlus.Core.EvalMAXScript("maxFileName").Get()
+        if not sceneName:
+            # // TODO find a way to warn
+            # pm.warning("This is not a base scene (Untitled)")
+            return ""
+
+        projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
+
+        # first get the parent dir
+        scenePath = MaxPlus.Core.EvalMAXScript("maxFilePath + maxFileName").Get()
+        shotDirectory = os.path.abspath(os.path.join(scenePath, os.pardir))
+        shotName = os.path.basename(shotDirectory)
+
+        upperShotDir = os.path.abspath(os.path.join(shotDirectory, os.pardir))
+        upperShot = os.path.basename(upperShotDir)
+
+        if upperShot in self.subProjectList:
+            subProjectDir = upperShotDir
+            subProject = upperShot
+            categoryDir = os.path.abspath(os.path.join(subProjectDir, os.pardir))
+            category = os.path.basename(categoryDir)
+
+            jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
+            folderCheck(jsonCategoryPath)
+            jsonPath = os.path.normpath(os.path.join(jsonCategoryPath, subProject))
+
+        else:
+            subProject = ""
+            categoryDir = upperShotDir
+            category = upperShot
+            jsonPath = os.path.normpath(os.path.join(jsonPath, category))
+
+        jsonFile = os.path.join(jsonPath, "{}.json".format(shotName))
+
+        if os.path.isfile(jsonFile):
+            return "%s ==> %s ==> %s" %(subProject, category, shotName)
+
+        else:
+            return ""
+
+    def initUserList(self):
+        imajDefaultDB = "M://Projects//__database//sceneManagerUsers.json"
+        homedir = os.path.expanduser("~")
+        usersFilePath = os.path.join(homedir, "smUserpaths.json")
+        if os.path.isfile(usersFilePath):
+            info = loadJson(usersFilePath)
+            try:
+                self.userDB = info["userDBLocation"]
+            except KeyError:
+                if os.path.isfile(imajDefaultDB):
+                    self.userDB = imajDefaultDB
+                    self.userList = loadJson(self.userDB)
+                else:
+                    self.userList = {"Generic": "gn"}
+        else:
+            info={"userDBLocation":None}
+            dumpJson(info, usersFilePath)
+        pass
+
+    def createNewProject(self, projectPath):
+        # projectDate = datetime.datetime.now().strftime("%y%m%d")
+        # if brandName:
+        #     brandName = "%s_" %brandName
+        # else:
+        #     brandName = ""
+        # fullName = "{0}{1}_{2}_{3}".format(brandName, projectName, clientName, projectDate)
+        # fullPath = os.path.join(projectPath, fullName)
+        # check if there is a duplicate
+        if not os.path.isdir(os.path.normpath(projectPath)):
+            os.makedirs(os.path.normpath(projectPath))
+        else:
+            print "Project already exists"
+            return
+
+        # create Directory structure:
+        os.mkdir(os.path.join(projectPath, "_COMP"))
+        os.makedirs(os.path.join(projectPath, "_MAX\\Animation"))
+        os.makedirs(os.path.join(projectPath, "_MAX\\Model"))
+        os.makedirs(os.path.join(projectPath, "_MAX\\Render"))
+        os.mkdir(os.path.join(projectPath, "_SCULPT"))
+        os.mkdir(os.path.join(projectPath, "_REALFLOW"))
+        os.mkdir(os.path.join(projectPath, "_HOUDINI"))
+        os.mkdir(os.path.join(projectPath, "_REF"))
+        os.mkdir(os.path.join(projectPath, "_TRACK"))
+        os.makedirs(os.path.join(projectPath, "_TRANSFER\\FBX"))
+        os.makedirs(os.path.join(projectPath, "_TRANSFER\\ALEMBIC"))
+        os.makedirs(os.path.join(projectPath, "_TRANSFER\\OBJ"))
+        os.makedirs(os.path.join(projectPath, "_TRANSFER\\MA"))
+        os.mkdir(os.path.join(projectPath, "assets"))
+        os.mkdir(os.path.join(projectPath, "cache"))
+        os.mkdir(os.path.join(projectPath, "clips"))
+        os.mkdir(os.path.join(projectPath, "data"))
+        os.makedirs(os.path.join(projectPath, "images\\_CompRenders"))
+        os.mkdir(os.path.join(projectPath, "movies"))
+        os.mkdir(os.path.join(projectPath, "particles"))
+        os.mkdir(os.path.join(projectPath, "Playblasts"))
+        os.makedirs(os.path.join(projectPath, "renderData\\depth"))
+        os.makedirs(os.path.join(projectPath, "renderData\\fur"))
+        os.makedirs(os.path.join(projectPath, "renderData\\iprImages"))
+        os.makedirs(os.path.join(projectPath, "renderData\\mentalray"))
+        os.makedirs(os.path.join(projectPath, "renderData\\shaders"))
+        os.mkdir(os.path.join(projectPath, "scenes"))
+        os.mkdir(os.path.join(projectPath, "scripts"))
+        os.mkdir(os.path.join(projectPath, "sound"))
+        os.makedirs(os.path.join(projectPath, "sourceimages\\_FOOTAGE"))
+        os.makedirs(os.path.join(projectPath, "sourceimages\\_HDR"))
+
+        filePath = os.path.join(projectPath, "workspace.mel")
+        file = open(filePath, "w")
+        # file.write("{0}\n".format(L1))
+        # file.write("{0}\n".format(L2))
+        # file.write("{0}\n".format(L3))
+        # file.write("{0}\n".format(L4))
+        # file.write("{0}\n".format(L5))
+        file.close()
+        pass
+
+    def projectReport(self):
+
+        # // TODO Create a through REPORT
+        projectPath, dataPath, jsonPath, scenesPath, playBlastRoot = getPathsFromScene("projectPath", "dataPath", "jsonPath", "scenesPath", "playBlastRoot")
+        # get All json files:
+        oldestFile = getOldestFile(scenesPath, extension=(".mb", ".ma"))
+        # oldestTime = os.stat(oldestFile).st_mtime
+        oldestTimeMod = datetime.datetime.fromtimestamp(os.path.getmtime(oldestFile))
+
+        newestFile = getNewestFile(scenesPath, extension=(".mb", ".ma"))
+        # newestTime = os.stat(newestFile ).st_mtime
+        newestTimeMod = datetime.datetime.fromtimestamp(os.path.getmtime(newestFile))
+
+        L1 = "Oldest Scene file: {0} - {1}".format (pathOps(oldestFile, "basename"), oldestTimeMod)
+        L2 = "Newest Scene file: {0} - {1}".format (pathOps(newestFile, "basename"), newestTimeMod)
+        L3 = "Elapsed Time: {0}".format (str(newestTimeMod-oldestTimeMod))
+        L4 = "Scene Counts:"
+        # L5 = ""
+        report = {}
+        for subP in range (len(self.subProjectList)):
+            subReport={}
+            for category in self.validCategories:
+
+                categoryItems=(self.scanScenes(category, subProjectAs=subP)[0])
+                categoryItems = [x for x in categoryItems if x != []]
+
+                L4 = "{0}\n{1}: {2}".format(L4, category, len(categoryItems))
+                subReport[category]=categoryItems
+            # allItems.append(categoryItems)
+            report[self.subProjectList[subP]]=subReport
+
+        # L3 = "There are total {0} Base Scenes in {1} Categories and {2} Sub-Projects".format
+        report = pprint.pformat(report)
+
+
+        now = datetime.datetime.now()
+        filename = "summary_{0}.txt".format(now.strftime("%Y.%m.%d.%H.%M"))
+        filePath = os.path.join(projectPath, filename)
+        file = open(filePath, "w")
+
+        file.write("{0}\n".format(L1))
+        file.write("{0}\n".format(L2))
+        file.write("{0}\n".format(L3))
+        file.write("{0}\n".format(L4))
+        # file.write("{0}\n".format(L5))
+        file.write((report))
+        file.close()
+        return report
+
+    def regularSaveUpdate(self):
+        sceneName = os.path.normpath(pm.sceneName())
+
+        # if the scene is untitled, dont bother to continue
+        if not sceneName:
+            return
+
+        projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
+
+        sceneName = MaxPlus.Core.EvalMAXScript("maxFileName").Get()
+        shotDirectory = os.path.abspath(os.path.join(sceneName, os.pardir))
+        shotName = os.path.basename(shotDirectory)
+
+        upperShotDir = os.path.abspath(os.path.join(shotDirectory, os.pardir))
+        upperShot = os.path.basename(upperShotDir)
+
+
+        if upperShot in self.subProjectList:
+            subProjectDir= upperShotDir
+            subProject = upperShot
+            categoryDir = os.path.abspath(os.path.join(subProjectDir, os.pardir))
+            category = os.path.basename(categoryDir)
+
+            jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
+            folderCheck(jsonCategoryPath)
+            jsonPath = os.path.normpath(os.path.join(jsonCategoryPath, subProject))
+            folderCheck(jsonPath)
+
+        else:
+            categoryDir = upperShotDir
+            category = upperShot
+            jsonPath = os.path.normpath(os.path.join(jsonPath, category))
+            folderCheck(jsonPath)
+
+        jsonFile = os.path.join(jsonPath, "{}.json".format(shotName))
+
+        # check if the saved file be
+        if os.path.isfile(jsonFile):
+            jsonInfo = loadJson(jsonFile)
+            # check is the baseScene has a reference file
+            if jsonInfo["ReferenceFile"]:
+                absRefFile = os.path.join(projectPath, jsonInfo["ReferenceFile"])
+                absBaseSceneVersion = os.path.join(projectPath, jsonInfo["Versions"][int(jsonInfo["ReferencedVersion"])-1][0])
+                # if the refererenced scene file is the saved file (saved or saved as)
+                if sceneName == absBaseSceneVersion:
+                    # copy over the forReference file
+                    try:
+                        copyfile(sceneName, absRefFile)
+                        print "Scene Manager Update:\nReference File Updated"
+                    except:
+                        pass
+
+
+    def saveNewScene(self, category, userName, baseName, subProject=0, makeReference=True, versionNotes="", *args, **kwargs):
+        """
+        Saves the scene with formatted name and creates a json file for the scene
+        Args:
+            category: (String) Category if the scene. Valid categories are 'Model', 'Animation', 'Rig', 'Shading', 'Other'
+            userName: (String) Predefined user who initiates the process
+            baseName: (String) Base name of the scene. Eg. 'Shot01', 'CharacterA', 'BookRig' etc...
+            subProject: (Integer) The scene will be saved under the sub-project according to the given integer value. The 'self.subProjectList' will be
+                searched with that integer.
+            makeReference: (Boolean) If set True, a copy of the scene will be saved as forReference
+            versionNotes: (String) This string will be stored in the json file as version notes.
+            *args:
+            **kwargs:
+
+        Returns: None
+
+        """
+
+        scenesToCheck = self.scanScenes(category, subProjectAs=subProject)[0]
+        for z in scenesToCheck:
+            if baseName.lower() == loadJson(z)["Name"].lower():
+                # pm.warning("Choose an unique name")
+                ## //TODO find a way to print out a warning in Max
+                return -1
+
+        projectPath, jsonPath, scenesPath = getPathsFromScene("projectPath", "jsonPath", "scenesPath")
+        categoryPath = os.path.normpath(os.path.join(scenesPath, category))
+        folderCheck(category)
+
+        ## eger subproject olarak kaydedilecekse
+        if not subProject == 0:
+            subProjectPath = os.path.normpath(os.path.join(categoryPath, self.subProjectList[subProject]))
+            folderCheck(subProjectPath)
+            shotPath = os.path.normpath(os.path.join(subProjectPath, baseName))
+            folderCheck(shotPath)
+
+            jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
+            folderCheck(jsonCategoryPath)
+            jsonCategorySubPath = os.path.normpath(os.path.join(jsonCategoryPath, self.subProjectList[subProject]))
+            folderCheck(jsonCategorySubPath)
+            jsonFile = os.path.join(jsonCategorySubPath, "{}.json".format(baseName))
+        else:
+            shotPath = os.path.normpath(os.path.join(categoryPath, baseName))
+            folderCheck(shotPath)
+
+            jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
+            folderCheck(jsonCategoryPath)
+            jsonFile = os.path.join(jsonCategoryPath, "{}.json".format(baseName))
+
+        version=1
+        sceneName = "{0}_{1}_{2}_v{3}".format(baseName, category, userName, str(version).zfill(self.padding))
+        sceneFile = os.path.join(shotPath, "{0}.mb".format(sceneName))
+        ## relativity update
+        relSceneFile = os.path.relpath(sceneFile, start=projectPath)
+
+        ##pm.saveAs(sceneFile)
+        ## //TODO // SAVE AS
+
+        jsonInfo = {}
+
+        ## // TODO re-write below
+        if makeReference:
+            referenceName = "{0}_{1}_forReference".format(baseName, category)
+            referenceFile = os.path.join(shotPath, "{0}.mb".format(referenceName))
+            ## relativity update
+            relReferenceFile = os.path.relpath(referenceFile, start=projectPath)
+            copyfile(sceneFile, referenceFile)
+            jsonInfo["ReferenceFile"] = relReferenceFile
+            jsonInfo["ReferencedVersion"] = version
+        else:
+            jsonInfo["ReferenceFile"] = None
+            jsonInfo["ReferencedVersion"] = None
+
+        jsonInfo["ID"]="SceneManagerV01_sceneFile"
+        # jsonInfo["MayaVersion"]=pm.versions.current()
+        jsonInfo["Name"]=baseName
+        jsonInfo["Path"]=os.path.relpath(shotPath, start=projectPath)
+        jsonInfo["Category"]=category
+        jsonInfo["Creator"]=userName
+        jsonInfo["CreatorHost"]=(socket.gethostname())
+        jsonInfo["Versions"]=[[relSceneFile, versionNotes, userName, socket.gethostname(), {}]] ## last item is for playplast
+        dumpJson(jsonInfo, jsonFile)
+        return relSceneFile
 
 class _GCProtector(object):
     widgets = []
@@ -53,6 +535,8 @@ class MainUI(QtGui.QMainWindow):
                 self.close()
                 self.deleteLater()
 
+        self.manager = TikManager()
+        self.scenesInCategory = None
 
     #     self.buildUI()
     #
@@ -117,7 +601,7 @@ class MainUI(QtGui.QMainWindow):
         self.projectPath_lineEdit.setWhatsThis((""))
         self.projectPath_lineEdit.setAccessibleName((""))
         self.projectPath_lineEdit.setAccessibleDescription((""))
-        # self.projectPath_lineEdit.setText((self.manager.currentProject))
+        self.projectPath_lineEdit.setText((self.manager.currentProject))
         self.projectPath_lineEdit.setReadOnly(True)
         self.projectPath_lineEdit.setObjectName(("projectPath_lineEdit"))
 
@@ -141,10 +625,10 @@ class MainUI(QtGui.QMainWindow):
         self.category_tabWidget.setDocumentMode(True)
         self.category_tabWidget.setObjectName(("category_tabWidget"))
 
-        # for i in self.manager.validCategories:
-        #     self.preTab = QtGui.QWidget()
-        #     self.preTab.setObjectName((i))
-        #     self.category_tabWidget.addTab(self.preTab, (i))
+        for i in self.manager.validCategories:
+            self.preTab = QtGui.QWidget()
+            self.preTab.setObjectName((i))
+            self.category_tabWidget.addTab(self.preTab, (i))
 
         self.loadMode_radioButton = QtGui.QRadioButton(self.centralwidget)
         self.loadMode_radioButton.setGeometry(QtCore.QRect(30, 70, 82, 31))
@@ -175,10 +659,10 @@ class MainUI(QtGui.QMainWindow):
         self.userName_comboBox.setAccessibleName((""))
         self.userName_comboBox.setAccessibleDescription((""))
         self.userName_comboBox.setObjectName(("userName_comboBox"))
-        # userListSorted = sorted(self.manager.userList.keys())
-        # for num in range(len(userListSorted)):
-        #     self.userName_comboBox.addItem((userListSorted[num]))
-        #     self.userName_comboBox.setItemText(num, (userListSorted[num]))
+        userListSorted = sorted(self.manager.userList.keys())
+        for num in range(len(userListSorted)):
+            self.userName_comboBox.addItem((userListSorted[num]))
+            self.userName_comboBox.setItemText(num, (userListSorted[num]))
 
         # self.userName_comboBox.addItem((""))
         # self.userName_comboBox.setItemText(0, ("Arda Kutlu")
@@ -420,7 +904,78 @@ class MainUI(QtGui.QMainWindow):
         # shortcutRefresh = QtGui.QShortcut(QtGui.QKeySequence("F5"), self, self.populateScenes)
 
         # self.userPrefLoad()
-        # self.populateScenes()
+        self.populateScenes()
+
+    def populateScenes(self):
+
+        self.scenes_listWidget.clear()
+        self.version_comboBox.clear()
+        self.notes_textEdit.clear()
+        self.subProject_comboBox.clear()
+        # currentTabName = self.category_tabWidget.currentWidget().objectName()
+        # scannedScenes = self.manager.scanScenes(currentTabName)
+
+        self.scenesInCategory, subProjectFile=self.manager.scanScenes(self.category_tabWidget.currentWidget().objectName())
+
+        if self.referenceMode_radioButton.isChecked():
+            for i in self.scenesInCategory:
+                jsonFile = loadJson(i)
+                if jsonFile["ReferenceFile"]:
+                    self.scenes_listWidget.addItem(pathOps(i, "filename"))
+            self.version_comboBox.setEnabled(False)
 
 
+        else:
+            # self.scenes_listWidget.addItems(self.scenesInCategory)
+            for i in self.scenesInCategory:
+                self.scenes_listWidget.addItem(pathOps(i, "filename"))
+            # self.referenceCheck()
+            self.version_comboBox.setEnabled(True)
+        # self.manager.subProjectList = loadJson(subProjectFile)
 
+
+        self.subProject_comboBox.addItems((self.manager.subProjectList))
+        # index = self.manager.subProjectList.index(self.manager.currentSubProject)
+
+
+        self.subProject_comboBox.setCurrentIndex(self.manager.currentSubProjectIndex)
+
+        self.baseScene_lineEdit.setText(self.manager.getScene())
+
+        self.refreshNotes()
+        self.userPrefSave()
+
+        # self.referenceCheck()
+
+    def refreshNotes(self):
+        row = self.scenes_listWidget.currentRow()
+        if not row == -1:
+            sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
+            # takethefirstjson as example for rootpath
+            jPath = pathOps(self.scenesInCategory[0], "path")
+
+            sceneData = loadJson(os.path.join(jPath, sceneName))
+            # sceneData = loadJson(self.scenesInCategory[row])
+            currentIndex = self.version_comboBox.currentIndex()
+            self.notes_textEdit.setPlainText(sceneData["Versions"][currentIndex][1])
+
+            if sceneData["Versions"][currentIndex][4].keys():
+                self.showPB_pushButton.setEnabled(True)
+            else:
+                self.showPB_pushButton.setEnabled(False)
+        else:
+
+            self.showPB_pushButton.setEnabled(False)
+
+    def userPrefSave(self):
+        # pass
+
+        homedir = os.path.expanduser("~")
+        settingsFilePath = os.path.join(homedir, "smSettings.json")
+
+        settingsData = {"currentTabIndex": self.category_tabWidget.currentIndex(),
+                        "currentSubIndex": self.subProject_comboBox.currentIndex(),
+                        "currentUserIndex": self.userName_comboBox.currentIndex(),
+                        "currentMode": self.referenceMode_radioButton.isChecked()}
+
+        dumpJson(settingsData, settingsFilePath)
