@@ -1,3 +1,4 @@
+# version 1.65 changes: # Linux compatibility issues fixed
 # version 1.63 changes: # UI improvements
 # version 1.62 changes: # bugfix: when switching projects, subproject index will be reset to 0 now
 # version 1.61 changes: # create new project bugfix (workspace.mel creation)
@@ -44,7 +45,7 @@
 #     m.regularSaveUpdate()
 # maya.utils.executeDeferred('SMid = OpenMaya.MSceneMessage.addCallback(OpenMaya.MSceneMessage.kAfterSave, smUpdate)')
 
-SM_Version = "SceneManager v1.63"
+SM_Version = "SceneManager v1.65"
 
 import pymel.core as pm
 import json
@@ -64,6 +65,7 @@ import ftplib
 import io
 import datetime
 import maya.mel
+import platform
 
 
 
@@ -124,12 +126,35 @@ def killTurtle():
     except:
         pass
 
-def checkAdminRights():
+def checkRequirements():
+    ## check platform
+    currentOs = platform.system()
+    if currentOs != "Linux" and currentOs != "Windows":
+       return {"Title": "OS Error",
+               "Text": "Operating System is not supported",
+               "Info": "Scene Manager only supports Windows and Linux Operating Systems"
+               }
+
+    ## check admin rights
     try:
         is_admin = os.getuid() == 0
     except AttributeError:
         is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
-    return is_admin
+        return {"Title": "Admin Rights",
+                "Text": "Maya does not have the administrator rights",
+                "Info": "You need to run Maya as administrator to work with Scene Manager"
+                }
+    return None
+
+
+
+
+# def checkAdminRights():
+#     try:
+#         is_admin = os.getuid() == 0
+#     except AttributeError:
+#         is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
+#     return is_admin
 
 def getMayaMainWindow():
     """
@@ -235,6 +260,7 @@ def getPathsFromScene(*args, **kwargs):
 class TikManager(object):
     def __init__(self):
         super(TikManager, self).__init__()
+        self.currentPlatform = platform.system()
         self.currentProject = pm.workspace(q=1, rd=1)
         self.currentSubProjectIndex = 0
 
@@ -284,36 +310,36 @@ class TikManager(object):
 
         # create Directory structure:
         os.mkdir(os.path.join(projectPath, "_COMP"))
-        os.makedirs(os.path.join(projectPath, "_MAX\\Animation"))
-        os.makedirs(os.path.join(projectPath, "_MAX\\Model"))
-        os.makedirs(os.path.join(projectPath, "_MAX\\Render"))
+        os.makedirs(os.path.join(projectPath, "_MAX", "Animation"))
+        os.makedirs(os.path.join(projectPath, "_MAX", "Model"))
+        os.makedirs(os.path.join(projectPath, "_MAX", "Render"))
         os.mkdir(os.path.join(projectPath, "_SCULPT"))
         os.mkdir(os.path.join(projectPath, "_REALFLOW"))
         os.mkdir(os.path.join(projectPath, "_HOUDINI"))
         os.mkdir(os.path.join(projectPath, "_REF"))
         os.mkdir(os.path.join(projectPath, "_TRACK"))
-        os.makedirs(os.path.join(projectPath, "_TRANSFER\\FBX"))
-        os.makedirs(os.path.join(projectPath, "_TRANSFER\\ALEMBIC"))
-        os.makedirs(os.path.join(projectPath, "_TRANSFER\\OBJ"))
-        os.makedirs(os.path.join(projectPath, "_TRANSFER\\MA"))
+        os.makedirs(os.path.join(projectPath, "_TRANSFER", "FBX"))
+        os.makedirs(os.path.join(projectPath, "_TRANSFER", "ALEMBIC"))
+        os.makedirs(os.path.join(projectPath, "_TRANSFER", "OBJ"))
+        os.makedirs(os.path.join(projectPath, "_TRANSFER", "MA"))
         os.mkdir(os.path.join(projectPath, "assets"))
         os.mkdir(os.path.join(projectPath, "cache"))
         os.mkdir(os.path.join(projectPath, "clips"))
         os.mkdir(os.path.join(projectPath, "data"))
-        os.makedirs(os.path.join(projectPath, "images\\_CompRenders"))
+        os.makedirs(os.path.join(projectPath, "images", "_CompRenders"))
         os.mkdir(os.path.join(projectPath, "movies"))
         os.mkdir(os.path.join(projectPath, "particles"))
         os.mkdir(os.path.join(projectPath, "Playblasts"))
-        os.makedirs(os.path.join(projectPath, "renderData\\depth"))
-        os.makedirs(os.path.join(projectPath, "renderData\\fur"))
-        os.makedirs(os.path.join(projectPath, "renderData\\iprImages"))
-        os.makedirs(os.path.join(projectPath, "renderData\\mentalray"))
-        os.makedirs(os.path.join(projectPath, "renderData\\shaders"))
+        os.makedirs(os.path.join(projectPath, "renderData", "depth"))
+        os.makedirs(os.path.join(projectPath, "renderData", "fur"))
+        os.makedirs(os.path.join(projectPath, "renderData", "iprImages"))
+        os.makedirs(os.path.join(projectPath, "renderData", "mentalray"))
+        os.makedirs(os.path.join(projectPath, "renderData", "shaders"))
         os.mkdir(os.path.join(projectPath, "scenes"))
         os.mkdir(os.path.join(projectPath, "scripts"))
         os.mkdir(os.path.join(projectPath, "sound"))
-        os.makedirs(os.path.join(projectPath, "sourceimages\\_FOOTAGE"))
-        os.makedirs(os.path.join(projectPath, "sourceimages\\_HDR"))
+        os.makedirs(os.path.join(projectPath, "sourceimages", "_FOOTAGE"))
+        os.makedirs(os.path.join(projectPath, "sourceimages", "_HDR"))
 
         filePath = os.path.join(projectPath, "workspace.mel")
         file = open(filePath, "w")
@@ -557,7 +583,9 @@ class TikManager(object):
 
         projectPath, jsonPath, scenesPath = getPathsFromScene("projectPath", "jsonPath", "scenesPath")
         categoryPath = os.path.normpath(os.path.join(scenesPath, category))
-        folderCheck(category)
+        # folderCheck(category)
+        print "anan", categoryPath
+        folderCheck(categoryPath)
 
         ## eger subproject olarak kaydedilecekse
         if not subProject == 0:
@@ -757,7 +785,8 @@ class TikManager(object):
 
         projectPath, playBlastRoot = getPathsFromScene("projectPath","playBlastRoot")
 
-        pbSettingsFile = "{0}\\PBsettings.json".format(os.path.join(projectPath, playBlastRoot))
+        #pbSettingsFile = "{0}\\PBsettings.json".format(os.path.join(projectPath, playBlastRoot))
+        pbSettingsFile = os.path.join(os.path.join(projectPath, playBlastRoot), "PBsettings.json")
 
         if not os.path.isfile(pbSettingsFile):
             defaultSettings={"Resolution":(1280,720), ## done
@@ -1253,18 +1282,40 @@ class MainUI(QtWidgets.QMainWindow):
         parent = getMayaMainWindow()
         super(MainUI, self).__init__(parent=parent)
 
-        if not checkAdminRights():
+        # if platform.system() != "linux" or platform.system() != "windows":
+        #     q = QtWidgets.QMessageBox()
+        #     q.setIcon(QtWidgets.QMessageBox.Information)
+        #     q.setText("Scene Manager is not supporting this OS")
+        #     q.setInformativeText("You need to run Maya as administrator to work with Scene Manager")
+        #     q.setWindowTitle("Admin Rights")
+        #     q.setStandardButtons(QtWidgets.QMessageBox.Ok)
+
+        problem = checkRequirements()
+        if problem:
             q = QtWidgets.QMessageBox()
             q.setIcon(QtWidgets.QMessageBox.Information)
-            q.setText("Maya does not have the administrator rights")
-            q.setInformativeText("You need to run Maya as administrator to work with Scene Manager")
-            q.setWindowTitle("Admin Rights")
+            q.setText(problem["Text"])
+            q.setInformativeText(problem["Info"])
+            q.setWindowTitle(problem["Title"])
             q.setStandardButtons(QtWidgets.QMessageBox.Ok)
 
             ret = q.exec_()
             if ret == QtWidgets.QMessageBox.Ok:
                 self.close()
                 self.deleteLater()
+
+        # if not checkAdminRights():
+        #     q = QtWidgets.QMessageBox()
+        #     q.setIcon(QtWidgets.QMessageBox.Information)
+        #     q.setText("Maya does not have the administrator rights")
+        #     q.setInformativeText("You need to run Maya as administrator to work with Scene Manager")
+        #     q.setWindowTitle("Admin Rights")
+        #     q.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        #
+        #     ret = q.exec_()
+        #     if ret == QtWidgets.QMessageBox.Ok:
+        #         self.close()
+        #         self.deleteLater()
 
         self.manager = TikManager()
 
@@ -2306,7 +2357,8 @@ class MainUI(QtWidgets.QMainWindow):
     def onPbSettingsAccept(self):
         projectPath, playBlastRoot = getPathsFromScene("projectPath","playBlastRoot")
 
-        pbSettingsFile = "{0}\\PBsettings.json".format(os.path.join(projectPath, playBlastRoot))
+        # pbSettingsFile = "{0}\\PBsettings.json".format(os.path.join(projectPath, playBlastRoot))
+        pbSettingsFile = os.path.join(os.path.join(projectPath, playBlastRoot), "PBsettings.json")
 
         newPbSettings = {"Resolution": (self.resolutionx_spinBox.value(), self.resolutiony_spinBox.value()),
                            "Format": self.fileformat_comboBox.currentText(),
@@ -2761,15 +2813,10 @@ class MainUI(QtWidgets.QMainWindow):
         if command == "importScene":
             row = self.scenes_listWidget.currentRow()
             if not row == -1:
-                # sceneData = loadJson(self.scenesInCategory[row])
-                # path = os.path.join(os.path.normpath(self.manager.currentProject), os.path.normpath(sceneData["Path"]))
                 sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
                 # takethefirstjson as example for rootpath
                 jsonPath = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
                 self.manager.loadScene(jsonPath, version=self.version_comboBox.currentIndex(), importFile=True)
-
-                # self.manager.loadScene(self.scenesInCategory[row], version=self.version_comboBox.currentIndex(), importFile=True)
-                # os.startfile(path)
 
         if command == "showInExplorerMaya":
             row = self.scenes_listWidget.currentRow()
@@ -2781,7 +2828,11 @@ class MainUI(QtWidgets.QMainWindow):
                 sceneData = loadJson(jPath)
 
                 path = os.path.join(os.path.normpath(self.manager.currentProject), os.path.normpath(sceneData["Path"]))
-                os.startfile(path)
+
+                if self.manager.currentPlatform == "Windows":
+                    os.startfile(path)
+                if self.manager.currentPlatform == "Linux":
+                    os.system('nautilus %s' % path)
 
         if command == "showInExplorerPB":
             row = self.scenes_listWidget.currentRow()
@@ -2797,7 +2848,10 @@ class MainUI(QtWidgets.QMainWindow):
                 path = path.replace("scenes", "Playblasts")
                 print path
                 if os.path.isdir(path):
-                    os.startfile(path)
+                    if self.manager.currentPlatform == "Windows":
+                        os.startfile(path)
+                    if self.manager.currentPlatform == "Linux":
+                        os.system('nautilus %s' % path)
                 else:
                     self.infoPop(textTitle="", textHeader="Scene does not have a playblast", textInfo="There is no playblast folder created for this scene yet")
 
@@ -2808,7 +2862,10 @@ class MainUI(QtWidgets.QMainWindow):
                     path = pathOps(self.scenesInCategory[row], "path")
                 except:
                     path = pathOps(self.scenesInCategory[0], "path")
-                os.startfile(path)
+                if self.manager.currentPlatform == "Windows":
+                    os.startfile(path)
+                if self.manager.currentPlatform == "Linux":
+                    os.system('nautilus %s' % path)
 
     def on_context_menu(self, point):
         # show context menu
