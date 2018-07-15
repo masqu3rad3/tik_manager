@@ -161,7 +161,7 @@ class TikManager(object):
         Returns: List of all json files in the category, sub-project json file
 
         """
-        if not subProjectAs == None:
+        if not subProjectAs is None:
             subProjectIndex = subProjectAs
         else:
             subProjectIndex = self.currentSubProjectIndex
@@ -500,6 +500,8 @@ class TikManager(object):
 class _GCProtector(object):
     widgets = []
 
+
+# noinspection PyArgumentList
 app = QtGui.QApplication.instance()
 if not app:
     app = QtGui.QApplication([])
@@ -513,6 +515,7 @@ def checkAdminRights():
 
 class MainUI(QtGui.QMainWindow):
     def __init__(self):
+        # noinspection PyArgumentList
         for entry in QtGui.QApplication.allWidgets():
             try:
                 if entry.objectName() == SM_Version:

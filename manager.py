@@ -3,17 +3,17 @@
 # version 1.62 changes: # bugfix: when switching projects, subproject index will be reset to 0 now
 # version 1.61 changes: # create new project bugfix (workspace.mel creation)
 # version 1.6 changes:
-    # added "add note" function
-    # minor code improvements with the playblast, and note checking methods
+# added "add note" function
+# minor code improvements with the playblast, and note checking methods
 # version 1.58 changes:
-    # minor bug fixes with createPlayblast method
+# minor bug fixes with createPlayblast method
 # version 1.57 changes:
-    # Kill Turtle method updated
-    # Version Number added to the scene dialog
+# Kill Turtle method updated
+# Version Number added to the scene dialog
 # version 1.56 changes:# After loading new scene menu refreshes
 # version 1.55 changes:
-    # regularSaveUpdate function added for Save callback
-    # sound problem fixed with playblasts
+# regularSaveUpdate function added for Save callback
+# sound problem fixed with playblasts
 # version 1.45 changes:# Create New Project Function added, Settings menu renamed as File
 # version 1.44 changes:# Bug fix with playblasts Maya 2017 (hud display camera location was inproper)
 # version 1.43 changes:# current scene info line added to the top of the window
@@ -21,12 +21,12 @@
 # version 1.41 changes:# namespace added while referencing a scene
 # version 1.4 changes: # added wire on shaded and default material settings to the playblast settings file
 # version 1.3 changes:
-    # suMod removed. Everything is in a single file. For password protection share only the compiled version.
-    # various bug fixes
+# suMod removed. Everything is in a single file. For password protection share only the compiled version.
+# various bug fixes
 # version 1.2 changes:
 # fixed the loading and referencing system. Now it checks for the selected rows 'name' not the list number id.
 # fixed the name check for duplicate base scenes. It doesnt allow creating base scenes with the same name disregarding it
-    # has lower case or upper case characters.
+# has lower case or upper case characters.
 
 # version 1.1 changes:
 # "Frame Range" Hud option is added to playblast settings.
@@ -47,76 +47,74 @@
 
 SM_Version = "SceneManager v1.65"
 
-import pymel.core as pm
-import json
-import os, fnmatch
-from shutil import copyfile
-import maya.mel as mel
-import maya.cmds as cmds
-import socket
-import filecmp
-import re
 # import suMod
 import ctypes
-# reload(suMod)
-import unicodedata
-import pprint
+import datetime
+import filecmp
 import ftplib
 import io
-import datetime
-import maya.mel
+import json
+import os
 import platform
-
-
+# reload(suMod)
+import pprint
+import re
+import socket
+from shutil import copyfile
 
 #### Import for UI
 import Qt
+import maya.cmds as cmds
+import maya.mel
+import maya.mel as mel
+import pymel.core as pm
 from Qt import QtWidgets, QtCore, QtGui
 from maya import OpenMayaUI as omui
 
 if Qt.__binding__ == "PySide":
     from shiboken import wrapInstance
-    from Qt.QtCore import Signal
 elif Qt.__binding__.startswith('PyQt'):
     from sip import wrapinstance as wrapInstance
-    from Qt.Core import pyqtSignal as Signal
 else:
     from shiboken2 import wrapInstance
-    from Qt.QtCore import Signal
+
 
 def getOldestFile(rootfolder, extension=".avi"):
     return min(
         (os.path.join(dirname, filename)
-        for dirname, dirnames, filenames in os.walk(rootfolder)
-        for filename in filenames
-        if filename.endswith(extension)),
+         for dirname, dirnames, filenames in os.walk(rootfolder)
+         for filename in filenames
+         if filename.endswith(extension)),
         key=lambda fn: os.stat(fn).st_mtime)
+
+
 def getNewestFile(rootfolder, extension=".avi"):
     return max(
         (os.path.join(dirname, filename)
-        for dirname, dirnames, filenames in os.walk(rootfolder)
-        for filename in filenames
-        if filename.endswith(extension)),
+         for dirname, dirnames, filenames in os.walk(rootfolder)
+         for filename in filenames
+         if filename.endswith(extension)),
         key=lambda fn: os.stat(fn).st_mtime)
+
 
 def killTurtle():
     try:
-        pm.lockNode( 'TurtleDefaultBakeLayer', lock=False )
+        pm.lockNode('TurtleDefaultBakeLayer', lock=False)
         pm.delete('TurtleDefaultBakeLayer')
     except:
         pass
     try:
-        pm.lockNode( 'TurtleBakeLayerManager', lock=False )
+        pm.lockNode('TurtleBakeLayerManager', lock=False)
         pm.delete('TurtleBakeLayerManager')
     except:
         pass
     try:
-        pm.lockNode( 'TurtleRenderOptions', lock=False )
+        pm.lockNode('TurtleRenderOptions', lock=False)
         pm.delete('TurtleRenderOptions')
     except:
         pass
     try:
-        pm.lockNode( 'TurtleUIOptions', lock=False )
+        pm.lockNode('TurtleUIOptions', lock=False)
         pm.delete('TurtleUIOptions')
     except:
         pass
@@ -126,27 +124,27 @@ def killTurtle():
     except:
         pass
 
+
 def checkRequirements():
     ## check platform
     currentOs = platform.system()
     if currentOs != "Linux" and currentOs != "Windows":
-       return {"Title": "OS Error",
-               "Text": "Operating System is not supported",
-               "Info": "Scene Manager only supports Windows and Linux Operating Systems"
-               }
+        return {"Title": "OS Error",
+                "Text": "Operating System is not supported",
+                "Info": "Scene Manager only supports Windows and Linux Operating Systems"
+                }
 
     ## check admin rights
     try:
         is_admin = os.getuid() == 0
     except AttributeError:
         is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
+    if not is_admin:
         return {"Title": "Admin Rights",
                 "Text": "Maya does not have the administrator rights",
                 "Info": "You need to run Maya as administrator to work with Scene Manager"
                 }
     return None
-
-
 
 
 # def checkAdminRights():
@@ -156,6 +154,7 @@ def checkRequirements():
 #         is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
 #     return is_admin
 
+# noinspection PyArgumentList
 def getMayaMainWindow():
     """
     Gets the memory adress of the main window to connect Qt dialog to it.
@@ -166,9 +165,11 @@ def getMayaMainWindow():
     ptr = wrapInstance(long(win), QtWidgets.QMainWindow)
     return ptr
 
+
 def folderCheck(folder):
     if not os.path.isdir(os.path.normpath(folder)):
         os.makedirs(os.path.normpath(folder))
+
 
 def loadJson(file):
     if os.path.isfile(file):
@@ -179,9 +180,11 @@ def loadJson(file):
     else:
         return None
 
+
 def dumpJson(data, file):
     with open(file, "w") as f:
         json.dump(data, f, indent=4)
+
 
 def nameCheck(text):
     text = text.replace("|", "__")
@@ -194,14 +197,15 @@ def nameCheck(text):
     else:
         return -1
 
-def checkValidity(text, button, lineEdit):
 
+def checkValidity(text, button, lineEdit):
     if not re.match("^[A-Za-z0-9_-]*$", text):
         lineEdit.setStyleSheet("background-color: red; color: black")
         button.setEnabled(False)
     else:
         lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: white")
         button.setEnabled(True)
+
 
 def pathOps(fullPath, mode):
     """
@@ -230,8 +234,8 @@ def pathOps(fullPath, mode):
     if mode == "extension":
         return ext
 
-def getPathsFromScene(*args, **kwargs):
 
+def getPathsFromScene(*args, **kwargs):
     projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
     dataPath = os.path.normpath(os.path.join(projectPath, "data"))
     folderCheck(dataPath)
@@ -245,17 +249,18 @@ def getPathsFromScene(*args, **kwargs):
     for i in args:
         if i == "projectPath":
             returnList.append(projectPath)
-        if i== "dataPath":
+        if i == "dataPath":
             returnList.append(dataPath)
-        if i=="jsonPath":
+        if i == "jsonPath":
             returnList.append(jsonPath)
-        if i=="scenesPath":
+        if i == "scenesPath":
             returnList.append(scenesPath)
-        if i=="playBlastRoot":
+        if i == "playBlastRoot":
             returnList.append(playBlastRoot)
-    if len(returnList)<2:
+    if len(returnList) < 2:
         returnList = returnList[0]
     return returnList
+
 
 class TikManager(object):
     def __init__(self):
@@ -268,7 +273,7 @@ class TikManager(object):
         if os.path.isfile(self.userDB):
             self.userList = loadJson(self.userDB)
         else:
-            self.userList = {"Generic":"gn"}
+            self.userList = {"Generic": "gn"}
         self.validCategories = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
         self.padding = 3
         self.subProjectList = self.scanSubProjects()
@@ -288,7 +293,7 @@ class TikManager(object):
                 else:
                     self.userList = {"Generic": "gn"}
         else:
-            info={"userDBLocation":None}
+            info = {"userDBLocation": None}
             dumpJson(info, usersFilePath)
 
         pass
@@ -422,7 +427,9 @@ class TikManager(object):
     def projectReport(self):
 
         # // TODO Create a through REPORT
-        projectPath, dataPath, jsonPath, scenesPath, playBlastRoot = getPathsFromScene("projectPath", "dataPath", "jsonPath", "scenesPath", "playBlastRoot")
+        projectPath, dataPath, jsonPath, scenesPath, playBlastRoot = getPathsFromScene("projectPath", "dataPath",
+                                                                                       "jsonPath", "scenesPath",
+                                                                                       "playBlastRoot")
         # get All json files:
         oldestFile = getOldestFile(scenesPath, extension=(".mb", ".ma"))
         # oldestTime = os.stat(oldestFile).st_mtime
@@ -432,25 +439,22 @@ class TikManager(object):
         # newestTime = os.stat(newestFile ).st_mtime
         newestTimeMod = datetime.datetime.fromtimestamp(os.path.getmtime(newestFile))
 
-
-
-        L1 = "Oldest Scene file: {0} - {1}".format (pathOps(oldestFile, "basename"), oldestTimeMod)
-        L2 = "Newest Scene file: {0} - {1}".format (pathOps(newestFile, "basename"), newestTimeMod)
-        L3 = "Elapsed Time: {0}".format (str(newestTimeMod-oldestTimeMod))
+        L1 = "Oldest Scene file: {0} - {1}".format(pathOps(oldestFile, "basename"), oldestTimeMod)
+        L2 = "Newest Scene file: {0} - {1}".format(pathOps(newestFile, "basename"), newestTimeMod)
+        L3 = "Elapsed Time: {0}".format(str(newestTimeMod - oldestTimeMod))
         L4 = "Scene Counts:"
         # L5 = ""
         report = {}
-        for subP in range (len(self.subProjectList)):
-            subReport={}
+        for subP in range(len(self.subProjectList)):
+            subReport = {}
             for category in self.validCategories:
-
-                categoryItems=(self.scanScenes(category, subProjectAs=subP)[0])
+                categoryItems = (self.scanScenes(category, subProjectAs=subP)[0])
                 categoryItems = [x for x in categoryItems if x != []]
 
                 L4 = "{0}\n{1}: {2}".format(L4, category, len(categoryItems))
-                subReport[category]=categoryItems
+                subReport[category] = categoryItems
             # allItems.append(categoryItems)
-            report[self.subProjectList[subP]]=subReport
+            report[self.subProjectList[subP]] = subReport
 
         # for category in report.keys():
         #     L5 = "{0}\n{1}: {2}".format(L5, category, len(report[category]))
@@ -458,7 +462,6 @@ class TikManager(object):
 
         # L3 = "There are total {0} Base Scenes in {1} Categories and {2} Sub-Projects".format
         report = pprint.pformat(report)
-
 
         now = datetime.datetime.now()
         filename = "summary_{0}.txt".format(now.strftime("%Y.%m.%d.%H.%M"))
@@ -474,7 +477,6 @@ class TikManager(object):
 
         file.close()
 
-
         return report
 
     def remoteLogger(self):
@@ -482,7 +484,8 @@ class TikManager(object):
         try:
             session = ftplib.FTP('ardakutlu.com', 'customLogs@ardakutlu.com', 'Dq%}3LwVMZms')
             now = datetime.datetime.now()
-            filename = ("{0}_{1}".format(now.strftime("%Y.%m.%d.%H.%M"),pathOps(getPathsFromScene("projectPath"), "basename")))
+            filename = (
+            "{0}_{1}".format(now.strftime("%Y.%m.%d.%H.%M"), pathOps(getPathsFromScene("projectPath"), "basename")))
 
             logInfo = "{0}\n{1}\n{2}".format(
                 getPathsFromScene("projectPath"),
@@ -518,9 +521,8 @@ class TikManager(object):
         upperShotDir = os.path.abspath(os.path.join(shotDirectory, os.pardir))
         upperShot = os.path.basename(upperShotDir)
 
-
         if upperShot in self.subProjectList:
-            subProjectDir= upperShotDir
+            subProjectDir = upperShotDir
             subProject = upperShot
             categoryDir = os.path.abspath(os.path.join(subProjectDir, os.pardir))
             category = os.path.basename(categoryDir)
@@ -544,7 +546,8 @@ class TikManager(object):
             # check is the baseScene has a reference file
             if jsonInfo["ReferenceFile"]:
                 absRefFile = os.path.join(projectPath, jsonInfo["ReferenceFile"])
-                absBaseSceneVersion = os.path.join(projectPath, jsonInfo["Versions"][int(jsonInfo["ReferencedVersion"])-1][0])
+                absBaseSceneVersion = os.path.join(projectPath,
+                                                   jsonInfo["Versions"][int(jsonInfo["ReferencedVersion"]) - 1][0])
                 # if the refererenced scene file is the saved file (saved or saved as)
                 if sceneName == absBaseSceneVersion:
                     # copy over the forReference file
@@ -554,7 +557,8 @@ class TikManager(object):
                     except:
                         pass
 
-    def saveNewScene(self, category, userName, baseName, subProject=0, makeReference=True, versionNotes="", *args, **kwargs):
+    def saveNewScene(self, category, userName, baseName, subProject=0, makeReference=True, versionNotes="", *args,
+                     **kwargs):
         """
         Saves the scene with formatted name and creates a json file for the scene
         Args:
@@ -573,7 +577,7 @@ class TikManager(object):
         """
         fullName = self.userList.keys()[self.userList.values().index(userName)]
         now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
-        completeNote = "[%s] on %s\n%s\n" %(fullName, now, versionNotes)
+        completeNote = "[%s] on %s\n%s\n" % (fullName, now, versionNotes)
 
         scenesToCheck = self.scanScenes(category, subProjectAs=subProject)[0]
         for z in scenesToCheck:
@@ -607,7 +611,7 @@ class TikManager(object):
             folderCheck(jsonCategoryPath)
             jsonFile = os.path.join(jsonCategoryPath, "{}.json".format(baseName))
 
-        version=1
+        version = 1
         sceneName = "{0}_{1}_{2}_v{3}".format(baseName, category, userName, str(version).zfill(self.padding))
         sceneFile = os.path.join(shotPath, "{0}.mb".format(sceneName))
         ## relativity update
@@ -629,14 +633,15 @@ class TikManager(object):
             jsonInfo["ReferenceFile"] = None
             jsonInfo["ReferencedVersion"] = None
 
-        jsonInfo["ID"]="SceneManagerV01_sceneFile"
-        jsonInfo["MayaVersion"]=pm.versions.current()
-        jsonInfo["Name"]=baseName
-        jsonInfo["Path"]=os.path.relpath(shotPath, start=projectPath)
-        jsonInfo["Category"]=category
-        jsonInfo["Creator"]=userName
-        jsonInfo["CreatorHost"]=(socket.gethostname())
-        jsonInfo["Versions"]=[[relSceneFile, completeNote, userName, socket.gethostname(), {}]] ## last item is for playplast
+        jsonInfo["ID"] = "SceneManagerV01_sceneFile"
+        jsonInfo["MayaVersion"] = pm.versions.current()
+        jsonInfo["Name"] = baseName
+        jsonInfo["Path"] = os.path.relpath(shotPath, start=projectPath)
+        jsonInfo["Category"] = category
+        jsonInfo["Creator"] = userName
+        jsonInfo["CreatorHost"] = (socket.gethostname())
+        jsonInfo["Versions"] = [
+            [relSceneFile, completeNote, userName, socket.gethostname(), {}]]  ## last item is for playplast
         dumpJson(jsonInfo, jsonFile)
         return relSceneFile
 
@@ -675,7 +680,7 @@ class TikManager(object):
         jsonFile = os.path.join(jsonPath, "{}.json".format(shotName))
 
         if os.path.isfile(jsonFile):
-            return "%s ==> %s ==> %s" %(subProject, category, shotName)
+            return "%s ==> %s ==> %s" % (subProject, category, shotName)
 
         else:
             return ""
@@ -694,12 +699,10 @@ class TikManager(object):
         currentNotes = jsonInfo["Versions"][version][1]
         ## add username and date to the beginning of the note:
         now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
-        completeNote = "%s\n[%s] on %s\n%s\n" %(currentNotes, user, now, additionalNote)
+        completeNote = "%s\n[%s] on %s\n%s\n" % (currentNotes, user, now, additionalNote)
         jsonInfo["Versions"][version][1] = completeNote
         ##
         dumpJson(jsonInfo, jsonFile)
-
-
 
     def saveVersion(self, userName, makeReference=True, versionNotes="", *args, **kwargs):
         """
@@ -718,7 +721,7 @@ class TikManager(object):
         # get the full username
         fullName = self.userList.keys()[self.userList.values().index(userName)]
         now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
-        completeNote = "[%s] on %s\n%s\n" %(fullName, now, versionNotes)
+        completeNote = "[%s] on %s\n%s\n" % (fullName, now, versionNotes)
         sceneName = pm.sceneName()
         if not sceneName:
             pm.warning("This is not a base scene (Untitled)")
@@ -733,9 +736,8 @@ class TikManager(object):
         upperShotDir = os.path.abspath(os.path.join(shotDirectory, os.pardir))
         upperShot = os.path.basename(upperShotDir)
 
-
         if upperShot in self.subProjectList:
-            subProjectDir= upperShotDir
+            subProjectDir = upperShotDir
             subProject = upperShot
             categoryDir = os.path.abspath(os.path.join(subProjectDir, os.pardir))
             category = os.path.basename(categoryDir)
@@ -756,15 +758,17 @@ class TikManager(object):
         if os.path.isfile(jsonFile):
             jsonInfo = loadJson(jsonFile)
 
-            currentVersion = len(jsonInfo["Versions"])+1
-            sceneName = "{0}_{1}_{2}_v{3}".format(jsonInfo["Name"], jsonInfo["Category"], userName, str(currentVersion).zfill(self.padding))
+            currentVersion = len(jsonInfo["Versions"]) + 1
+            sceneName = "{0}_{1}_{2}_v{3}".format(jsonInfo["Name"], jsonInfo["Category"], userName,
+                                                  str(currentVersion).zfill(self.padding))
             relSceneFile = os.path.join(jsonInfo["Path"], "{0}.mb".format(sceneName))
 
             sceneFile = os.path.join(projectPath, relSceneFile)
 
             # killTurtle()
             pm.saveAs(sceneFile)
-            jsonInfo["Versions"].append([relSceneFile, completeNote, userName, (socket.gethostname()), {}]) ## last one is for playblast
+            jsonInfo["Versions"].append(
+                [relSceneFile, completeNote, userName, (socket.gethostname()), {}])  ## last one is for playblast
 
             if makeReference:
                 referenceName = "{0}_{1}_forReference".format(shotName, category)
@@ -783,29 +787,29 @@ class TikManager(object):
 
     def getPBsettings(self):
 
-        projectPath, playBlastRoot = getPathsFromScene("projectPath","playBlastRoot")
+        projectPath, playBlastRoot = getPathsFromScene("projectPath", "playBlastRoot")
 
-        #pbSettingsFile = "{0}\\PBsettings.json".format(os.path.join(projectPath, playBlastRoot))
+        # pbSettingsFile = "{0}\\PBsettings.json".format(os.path.join(projectPath, playBlastRoot))
         pbSettingsFile = os.path.join(os.path.join(projectPath, playBlastRoot), "PBsettings.json")
 
         if not os.path.isfile(pbSettingsFile):
-            defaultSettings={"Resolution":(1280,720), ## done
-                             "Format":'avi', ## done
-                             "Codec":'IYUV', ## done
-                             "Percent":100, ## done
-                             "Quality":100, ## done
-                             "ShowFrameNumber":True,
-                             "ShowSceneName":False,
-                             "ShowCategory":False,
-                             "ShowFrameRange":True,
-                             "ShowFPS":True,
-                             "PolygonOnly":True, ## done
-                             "ShowGrid": False, ## done
-                             "ClearSelection": True, ## done
-                             "DisplayTextures": True, ## done
-                             "WireOnShaded": False,
-                             "UseDefaultMaterial": False,
-            }
+            defaultSettings = {"Resolution": (1280, 720),  ## done
+                               "Format": 'avi',  ## done
+                               "Codec": 'IYUV',  ## done
+                               "Percent": 100,  ## done
+                               "Quality": 100,  ## done
+                               "ShowFrameNumber": True,
+                               "ShowSceneName": False,
+                               "ShowCategory": False,
+                               "ShowFrameRange": True,
+                               "ShowFPS": True,
+                               "PolygonOnly": True,  ## done
+                               "ShowGrid": False,  ## done
+                               "ClearSelection": True,  ## done
+                               "DisplayTextures": True,  ## done
+                               "WireOnShaded": False,
+                               "UseDefaultMaterial": False,
+                               }
             dumpJson(defaultSettings, pbSettingsFile)
             return defaultSettings
         else:
@@ -819,8 +823,8 @@ class TikManager(object):
         if pbSettings["Format"] == 'qt':
             maxTime = pm.playbackOptions(q=True, maxTime=True)
             endTime = pm.playbackOptions(q=True, animationEndTime=True)
-            pm.playbackOptions(maxTime=maxTime+1)
-            pm.playbackOptions(animationEndTime=endTime+1)
+            pm.playbackOptions(maxTime=maxTime + 1)
+            pm.playbackOptions(animationEndTime=endTime + 1)
 
         sceneName = pm.sceneName()
         if not sceneName:
@@ -836,9 +840,8 @@ class TikManager(object):
         upperShotDir = os.path.abspath(os.path.join(shotDirectory, os.pardir))
         upperShot = os.path.basename(upperShotDir)
 
-
         if upperShot in self.subProjectList:
-            subProjectDir= upperShotDir
+            subProjectDir = upperShotDir
             subProject = upperShot
             categoryDir = os.path.abspath(os.path.join(subProjectDir, os.pardir))
             category = os.path.basename(categoryDir)
@@ -875,18 +878,17 @@ class TikManager(object):
 
             currentCam = pm.modelPanel(pm.getPanel(wf=True), q=True, cam=True)
 
-            validName="_"
+            validName = "_"
             if not nameCheck(currentCam) == -1:
                 validName = nameCheck(currentCam)
             else:
                 pm.displayError("Camera name is not Valid")
                 return
 
-
-
             versionName = pm.sceneName()
             relVersionName = os.path.relpath(versionName, start=projectPath)
-            playBlastFile = os.path.join(pbPath, "{0}_{1}_PB.avi".format (pathOps(versionName, mode="filename"), validName))
+            playBlastFile = os.path.join(pbPath,
+                                         "{0}_{1}_PB.avi".format(pathOps(versionName, mode="filename"), validName))
             relPlayBlastFile = os.path.relpath(playBlastFile, start=projectPath)
 
             if os.path.isfile(playBlastFile):
@@ -896,12 +898,11 @@ class TikManager(object):
                     pm.warning("The file is open somewhere else")
                     return -1
 
-
-
-
             ## CREATE A CUSTOM PANEL WITH DESIRED SETTINGS
 
-            tempWindow = pm.window(title="SM_Playblast", widthHeight=(pbSettings["Resolution"][0]*1.1,pbSettings["Resolution"][1]*1.1), tlc=(0,0))
+            tempWindow = pm.window(title="SM_Playblast",
+                                   widthHeight=(pbSettings["Resolution"][0] * 1.1, pbSettings["Resolution"][1] * 1.1),
+                                   tlc=(0, 0))
             # panel = pm.getPanel(wf=True)
 
             pm.paneLayout()
@@ -932,29 +933,37 @@ class TikManager(object):
                 pm.headsUpDisplay(hud, e=True, vis=False)
 
             ## clear the custom HUDS
-            customHuds=['SMFrame', 'SMScene', 'SMCategory', 'SMFPS', 'SMCameraName','SMFrange']
+            customHuds = ['SMFrame', 'SMScene', 'SMCategory', 'SMFPS', 'SMCameraName', 'SMFrange']
             for hud in customHuds:
                 if pm.headsUpDisplay(hud, ex=True):
                     pm.headsUpDisplay(hud, rem=True)
 
             if pbSettings["ShowFrameNumber"]:
-                freeBl = pm.headsUpDisplay(nfb=5) ## this is the next free block on section 5
-                pm.headsUpDisplay('SMFrame', s=5, b=freeBl, label="Frame", preset="currentFrame", dfs="large", lfs="large")
+                freeBl = pm.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
+                pm.headsUpDisplay('SMFrame', s=5, b=freeBl, label="Frame", preset="currentFrame", dfs="large",
+                                  lfs="large")
             if pbSettings["ShowSceneName"]:
-                freeBl = pm.headsUpDisplay(nfb=5) ## this is the next free block on section 5
-                pm.headsUpDisplay('SMScene', s=5, b=freeBl, label="Scene: %s"%(pathOps(versionName, mode="filename")), lfs="large")
+                freeBl = pm.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
+                pm.headsUpDisplay('SMScene', s=5, b=freeBl, label="Scene: %s" % (pathOps(versionName, mode="filename")),
+                                  lfs="large")
             if pbSettings["ShowCategory"]:
                 freeBl = pm.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-                pm.headsUpDisplay('SMCategory', s=5, b=freeBl, label="Category: %s"%(jsonInfo["Category"]), lfs="large")
+                pm.headsUpDisplay('SMCategory', s=5, b=freeBl, label="Category: %s" % (jsonInfo["Category"]),
+                                  lfs="large")
             if pbSettings["ShowFPS"]:
                 freeBl = pm.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-                pm.headsUpDisplay('SMFPS', s=5, b=freeBl, label="Time Unit: %s" % (pm.currentUnit(q=True, time=True)), lfs="large")
+                pm.headsUpDisplay('SMFPS', s=5, b=freeBl, label="Time Unit: %s" % (pm.currentUnit(q=True, time=True)),
+                                  lfs="large")
 
             # v1.1 SPECIFIC
             try:
                 if pbSettings["ShowFrameRange"]:
                     freeBl = pm.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-                    pm.headsUpDisplay('SMFrange', s=5, b=freeBl, label="Frame Range: {} - {}".format(int(pm.playbackOptions(q=True, minTime=True)), int(pm.playbackOptions(q=True, maxTime=True))), lfs="large")
+                    pm.headsUpDisplay('SMFrange', s=5, b=freeBl,
+                                      label="Frame Range: {} - {}".format(int(pm.playbackOptions(q=True, minTime=True)),
+                                                                          int(pm.playbackOptions(q=True,
+                                                                                                 maxTime=True))),
+                                      lfs="large")
             except KeyError:
                 pass
 
@@ -1010,15 +1019,14 @@ class TikManager(object):
             ## find this version in the json data
             for i in jsonInfo["Versions"]:
                 if relVersionName == i[0]:
-                    i[4][currentCam]=relPlayBlastFile
+                    i[4][currentCam] = relPlayBlastFile
 
             dumpJson(jsonInfo, jsonFile)
         else:
             pm.warning("This is not a base scene (Json file cannot be found)")
             return -1
 
-        #######
-
+            #######
 
     def playPlayblast(self, relativePath):
         projectPath = getPathsFromScene("projectPath")
@@ -1034,10 +1042,10 @@ class TikManager(object):
         subPjson = os.path.normpath(os.path.join(jsonPath, "subPdata.json"))
         subInfo = []
         if os.path.isfile(subPjson):
-            subInfo= loadJson(subPjson)
+            subInfo = loadJson(subPjson)
 
         subInfo.append(nameOfSubProject)
-        self.currentSubProjectIndex = len(subInfo) - 1 ## make the current sub project index the new created one.
+        self.currentSubProjectIndex = len(subInfo) - 1  ## make the current sub project index the new created one.
         dumpJson(subInfo, subPjson)
         return subInfo
 
@@ -1049,37 +1057,37 @@ class TikManager(object):
             dumpJson(subInfo, subPjson)
 
         else:
-            subInfo=loadJson(subPjson)
+            subInfo = loadJson(subPjson)
         return subInfo
 
-    # def renameScene(self, jsonFile, newName, version=None):
-    #
-    #     projectPath = getPathsFromScene("projectPath")
-    #     jsonInfo = loadJson(jsonFile)
-    #     category = jsonInfo["Category"]
-    #
-    #     # PSUEDO CODE:
-    #
-    #     # subproject = get the scenes sub-project
-    #
-    #     versionCount = 0
-    #     for version in jsonInfo["Versions"]:
-    #         versionCount += 1
-    #         rel_scene_file = version[0]
-    #         scene_file = os.path.join(projectPath, rel_scene_file)
-    #
-    #         newSceneName = "{0}_{1}_{2}_v{3}".format(newName, category, version[2], str(versionCount).zfill(self.padding))
-    #
-    #
-    #         # Change the name of the actual file
-    #
-    #         # Update the jsonInfo with the me
-    #             # for pb in all playblasts in this version
-    #                 # Change the name of the playblast
-    #
-    # def moveToSubProject(self, newSubproject):
-    #     # // TODO write subproject moving method
-    #     pass
+        # def renameScene(self, jsonFile, newName, version=None):
+        #
+        #     projectPath = getPathsFromScene("projectPath")
+        #     jsonInfo = loadJson(jsonFile)
+        #     category = jsonInfo["Category"]
+        #
+        #     # PSUEDO CODE:
+        #
+        #     # subproject = get the scenes sub-project
+        #
+        #     versionCount = 0
+        #     for version in jsonInfo["Versions"]:
+        #         versionCount += 1
+        #         rel_scene_file = version[0]
+        #         scene_file = os.path.join(projectPath, rel_scene_file)
+        #
+        #         newSceneName = "{0}_{1}_{2}_v{3}".format(newName, category, version[2], str(versionCount).zfill(self.padding))
+        #
+        #
+        #         # Change the name of the actual file
+        #
+        #         # Update the jsonInfo with the me
+        #             # for pb in all playblasts in this version
+        #                 # Change the name of the playblast
+        #
+        # def moveToSubProject(self, newSubproject):
+        #     # // TODO write subproject moving method
+        #     pass
 
 
 
@@ -1112,7 +1120,7 @@ class TikManager(object):
         Returns: List of all json files in the category, sub-project json file
 
         """
-        if not subProjectAs == None:
+        if not subProjectAs is None:
             subProjectIndex = subProjectAs
         else:
             subProjectIndex = self.currentSubProjectIndex
@@ -1126,7 +1134,8 @@ class TikManager(object):
             jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
             folderCheck(jsonCategoryPath)
 
-            jsonCategorySubPath = os.path.normpath(os.path.join(jsonCategoryPath, (self.subProjectList)[subProjectIndex]))
+            jsonCategorySubPath = os.path.normpath(
+                os.path.join(jsonCategoryPath, (self.subProjectList)[subProjectIndex]))
 
             folderCheck(jsonCategorySubPath)
             searchFolder = jsonCategorySubPath
@@ -1139,7 +1148,7 @@ class TikManager(object):
         # niceNames = []
         for file in os.listdir(searchFolder):
             if file.endswith('.json'):
-                file=os.path.join(searchFolder, file)
+                file = os.path.join(searchFolder, file)
                 allJsonFiles.append(file)
         return allJsonFiles, subPjson
 
@@ -1157,7 +1166,7 @@ class TikManager(object):
         """
         projectPath = getPathsFromScene("projectPath")
         jsonInfo = loadJson(jsonFile)
-        relSceneFile = jsonInfo["Versions"][version][0] ## this is the relative scene path of the specified version
+        relSceneFile = jsonInfo["Versions"][version][0]  ## this is the relative scene path of the specified version
         sceneFile = os.path.join(projectPath, relSceneFile)
 
         if os.path.isfile(sceneFile):
@@ -1184,7 +1193,7 @@ class TikManager(object):
             try:
                 os.remove(os.path.join(projectPath, jsonInfo["ReferenceFile"]))
             except:
-                pm.warning("Cannot delete reference file %s" %(jsonInfo["ReferenceFile"]))
+                pm.warning("Cannot delete reference file %s" % (jsonInfo["ReferenceFile"]))
                 pass
         # delete base scene directory
         try:
@@ -1210,7 +1219,7 @@ class TikManager(object):
                 jsonInfo["ReferencedVersion"] = None
                 dumpJson(jsonInfo, jsonFile)
             except:
-                pm.warning("Cannot delete reference file %s" %(jsonInfo["ReferenceFile"]))
+                pm.warning("Cannot delete reference file %s" % (jsonInfo["ReferenceFile"]))
                 pass
 
     def makeReference(self, jsonFile, version):
@@ -1233,7 +1242,7 @@ class TikManager(object):
         if version == 0 or version > len(jsonInfo["Versions"]):
             pm.error("version number mismatch - (makeReference method)")
             return
-        relSceneFile = jsonInfo["Versions"][version-1][0]
+        relSceneFile = jsonInfo["Versions"][version - 1][0]
 
         # sceneFile = "%s%s" %(projectPath, relSceneFile)
         sceneFile = os.path.join(projectPath, relSceneFile)
@@ -1258,20 +1267,15 @@ class TikManager(object):
             referenceFile = os.path.join(projectPath, relReferenceFile)
             # pm.FileReference(referenceFile)
             namespace = pathOps(referenceFile, "filename")
-            cmds.file(os.path.normpath(referenceFile), reference=True, gl=True, mergeNamespacesOnClash=False, namespace=namespace)
+            cmds.file(os.path.normpath(referenceFile), reference=True, gl=True, mergeNamespacesOnClash=False,
+                      namespace=namespace)
 
         else:
             pm.warning("There is no reference set for this scene. Nothing changed")
 
 
-
-
-
 class MainUI(QtWidgets.QMainWindow):
-
     def __init__(self):
-
-
 
         for entry in QtWidgets.QApplication.allWidgets():
             try:
@@ -1393,7 +1397,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.setProject_pushButton.setAccessibleDescription((""))
         self.setProject_pushButton.setText(("SET"))
         self.setProject_pushButton.setObjectName(("setProject_pushButton"))
-        
+
         self.category_tabWidget = QtWidgets.QTabWidget(self.centralwidget)
         self.category_tabWidget.setGeometry(QtCore.QRect(30, 110, 621, 21))
         self.category_tabWidget.setToolTip((""))
@@ -1408,7 +1412,6 @@ class MainUI(QtWidgets.QMainWindow):
             self.preTab = QtWidgets.QWidget()
             self.preTab.setObjectName((i))
             self.category_tabWidget.addTab(self.preTab, (i))
-
 
         self.loadMode_radioButton = QtWidgets.QRadioButton(self.centralwidget)
         self.loadMode_radioButton.setGeometry(QtCore.QRect(30, 70, 82, 31))
@@ -1440,7 +1443,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.userName_comboBox.setAccessibleDescription((""))
         self.userName_comboBox.setObjectName(("userName_comboBox"))
         userListSorted = sorted(self.manager.userList.keys())
-        for num in range (len(userListSorted)):
+        for num in range(len(userListSorted)):
             self.userName_comboBox.addItem((userListSorted[num]))
             self.userName_comboBox.setItemText(num, (userListSorted[num]))
 
@@ -1484,7 +1487,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.subProject_pushbutton.setAccessibleName((""))
         self.subProject_pushbutton.setAccessibleDescription((""))
         self.subProject_pushbutton.setObjectName(("subProject_pushbutton"))
-
 
         self.scenes_listWidget = QtWidgets.QListWidget(self.centralwidget)
         self.scenes_listWidget.setGeometry(QtCore.QRect(30, 140, 381, 351))
@@ -1570,7 +1572,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.saveScene_pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.saveScene_pushButton.setGeometry(QtCore.QRect(40, 510, 151, 41))
-        self.saveScene_pushButton.setToolTip(("Saves the Base Scene. This will save the scene and will make versioning possible."))
+        self.saveScene_pushButton.setToolTip(
+            ("Saves the Base Scene. This will save the scene and will make versioning possible."))
         self.saveScene_pushButton.setStatusTip((""))
         self.saveScene_pushButton.setWhatsThis((""))
         self.saveScene_pushButton.setAccessibleName((""))
@@ -1580,7 +1583,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.saveAsVersion_pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.saveAsVersion_pushButton.setGeometry(QtCore.QRect(210, 510, 151, 41))
-        self.saveAsVersion_pushButton.setToolTip(("Saves the current scene as a version. A base scene must be present."))
+        self.saveAsVersion_pushButton.setToolTip(
+            ("Saves the current scene as a version. A base scene must be present."))
         self.saveAsVersion_pushButton.setStatusTip((""))
         self.saveAsVersion_pushButton.setWhatsThis((""))
         self.saveAsVersion_pushButton.setAccessibleName((""))
@@ -1643,9 +1647,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         add_remove_users.triggered.connect(self.addRemoveUserUI)
 
-
-
-
         tools = self.menubar.addMenu("Tools")
         foolsMate = QtWidgets.QAction("&Fool's Mate", self)
         createPB = QtWidgets.QAction("&Create PlayBlast", self)
@@ -1707,30 +1708,27 @@ class MainUI(QtWidgets.QMainWindow):
 
         rcAction_0 = QtWidgets.QAction('Import Scene', self)
         self.popMenu.addAction(rcAction_0)
-        rcAction_0.triggered.connect(lambda : self.rcAction("importScene"))
+        rcAction_0.triggered.connect(lambda: self.rcAction("importScene"))
 
         self.popMenu.addSeparator()
 
         rcAction_1 = QtWidgets.QAction('Show Maya Folder in Explorer', self)
         self.popMenu.addAction(rcAction_1)
-        rcAction_1.triggered.connect(lambda : self.rcAction("showInExplorerMaya"))
-
+        rcAction_1.triggered.connect(lambda: self.rcAction("showInExplorerMaya"))
 
         rcAction_2 = QtWidgets.QAction('Show Playblast Folder in Explorer', self)
         self.popMenu.addAction(rcAction_2)
-        rcAction_2.triggered.connect(lambda : self.rcAction("showInExplorerPB"))
-
+        rcAction_2.triggered.connect(lambda: self.rcAction("showInExplorerPB"))
 
         rcAction_3 = QtWidgets.QAction('Show Data Folder in Explorer', self)
         self.popMenu.addAction(rcAction_3)
-        rcAction_3.triggered.connect(lambda : self.rcAction("showInExplorerData"))
+        rcAction_3.triggered.connect(lambda: self.rcAction("showInExplorerData"))
 
         self.popMenu.addSeparator()
 
         rcAction_4 = QtWidgets.QAction('Scene Info', self)
         self.popMenu.addAction(rcAction_4)
         rcAction_4.triggered.connect(lambda: self.onSceneInfo())
-
 
         # swAction = QtWidgets.QAction('Show Wireframe', self)
         # self.popMenu.addAction(swAction)
@@ -1752,7 +1750,8 @@ class MainUI(QtWidgets.QMainWindow):
     def addRemoveUserUI(self):
 
         admin_pswd = "682"
-        passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query", "Enter Admin Password:", QtWidgets.QLineEdit.Password)
+        passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query", "Enter Admin Password:",
+                                                   QtWidgets.QLineEdit.Password)
         if ok:
             if passw == admin_pswd:
                 pass
@@ -1762,80 +1761,79 @@ class MainUI(QtWidgets.QMainWindow):
         else:
             return
 
-        self.users_Dialog = QtWidgets.QDialog(parent=self)
-        self.users_Dialog.setModal(True)
-        self.users_Dialog.setObjectName(("users_Dialog"))
-        self.users_Dialog.resize(380, 483)
-        self.users_Dialog.setMinimumSize(QtCore.QSize(342, 243))
-        self.users_Dialog.setMaximumSize(QtCore.QSize(342, 243))
-        self.users_Dialog.setWindowTitle(("Add/Remove Users"))
+        users_Dialog = QtWidgets.QDialog(parent=self)
+        users_Dialog.setModal(True)
+        users_Dialog.setObjectName(("users_Dialog"))
+        users_Dialog.resize(380, 483)
+        users_Dialog.setMinimumSize(QtCore.QSize(342, 243))
+        users_Dialog.setMaximumSize(QtCore.QSize(342, 243))
+        users_Dialog.setWindowTitle(("Add/Remove Users"))
 
+        userdatabase_groupBox = QtWidgets.QGroupBox(users_Dialog)
+        userdatabase_groupBox.setGeometry(QtCore.QRect(10, 10, 321, 51))
+        userdatabase_groupBox.setTitle(("User Database"))
+        userdatabase_groupBox.setObjectName(("userdatabase_groupBox"))
 
-        self.userdatabase_groupBox = QtWidgets.QGroupBox(self.users_Dialog)
-        self.userdatabase_groupBox.setGeometry(QtCore.QRect(10, 10, 321, 51))
-        self.userdatabase_groupBox.setTitle(("User Database"))
-        self.userdatabase_groupBox.setObjectName(("userdatabase_groupBox"))
+        userdatabase_lineEdit = QtWidgets.QLineEdit(userdatabase_groupBox)
+        userdatabase_lineEdit.setGeometry(QtCore.QRect(10, 20, 231, 20))
+        userdatabase_lineEdit.setObjectName(("userdatabase_lineEdit"))
 
-        self.userdatabase_lineEdit = QtWidgets.QLineEdit(self.userdatabase_groupBox)
-        self.userdatabase_lineEdit.setGeometry(QtCore.QRect(10, 20, 231, 20))
-        self.userdatabase_lineEdit.setObjectName(("userdatabase_lineEdit"))
+        userdatabasebrowse_pushButton = QtWidgets.QPushButton(self.userdatabase_groupBox)
+        userdatabasebrowse_pushButton.setGeometry(QtCore.QRect(250, 20, 61, 21))
 
-        self.userdatabasebrowse_pushButton = QtWidgets.QPushButton(self.userdatabase_groupBox)
-        self.userdatabasebrowse_pushButton.setGeometry(QtCore.QRect(250, 20, 61, 21))
+        userdatabasebrowse_pushButton.setText(("Browse"))
+        userdatabasebrowse_pushButton.setObjectName(("userdatabasebrowse_pushButton"))
 
-        self.userdatabasebrowse_pushButton.setText(("Browse"))
-        self.userdatabasebrowse_pushButton.setObjectName(("userdatabasebrowse_pushButton"))
+        addnewuser_groupBox = QtWidgets.QGroupBox(users_Dialog)
+        addnewuser_groupBox.setGeometry(QtCore.QRect(10, 70, 321, 91))
+        addnewuser_groupBox.setTitle(("Add New User"))
+        addnewuser_groupBox.setObjectName(("addnewuser_groupBox"))
 
-        self.addnewuser_groupBox = QtWidgets.QGroupBox(self.users_Dialog)
-        self.addnewuser_groupBox.setGeometry(QtCore.QRect(10, 70, 321, 91))
-        self.addnewuser_groupBox.setTitle(("Add New User"))
-        self.addnewuser_groupBox.setObjectName(("addnewuser_groupBox"))
+        fullname_label = QtWidgets.QLabel(addnewuser_groupBox)
+        fullname_label.setGeometry(QtCore.QRect(0, 30, 81, 21))
+        fullname_label.setLayoutDirection(QtCore.Qt.LeftToRight)
+        fullname_label.setText(("Full Name:"))
+        fullname_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        fullname_label.setObjectName(("fullname_label"))
 
-        self.fullname_label = QtWidgets.QLabel(self.addnewuser_groupBox)
-        self.fullname_label.setGeometry(QtCore.QRect(0, 30, 81, 21))
-        self.fullname_label.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.fullname_label.setText(("Full Name:"))
-        self.fullname_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        self.fullname_label.setObjectName(("fullname_label"))
+        fullname_lineEdit = QtWidgets.QLineEdit(addnewuser_groupBox)
+        fullname_lineEdit.setGeometry(QtCore.QRect(90, 30, 151, 20))
+        fullname_lineEdit.setPlaceholderText(("e.g \"John Doe\""))
+        fullname_lineEdit.setObjectName(("fullname_lineEdit"))
 
-        self.fullname_lineEdit = QtWidgets.QLineEdit(self.addnewuser_groupBox)
-        self.fullname_lineEdit.setGeometry(QtCore.QRect(90, 30, 151, 20))
-        self.fullname_lineEdit.setPlaceholderText(("e.g \"John Doe\""))
-        self.fullname_lineEdit.setObjectName(("fullname_lineEdit"))
+        initials_label = QtWidgets.QLabel(addnewuser_groupBox)
+        initials_label.setGeometry(QtCore.QRect(0, 60, 81, 21))
+        initials_label.setLayoutDirection(QtCore.Qt.LeftToRight)
+        initials_label.setText(("Initials:"))
+        initials_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        initials_label.setObjectName(("initials_label"))
 
-        self.initials_label = QtWidgets.QLabel(self.addnewuser_groupBox)
-        self.initials_label.setGeometry(QtCore.QRect(0, 60, 81, 21))
-        self.initials_label.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.initials_label.setText(("Initials:"))
-        self.initials_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        self.initials_label.setObjectName(("initials_label"))
+        initials_lineEdit = QtWidgets.QLineEdit(addnewuser_groupBox)
+        initials_lineEdit.setGeometry(QtCore.QRect(90, 60, 151, 20))
+        initials_lineEdit.setText((""))
+        initials_lineEdit.setPlaceholderText(("e.g \"jd\" (must be unique)"))
+        initials_lineEdit.setObjectName(("initials_lineEdit"))
 
-        self.initials_lineEdit = QtWidgets.QLineEdit(self.addnewuser_groupBox)
-        self.initials_lineEdit.setGeometry(QtCore.QRect(90, 60, 151, 20))
-        self.initials_lineEdit.setText((""))
-        self.initials_lineEdit.setPlaceholderText(("e.g \"jd\" (must be unique)"))
-        self.initials_lineEdit.setObjectName(("initials_lineEdit"))
+        addnewuser_pushButton = QtWidgets.QPushButton(addnewuser_groupBox)
+        addnewuser_pushButton.setGeometry(QtCore.QRect(250, 30, 61, 51))
+        addnewuser_pushButton.setText(("Add"))
+        addnewuser_pushButton.setObjectName(("addnewuser_pushButton"))
 
-        self.addnewuser_pushButton = QtWidgets.QPushButton(self.addnewuser_groupBox)
-        self.addnewuser_pushButton.setGeometry(QtCore.QRect(250, 30, 61, 51))
-        self.addnewuser_pushButton.setText(("Add"))
-        self.addnewuser_pushButton.setObjectName(("addnewuser_pushButton"))
+        deleteuser_groupBox = QtWidgets.QGroupBox(users_Dialog)
+        deleteuser_groupBox.setGeometry(QtCore.QRect(10, 170, 321, 51))
+        deleteuser_groupBox.setTitle(("Delete User"))
+        deleteuser_groupBox.setObjectName(("deleteuser_groupBox"))
 
-        self.deleteuser_groupBox = QtWidgets.QGroupBox(self.users_Dialog)
-        self.deleteuser_groupBox.setGeometry(QtCore.QRect(10, 170, 321, 51))
-        self.deleteuser_groupBox.setTitle(("Delete User"))
-        self.deleteuser_groupBox.setObjectName(("deleteuser_groupBox"))
+        selectuser_comboBox = QtWidgets.QComboBox(deleteuser_groupBox)
+        selectuser_comboBox.setGeometry(QtCore.QRect(10, 20, 231, 22))
+        selectuser_comboBox.setObjectName(("selectuser_comboBox"))
 
-        self.selectuser_comboBox = QtWidgets.QComboBox(self.deleteuser_groupBox)
-        self.selectuser_comboBox.setGeometry(QtCore.QRect(10, 20, 231, 22))
-        self.selectuser_comboBox.setObjectName(("selectuser_comboBox"))
+        deleteuser_pushButton = QtWidgets.QPushButton(deleteuser_groupBox)
+        deleteuser_pushButton.setGeometry(QtCore.QRect(250, 20, 61, 21))
+        deleteuser_pushButton.setText(("Delete"))
+        deleteuser_pushButton.setObjectName(("deleteuser_pushButton"))
 
-        self.deleteuser_pushButton = QtWidgets.QPushButton(self.deleteuser_groupBox)
-        self.deleteuser_pushButton.setGeometry(QtCore.QRect(250, 20, 61, 21))
-        self.deleteuser_pushButton.setText(("Delete"))
-        self.deleteuser_pushButton.setObjectName(("deleteuser_pushButton"))
-
-        self.users_Dialog.show()
+        users_Dialog.show()
 
     def createProjectUI(self):
 
@@ -1912,12 +1910,12 @@ class MainUI(QtWidgets.QMainWindow):
         self.createproject_buttonBox = QtWidgets.QDialogButtonBox(self.createproject_Dialog)
         self.createproject_buttonBox.setGeometry(QtCore.QRect(30, 190, 371, 32))
         self.createproject_buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.createproject_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
+        self.createproject_buttonBox.setStandardButtons(
+            QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
         self.createproject_buttonBox.setObjectName(("buttonBox"))
 
         self.cp_button = self.createproject_buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
         self.cp_button.setText('Create Project')
-
 
         self.createproject_Dialog.show()
 
@@ -1930,10 +1928,14 @@ class MainUI(QtWidgets.QMainWindow):
         self.createproject_buttonBox.accepted.connect(self.onAcceptNewProject)
         self.createproject_buttonBox.rejected.connect(self.createproject_Dialog.reject)
 
-        self.brandname_lineEdit.textChanged.connect(lambda: checkValidity(self.brandname_lineEdit.text(), self.createproject_buttonBox, self.brandname_lineEdit))
-        self.projectname_lineEdit.textChanged.connect(lambda: checkValidity(self.projectname_lineEdit.text(), self.createproject_buttonBox, self.projectname_lineEdit))
-        self.client_lineEdit.textChanged.connect(lambda: checkValidity(self.client_lineEdit.text(), self.createproject_buttonBox, self.client_lineEdit))
-
+        self.brandname_lineEdit.textChanged.connect(
+            lambda: checkValidity(self.brandname_lineEdit.text(), self.createproject_buttonBox,
+                                  self.brandname_lineEdit))
+        self.projectname_lineEdit.textChanged.connect(
+            lambda: checkValidity(self.projectname_lineEdit.text(), self.createproject_buttonBox,
+                                  self.projectname_lineEdit))
+        self.client_lineEdit.textChanged.connect(
+            lambda: checkValidity(self.client_lineEdit.text(), self.createproject_buttonBox, self.client_lineEdit))
 
     def onAcceptNewProject(self):
 
@@ -1943,7 +1945,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.manager.createNewProject(self.newProjectPath)
             self.createproject_Dialog.accept()
             melProofPath = self.newProjectPath.replace("\\", "\\\\")
-            evalstr = 'setProject("' +  (melProofPath) + '");'  # OK
+            evalstr = 'setProject("' + (melProofPath) + '");'  # OK
             print("evalstr=" + evalstr);
             mel.eval(evalstr)  # OK
 
@@ -1956,7 +1958,8 @@ class MainUI(QtWidgets.QMainWindow):
 
             return
         else:
-            self.infoPop(textTitle="Missing Fields", textHeader="There are missing fields", textInfo="Project Root, Brand Name and Project Names must be filled", type="C")
+            self.infoPop(textTitle="Missing Fields", textHeader="There are missing fields",
+                         textInfo="Project Root, Brand Name and Project Names must be filled", type="C")
             return
 
     def resolveProjectPath(self):
@@ -1970,7 +1973,7 @@ class MainUI(QtWidgets.QMainWindow):
         clientname = self.client_lineEdit.text()
         projectroot = self.projectroot_lineEdit.text()
         if brandname:
-            brandname = "%s_" %brandname
+            brandname = "%s_" % brandname
         else:
             brandname = ""
         fullName = "{0}{1}_{2}_{3}".format(brandname, projectname, clientname, projectDate)
@@ -1989,17 +1992,18 @@ class MainUI(QtWidgets.QMainWindow):
             self.resolveProjectPath()
             # return dlg.selectedFiles()
 
-        #     filenames = dlg.selectedFiles()
-        #     f = open(filenames[0], 'r')
-        #
-        #     with f:
-        #         data = f.read()
-        #         self.contents.setText(data)
+            #     filenames = dlg.selectedFiles()
+            #     f = open(filenames[0], 'r')
+            #
+            #     with f:
+            #         data = f.read()
+            #         self.contents.setText(data)
 
     def pbSettingsUI(self):
 
         admin_pswd = "682"
-        passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query", "Enter Admin Password:", QtWidgets.QLineEdit.Password)
+        passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query", "Enter Admin Password:",
+                                                   QtWidgets.QLineEdit.Password)
         if ok:
             if passw == admin_pswd:
                 pass
@@ -2031,7 +2035,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.pbsettings_buttonBox.setAccessibleName((""))
         self.pbsettings_buttonBox.setAccessibleDescription((""))
         self.pbsettings_buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.pbsettings_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Save)
+        self.pbsettings_buttonBox.setStandardButtons(
+            QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Save)
         self.pbsettings_buttonBox.setObjectName(("pbsettings_buttonBox"))
 
         self.videoproperties_groupBox = QtWidgets.QGroupBox(self.pbSettings_dialog)
@@ -2054,7 +2059,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.fileformat_label.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.fileformat_label.setFrameShadow(QtWidgets.QFrame.Plain)
         self.fileformat_label.setText(("Format"))
-        self.fileformat_label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.fileformat_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.fileformat_label.setObjectName(("fileformat_label"))
 
         self.fileformat_comboBox = QtWidgets.QComboBox(self.videoproperties_groupBox)
@@ -2065,7 +2070,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.fileformat_comboBox.setAccessibleName((""))
         self.fileformat_comboBox.setAccessibleDescription((""))
         self.fileformat_comboBox.setObjectName(("fileformat_comboBox"))
-        formats = pm.playblast(query = True, format = True)
+        formats = pm.playblast(query=True, format=True)
         self.fileformat_comboBox.addItems(formats)
 
         # get the index number from the name in the settings file and make that index active
@@ -2083,7 +2088,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.codec_label.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.codec_label.setFrameShadow(QtWidgets.QFrame.Plain)
         self.codec_label.setText(("Codec"))
-        self.codec_label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.codec_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.codec_label.setObjectName(("codec_label"))
 
         self.codec_comboBox = QtWidgets.QComboBox(self.videoproperties_groupBox)
@@ -2114,7 +2119,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.quality_label.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.quality_label.setFrameShadow(QtWidgets.QFrame.Plain)
         self.quality_label.setText(("Quality"))
-        self.quality_label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.quality_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.quality_label.setObjectName(("quality_label"))
 
         self.quality_spinBox = QtWidgets.QSpinBox(self.videoproperties_groupBox)
@@ -2154,7 +2159,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.resolution_label.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.resolution_label.setFrameShadow(QtWidgets.QFrame.Plain)
         self.resolution_label.setText(("Resolution"))
-        self.resolution_label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.resolution_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.resolution_label.setObjectName(("resolution_label"))
 
         self.resolutionx_spinBox = QtWidgets.QSpinBox(self.videoproperties_groupBox)
@@ -2253,7 +2258,6 @@ class MainUI(QtWidgets.QMainWindow):
         except KeyError:
             self.usedefaultmaterial_checkBox.setChecked(False)
 
-
         self.displaytextures_checkBox = QtWidgets.QCheckBox(self.viewportoptions_groupBox)
         self.displaytextures_checkBox.setGeometry(QtCore.QRect(190, 60, 111, 20))
         self.displaytextures_checkBox.setToolTip((""))
@@ -2340,7 +2344,6 @@ class MainUI(QtWidgets.QMainWindow):
             self.showframerange_checkBox.setChecked(True)
         self.showframerange_checkBox.setObjectName(("showframerange_checkBox"))
 
-
         self.pbsettings_buttonBox.accepted.connect(self.pbSettings_dialog.accept)
         self.pbsettings_buttonBox.accepted.connect(self.onPbSettingsAccept)
         self.pbsettings_buttonBox.rejected.connect(self.pbSettings_dialog.reject)
@@ -2355,29 +2358,30 @@ class MainUI(QtWidgets.QMainWindow):
         self.codec_comboBox.addItems(codecs)
 
     def onPbSettingsAccept(self):
-        projectPath, playBlastRoot = getPathsFromScene("projectPath","playBlastRoot")
+        projectPath, playBlastRoot = getPathsFromScene("projectPath", "playBlastRoot")
 
         # pbSettingsFile = "{0}\\PBsettings.json".format(os.path.join(projectPath, playBlastRoot))
         pbSettingsFile = os.path.join(os.path.join(projectPath, playBlastRoot), "PBsettings.json")
 
         newPbSettings = {"Resolution": (self.resolutionx_spinBox.value(), self.resolutiony_spinBox.value()),
-                           "Format": self.fileformat_comboBox.currentText(),
-                           "Codec": self.codec_comboBox.currentText(),
-                           "Percent": 100, ## this one never changes
-                           "Quality": self.quality_spinBox.value(),
-                           "ShowFrameNumber": self.showframenumber_checkBox.isChecked(),
-                           "ShowSceneName": self.showscenename_checkBox.isChecked(),
-                           "ShowCategory": self.showcategory_checkBox.isChecked(),
-                           "ShowFPS": self.showfps_checkBox.isChecked(),
-                           "ShowFrameRange": self.showframerange_checkBox.isChecked(),
-                           "PolygonOnly": self.polygononly_checkBox.isChecked(),
-                           "ShowGrid": self.showgrid_checkBox.isChecked(),
-                           "ClearSelection": self.clearselection_checkBox.isChecked(),
-                           "DisplayTextures": self.displaytextures_checkBox.isChecked(),
-                            "WireOnShaded": self.wireonshaded_checkBox.isChecked(),
-                            "UseDefaultMaterial": self.usedefaultmaterial_checkBox.isChecked()
+                         "Format": self.fileformat_comboBox.currentText(),
+                         "Codec": self.codec_comboBox.currentText(),
+                         "Percent": 100,  ## this one never changes
+                         "Quality": self.quality_spinBox.value(),
+                         "ShowFrameNumber": self.showframenumber_checkBox.isChecked(),
+                         "ShowSceneName": self.showscenename_checkBox.isChecked(),
+                         "ShowCategory": self.showcategory_checkBox.isChecked(),
+                         "ShowFPS": self.showfps_checkBox.isChecked(),
+                         "ShowFrameRange": self.showframerange_checkBox.isChecked(),
+                         "PolygonOnly": self.polygononly_checkBox.isChecked(),
+                         "ShowGrid": self.showgrid_checkBox.isChecked(),
+                         "ClearSelection": self.clearselection_checkBox.isChecked(),
+                         "DisplayTextures": self.displaytextures_checkBox.isChecked(),
+                         "WireOnShaded": self.wireonshaded_checkBox.isChecked(),
+                         "UseDefaultMaterial": self.usedefaultmaterial_checkBox.isChecked()
                          }
         dumpJson(newPbSettings, pbSettingsFile)
+
     def onFoolsMate(self):
         import foolsMate
         foolsMate.startFoolin()
@@ -2482,7 +2486,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.sdCategory_comboBox.setAccessibleName((""))
         self.sdCategory_comboBox.setAccessibleDescription((""))
         self.sdCategory_comboBox.setObjectName(("sdCategory_comboBox"))
-        for i in range (len(self.manager.validCategories)):
+        for i in range(len(self.manager.validCategories)):
             self.sdCategory_comboBox.addItem((self.manager.validCategories[i]))
             self.sdCategory_comboBox.setItemText(i, (self.manager.validCategories[i]))
         self.sdCategory_comboBox.setCurrentIndex(self.category_tabWidget.currentIndex())
@@ -2501,7 +2505,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.sd_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
         self.sd_buttonBox.setObjectName(("sd_buttonBox"))
 
-        self.sdName_lineEdit.textChanged.connect(lambda: checkValidity(self.sdName_lineEdit.text(), self.sd_buttonBox, self.sdName_lineEdit))
+        self.sdName_lineEdit.textChanged.connect(
+            lambda: checkValidity(self.sdName_lineEdit.text(), self.sd_buttonBox, self.sdName_lineEdit))
 
         self.sd_buttonBox.accepted.connect(self.onSaveBaseScene)
         self.sd_buttonBox.accepted.connect(self.save_Dialog.accept)
@@ -2543,7 +2548,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.svNotes_textEdit.setAccessibleDescription((""))
         self.svNotes_textEdit.setObjectName(("sdNotes_textEdit"))
 
-
         self.svMakeReference_checkbox = QtWidgets.QCheckBox("Make it Reference", saveV_Dialog)
         self.svMakeReference_checkbox.setGeometry(QtCore.QRect(130, 215, 151, 22))
         self.svMakeReference_checkbox.setChecked(False)
@@ -2563,7 +2567,6 @@ class MainUI(QtWidgets.QMainWindow):
         buttonC = sv_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel)
         buttonC.setText('Cancel')
 
-
         sv_buttonBox.setObjectName(("sd_buttonBox"))
         sv_buttonBox.accepted.connect(self.onSaveAsVersion)
         sv_buttonBox.accepted.connect(saveV_Dialog.accept)
@@ -2579,25 +2582,38 @@ class MainUI(QtWidgets.QMainWindow):
 
         name = nameCheck(self.sdName_lineEdit.text())
         if name == -1:
-            self.infoPop(textHeader="Invalid characters. Use <A-Z> and <0-9>", textInfo="", textTitle="ERROR: ASCII Error", type="C")
+            self.infoPop(textHeader="Invalid characters. Use <A-Z> and <0-9>", textInfo="",
+                         textTitle="ERROR: ASCII Error", type="C")
             return
 
-        sceneFile = self.manager.saveNewScene(self.sdCategory_comboBox.currentText(), userInitials, name, subProject = subProject, makeReference= self.sdMakeReference_checkbox.checkState(), versionNotes=self.sdNotes_textEdit.toPlainText())
+        sceneFile = self.manager.saveNewScene(self.sdCategory_comboBox.currentText(), userInitials, name,
+                                              subProject=subProject,
+                                              makeReference=self.sdMakeReference_checkbox.checkState(),
+                                              versionNotes=self.sdNotes_textEdit.toPlainText())
 
         if not sceneFile == -1:
-            self.infoPop(textHeader="Save Base Scene Successfull",textInfo="New Version of Base Scene saved as {0}".format(sceneFile),textTitle="Saved Base Scene", type="I")
+            self.infoPop(textHeader="Save Base Scene Successfull",
+                         textInfo="New Version of Base Scene saved as {0}".format(sceneFile),
+                         textTitle="Saved Base Scene", type="I")
         else:
-            self.infoPop(textHeader="Save Base Scene FAILED. A Base Scene with the same name already exists in the same sub-project and same category. Choose an unique one.", textInfo="", textTitle="ERROR: Saving Base Scene", type="C")
+            self.infoPop(
+                textHeader="Save Base Scene FAILED. A Base Scene with the same name already exists in the same sub-project and same category. Choose an unique one.",
+                textInfo="", textTitle="ERROR: Saving Base Scene", type="C")
         self.populateScenes()
 
     def onSaveAsVersion(self):
         userInitials = self.manager.userList[self.userName_comboBox.currentText()]
-        sceneFile=self.manager.saveVersion(userInitials, makeReference=self.svMakeReference_checkbox.checkState(), versionNotes=self.svNotes_textEdit.toPlainText())
+        sceneFile = self.manager.saveVersion(userInitials, makeReference=self.svMakeReference_checkbox.checkState(),
+                                             versionNotes=self.svNotes_textEdit.toPlainText())
         self.populateScenes()
         if not sceneFile == -1:
-            self.infoPop(textHeader="Save Version Successfull",textInfo="New Version of Base Scene saved as {0}".format(sceneFile),textTitle="Saved New Version", type="I")
+            self.infoPop(textHeader="Save Version Successfull",
+                         textInfo="New Version of Base Scene saved as {0}".format(sceneFile),
+                         textTitle="Saved New Version", type="I")
         else:
-            self.infoPop(textHeader="Save Version FAILED", textInfo="Cannot Find The Database. The File is not saved as a Base Scene, or database file is missing".format(sceneFile), textTitle="ERROR: Saving New Version", type="C")
+            self.infoPop(textHeader="Save Version FAILED",
+                         textInfo="Cannot Find The Database. The File is not saved as a Base Scene, or database file is missing".format(
+                             sceneFile), textTitle="ERROR: Saving New Version", type="C")
 
     def onloadScene(self):
 
@@ -2606,13 +2622,11 @@ class MainUI(QtWidgets.QMainWindow):
             pm.warning("no scene selected")
             return
 
-        sceneName = "%s.json" %self.scenes_listWidget.currentItem().text()
+        sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
         # takethefirstjson as example for rootpath
 
 
         sceneJson = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
-
-
 
         # sceneJson = self.scenesInCategory[row]
 
@@ -2625,7 +2639,8 @@ class MainUI(QtWidgets.QMainWindow):
                 q.setText("Save changes to")
                 q.setInformativeText(pm.sceneName())
                 q.setWindowTitle("Save Changes")
-                q.setStandardButtons(QtWidgets.QMessageBox.Save | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Cancel)
+                q.setStandardButtons(
+                    QtWidgets.QMessageBox.Save | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Cancel)
                 ret = q.exec_()
                 if ret == QtWidgets.QMessageBox.Save:
                     pm.saveFile()
@@ -2641,7 +2656,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         if self.referenceMode_radioButton.isChecked():
             self.manager.loadReference(sceneJson)
-        #     self.manager.loadScene(sceneJson, version=self.version_comboBox.currentIndex(),force=True)
+        # self.manager.loadScene(sceneJson, version=self.version_comboBox.currentIndex(),force=True)
         # if self.referenceMode_radioButton.isChecked():
         #     pass
         self.populateScenes()
@@ -2652,7 +2667,7 @@ class MainUI(QtWidgets.QMainWindow):
             pm.warning("no scene selected")
             return
 
-        sceneName = "%s.json" %self.scenes_listWidget.currentItem().text()
+        sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
         # takethefirstjson as example for rootpath
         sceneJson = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
         version = self.version_comboBox.currentIndex()
@@ -2660,7 +2675,7 @@ class MainUI(QtWidgets.QMainWindow):
         # pbDict = sceneInfo["Versions"][version][4]
         notes, pbDict = self.manager.getVersionNotes(sceneJson, version=version)
         if len(pbDict.keys()) == 1:
-            path=pbDict[pbDict.keys()[0]]
+            path = pbDict[pbDict.keys()[0]]
             # print path
             self.manager.playPlayblast(path)
         else:
@@ -2668,8 +2683,9 @@ class MainUI(QtWidgets.QMainWindow):
 
             for z in pbDict.keys():
                 tempAction = QtWidgets.QAction(z, self)
-                zortMenu.addAction(tempAction )
-                tempAction.triggered.connect(lambda item=pbDict[z]: self.manager.playPlayblast(item)) ## Take note about the usage of lambda "item=pbDict[z]" makes it possible using the loop
+                zortMenu.addAction(tempAction)
+                tempAction.triggered.connect(lambda item=pbDict[z]: self.manager.playPlayblast(
+                    item))  ## Take note about the usage of lambda "item=pbDict[z]" makes it possible using the loop
 
             zortMenu.exec_((QtGui.QCursor.pos()))
 
@@ -2684,8 +2700,6 @@ class MainUI(QtWidgets.QMainWindow):
         sceneJson = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
         version = self.version_comboBox.currentIndex()
         userName = self.userName_comboBox.currentText()
-
-
 
         addNotes_Dialog = QtWidgets.QDialog(parent=self)
         addNotes_Dialog.setModal(True)
@@ -2735,7 +2749,8 @@ class MainUI(QtWidgets.QMainWindow):
         buttonC.setText('Cancel')
 
         addNotes_buttonBox.setObjectName(("addNotes_buttonBox"))
-        addNotes_buttonBox.accepted.connect(lambda: self.manager.addVersionNotes(addNotes_textEdit.toPlainText(), sceneJson, version, userName))
+        addNotes_buttonBox.accepted.connect(
+            lambda: self.manager.addVersionNotes(addNotes_textEdit.toPlainText(), sceneJson, version, userName))
         addNotes_buttonBox.accepted.connect(self.populateScenes)
         addNotes_buttonBox.accepted.connect(addNotes_Dialog.accept)
 
@@ -2744,10 +2759,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         addNotes_Dialog.show()
 
-
-
     def onRadioButtonsToggled(self):
-        state=self.loadMode_radioButton.isChecked()
+        state = self.loadMode_radioButton.isChecked()
         self.version_label.setEnabled(state)
         self.makeReference_pushButton.setEnabled(state)
         self.notes_label.setEnabled(state)
@@ -2800,7 +2813,7 @@ class MainUI(QtWidgets.QMainWindow):
         else:
             currentSubIndex = 0
 
-        self.manager.currentSubProjectIndex=currentSubIndex
+        self.manager.currentSubProjectIndex = currentSubIndex
         print "index", self.manager.currentSubProjectIndex
         self.subProject_comboBox.setCurrentIndex(currentSubIndex)
 
@@ -2853,7 +2866,8 @@ class MainUI(QtWidgets.QMainWindow):
                     if self.manager.currentPlatform == "Linux":
                         os.system('nautilus %s' % path)
                 else:
-                    self.infoPop(textTitle="", textHeader="Scene does not have a playblast", textInfo="There is no playblast folder created for this scene yet")
+                    self.infoPop(textTitle="", textHeader="Scene does not have a playblast",
+                                 textInfo="There is no playblast folder created for this scene yet")
 
         if command == "showInExplorerData":
             row = self.scenes_listWidget.currentRow()
@@ -2872,7 +2886,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.popMenu.exec_(self.scenes_listWidget.mapToGlobal(point))
 
     def onSubProjectChanged(self):
-        self.manager.currentSubProjectIndex=self.subProject_comboBox.currentIndex()
+        self.manager.currentSubProjectIndex = self.subProject_comboBox.currentIndex()
         self.populateScenes()
 
     def createSubProjectUI(self):
@@ -2885,14 +2899,15 @@ class MainUI(QtWidgets.QMainWindow):
                 self.manager.subProjectList = self.manager.createSubProject(name)
                 self.populateScenes()
             else:
-                self.infoPop(textTitle="Naming Error", textHeader="Naming Error", textInfo="Choose an unique name with latin characters without spaces", type="C")
+                self.infoPop(textTitle="Naming Error", textHeader="Naming Error",
+                             textInfo="Choose an unique name with latin characters without spaces", type="C")
 
     def referenceCheck(self, deepCheck=False):
         projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
         for path in self.scenesInCategory:
             data = loadJson(path)
             if data["ReferenceFile"]:
-                relRefVersion = data["Versions"][data["ReferencedVersion"]-1][0]
+                relRefVersion = data["Versions"][data["ReferencedVersion"] - 1][0]
 
                 # refVersion = "%s%s" %(projectPath, relRefVersion)
                 refVersion = os.path.join(projectPath, relRefVersion)
@@ -2910,17 +2925,17 @@ class MainUI(QtWidgets.QMainWindow):
                     if deepCheck:
                         if filecmp.cmp(refVersion, refFile):
                             # no problem
-                            color = QtGui.QColor(0, 255, 0, 255) #"green"
+                            color = QtGui.QColor(0, 255, 0, 255)  # "green"
 
                         else:
                             # checksum mismatch
-                            color = QtGui.QColor(255, 0, 0, 255) #"red"
+                            color = QtGui.QColor(255, 0, 0, 255)  # "red"
                     else:
                         color = QtGui.QColor(0, 255, 0, 255)  # "green"
 
             else:
-                #no reference defined for the base scene
-                color = QtGui.QColor(255, 255, 0, 255) #"yellow"
+                # no reference defined for the base scene
+                color = QtGui.QColor(255, 255, 0, 255)  # "yellow"
 
             index = self.scenesInCategory.index(path)
             if self.scenes_listWidget.item(index):
@@ -2931,8 +2946,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.manager.currentProject = pm.workspace(q=1, rd=1)
         self.projectPath_lineEdit.setText(self.manager.currentProject)
         # self.onSubProjectChanged()
-        self.manager.subProjectList=self.manager.scanSubProjects()
-        self.manager.currentSubProjectIndex=0
+        self.manager.subProjectList = self.manager.scanSubProjects()
+        self.manager.currentSubProjectIndex = 0
         self.populateScenes()
 
     def sceneInfo(self):
@@ -2940,17 +2955,17 @@ class MainUI(QtWidgets.QMainWindow):
         row = self.scenes_listWidget.currentRow()
         if row == -1:
             return
-        sceneName = "%s.json" %self.scenes_listWidget.currentItem().text()
+        sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
         # takethefirstjson as example for rootpath
         jPath = pathOps(self.scenesInCategory[0], "path")
         sceneData = loadJson(os.path.join(jPath, sceneName))
 
-        for num in range (len(sceneData["Versions"])):
-            self.version_comboBox.addItem("v{0}".format(str(num+1).zfill(3)))
+        for num in range(len(sceneData["Versions"])):
+            self.version_comboBox.addItem("v{0}".format(str(num + 1).zfill(3)))
         if sceneData["ReferencedVersion"]:
-            currentIndex = sceneData["ReferencedVersion"]-1
+            currentIndex = sceneData["ReferencedVersion"] - 1
         else:
-            currentIndex = len(sceneData["Versions"])-1
+            currentIndex = len(sceneData["Versions"]) - 1
         self.version_comboBox.setCurrentIndex(currentIndex)
         # self.notes_textEdit.setPlainText(sceneData["Versions"][currentIndex][1])
         self.refreshNotes()
@@ -3033,7 +3048,6 @@ class MainUI(QtWidgets.QMainWindow):
             #         """)
             messageLayout.addWidget(helpText)
 
-
         pass
 
     def populateScenes(self):
@@ -3045,7 +3059,8 @@ class MainUI(QtWidgets.QMainWindow):
         # currentTabName = self.category_tabWidget.currentWidget().objectName()
         # scannedScenes = self.manager.scanScenes(currentTabName)
 
-        self.scenesInCategory, subProjectFile=self.manager.scanScenes(self.category_tabWidget.currentWidget().objectName())
+        self.scenesInCategory, subProjectFile = self.manager.scanScenes(
+            self.category_tabWidget.currentWidget().objectName())
 
         if self.referenceMode_radioButton.isChecked():
             for i in self.scenesInCategory:
@@ -3095,15 +3110,15 @@ class MainUI(QtWidgets.QMainWindow):
 
             # jsonFile = self.scenesInCategory[row]
             version = self.version_comboBox.currentIndex()
-            self.manager.makeReference(jsonFile, version+1)
+            self.manager.makeReference(jsonFile, version + 1)
             # self.sceneInfo()
             self.populateScenes()
 
     def infoPop(self, textTitle="info", textHeader="", textInfo="", type="I"):
         self.msg = QtWidgets.QMessageBox(parent=self)
-        if type=="I":
+        if type == "I":
             self.msg.setIcon(QtWidgets.QMessageBox.Information)
-        if type=="C":
+        if type == "C":
             self.msg.setIcon(QtWidgets.QMessageBox.Critical)
 
         self.msg.setText(textHeader)
@@ -3136,7 +3151,9 @@ class MainUI(QtWidgets.QMainWindow):
 
     def onDeleteBaseScene(self):
         admin_pswd = "682"
-        passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query", "DELETING BASE SCENE\n\nEnter Admin Password:", QtWidgets.QLineEdit.Password)
+        passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query",
+                                                   "DELETING BASE SCENE\n\nEnter Admin Password:",
+                                                   QtWidgets.QLineEdit.Password)
         if ok:
             if passw == admin_pswd:
                 row = self.scenes_listWidget.currentRow()
@@ -3151,7 +3168,9 @@ class MainUI(QtWidgets.QMainWindow):
 
     def onDeleteReference(self):
         admin_pswd = "682"
-        passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query", "DELETING REFERENCE FILE\n\nEnter Admin Password:", QtWidgets.QLineEdit.Password)
+        passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query",
+                                                   "DELETING REFERENCE FILE\n\nEnter Admin Password:",
+                                                   QtWidgets.QLineEdit.Password)
         if ok:
             if passw == admin_pswd:
                 row = self.scenes_listWidget.currentRow()
@@ -3163,4 +3182,3 @@ class MainUI(QtWidgets.QMainWindow):
                     self.populateScenes()
             else:
                 self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
-
