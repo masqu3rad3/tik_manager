@@ -147,12 +147,7 @@ def checkRequirements():
     return None
 
 
-# def checkAdminRights():
-#     try:
-#         is_admin = os.getuid() == 0
-#     except AttributeError:
-#         is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
-#     return is_admin
+
 
 # noinspection PyArgumentList
 def getMayaMainWindow():
@@ -278,6 +273,53 @@ class TikManager(object):
         self.padding = 3
         self.subProjectList = self.scanSubProjects()
 
+    def getSceneInfo(self):
+        """
+        Gets the necessary scene info by resolving the scene name and current project
+        Returns: Dictionary{jsonFile, projectPath, subProject, category, shotName} or None
+
+        """
+        sceneName = pm.sceneName()
+        if not sceneName:
+            # pm.warning("This is not a base scene (Untitled)")
+            return None
+        projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
+        # first get the parent dir
+        shotDirectory = os.path.abspath(os.path.join(pm.sceneName(), os.pardir))
+        shotName = os.path.basename(shotDirectory)
+
+        upperShotDir = os.path.abspath(os.path.join(shotDirectory, os.pardir))
+        upperShot = os.path.basename(upperShotDir)
+
+        if upperShot in self.subProjectList:
+            subProjectDir = upperShotDir
+            subProject = upperShot
+            categoryDir = os.path.abspath(os.path.join(subProjectDir, os.pardir))
+            category = os.path.basename(categoryDir)
+
+            jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
+            folderCheck(jsonCategoryPath)
+            jsonPath = os.path.normpath(os.path.join(jsonCategoryPath, subProject))
+            folderCheck(jsonPath)
+
+        else:
+            subProject = self.subProjectList[0]
+            categoryDir = upperShotDir
+            category = upperShot
+            jsonPath = os.path.normpath(os.path.join(jsonPath, category))
+            folderCheck(jsonPath)
+
+        jsonFile = os.path.join(jsonPath, "{}.json".format(shotName))
+        if os.path.isfile(jsonFile):
+            return {"jsonFile":jsonFile,
+                    "projectPath":projectPath,
+                    "subProject":subProject,
+                    "category":category,
+                    "shotName":shotName
+                    }
+        else:
+            return None
+
     def initUserList(self):
         imajDefaultDB = "M://Projects//__database//sceneManagerUsers.json"
         homedir = os.path.expanduser("~")
@@ -299,13 +341,6 @@ class TikManager(object):
         pass
 
     def createNewProject(self, projectPath):
-        # projectDate = datetime.datetime.now().strftime("%y%m%d")
-        # if brandName:
-        #     brandName = "%s_" %brandName
-        # else:
-        #     brandName = ""
-        # fullName = "{0}{1}_{2}_{3}".format(brandName, projectName, clientName, projectDate)
-        # fullPath = os.path.join(projectPath, fullName)
         # check if there is a duplicate
         if not os.path.isdir(os.path.normpath(projectPath)):
             os.makedirs(os.path.normpath(projectPath))
@@ -645,46 +680,6 @@ class TikManager(object):
         dumpJson(jsonInfo, jsonFile)
         return relSceneFile
 
-    def getScene(self, *args, **kwargs):
-
-        sceneName = pm.sceneName()
-        if not sceneName:
-            # pm.warning("This is not a base scene (Untitled)")
-            return ""
-
-        projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
-
-        # first get the parent dir
-        shotDirectory = os.path.abspath(os.path.join(pm.sceneName(), os.pardir))
-        shotName = os.path.basename(shotDirectory)
-
-        upperShotDir = os.path.abspath(os.path.join(shotDirectory, os.pardir))
-        upperShot = os.path.basename(upperShotDir)
-
-        if upperShot in self.subProjectList:
-            subProjectDir = upperShotDir
-            subProject = upperShot
-            categoryDir = os.path.abspath(os.path.join(subProjectDir, os.pardir))
-            category = os.path.basename(categoryDir)
-
-            jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
-            folderCheck(jsonCategoryPath)
-            jsonPath = os.path.normpath(os.path.join(jsonCategoryPath, subProject))
-
-        else:
-            subProject = ""
-            categoryDir = upperShotDir
-            category = upperShot
-            jsonPath = os.path.normpath(os.path.join(jsonPath, category))
-
-        jsonFile = os.path.join(jsonPath, "{}.json".format(shotName))
-
-        if os.path.isfile(jsonFile):
-            return "%s ==> %s ==> %s" % (subProject, category, shotName)
-
-        else:
-            return ""
-
     def getVersionNotes(self, jsonFile, version=None):
         """
         Returns: [versionNotes, playBlastDictionary]
@@ -727,35 +722,13 @@ class TikManager(object):
             pm.warning("This is not a base scene (Untitled)")
             return -1
 
-        projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
+        sceneInfo = self.getSceneInfo()
+        # jsonFile = self.getCurrentJson()
+        # projectPath = getPathsFromScene("projectPath")
 
-        # first get the parent dir
-        shotDirectory = os.path.abspath(os.path.join(pm.sceneName(), os.pardir))
-        shotName = os.path.basename(shotDirectory)
 
-        upperShotDir = os.path.abspath(os.path.join(shotDirectory, os.pardir))
-        upperShot = os.path.basename(upperShotDir)
-
-        if upperShot in self.subProjectList:
-            subProjectDir = upperShotDir
-            subProject = upperShot
-            categoryDir = os.path.abspath(os.path.join(subProjectDir, os.pardir))
-            category = os.path.basename(categoryDir)
-
-            jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
-            folderCheck(jsonCategoryPath)
-            jsonPath = os.path.normpath(os.path.join(jsonCategoryPath, subProject))
-            folderCheck(jsonPath)
-
-        else:
-            categoryDir = upperShotDir
-            category = upperShot
-            jsonPath = os.path.normpath(os.path.join(jsonPath, category))
-            folderCheck(jsonPath)
-
-        jsonFile = os.path.join(jsonPath, "{}.json".format(shotName))
-
-        if os.path.isfile(jsonFile):
+        if sceneInfo: ## getCurrentJson returns None if the resolved json path is missing
+            jsonFile = sceneInfo["jsonFile"]
             jsonInfo = loadJson(jsonFile)
 
             currentVersion = len(jsonInfo["Versions"]) + 1
@@ -763,7 +736,7 @@ class TikManager(object):
                                                   str(currentVersion).zfill(self.padding))
             relSceneFile = os.path.join(jsonInfo["Path"], "{0}.mb".format(sceneName))
 
-            sceneFile = os.path.join(projectPath, relSceneFile)
+            sceneFile = os.path.join(sceneInfo["projectPath"], relSceneFile)
 
             # killTurtle()
             pm.saveAs(sceneFile)
@@ -771,10 +744,10 @@ class TikManager(object):
                 [relSceneFile, completeNote, userName, (socket.gethostname()), {}])  ## last one is for playblast
 
             if makeReference:
-                referenceName = "{0}_{1}_forReference".format(shotName, category)
+                referenceName = "{0}_{1}_forReference".format(jsonInfo["Name"], jsonInfo["Category"])
                 relReferenceFile = os.path.join(jsonInfo["Path"], "{0}.mb".format(referenceName))
                 # referenceFile = "%s%s" %(projectPath, relReferenceFile)
-                referenceFile = os.path.join(projectPath, relReferenceFile)
+                referenceFile = os.path.join(sceneInfo["projectPath"], relReferenceFile)
 
                 copyfile(sceneFile, referenceFile)
                 jsonInfo["ReferenceFile"] = relReferenceFile
@@ -3085,13 +3058,13 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.subProject_comboBox.setCurrentIndex(self.manager.currentSubProjectIndex)
 
-        baseName = self.manager.getScene()
-        if baseName == "":
+        sceneInfo = self.manager.getSceneInfo()
+        if sceneInfo: ## getSceneInfo returns None if there is no json database fil
+            self.baseScene_lineEdit.setText("%s ==> %s ==> %s" % (sceneInfo["subProject"], sceneInfo["category"], sceneInfo["shotName"]))
+            self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: cyan")
+        else:
             self.baseScene_lineEdit.setText("Current Scene is not a Base Scene")
             self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: red")
-        else:
-            self.baseScene_lineEdit.setText(baseName)
-            self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: cyan")
 
         self.scenes_listWidget.setCurrentRow(row)
         self.refreshNotes()
