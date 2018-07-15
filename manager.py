@@ -1,3 +1,12 @@
+# version 1.65 changes: # Linux compatibility issues fixed
+# version 1.63 changes: # UI improvements
+# version 1.62 changes: # bugfix: when switching projects, subproject index will be reset to 0 now
+# version 1.61 changes: # create new project bugfix (workspace.mel creation)
+# version 1.6 changes:
+    # added "add note" function
+    # minor code improvements with the playblast, and note checking methods
+# version 1.58 changes:
+    # minor bug fixes with createPlayblast method
 # version 1.57 changes:
     # Kill Turtle method updated
     # Version Number added to the scene dialog
@@ -36,7 +45,7 @@
 #     m.regularSaveUpdate()
 # maya.utils.executeDeferred('SMid = OpenMaya.MSceneMessage.addCallback(OpenMaya.MSceneMessage.kAfterSave, smUpdate)')
 
-SM_Version = "SceneManager v1.57"
+SM_Version = "SceneManager v1.65"
 
 import pymel.core as pm
 import json
@@ -56,6 +65,7 @@ import ftplib
 import io
 import datetime
 import maya.mel
+import platform
 
 
 
@@ -110,14 +120,41 @@ def killTurtle():
         pm.delete('TurtleUIOptions')
     except:
         pass
-    pm.unloadPlugin("Turtle.mll", f=True)
+    # pm.unloadPlugin("Turtle.mll", f=True)
+    try:
+        pm.unloadPlugin("Turtle.mll")
+    except:
+        pass
 
-def checkAdminRights():
+def checkRequirements():
+    ## check platform
+    currentOs = platform.system()
+    if currentOs != "Linux" and currentOs != "Windows":
+       return {"Title": "OS Error",
+               "Text": "Operating System is not supported",
+               "Info": "Scene Manager only supports Windows and Linux Operating Systems"
+               }
+
+    ## check admin rights
     try:
         is_admin = os.getuid() == 0
     except AttributeError:
         is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
-    return is_admin
+        return {"Title": "Admin Rights",
+                "Text": "Maya does not have the administrator rights",
+                "Info": "You need to run Maya as administrator to work with Scene Manager"
+                }
+    return None
+
+
+
+
+# def checkAdminRights():
+#     try:
+#         is_admin = os.getuid() == 0
+#     except AttributeError:
+#         is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
+#     return is_admin
 
 def getMayaMainWindow():
     """
@@ -147,14 +184,24 @@ def dumpJson(data, file):
         json.dump(data, f, indent=4)
 
 def nameCheck(text):
-
+    text = text.replace("|", "__")
     if re.match("^[A-Za-z0-9_-]*$", text):
         if text == "":
             return -1
         text = text.replace(" ", "_")
+        # text = text.replace("|", "__")
         return text
     else:
         return -1
+
+def checkValidity(text, button, lineEdit):
+
+    if not re.match("^[A-Za-z0-9_-]*$", text):
+        lineEdit.setStyleSheet("background-color: red; color: black")
+        button.setEnabled(False)
+    else:
+        lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: white")
+        button.setEnabled(True)
 
 def pathOps(fullPath, mode):
     """
@@ -213,6 +260,7 @@ def getPathsFromScene(*args, **kwargs):
 class TikManager(object):
     def __init__(self):
         super(TikManager, self).__init__()
+        self.currentPlatform = platform.system()
         self.currentProject = pm.workspace(q=1, rd=1)
         self.currentSubProjectIndex = 0
 
@@ -262,39 +310,107 @@ class TikManager(object):
 
         # create Directory structure:
         os.mkdir(os.path.join(projectPath, "_COMP"))
-        os.makedirs(os.path.join(projectPath, "_MAX\\Animation"))
-        os.makedirs(os.path.join(projectPath, "_MAX\\Model"))
-        os.makedirs(os.path.join(projectPath, "_MAX\\Render"))
+        os.makedirs(os.path.join(projectPath, "_MAX", "Animation"))
+        os.makedirs(os.path.join(projectPath, "_MAX", "Model"))
+        os.makedirs(os.path.join(projectPath, "_MAX", "Render"))
         os.mkdir(os.path.join(projectPath, "_SCULPT"))
         os.mkdir(os.path.join(projectPath, "_REALFLOW"))
         os.mkdir(os.path.join(projectPath, "_HOUDINI"))
         os.mkdir(os.path.join(projectPath, "_REF"))
         os.mkdir(os.path.join(projectPath, "_TRACK"))
-        os.makedirs(os.path.join(projectPath, "_TRANSFER\\FBX"))
-        os.makedirs(os.path.join(projectPath, "_TRANSFER\\ALEMBIC"))
-        os.makedirs(os.path.join(projectPath, "_TRANSFER\\OBJ"))
-        os.makedirs(os.path.join(projectPath, "_TRANSFER\\MA"))
+        os.makedirs(os.path.join(projectPath, "_TRANSFER", "FBX"))
+        os.makedirs(os.path.join(projectPath, "_TRANSFER", "ALEMBIC"))
+        os.makedirs(os.path.join(projectPath, "_TRANSFER", "OBJ"))
+        os.makedirs(os.path.join(projectPath, "_TRANSFER", "MA"))
         os.mkdir(os.path.join(projectPath, "assets"))
         os.mkdir(os.path.join(projectPath, "cache"))
         os.mkdir(os.path.join(projectPath, "clips"))
         os.mkdir(os.path.join(projectPath, "data"))
-        os.makedirs(os.path.join(projectPath, "images\\_CompRenders"))
+        os.makedirs(os.path.join(projectPath, "images", "_CompRenders"))
         os.mkdir(os.path.join(projectPath, "movies"))
         os.mkdir(os.path.join(projectPath, "particles"))
         os.mkdir(os.path.join(projectPath, "Playblasts"))
-        os.makedirs(os.path.join(projectPath, "renderData\\depth"))
-        os.makedirs(os.path.join(projectPath, "renderData\\fur"))
-        os.makedirs(os.path.join(projectPath, "renderData\\iprImages"))
-        os.makedirs(os.path.join(projectPath, "renderData\\mentalray"))
-        os.makedirs(os.path.join(projectPath, "renderData\\shaders"))
+        os.makedirs(os.path.join(projectPath, "renderData", "depth"))
+        os.makedirs(os.path.join(projectPath, "renderData", "fur"))
+        os.makedirs(os.path.join(projectPath, "renderData", "iprImages"))
+        os.makedirs(os.path.join(projectPath, "renderData", "mentalray"))
+        os.makedirs(os.path.join(projectPath, "renderData", "shaders"))
         os.mkdir(os.path.join(projectPath, "scenes"))
         os.mkdir(os.path.join(projectPath, "scripts"))
         os.mkdir(os.path.join(projectPath, "sound"))
-        os.makedirs(os.path.join(projectPath, "sourceimages\\_FOOTAGE"))
-        os.makedirs(os.path.join(projectPath, "sourceimages\\_HDR"))
+        os.makedirs(os.path.join(projectPath, "sourceimages", "_FOOTAGE"))
+        os.makedirs(os.path.join(projectPath, "sourceimages", "_HDR"))
 
         filePath = os.path.join(projectPath, "workspace.mel")
         file = open(filePath, "w")
+
+        file.write('workspace -fr "scene" "scenes";\n')
+        file.write('workspace -fr "3dPaintTextures" "sourceimages/3dPaintTextures";\n')
+        file.write('workspace -fr "eps" "data";\n')
+        file.write('workspace -fr "mentalRay" "renderData/mentalray";\n')
+        file.write('workspace -fr "OBJexport" "_TRANSFER/OBJ";\n')
+        file.write('workspace -fr "mel" "scripts";\n')
+        file.write('workspace -fr "particles" "particles";\n')
+        file.write('workspace -fr "STEP_DC" "data";\n')
+        file.write('workspace -fr "CATIAV5_DC" "data";\n')
+        file.write('workspace -fr "sound" "sound";\n')
+        file.write('workspace -fr "furFiles" "renderData/fur/furFiles";\n')
+        file.write('workspace -fr "depth" "renderData/depth";\n')
+        file.write('workspace -fr "CATIAV4_DC" "data";\n')
+        file.write('workspace -fr "autoSave" "autosave";\n')
+        file.write('workspace -fr "diskCache" "cache";\n')
+        file.write('workspace -fr "fileCache" "";\n')
+        file.write('workspace -fr "IPT_DC" "data";\n')
+        file.write('workspace -fr "SW_DC" "data";\n')
+        file.write('workspace -fr "DAE_FBX export" "data";\n')
+        file.write('workspace -fr "Autodesk Packet File" "";\n')
+        file.write('workspace -fr "DAE_FBX" "data";\n')
+        file.write('workspace -fr "DXF_DCE" "";\n')
+        file.write('workspace -fr "mayaAscii" "scenes";\n')
+        file.write('workspace -fr "iprImages" "renderData/iprImages";\n')
+        file.write('workspace -fr "move" "data";\n')
+        file.write('workspace -fr "mayaBinary" "scenes";\n')
+        file.write('workspace -fr "fluidCache" "cache/fluid";\n')
+        file.write('workspace -fr "clips" "clips";\n')
+        file.write('workspace -fr "animExport" "data";\n')
+        file.write('workspace -fr "templates" "assets";\n')
+        file.write('workspace -fr "DWG_DC" "data";\n')
+        file.write('workspace -fr "offlineEdit" "scenes/edits";\n')
+        file.write('workspace -fr "translatorData" "data";\n')
+        file.write('workspace -fr "renderData" "renderData";\n')
+        file.write('workspace -fr "DXF_DC" "data";\n')
+        file.write('workspace -fr "SPF_DCE" "";\n')
+        file.write('workspace -fr "ZPR_DCE" "";\n')
+        file.write('workspace -fr "furShadowMap" "renderData/fur/furShadowMap";\n')
+        file.write('workspace -fr "audio" "sound";\n')
+        file.write('workspace -fr "scripts" "scripts";\n')
+        file.write('workspace -fr "IV_DC" "data";\n')
+        file.write('workspace -fr "studioImport" "data";\n')
+        file.write('workspace -fr "STL_DCE" "";\n')
+        file.write('workspace -fr "furAttrMap" "renderData/fur/furAttrMap";\n')
+        file.write('workspace -fr "FBX export" "data";\n')
+        file.write('workspace -fr "JT_DC" "data";\n')
+        file.write('workspace -fr "sourceImages" "sourceimages";\n')
+        file.write('workspace -fr "DWG_DCE" "";\n')
+        file.write('workspace -fr "animImport" "data";\n')
+        file.write('workspace -fr "FBX" "data";\n')
+        file.write('workspace -fr "movie" "movies";\n')
+        file.write('workspace -fr "Alembic" "";\n')
+        file.write('workspace -fr "furImages" "renderData/fur/furImages";\n')
+        file.write('workspace -fr "IGES_DC" "data";\n')
+        file.write('workspace -fr "furEqualMap" "renderData/fur/furEqualMap";\n')
+        file.write('workspace -fr "illustrator" "data";\n')
+        file.write('workspace -fr "UG_DC" "";\n')
+        file.write('workspace -fr "images" "images";\n')
+        file.write('workspace -fr "SPF_DC" "data";\n')
+        file.write('workspace -fr "PTC_DC" "data";\n')
+        file.write('workspace -fr "OBJ" "_TRANSFER/OBJ";\n')
+        file.write('workspace -fr "CSB_DC" "data";\n')
+        file.write('workspace -fr "STL_DC" "data";\n')
+        file.write('workspace -fr "IGES_DCE" "";\n')
+        file.write('workspace -fr "shaders" "renderData/shaders";\n')
+        file.write('workspace -fr "UG_DCE" "";\n')
+
         # file.write("{0}\n".format(L1))
         # file.write("{0}\n".format(L2))
         # file.write("{0}\n".format(L3))
@@ -455,6 +571,9 @@ class TikManager(object):
         Returns: None
 
         """
+        fullName = self.userList.keys()[self.userList.values().index(userName)]
+        now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
+        completeNote = "[%s] on %s\n%s\n" %(fullName, now, versionNotes)
 
         scenesToCheck = self.scanScenes(category, subProjectAs=subProject)[0]
         for z in scenesToCheck:
@@ -464,7 +583,9 @@ class TikManager(object):
 
         projectPath, jsonPath, scenesPath = getPathsFromScene("projectPath", "jsonPath", "scenesPath")
         categoryPath = os.path.normpath(os.path.join(scenesPath, category))
-        folderCheck(category)
+        # folderCheck(category)
+        print "anan", categoryPath
+        folderCheck(categoryPath)
 
         ## eger subproject olarak kaydedilecekse
         if not subProject == 0:
@@ -491,7 +612,7 @@ class TikManager(object):
         sceneFile = os.path.join(shotPath, "{0}.mb".format(sceneName))
         ## relativity update
         relSceneFile = os.path.relpath(sceneFile, start=projectPath)
-        killTurtle()
+        # killTurtle()
         pm.saveAs(sceneFile)
 
         jsonInfo = {}
@@ -515,7 +636,7 @@ class TikManager(object):
         jsonInfo["Category"]=category
         jsonInfo["Creator"]=userName
         jsonInfo["CreatorHost"]=(socket.gethostname())
-        jsonInfo["Versions"]=[[relSceneFile, versionNotes, userName, socket.gethostname(), {}]] ## last item is for playplast
+        jsonInfo["Versions"]=[[relSceneFile, completeNote, userName, socket.gethostname(), {}]] ## last item is for playplast
         dumpJson(jsonInfo, jsonFile)
         return relSceneFile
 
@@ -523,7 +644,7 @@ class TikManager(object):
 
         sceneName = pm.sceneName()
         if not sceneName:
-            pm.warning("This is not a base scene (Untitled)")
+            # pm.warning("This is not a base scene (Untitled)")
             return ""
 
         projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
@@ -559,6 +680,27 @@ class TikManager(object):
         else:
             return ""
 
+    def getVersionNotes(self, jsonFile, version=None):
+        """
+        Returns: [versionNotes, playBlastDictionary]
+        """
+        jsonInfo = loadJson(jsonFile)
+        # print "versions\n"
+        # pprint.pprint(jsonInfo["Versions"][version][1])
+        return jsonInfo["Versions"][version][1], jsonInfo["Versions"][version][4]
+
+    def addVersionNotes(self, additionalNote, jsonFile, version, user):
+        jsonInfo = loadJson(jsonFile)
+        currentNotes = jsonInfo["Versions"][version][1]
+        ## add username and date to the beginning of the note:
+        now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
+        completeNote = "%s\n[%s] on %s\n%s\n" %(currentNotes, user, now, additionalNote)
+        jsonInfo["Versions"][version][1] = completeNote
+        ##
+        dumpJson(jsonInfo, jsonFile)
+
+
+
     def saveVersion(self, userName, makeReference=True, versionNotes="", *args, **kwargs):
         """
         Saves a version for the predefined scene. The scene json file must be present at the /data/[Category] folder.
@@ -573,6 +715,10 @@ class TikManager(object):
 
         """
 
+        # get the full username
+        fullName = self.userList.keys()[self.userList.values().index(userName)]
+        now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
+        completeNote = "[%s] on %s\n%s\n" %(fullName, now, versionNotes)
         sceneName = pm.sceneName()
         if not sceneName:
             pm.warning("This is not a base scene (Untitled)")
@@ -616,9 +762,9 @@ class TikManager(object):
 
             sceneFile = os.path.join(projectPath, relSceneFile)
 
-            killTurtle()
+            # killTurtle()
             pm.saveAs(sceneFile)
-            jsonInfo["Versions"].append([relSceneFile, versionNotes, userName, (socket.gethostname()), {}]) ## last one is for playblast
+            jsonInfo["Versions"].append([relSceneFile, completeNote, userName, (socket.gethostname()), {}]) ## last one is for playblast
 
             if makeReference:
                 referenceName = "{0}_{1}_forReference".format(shotName, category)
@@ -639,7 +785,8 @@ class TikManager(object):
 
         projectPath, playBlastRoot = getPathsFromScene("projectPath","playBlastRoot")
 
-        pbSettingsFile = "{0}\\PBsettings.json".format(os.path.join(projectPath, playBlastRoot))
+        #pbSettingsFile = "{0}\\PBsettings.json".format(os.path.join(projectPath, playBlastRoot))
+        pbSettingsFile = os.path.join(os.path.join(projectPath, playBlastRoot), "PBsettings.json")
 
         if not os.path.isfile(pbSettingsFile):
             defaultSettings={"Resolution":(1280,720), ## done
@@ -666,7 +813,6 @@ class TikManager(object):
             return pbSettings
 
     def createPlayblast(self, *args, **kwargs):
-
         pbSettings = self.getPBsettings()
 
         # Quicktime format is missing the final frame all the time. Add an extra frame to compansate
@@ -729,9 +875,18 @@ class TikManager(object):
 
             currentCam = pm.modelPanel(pm.getPanel(wf=True), q=True, cam=True)
 
+            validName="_"
+            if not nameCheck(currentCam) == -1:
+                validName = nameCheck(currentCam)
+            else:
+                pm.displayError("Camera name is not Valid")
+                return
+
+
+
             versionName = pm.sceneName()
             relVersionName = os.path.relpath(versionName, start=projectPath)
-            playBlastFile = os.path.join(pbPath, "{0}_{1}_PB.avi".format (pathOps(versionName, mode="filename"), currentCam))
+            playBlastFile = os.path.join(pbPath, "{0}_{1}_PB.avi".format (pathOps(versionName, mode="filename"), validName))
             relPlayBlastFile = os.path.relpath(playBlastFile, start=projectPath)
 
             if os.path.isfile(playBlastFile):
@@ -777,7 +932,7 @@ class TikManager(object):
                 pm.headsUpDisplay(hud, e=True, vis=False)
 
             ## clear the custom HUDS
-            customHuds=['SMFrame', 'SMScene', 'SMCategory', 'SMFPS', 'SMCameraName']
+            customHuds=['SMFrame', 'SMScene', 'SMCategory', 'SMFPS', 'SMCameraName','SMFrange']
             for hud in customHuds:
                 if pm.headsUpDisplay(hud, ex=True):
                     pm.headsUpDisplay(hud, rem=True)
@@ -812,6 +967,9 @@ class TikManager(object):
             activeSound = pm.timeControl(aPlayBackSliderPython, q=True, sound=True)
 
             ## Check here: http://download.autodesk.com/us/maya/2011help/pymel/generated/functions/pymel.core.windows/pymel.core.windows.headsUpDisplay.html
+            print "playBlastFile", playBlastFile
+            normPB = os.path.normpath(playBlastFile)
+            print "normPath", normPB
             pm.playblast(format=pbSettings["Format"],
                          filename=playBlastFile,
                          widthHeight=pbSettings["Resolution"],
@@ -860,6 +1018,7 @@ class TikManager(object):
             return -1
 
         #######
+
 
     def playPlayblast(self, relativePath):
         projectPath = getPathsFromScene("projectPath")
@@ -1123,18 +1282,40 @@ class MainUI(QtWidgets.QMainWindow):
         parent = getMayaMainWindow()
         super(MainUI, self).__init__(parent=parent)
 
-        if not checkAdminRights():
+        # if platform.system() != "linux" or platform.system() != "windows":
+        #     q = QtWidgets.QMessageBox()
+        #     q.setIcon(QtWidgets.QMessageBox.Information)
+        #     q.setText("Scene Manager is not supporting this OS")
+        #     q.setInformativeText("You need to run Maya as administrator to work with Scene Manager")
+        #     q.setWindowTitle("Admin Rights")
+        #     q.setStandardButtons(QtWidgets.QMessageBox.Ok)
+
+        problem = checkRequirements()
+        if problem:
             q = QtWidgets.QMessageBox()
             q.setIcon(QtWidgets.QMessageBox.Information)
-            q.setText("Maya does not have the administrator rights")
-            q.setInformativeText("You need to run Maya as administrator to work with Scene Manager")
-            q.setWindowTitle("Admin Rights")
+            q.setText(problem["Text"])
+            q.setInformativeText(problem["Info"])
+            q.setWindowTitle(problem["Title"])
             q.setStandardButtons(QtWidgets.QMessageBox.Ok)
 
             ret = q.exec_()
             if ret == QtWidgets.QMessageBox.Ok:
                 self.close()
                 self.deleteLater()
+
+        # if not checkAdminRights():
+        #     q = QtWidgets.QMessageBox()
+        #     q.setIcon(QtWidgets.QMessageBox.Information)
+        #     q.setText("Maya does not have the administrator rights")
+        #     q.setInformativeText("You need to run Maya as administrator to work with Scene Manager")
+        #     q.setWindowTitle("Admin Rights")
+        #     q.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        #
+        #     ret = q.exec_()
+        #     if ret == QtWidgets.QMessageBox.Ok:
+        #         self.close()
+        #         self.deleteLater()
 
         self.manager = TikManager()
 
@@ -1356,7 +1537,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.showPB_pushButton.setObjectName(("showPB_pushButton"))
 
         self.makeReference_pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.makeReference_pushButton.setGeometry(QtCore.QRect(430, 200, 131, 23))
+        self.makeReference_pushButton.setGeometry(QtCore.QRect(430, 200, 102, 23))
         self.makeReference_pushButton.setToolTip(("Creates a copy the scene as \'forReference\' file"))
         self.makeReference_pushButton.setStatusTip((""))
         self.makeReference_pushButton.setWhatsThis((""))
@@ -1365,6 +1546,17 @@ class MainUI(QtWidgets.QMainWindow):
         self.makeReference_pushButton.setText(("Make Reference"))
         self.makeReference_pushButton.setShortcut((""))
         self.makeReference_pushButton.setObjectName(("makeReference_pushButton"))
+
+        self.addNotes_pushButton = QtWidgets.QPushButton(self.centralwidget)
+        self.addNotes_pushButton.setGeometry(QtCore.QRect(550, 200, 102, 23))
+        self.addNotes_pushButton.setToolTip(("adds additional version notes"))
+        self.addNotes_pushButton.setStatusTip((""))
+        self.addNotes_pushButton.setWhatsThis((""))
+        self.addNotes_pushButton.setAccessibleName((""))
+        self.addNotes_pushButton.setAccessibleDescription((""))
+        self.addNotes_pushButton.setText(("Add Note"))
+        self.addNotes_pushButton.setShortcut((""))
+        self.addNotes_pushButton.setObjectName(("addNotes_pushButton"))
 
         self.notes_label = QtWidgets.QLabel(self.centralwidget)
         self.notes_label.setGeometry(QtCore.QRect(430, 240, 70, 13))
@@ -1487,6 +1679,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.scenes_listWidget.currentItemChanged.connect(self.sceneInfo)
 
         self.makeReference_pushButton.clicked.connect(self.makeReference)
+        self.addNotes_pushButton.clicked.connect(self.onAddNotes)
 
         self.saveScene_pushButton.clicked.connect(self.saveBaseSceneDialog)
 
@@ -1722,6 +1915,10 @@ class MainUI(QtWidgets.QMainWindow):
         self.createproject_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
         self.createproject_buttonBox.setObjectName(("buttonBox"))
 
+        self.cp_button = self.createproject_buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
+        self.cp_button.setText('Create Project')
+
+
         self.createproject_Dialog.show()
 
         self.resolveProjectPath()
@@ -1732,6 +1929,11 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.createproject_buttonBox.accepted.connect(self.onAcceptNewProject)
         self.createproject_buttonBox.rejected.connect(self.createproject_Dialog.reject)
+
+        self.brandname_lineEdit.textChanged.connect(lambda: checkValidity(self.brandname_lineEdit.text(), self.createproject_buttonBox, self.brandname_lineEdit))
+        self.projectname_lineEdit.textChanged.connect(lambda: checkValidity(self.projectname_lineEdit.text(), self.createproject_buttonBox, self.projectname_lineEdit))
+        self.client_lineEdit.textChanged.connect(lambda: checkValidity(self.client_lineEdit.text(), self.createproject_buttonBox, self.client_lineEdit))
+
 
     def onAcceptNewProject(self):
 
@@ -1897,7 +2099,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.fileformat_comboBox.currentIndexChanged.connect(self.updateCodecs)
 
         # get the index number from the name in the settings file and make that index active
-        print currentSettings["Codec"]
+        # print currentSettings["Codec"]
         cindex = self.codec_comboBox.findText(currentSettings["Codec"], QtCore.Qt.MatchFixedString)
         if cindex >= 0:
             self.codec_comboBox.setCurrentIndex(cindex)
@@ -2155,7 +2357,8 @@ class MainUI(QtWidgets.QMainWindow):
     def onPbSettingsAccept(self):
         projectPath, playBlastRoot = getPathsFromScene("projectPath","playBlastRoot")
 
-        pbSettingsFile = "{0}\\PBsettings.json".format(os.path.join(projectPath, playBlastRoot))
+        # pbSettingsFile = "{0}\\PBsettings.json".format(os.path.join(projectPath, playBlastRoot))
+        pbSettingsFile = os.path.join(os.path.join(projectPath, playBlastRoot), "PBsettings.json")
 
         newPbSettings = {"Resolution": (self.resolutionx_spinBox.value(), self.resolutiony_spinBox.value()),
                            "Format": self.fileformat_comboBox.currentText(),
@@ -2298,6 +2501,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.sd_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
         self.sd_buttonBox.setObjectName(("sd_buttonBox"))
 
+        self.sdName_lineEdit.textChanged.connect(lambda: checkValidity(self.sdName_lineEdit.text(), self.sd_buttonBox, self.sdName_lineEdit))
 
         self.sd_buttonBox.accepted.connect(self.onSaveBaseScene)
         self.sd_buttonBox.accepted.connect(self.save_Dialog.accept)
@@ -2451,14 +2655,10 @@ class MainUI(QtWidgets.QMainWindow):
         sceneName = "%s.json" %self.scenes_listWidget.currentItem().text()
         # takethefirstjson as example for rootpath
         sceneJson = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
-
-        # sceneJson = self.scenesInCategory[row]
         version = self.version_comboBox.currentIndex()
-        # print version
-        sceneInfo = loadJson(sceneJson)
-        # print sceneInfo
-        # print sceneInfo["Versions"][version][4].keys()
-        pbDict = sceneInfo["Versions"][version][4]
+        # sceneInfo = loadJson(sceneJson)
+        # pbDict = sceneInfo["Versions"][version][4]
+        notes, pbDict = self.manager.getVersionNotes(sceneJson, version=version)
         if len(pbDict.keys()) == 1:
             path=pbDict[pbDict.keys()[0]]
             # print path
@@ -2473,6 +2673,79 @@ class MainUI(QtWidgets.QMainWindow):
 
             zortMenu.exec_((QtGui.QCursor.pos()))
 
+    def onAddNotes(self):
+
+        row = self.scenes_listWidget.currentRow()
+        if row == -1:
+            return
+
+        sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
+        # takethefirstjson as example for rootpath
+        sceneJson = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
+        version = self.version_comboBox.currentIndex()
+        userName = self.userName_comboBox.currentText()
+
+
+
+        addNotes_Dialog = QtWidgets.QDialog(parent=self)
+        addNotes_Dialog.setModal(True)
+        addNotes_Dialog.setObjectName(("addNotes_Dialog"))
+        addNotes_Dialog.resize(255, 290)
+        addNotes_Dialog.setMinimumSize(QtCore.QSize(255, 290))
+        addNotes_Dialog.setMaximumSize(QtCore.QSize(255, 290))
+        addNotes_Dialog.setWindowTitle(("Add Notes"))
+        addNotes_Dialog.setToolTip((""))
+        addNotes_Dialog.setStatusTip((""))
+        addNotes_Dialog.setWhatsThis((""))
+        addNotes_Dialog.setAccessibleName((""))
+        addNotes_Dialog.setAccessibleDescription((""))
+
+        addNotes_label = QtWidgets.QLabel(addNotes_Dialog)
+        addNotes_label.setGeometry(QtCore.QRect(15, 15, 100, 20))
+        addNotes_label.setToolTip((""))
+        addNotes_label.setStatusTip((""))
+        addNotes_label.setWhatsThis((""))
+        addNotes_label.setAccessibleName((""))
+        addNotes_label.setAccessibleDescription((""))
+        addNotes_label.setText(("Additional Notes"))
+        addNotes_label.setObjectName(("addNotes_label"))
+
+        addNotes_textEdit = QtWidgets.QTextEdit(addNotes_Dialog)
+        addNotes_textEdit.setGeometry(QtCore.QRect(15, 40, 215, 170))
+        addNotes_textEdit.setToolTip((""))
+        addNotes_textEdit.setStatusTip((""))
+        addNotes_textEdit.setWhatsThis((""))
+        addNotes_textEdit.setAccessibleName((""))
+        addNotes_textEdit.setAccessibleDescription((""))
+        addNotes_textEdit.setObjectName(("addNotes_textEdit"))
+
+        addNotes_buttonBox = QtWidgets.QDialogButtonBox(addNotes_Dialog)
+        addNotes_buttonBox.setGeometry(QtCore.QRect(20, 250, 220, 32))
+        addNotes_buttonBox.setToolTip((""))
+        addNotes_buttonBox.setStatusTip((""))
+        addNotes_buttonBox.setWhatsThis((""))
+        addNotes_buttonBox.setAccessibleName((""))
+        addNotes_buttonBox.setAccessibleDescription((""))
+        addNotes_buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        addNotes_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Save | QtWidgets.QDialogButtonBox.Cancel)
+
+        buttonS = addNotes_buttonBox.button(QtWidgets.QDialogButtonBox.Save)
+        buttonS.setText('Add Notes')
+        buttonC = addNotes_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel)
+        buttonC.setText('Cancel')
+
+        addNotes_buttonBox.setObjectName(("addNotes_buttonBox"))
+        addNotes_buttonBox.accepted.connect(lambda: self.manager.addVersionNotes(addNotes_textEdit.toPlainText(), sceneJson, version, userName))
+        addNotes_buttonBox.accepted.connect(self.populateScenes)
+        addNotes_buttonBox.accepted.connect(addNotes_Dialog.accept)
+
+        addNotes_buttonBox.rejected.connect(addNotes_Dialog.reject)
+        QtCore.QMetaObject.connectSlotsByName(addNotes_Dialog)
+
+        addNotes_Dialog.show()
+
+
+
     def onRadioButtonsToggled(self):
         state=self.loadMode_radioButton.isChecked()
         self.version_label.setEnabled(state)
@@ -2485,7 +2758,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: grey;")
         else:
             self.load_pushButton.setText("Reference Scene")
-            self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: red;")
+            self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: cyan;")
         self.populateScenes()
 
     def userPrefSave(self):
@@ -2540,15 +2813,10 @@ class MainUI(QtWidgets.QMainWindow):
         if command == "importScene":
             row = self.scenes_listWidget.currentRow()
             if not row == -1:
-                # sceneData = loadJson(self.scenesInCategory[row])
-                # path = os.path.join(os.path.normpath(self.manager.currentProject), os.path.normpath(sceneData["Path"]))
                 sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
                 # takethefirstjson as example for rootpath
                 jsonPath = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
                 self.manager.loadScene(jsonPath, version=self.version_comboBox.currentIndex(), importFile=True)
-
-                # self.manager.loadScene(self.scenesInCategory[row], version=self.version_comboBox.currentIndex(), importFile=True)
-                # os.startfile(path)
 
         if command == "showInExplorerMaya":
             row = self.scenes_listWidget.currentRow()
@@ -2560,7 +2828,11 @@ class MainUI(QtWidgets.QMainWindow):
                 sceneData = loadJson(jPath)
 
                 path = os.path.join(os.path.normpath(self.manager.currentProject), os.path.normpath(sceneData["Path"]))
-                os.startfile(path)
+
+                if self.manager.currentPlatform == "Windows":
+                    os.startfile(path)
+                if self.manager.currentPlatform == "Linux":
+                    os.system('nautilus %s' % path)
 
         if command == "showInExplorerPB":
             row = self.scenes_listWidget.currentRow()
@@ -2576,7 +2848,10 @@ class MainUI(QtWidgets.QMainWindow):
                 path = path.replace("scenes", "Playblasts")
                 print path
                 if os.path.isdir(path):
-                    os.startfile(path)
+                    if self.manager.currentPlatform == "Windows":
+                        os.startfile(path)
+                    if self.manager.currentPlatform == "Linux":
+                        os.system('nautilus %s' % path)
                 else:
                     self.infoPop(textTitle="", textHeader="Scene does not have a playblast", textInfo="There is no playblast folder created for this scene yet")
 
@@ -2587,7 +2862,10 @@ class MainUI(QtWidgets.QMainWindow):
                     path = pathOps(self.scenesInCategory[row], "path")
                 except:
                     path = pathOps(self.scenesInCategory[0], "path")
-                os.startfile(path)
+                if self.manager.currentPlatform == "Windows":
+                    os.startfile(path)
+                if self.manager.currentPlatform == "Linux":
+                    os.system('nautilus %s' % path)
 
     def on_context_menu(self, point):
         # show context menu
@@ -2654,7 +2932,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.projectPath_lineEdit.setText(self.manager.currentProject)
         # self.onSubProjectChanged()
         self.manager.subProjectList=self.manager.scanSubProjects()
-
+        self.manager.currentSubProjectIndex=0
         self.populateScenes()
 
     def sceneInfo(self):
@@ -2674,28 +2952,40 @@ class MainUI(QtWidgets.QMainWindow):
         else:
             currentIndex = len(sceneData["Versions"])-1
         self.version_comboBox.setCurrentIndex(currentIndex)
-        self.notes_textEdit.setPlainText(sceneData["Versions"][currentIndex][1])
+        # self.notes_textEdit.setPlainText(sceneData["Versions"][currentIndex][1])
         self.refreshNotes()
 
     def refreshNotes(self):
         row = self.scenes_listWidget.currentRow()
+
         if not row == -1:
             sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
             # takethefirstjson as example for rootpath
-            jPath = pathOps(self.scenesInCategory[0], "path")
+            # jPath = pathOps(self.scenesInCategory[0], "path")
+            sceneJson = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
 
-            sceneData = loadJson(os.path.join(jPath, sceneName))
-            # sceneData = loadJson(self.scenesInCategory[row])
-            currentIndex = self.version_comboBox.currentIndex()
-            self.notes_textEdit.setPlainText(sceneData["Versions"][currentIndex][1])
+            # sceneData = loadJson(os.path.join(jPath, sceneName))
+            version = self.version_comboBox.currentIndex()
+            # self.notes_textEdit.setPlainText(sceneData["Versions"][currentIndex][1])
+            # print "\nscene", sceneJson
+            # print "\nversion", version
 
-            if sceneData["Versions"][currentIndex][4].keys():
+            notes, pbDict = self.manager.getVersionNotes(sceneJson, version)
+            # print "notes", notes
+
+            # if sceneData["Versions"][currentIndex][4].keys():
+            self.notes_textEdit.setPlainText(notes)
+            if pbDict.keys():
                 self.showPB_pushButton.setEnabled(True)
             else:
                 self.showPB_pushButton.setEnabled(False)
+            self.addNotes_pushButton.setEnabled(True)
+            self.makeReference_pushButton.setEnabled(True)
         else:
 
             self.showPB_pushButton.setEnabled(False)
+            self.addNotes_pushButton.setEnabled(False)
+            self.makeReference_pushButton.setEnabled(False)
 
     def onSceneInfo(self):
         row = self.scenes_listWidget.currentRow()
@@ -2747,7 +3037,7 @@ class MainUI(QtWidgets.QMainWindow):
         pass
 
     def populateScenes(self):
-
+        row = self.scenes_listWidget.currentRow()
         self.scenes_listWidget.clear()
         self.version_comboBox.clear()
         self.notes_textEdit.clear()
@@ -2780,8 +3070,15 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.subProject_comboBox.setCurrentIndex(self.manager.currentSubProjectIndex)
 
-        self.baseScene_lineEdit.setText(self.manager.getScene())
+        baseName = self.manager.getScene()
+        if baseName == "":
+            self.baseScene_lineEdit.setText("Current Scene is not a Base Scene")
+            self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: red")
+        else:
+            self.baseScene_lineEdit.setText(baseName)
+            self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: cyan")
 
+        self.scenes_listWidget.setCurrentRow(row)
         self.refreshNotes()
         self.userPrefSave()
 
