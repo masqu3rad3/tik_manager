@@ -1,3 +1,4 @@
+# version 1.7 changes: # added thumbnails
 # version 1.65 changes: # Linux compatibility issues fixed
 # version 1.63 changes: # UI improvements
 # version 1.62 changes: # bugfix: when switching projects, subproject index will be reset to 0 now
@@ -45,7 +46,7 @@
 #     m.regularSaveUpdate()
 # maya.utils.executeDeferred('SMid = OpenMaya.MSceneMessage.addCallback(OpenMaya.MSceneMessage.kAfterSave, smUpdate)')
 
-SM_Version = "SceneManager v1.65"
+SM_Version = "SceneManager v1.7"
 
 # import suMod
 import ctypes
@@ -283,6 +284,7 @@ class TikManager(object):
         if not sceneName:
             # pm.warning("This is not a base scene (Untitled)")
             return None
+
         projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
         # first get the parent dir
         shotDirectory = os.path.abspath(os.path.join(pm.sceneName(), os.pardir))
@@ -311,11 +313,13 @@ class TikManager(object):
 
         jsonFile = os.path.join(jsonPath, "{}.json".format(shotName))
         if os.path.isfile(jsonFile):
+            version = (pathOps(sceneName, "filename")[-4:])
             return {"jsonFile":jsonFile,
                     "projectPath":projectPath,
                     "subProject":subProject,
                     "category":category,
-                    "shotName":shotName
+                    "shotName":shotName,
+                    "version":version
                     }
         else:
             return None
@@ -623,7 +627,6 @@ class TikManager(object):
         projectPath, jsonPath, scenesPath = getPathsFromScene("projectPath", "jsonPath", "scenesPath")
         categoryPath = os.path.normpath(os.path.join(scenesPath, category))
         # folderCheck(category)
-        print "anan", categoryPath
         folderCheck(categoryPath)
 
         ## eger subproject olarak kaydedilecekse
@@ -653,6 +656,7 @@ class TikManager(object):
         relSceneFile = os.path.relpath(sceneFile, start=projectPath)
         # killTurtle()
         pm.saveAs(sceneFile)
+        thumbPath = self.createThumbnail(jsonPath=jsonFile, shotName=baseName, version=version)
 
         jsonInfo = {}
 
@@ -675,8 +679,8 @@ class TikManager(object):
         jsonInfo["Category"] = category
         jsonInfo["Creator"] = userName
         jsonInfo["CreatorHost"] = (socket.gethostname())
-        jsonInfo["Versions"] = [
-            [relSceneFile, completeNote, userName, socket.gethostname(), {}]]  ## last item is for playplast
+        jsonInfo["Versions"] = [ # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
+            [relSceneFile, completeNote, userName, socket.gethostname(), {}, thumbPath]]
         dumpJson(jsonInfo, jsonFile)
         return relSceneFile
 
@@ -740,8 +744,11 @@ class TikManager(object):
 
             # killTurtle()
             pm.saveAs(sceneFile)
+            thumbPath = self.createThumbnail(jsonPath=jsonFile, shotName=jsonInfo["Name"], version=currentVersion)
+
             jsonInfo["Versions"].append(
-                [relSceneFile, completeNote, userName, (socket.gethostname()), {}])  ## last one is for playblast
+                # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
+                [relSceneFile, completeNote, userName, (socket.gethostname()), {}, thumbPath])
 
             if makeReference:
                 referenceName = "{0}_{1}_forReference".format(jsonInfo["Name"], jsonInfo["Category"])
@@ -1246,6 +1253,36 @@ class TikManager(object):
         else:
             pm.warning("There is no reference set for this scene. Nothing changed")
 
+    def createThumbnail(self, jsonPath=None, shotName=None, version=None):
+
+        if jsonPath and version and shotName:
+            version= "v%s" %(str(version).zfill(self.padding))
+
+        else: # if keywords are not given
+        # resolve the path
+            sceneInfo = self.getSceneInfo()
+            if not sceneInfo:
+                return None
+            jsonPath=sceneInfo["jsonFile"]
+            shotName=sceneInfo["shotName"]
+            version=sceneInfo["version"]
+
+        thumbPath = "{0}_{1}_thumb.jpg".format(os.path.join(pathOps(jsonPath, "path"), shotName), version)
+        # print thumbPath
+        # create a thumbnail using playblast
+        if os.path.exists(pathOps(thumbPath, "path")):
+            frame = pm.currentTime(query=True)
+            store = pm.getAttr("defaultRenderGlobals.imageFormat")
+            pm.setAttr("defaultRenderGlobals.imageFormat", 8)  # This is the value for jpeg
+            pm.playblast(completeFilename=thumbPath, forceOverwrite=True, format='image', width=221, height=124,
+                         showOrnaments=False, frame=[frame], viewer=False, percent=100)
+            pm.setAttr("defaultRenderGlobals.imageFormat", store) #take it back
+        else:
+            pm.warning("something went wrong with thumbnail. Skipping thumbnail")
+            return None
+        # update the json file
+        return thumbPath
+
 
 class MainUI(QtWidgets.QMainWindow):
     def __init__(self):
@@ -1258,14 +1295,6 @@ class MainUI(QtWidgets.QMainWindow):
                 pass
         parent = getMayaMainWindow()
         super(MainUI, self).__init__(parent=parent)
-
-        # if platform.system() != "linux" or platform.system() != "windows":
-        #     q = QtWidgets.QMessageBox()
-        #     q.setIcon(QtWidgets.QMessageBox.Information)
-        #     q.setText("Scene Manager is not supporting this OS")
-        #     q.setInformativeText("You need to run Maya as administrator to work with Scene Manager")
-        #     q.setWindowTitle("Admin Rights")
-        #     q.setStandardButtons(QtWidgets.QMessageBox.Ok)
 
         problem = checkRequirements()
         if problem:
@@ -1280,19 +1309,6 @@ class MainUI(QtWidgets.QMainWindow):
             if ret == QtWidgets.QMessageBox.Ok:
                 self.close()
                 self.deleteLater()
-
-        # if not checkAdminRights():
-        #     q = QtWidgets.QMessageBox()
-        #     q.setIcon(QtWidgets.QMessageBox.Information)
-        #     q.setText("Maya does not have the administrator rights")
-        #     q.setInformativeText("You need to run Maya as administrator to work with Scene Manager")
-        #     q.setWindowTitle("Admin Rights")
-        #     q.setStandardButtons(QtWidgets.QMessageBox.Ok)
-        #
-        #     ret = q.exec_()
-        #     if ret == QtWidgets.QMessageBox.Ok:
-        #         self.close()
-        #         self.deleteLater()
 
         self.manager = TikManager()
 
@@ -1471,26 +1487,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.scenes_listWidget.setObjectName(("scenes_listWidget"))
         self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: grey;")
 
-        self.notes_textEdit = QtWidgets.QTextEdit(self.centralwidget, readOnly=True)
-        self.notes_textEdit.setGeometry(QtCore.QRect(430, 260, 221, 231))
-        self.notes_textEdit.setToolTip((""))
-        self.notes_textEdit.setStatusTip((""))
-        self.notes_textEdit.setWhatsThis((""))
-        self.notes_textEdit.setAccessibleName((""))
-        self.notes_textEdit.setAccessibleDescription((""))
-        self.notes_textEdit.setObjectName(("notes_textEdit"))
-
-        self.version_comboBox = QtWidgets.QComboBox(self.centralwidget)
-        self.version_comboBox.setGeometry(QtCore.QRect(490, 150, 71, 31))
-        self.version_comboBox.setToolTip((""))
-        self.version_comboBox.setStatusTip((""))
-        self.version_comboBox.setWhatsThis((""))
-        self.version_comboBox.setAccessibleName((""))
-        self.version_comboBox.setAccessibleDescription((""))
-        self.version_comboBox.setObjectName(("version_comboBox"))
-
         self.version_label = QtWidgets.QLabel(self.centralwidget)
-        self.version_label.setGeometry(QtCore.QRect(430, 151, 51, 31))
+        self.version_label.setGeometry(QtCore.QRect(430, 140, 51, 31))
         self.version_label.setToolTip((""))
         self.version_label.setStatusTip((""))
         self.version_label.setWhatsThis((""))
@@ -1501,8 +1499,17 @@ class MainUI(QtWidgets.QMainWindow):
         self.version_label.setText(("Version:"))
         self.version_label.setObjectName(("version_label"))
 
+        self.version_comboBox = QtWidgets.QComboBox(self.centralwidget)
+        self.version_comboBox.setGeometry(QtCore.QRect(490, 140, 71, 31))
+        self.version_comboBox.setToolTip((""))
+        self.version_comboBox.setStatusTip((""))
+        self.version_comboBox.setWhatsThis((""))
+        self.version_comboBox.setAccessibleName((""))
+        self.version_comboBox.setAccessibleDescription((""))
+        self.version_comboBox.setObjectName(("version_comboBox"))
+
         self.showPB_pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.showPB_pushButton.setGeometry(QtCore.QRect(580, 151, 72, 28))
+        self.showPB_pushButton.setGeometry(QtCore.QRect(580, 140, 72, 28))
         self.showPB_pushButton.setToolTip((""))
         self.showPB_pushButton.setStatusTip((""))
         self.showPB_pushButton.setWhatsThis((""))
@@ -1512,7 +1519,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.showPB_pushButton.setObjectName(("showPB_pushButton"))
 
         self.makeReference_pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.makeReference_pushButton.setGeometry(QtCore.QRect(430, 200, 102, 23))
+        self.makeReference_pushButton.setGeometry(QtCore.QRect(430, 185, 102, 23))
         self.makeReference_pushButton.setToolTip(("Creates a copy the scene as \'forReference\' file"))
         self.makeReference_pushButton.setStatusTip((""))
         self.makeReference_pushButton.setWhatsThis((""))
@@ -1523,7 +1530,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.makeReference_pushButton.setObjectName(("makeReference_pushButton"))
 
         self.addNotes_pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.addNotes_pushButton.setGeometry(QtCore.QRect(550, 200, 102, 23))
+        self.addNotes_pushButton.setGeometry(QtCore.QRect(550, 185, 102, 23))
         self.addNotes_pushButton.setToolTip(("adds additional version notes"))
         self.addNotes_pushButton.setStatusTip((""))
         self.addNotes_pushButton.setWhatsThis((""))
@@ -1534,7 +1541,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.addNotes_pushButton.setObjectName(("addNotes_pushButton"))
 
         self.notes_label = QtWidgets.QLabel(self.centralwidget)
-        self.notes_label.setGeometry(QtCore.QRect(430, 240, 70, 13))
+        self.notes_label.setGeometry(QtCore.QRect(430, 220, 70, 13))
         self.notes_label.setToolTip((""))
         self.notes_label.setStatusTip((""))
         self.notes_label.setWhatsThis((""))
@@ -1542,6 +1549,45 @@ class MainUI(QtWidgets.QMainWindow):
         self.notes_label.setAccessibleDescription((""))
         self.notes_label.setText(("Version Notes:"))
         self.notes_label.setObjectName(("notes_label"))
+
+        self.notes_textEdit = QtWidgets.QTextEdit(self.centralwidget, readOnly=True)
+        self.notes_textEdit.setGeometry(QtCore.QRect(430, 240, 221, 110))
+        self.notes_textEdit.setToolTip((""))
+        self.notes_textEdit.setStatusTip((""))
+        self.notes_textEdit.setWhatsThis((""))
+        self.notes_textEdit.setAccessibleName((""))
+        self.notes_textEdit.setAccessibleDescription((""))
+        self.notes_textEdit.setObjectName(("notes_textEdit"))
+
+        self.thumbnail_label = QtWidgets.QLabel(self.centralwidget)
+        self.thumbnail_label.setGeometry(QtCore.QRect(430, 365, 221, 124))
+        self.thumbnail_label.setToolTip((""))
+        self.thumbnail_label.setStatusTip((""))
+        self.thumbnail_label.setWhatsThis((""))
+        self.thumbnail_label.setAccessibleName((""))
+        self.thumbnail_label.setAccessibleDescription((""))
+        self.thumbnail_label.setFrameShape(QtWidgets.QFrame.Box)
+        self.thumbnail_label.setLineWidth(1)
+        self.thumbnail_label.setText((""))
+        self.thumbnail_label.setTextFormat(QtCore.Qt.AutoText)
+        self.thumbnail_label.setScaledContents(False)
+        self.thumbnail_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        self.thumbnail_label.setObjectName(("thumbnail_label"))
+        # self.tPixmap = QtGui.QPixmap(("M:/Projects/test_test_test_180716/data/SMdata/Render/ufCokgene_v002_thumb.png"))
+        # self.thumbnail_label.setPixmap(self.tPixmap)
+        # self.thumbnail_label.show()
+        self.refreshThumbnail()
+        # self.thumbnail_label = QtWidgets.QLabel(self.centralwidget)
+        # self.thumbnail_label.setGeometry(QtCore.QRect(250, 250, 191, 151))
+        # self.thumbnail_label.setText((""))
+        # self.thumbnail_label.setPixmap(QtGui.QPixmap(("M:/Projects/test_test_test_180716/data/SMdata/Render/ufCokgene_v002_thumb.png")))
+        # self.thumbnail_label.setObjectName(("label"))
+
+
+
+
+
+
 
         self.saveScene_pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.saveScene_pushButton.setGeometry(QtCore.QRect(40, 510, 151, 41))
@@ -1669,6 +1715,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.userName_comboBox.currentIndexChanged.connect(self.onUsernameChanged)
 
         self.version_comboBox.activated.connect(self.refreshNotes)
+        self.version_comboBox.activated.connect(self.refreshThumbnail)
 
         self.scenes_listWidget.doubleClicked.connect(self.onloadScene)
 
@@ -2942,6 +2989,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.version_comboBox.setCurrentIndex(currentIndex)
         # self.notes_textEdit.setPlainText(sceneData["Versions"][currentIndex][1])
         self.refreshNotes()
+        self.refreshThumbnail()
 
     def refreshNotes(self):
         row = self.scenes_listWidget.currentRow()
@@ -2974,6 +3022,35 @@ class MainUI(QtWidgets.QMainWindow):
             self.showPB_pushButton.setEnabled(False)
             self.addNotes_pushButton.setEnabled(False)
             self.makeReference_pushButton.setEnabled(False)
+
+    def refreshThumbnail(self):
+        row = self.scenes_listWidget.currentRow()
+
+        if not row == -1:
+            sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
+            # takethefirstjson as example for rootpath
+            sceneJson = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
+            version = self.version_comboBox.currentIndex()
+
+            jsonInfo = loadJson(sceneJson)
+            try:
+                thumb = jsonInfo["Versions"][version][5]
+                if os.path.isfile(thumb):
+                    self.tPixmap = QtGui.QPixmap((thumb))
+                    self.thumbnail_label.setPixmap(self.tPixmap)
+                else: # if the path is in db but file is deleted
+                    self.thumbnail_label.setText("No Thumbnail")
+            except IndexError: # for backward compatibilty
+                # thumb = ""
+                # self.tPixmap = QtGui.QPixmap((thumb))
+                self.thumbnail_label.setText("No Thumbnail")
+        else:
+            self.tPixmap = QtGui.QPixmap((""))
+            self.thumbnail_label.setPixmap(self.tPixmap)
+            self.thumbnail_label.setText("")
+
+
+
 
     def onSceneInfo(self):
         row = self.scenes_listWidget.currentRow()
@@ -3068,6 +3145,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.scenes_listWidget.setCurrentRow(row)
         self.refreshNotes()
+        self.refreshThumbnail()
         self.userPrefSave()
 
         # self.referenceCheck()

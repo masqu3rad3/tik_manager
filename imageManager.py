@@ -100,8 +100,8 @@ class ImageManager(TikManager):
     def initRenderer(self):
         curRenderer = pm.getAttr('defaultRenderGlobals.currentRenderer')
         imgDir = self.getImageDir()
-        sceneVersion = pathOps(pm.sceneName(), "filename")[-4:]
-        resolvedName = "{0}/{1}/<RenderLayer>/{2}_{1}".format(imgDir, sceneVersion, self.sceneInfo["shotName"])
+        # sceneVersion = pathOps(pm.sceneName(), "filename")[-4:]
+        resolvedName = "{0}/{1}/<RenderLayer>/{2}_{1}".format(imgDir, self.sceneInfo["version"], self.sceneInfo["shotName"])
         pm.setAttr("defaultRenderGlobals.imageFilePrefix", resolvedName)
 
         if curRenderer == "arnold":
@@ -116,7 +116,7 @@ class ImageManager(TikManager):
             pm.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
             pm.setAttr("defaultRenderGlobals.extensionPadding", 4)
             # set File Name Prefix
-            resolvedName = "{0}/{1}/<RenderLayer>/{2}_{1}".format(imgDir, sceneVersion, self.sceneInfo["shotName"])
+            resolvedName = "{0}/{1}/<RenderLayer>/{2}_{1}".format(imgDir, self.sceneInfo["version"], self.sceneInfo["shotName"])
             pm.setAttr("defaultRenderGlobals.imageFilePrefix", resolvedName)
 
         elif curRenderer == "vray":
@@ -129,7 +129,7 @@ class ImageManager(TikManager):
             pm.setAttr("%s.animType" % vraySettings, 1)
             pm.setAttr(vraySettings.fileNamePadding, 4)
             # set File Name Prefix
-            resolvedName = "{0}/{1}/<Layer>/{2}_{1}".format(imgDir, sceneVersion, self.sceneInfo["shotName"])
+            resolvedName = "{0}/{1}/<Layer>/{2}_{1}".format(imgDir, self.sceneInfo["version"], self.sceneInfo["shotName"])
             pm.setAttr("%s.fileNamePrefix" %vraySettings, resolvedName)
 
         elif curRenderer == "mentalRay":
@@ -145,7 +145,7 @@ class ImageManager(TikManager):
             pm.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
             pm.setAttr("defaultRenderGlobals.extensionPadding", 4)
             # set File Name Prefix
-            resolvedName = "{0}/{1}/<RenderLayer>/{2}_{1}".format(imgDir, sceneVersion, self.sceneInfo["shotName"])
+            resolvedName = "{0}/{1}/<RenderLayer>/{2}_{1}".format(imgDir, self.sceneInfo["version"], self.sceneInfo["shotName"])
             pm.setAttr("defaultRenderGlobals.imageFilePrefix", resolvedName)
 
         elif curRenderer == "redshift":
@@ -160,7 +160,7 @@ class ImageManager(TikManager):
             pm.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
             pm.setAttr("defaultRenderGlobals.extensionPadding", 4)
             # set File Name Prefix
-            resolvedName = "{0}/{1}/<RenderLayer>/{2}_{1}".format(imgDir, sceneVersion, self.sceneInfo["shotName"])
+            resolvedName = "{0}/{1}/<RenderLayer>/{2}_{1}".format(imgDir, self.sceneInfo["version"], self.sceneInfo["shotName"])
             pm.setAttr("defaultRenderGlobals.imageFilePrefix", resolvedName)
 
         else:
