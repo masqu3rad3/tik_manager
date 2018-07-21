@@ -1,3 +1,11 @@
+"""Creates a tree structure for image sequences
+
+Image sequences can be listed recursively if the checkbox is checked.
+Meaning all the sequence under the selected folder will be listed
+recursively.
+Double clicking on the seguence will execute the file on the defined application
+"""
+
 import pyseq as seq
 import os
 import pymel.core as pm
@@ -5,6 +13,15 @@ import pymel.core as pm
 import Qt
 from Qt import QtWidgets, QtCore, QtGui
 from maya import OpenMayaUI as omui
+
+__author__ = "Arda Kutlu"
+__copyright__ = "Copyright 2018, Scene Manager for Maya Project"
+__credits__ = []
+__license__ = "GPL"
+__version__ = "0.1"
+__maintainer__ = "Arda Kutlu"
+__email__ = "ardakutlu@gmail.com"
+__status__ = "Development"
 
 if Qt.__binding__ == "PySide":
     from shiboken import wrapInstance
@@ -16,7 +33,7 @@ else:
     from shiboken2 import wrapInstance
     from Qt.QtCore import Signal
 
-windowName = "Image_Viewer"
+windowName = "Image Viewer v0.1"
 
 # def getTheImages():
 #     imagesFolder = os.path.join(os.path.normpath(pm.workspace(q=1, rd=1)), "images")
@@ -50,14 +67,16 @@ class MainUI(QtWidgets.QMainWindow):
                 pass
         parent = getMayaMainWindow()
         super(MainUI, self).__init__(parent=parent)
-
+        self.projectPath = os.path.join(os.path.normpath(pm.workspace(q=1, rd=1)), "images")
+        # self.projectPath = os.path.join(os.path.normpath(pm.workspace(q=1, rd=1)), "") # temporary
+        self.sequenceData = []
         self.setObjectName(windowName)
         self.resize(670, 624)
         self.setWindowTitle(windowName)
         self.centralwidget = QtWidgets.QWidget(self)
         self.centralwidget.setObjectName(("centralwidget"))
         self.model = QtWidgets.QFileSystemModel()
-        self.projectPath=os.path.join(os.path.normpath(pm.workspace(q=1, rd=1)), "images")
+
         self.model.setRootPath(self.projectPath)
         # filter = Qt.QStringList("")
         self.model.setFilter(QtCore.QDir.AllDirs|QtCore.QDir.NoDotAndDotDot)
@@ -83,7 +102,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.gridLayout.addWidget(self.recursive_checkBox, 0, 3, 1, 1)
 
         self.rootFolder_lineEdit = QtWidgets.QLineEdit(self.centralwidget)
-        self.rootFolder_lineEdit.setText((""))
+        self.rootFolder_lineEdit.setText((self.projectPath))
+        self.rootFolder_lineEdit.setReadOnly(True)
         self.rootFolder_lineEdit.setPlaceholderText((""))
         self.rootFolder_lineEdit.setObjectName(("rootFolder_lineEdit"))
         self.gridLayout.addWidget(self.rootFolder_lineEdit, 0, 1, 1, 1)
@@ -120,44 +140,81 @@ class MainUI(QtWidgets.QMainWindow):
         self.sequences_listWidget.setObjectName(("sequences_listWidget"))
         self.gridLayout.addWidget(self.splitter, 1, 0, 1, 4)
 
-        # QtCore.QObject.connect(self.directories_treeView.selectionModel(), QtCore.Signal('selectionChanged(QItemSelection, QItemSelection)'),
-        #                        self.test)
+        self.browse_pushButton.clicked.connect(self.onBrowse)
         self.directories_treeView.selectionModel().selectionChanged.connect(self.populate)
         self.recursive_checkBox.stateChanged.connect(self.populate)
+        self.sequences_listWidget.doubleClicked.connect(self.onRunItem)
+
+        ## RIGHT CLICK MENUS
+        self.sequences_listWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.sequences_listWidget.customContextMenuRequested.connect(self.onContextMenu_images)
+        self.popMenu = QtWidgets.QMenu()
+
+        rcAction_0 = QtWidgets.QAction('Show in Explorer', self)
+        self.popMenu.addAction(rcAction_0)
+        rcAction_0.triggered.connect(lambda: self.rcAction())
+
+        # self.popMenu.addSeparator()
+
 
     # @Qt.QtCore.pyqtSlot("QItemSelection, QItemSelection")
+    def onContextMenu_images(self, point):
+        self.popMenu.exec_(self.sequences_listWidget.mapToGlobal(point))
+
+    def onBrowse(self):
+        dir = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory"))
+        if dir:
+            self.projectPath=os.path.normpath(dir)
+            self.model.setRootPath(dir)
+            self.directories_treeView.setRootIndex(self.model.index(dir))
+            self.rootFolder_lineEdit.setText(self.projectPath)
+            self.sequences_listWidget.clear()
+            # self.populate()
+        else:
+            return
+
+    def rcAction(self):
+        row = self.sequences_listWidget.currentRow()
+        if row == -1:
+            return
+        # print self.sequences_listWidget.currentItem().text()
+        # index = self.sequences_listWidget.
+        # print index
+        os.startfile(self.sequenceData[row].dirname)
+
+
     def populate(self):
         self.sequences_listWidget.clear()
+        self.sequenceData=[] # clear the custom list
         index = self.directories_treeView.currentIndex()
-        fullPath = self.model.filePath(index)
+        if index.row() == -1: # no row selected, abort
+            return
 
-        # if self.recursive_checkBox.isChecked():
-        #     anan = getTheImages(fullPath, level=-1)
-        # else:
-        #     anan = getTheImages(fullPath, level=1)
-        #
-        #
-        #
-        # for x in anan:
-        #     for i in x[2]:
-        #         self.sequences_listWidget.addItem(i.format('%h%t %R'))
+        fullPath = self.model.filePath(index)
 
         if self.recursive_checkBox.isChecked():
             rec=-1
         else:
             rec=1
 
-        gen = seq.walk(fullPath, level=rec)
+        gen = seq.walk(fullPath, level=rec, includes=['*.jpg', '*.exr', '*.tga', '*.png'])
 
+        id = 0
         for x in gen:
+
             for i in x[2]:
+                QtWidgets.QApplication.processEvents()
+                # execPath = os.path.join(x[0],i[0])
+                # execPath = i[0].path
+                self.sequenceData.append(i)
+                # name = i.format('%h%t %R')
                 self.sequences_listWidget.addItem(i.format('%h%t %R'))
+                # self.sequenceData.append()
+                id += 1
+    def onRunItem(self):
+        row = self.sequences_listWidget.currentRow()
+        # print self.sequenceData[row].path()
+        os.startfile(self.sequenceData[row].path())
 
 
-        # for i in anan[0][2]:
-        #     self.sequences_listWidget.addItem(i.format('%h%t %R'))
-
-
-
-# testUI().show()
 

@@ -28,6 +28,13 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
+#
+#
+# MODIFIED BY Arda Kutlu to use with imageViewer, a module for sceneManager
+# Last Modified: 21 July 2018
+# Modification History:
+    # added filtering to the 'walk method'
+    # minor optimizations considering it will only work as a module for imageViewer
 # -----------------------------------------------------------------------------
 
 """PySeq is a python module that finds groups of items that follow a naming
@@ -56,6 +63,7 @@ import functools
 from glob import glob
 from glob import iglob
 from datetime import datetime
+import fnmatch
 
 __version__ = "0.5.1"
 
@@ -1040,18 +1048,22 @@ def get_sequences(source):
 
     # list for storing sequences to be returned later
     seqs = []
-
-    if isinstance(source, list):
+    try:
         items = sorted(source, key=lambda x: str(x))
-
-    elif isinstance(source, basestring):
-        if os.path.isdir(source):
-            items = sorted(glob(os.path.join(source, '*')))
-        else:
-            items = sorted(glob(source))
-
-    else:
-        raise TypeError('Unsupported format for source argument')
+    except UnicodeEncodeError:
+        pass
+    # items = sorted(glob(os.path.join(source, '*.jpg')))
+    # if isinstance(source, list):
+    #     items = sorted(source, key=lambda x: str(x))
+    #
+    # elif isinstance(source, basestring):
+    #     if os.path.isdir(source):
+    #         items = sorted(glob(os.path.join(source, '*.jpg')))
+    #     else:
+    #         items = sorted(glob(source))
+    #
+    # else:
+    #     raise TypeError('Unsupported format for source argument')
 
     log.debug('Found %s files' % len(items))
 
@@ -1152,7 +1164,7 @@ def iget_sequences(source):
     log.debug("time: %s", datetime.now() - start)
 
 
-def walk(source, level=-1, topdown=True, onerror=None, followlinks=False, hidden=False):
+def walk(source, level=-1, topdown=True, onerror=None, followlinks=False, hidden=False, includes=[]):
     """Generator that traverses a directory structure starting at
     source looking for sequences.
 
@@ -1164,6 +1176,8 @@ def walk(source, level=-1, topdown=True, onerror=None, followlinks=False, hidden
     :param followlinks: whether to follow links
     :param hidden: include hidden files and dirs
     """
+    # transform glob patterns to regular expressions
+    includes = r'|'.join([fnmatch.translate(x) for x in includes])
     start = datetime.now()
     assert isinstance(source, basestring) is True
     assert os.path.exists(source) is True
@@ -1176,6 +1190,8 @@ def walk(source, level=-1, topdown=True, onerror=None, followlinks=False, hidden
             dirs[:] = [d for d in dirs if not d[0] == '.']
 
         files = [os.path.join(root, f) for f in files]
+        files = [f for f in files if re.match(includes, f)]
+        ##
 
         if topdown is True:
             parts = root.replace(source, "").split(os.sep)
