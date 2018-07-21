@@ -214,7 +214,10 @@ class MainUI(QtWidgets.QMainWindow):
     def onRunItem(self):
         row = self.sequences_listWidget.currentRow()
         # print self.sequenceData[row].path()
-        os.startfile(self.sequenceData[row].path())
+
+        item = self.sequenceData[row]
+        firstImagePath = os.path.join(item.dirname, item[0])
+        os.startfile(firstImagePath)
 
 
 
