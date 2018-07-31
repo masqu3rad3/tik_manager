@@ -1,10 +1,42 @@
+"""As a part of SceneManager, ImageManager checks the scene for possible errors before
+sending it to Deadline render manager.
+On initialization, script changes the image name template according to the defined template
+and checks the scene for possible errors
+Double Clicking on warnings open up the related dialog.
+"""
 import pymel.core as pm
 import os
 import logging
+import maya.mel as mel
 from manager import TikManager
 # reload(TikManager)
 from manager import pathOps, getPathsFromScene, folderCheck
+import Qt
+from Qt import QtWidgets, QtCore, QtGui
+from maya import OpenMayaUI as omui
+if Qt.__binding__ == "PySide":
+    from shiboken import wrapInstance
+    from Qt.QtCore import Signal
+elif Qt.__binding__.startswith('PyQt'):
+    from sip import wrapinstance as wrapInstance
+    from Qt.Core import pyqtSignal as Signal
+else:
+    from shiboken2 import wrapInstance
+    from Qt.QtCore import Signal
+
 from manager import loadJson, dumpJson
+
+__author__ = "Arda Kutlu"
+__copyright__ = "Copyright 2018, Scene Manager for Maya Project"
+__credits__ = []
+__license__ = "GPL"
+__version__ = "0.1"
+__maintainer__ = "Arda Kutlu"
+__email__ = "ardakutlu@gmail.com"
+__status__ = "Development"
+
+windowName = "Image Manager v0.1"
+
 logging.basicConfig()
 logger = logging.getLogger('ImageManager')
 logger.setLevel(logging.DEBUG)
@@ -12,6 +44,15 @@ logger.setLevel(logging.DEBUG)
 def parseTemplate(template):
     pass
 
+def getMayaMainWindow():
+    """
+    Gets the memory adress of the main window to connect Qt dialog to it.
+    Returns:
+        (long) Memory Adress
+    """
+    win = omui.MQtUtil_mainWindow()
+    ptr = wrapInstance(long(win), QtWidgets.QMainWindow)
+    return ptr
 
 class ImageManager(TikManager):
     def __init__(self):
@@ -25,13 +66,25 @@ class ImageManager(TikManager):
             logger.warning("Base Scene must be under Render Category")
             return
 
+        self.folderTemplate = "{4}/{0}/{1}/{3}/{2}/"
+        self.nameTemplate = "{0}_{1}_{2}_{3}_"
+        self.resolvedName=""
         self.minorProblemNodes = []
         self.majorProblemNodes = []
-        self.feedBackMinor = []
-        self.feedBackMajor = []
+        # self.feedBackMinor = []
+        # self.feedBackMajor = []
         self.initRenderer()
+        self.foolerMaster()
 
 
+        # self.template = "<images>/<subProject>/<shotName>/<version>/<RenderLayer>/<subProject>_<shotName>_<RenderLayer>_<version>"
+
+
+        # 0 => subProject
+        # 1 => shotName
+        # 2 => RenderLayer
+        # 3 => Version
+        # 4 => images directory,
 
     # def resolveImageName(self):
     #
@@ -84,25 +137,46 @@ class ImageManager(TikManager):
     #     pm.setAttr("defaultRenderGlobals.imageFilePrefix", resolvedName)
     #     return shotImgDir
 
-    def getImageDir(self):
-
-        # get the images folder
+    def resolvePath(self, vray=False):
         projectImgDir = os.path.join(self.sceneInfo["projectPath"], "images")
-
-        if self.sceneInfo["subProject"] != "None":
-            shotImgDir = os.path.join(projectImgDir, self.sceneInfo["subProject"], self.sceneInfo["shotName"])
+        # folderCheck(projectImgDir)
+        if vray:
+            renderlayer="<Layer>"
         else:
-            shotImgDir = os.path.join(projectImgDir, self.sceneInfo["shotName"])
+            renderlayer="<RenderLayer>"
 
-        folderCheck(shotImgDir)  # folder check creates the directory if it does not (or they dont) exist
-        return shotImgDir
+        # print "A", self.sceneInfo["subProject"]
+        subProject = "" if self.sceneInfo["subProject"] == "None" else self.sceneInfo["subProject"]
+
+        shotName = self.sceneInfo["shotName"]
+        version=self.sceneInfo["version"]
+
+        self.folderTemplate = os.path.normpath(self.folderTemplate.format(subProject,shotName,renderlayer,version,projectImgDir))
+        self.nameTemplate = (self.nameTemplate.format(subProject,shotName,renderlayer,version)).lstrip("_")
+
+        # print self.folderTemplate
+        # print self.nameTemplate
+        return os.path.join(self.folderTemplate, self.nameTemplate)
+
+
+    # def getImageDir(self):
+    #     # get the images folder
+    #     projectImgDir = os.path.join(self.sceneInfo["projectPath"], "images")
+    #
+    #     if self.sceneInfo["subProject"] != "None":
+    #         shotImgDir = os.path.join(projectImgDir, self.sceneInfo["subProject"], self.sceneInfo["shotName"])
+    #     else:
+    #         shotImgDir = os.path.join(projectImgDir, self.sceneInfo["shotName"])
+    #
+    #     folderCheck(shotImgDir)  # folder check creates the directory if it does not (or they dont) exist
+    #     return shotImgDir
 
     def initRenderer(self):
         curRenderer = pm.getAttr('defaultRenderGlobals.currentRenderer')
-        imgDir = self.getImageDir()
+        # imgDir = self.getImageDir()
         # sceneVersion = pathOps(pm.sceneName(), "filename")[-4:]
-        resolvedName = "{0}/{1}/<RenderLayer>/{2}_{1}".format(imgDir, self.sceneInfo["version"], self.sceneInfo["shotName"])
-        pm.setAttr("defaultRenderGlobals.imageFilePrefix", resolvedName)
+        # resolvedName = "{0}/{1}/<RenderLayer>/{2}_{1}".format(imgDir, self.sceneInfo["version"], self.sceneInfo["shotName"])
+        # pm.setAttr("defaultRenderGlobals.imageFilePrefix", resolvedName)
 
         if curRenderer == "arnold":
             # set the image format to 'exr'
@@ -116,8 +190,9 @@ class ImageManager(TikManager):
             pm.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
             pm.setAttr("defaultRenderGlobals.extensionPadding", 4)
             # set File Name Prefix
-            resolvedName = "{0}/{1}/<RenderLayer>/{2}_{1}".format(imgDir, self.sceneInfo["version"], self.sceneInfo["shotName"])
-            pm.setAttr("defaultRenderGlobals.imageFilePrefix", resolvedName)
+            # resolvedName = "{0}/{1}/<RenderLayer>/{2}_{1}".format(imgDir, self.sceneInfo["version"], self.sceneInfo["shotName"])
+            self.resolvedName = self.resolvePath()
+            pm.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName)
 
         elif curRenderer == "vray":
             # set the image format to 'exr'
@@ -129,8 +204,9 @@ class ImageManager(TikManager):
             pm.setAttr("%s.animType" % vraySettings, 1)
             pm.setAttr(vraySettings.fileNamePadding, 4)
             # set File Name Prefix
-            resolvedName = "{0}/{1}/<Layer>/{2}_{1}".format(imgDir, self.sceneInfo["version"], self.sceneInfo["shotName"])
-            pm.setAttr("%s.fileNamePrefix" %vraySettings, resolvedName)
+            # resolvedName = "{0}/{1}/<Layer>/{2}_{1}".format(imgDir, self.sceneInfo["version"], self.sceneInfo["shotName"])
+            self.resolvedName = self.resolvePath(vray=True)
+            pm.setAttr("%s.fileNamePrefix" %vraySettings, self.resolvedName)
 
         elif curRenderer == "mentalRay":
             # set the image format to 'exr'
@@ -145,8 +221,9 @@ class ImageManager(TikManager):
             pm.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
             pm.setAttr("defaultRenderGlobals.extensionPadding", 4)
             # set File Name Prefix
-            resolvedName = "{0}/{1}/<RenderLayer>/{2}_{1}".format(imgDir, self.sceneInfo["version"], self.sceneInfo["shotName"])
-            pm.setAttr("defaultRenderGlobals.imageFilePrefix", resolvedName)
+            # resolvedName = "{0}/{1}/<RenderLayer>/{2}_{1}".format(imgDir, self.sceneInfo["version"], self.sceneInfo["shotName"])
+            self.resolvedName = self.resolvePath()
+            pm.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName)
 
         elif curRenderer == "redshift":
             # set the image format to 'exr'
@@ -160,8 +237,9 @@ class ImageManager(TikManager):
             pm.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
             pm.setAttr("defaultRenderGlobals.extensionPadding", 4)
             # set File Name Prefix
-            resolvedName = "{0}/{1}/<RenderLayer>/{2}_{1}".format(imgDir, self.sceneInfo["version"], self.sceneInfo["shotName"])
-            pm.setAttr("defaultRenderGlobals.imageFilePrefix", resolvedName)
+            # resolvedName = "{0}/{1}/<RenderLayer>/{2}_{1}".format(imgDir, self.sceneInfo["version"], self.sceneInfo["shotName"])
+            self.resolvedName = self.resolvePath()
+            pm.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName)
 
         else:
             logger.warning("Render Engine is not supported. Skipping Engine specific settings")
@@ -240,7 +318,7 @@ class ImageManager(TikManager):
                 # check if the perspective camera is among renderable cameras
                 if "perspShape" in rcam.name():
                     if len(renderCameras) > 1:
-                        msg = "Multiple renderable cameras in the scene (%s)" % layer
+                        msg = "Multiple Renderable Cameras => (%s)" % layer
                         self.minorProblemNodes.append([rcam, layer, "unifiedRenderGlobalsWindow;", msg])
                         # self.cameraSeverity += 5
                         severity += 5
@@ -251,7 +329,7 @@ class ImageManager(TikManager):
                         severity += 1
 
             if len(renderCameras) == 0:
-                msg = "No renderable cameras in the scene (%s)" % layer
+                msg = "No renderable cameras(%s)" % layer
                 # self.cameraSeverity += 10
                 severity += 10
                 self.majorProblemNodes.append([None, None, "", msg])
@@ -280,9 +358,8 @@ class ImageManager(TikManager):
             animStart = pm.getAttr("defaultRenderGlobals.startFrame")
             animEnd = pm.getAttr("defaultRenderGlobals.endFrame")
             if animStart != startFrame or animEnd != endFrame:
-                msg = "Timeslider range and render ranges are different in {4}. {0}-{1} >> {2}-{3}".format(startFrame,
-                                                                                                    endFrame, animStart,
-                                                                                                    animEnd, layer)
+                # msg = "Timeslider range and render ranges are different in {4}. {0}-{1} >> {2}-{3}".format(startFrame,
+                msg = "Timeslider range and Render ranges are different"
                 self.minorProblemNodes.append(
                     ["defaultRenderGlobals", layer, "unifiedRenderGlobalsWindow;", msg])  # RG is for Render Globals
                 severity += 1
@@ -452,3 +529,183 @@ class ImageManager(TikManager):
         print "minors:\n", self.minorProblemNodes
         print "Warning Level:", warningLevel
 
+class MainUI(QtWidgets.QMainWindow):
+    def __init__(self):
+
+        for entry in QtWidgets.QApplication.allWidgets():
+            try:
+                if entry.objectName() == windowName:
+                    entry.close()
+            except AttributeError:
+                pass
+        parent = getMayaMainWindow()
+        super(MainUI, self).__init__(parent=parent)
+
+        self.imanager = ImageManager()
+        if not self.imanager.sceneInfo:
+            self.infoPop(textTitle="Warning - Not a Base Scene", textHeader="Scene is not a Base Scene. Save it using SceneManager")
+            # ret = self.msg.exec_()
+            # if ret:
+            #     self.close()
+            #     return
+
+            return
+
+        if not self.imanager.sceneInfo["category"] == "Render":
+            self.infoPop(textTitle="Warning - Not under Render Category", textHeader="Scene is not under Render Category.")
+            return
+
+        self.setObjectName(windowName)
+        self.resize(656, 402)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
+        self.setSizePolicy(sizePolicy)
+        self.setWindowTitle(windowName)
+        self.centralwidget = QtWidgets.QWidget(self)
+        self.centralwidget.setObjectName("centralwidget")
+
+        self.buildUI()
+
+        self.setCentralWidget(self.centralwidget)
+        self.imagePath_lineEdit.setText(self.imanager.resolvedName)
+        self.populateWarnings()
+        self.show()
+
+
+            # return
+    def buildUI(self):
+
+        self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
+        self.gridLayout.setObjectName("gridLayout")
+
+        self.projectPath_label = QtWidgets.QLabel(self.centralwidget)
+        self.projectPath_label.setFrameShape(QtWidgets.QFrame.Box)
+        self.projectPath_label.setLineWidth(1)
+        self.projectPath_label.setScaledContents(False)
+        self.projectPath_label.setObjectName("projectPath_label")
+        self.projectPath_label.setText("Project:")
+        self.gridLayout.addWidget(self.projectPath_label, 0, 0, 1, 1)
+
+        self.projectPath_lineEdit = QtWidgets.QLineEdit(self.centralwidget)
+        self.projectPath_lineEdit.setObjectName("projectPath_lineEdit")
+        self.projectPath_lineEdit.setText(self.imanager.currentProject)
+        self.projectPath_lineEdit.setReadOnly(True)
+        self.gridLayout.addWidget(self.projectPath_lineEdit, 0, 1, 1, 1)
+
+        self.setProject_pushButton = QtWidgets.QPushButton(self.centralwidget)
+        self.setProject_pushButton.setObjectName("setProject_pushButton")
+        self.setProject_pushButton.setText("SET")
+        self.gridLayout.addWidget(self.setProject_pushButton, 0, 2, 1, 1)
+
+        self.imagePath_label = QtWidgets.QLabel(self.centralwidget)
+        self.imagePath_label.setFrameShape(QtWidgets.QFrame.Box)
+        self.imagePath_label.setObjectName("imagePath_label")
+        self.imagePath_label.setText("Image Path:")
+        self.gridLayout.addWidget(self.imagePath_label, 1, 0, 1, 1)
+
+        self.imagePath_lineEdit = QtWidgets.QLineEdit(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.imagePath_lineEdit.sizePolicy().hasHeightForWidth())
+        self.imagePath_lineEdit.setReadOnly(True)
+        self.imagePath_lineEdit.setSizePolicy(sizePolicy)
+        self.imagePath_lineEdit.setObjectName("imagePath_lineEdit")
+        self.gridLayout.addWidget(self.imagePath_lineEdit, 1, 1, 1, 2)
+
+        self.foolcheck_label = QtWidgets.QLabel(self.centralwidget)
+        self.foolcheck_label.setObjectName("foolcheck_label")
+        self.foolcheck_label.setText("Warnings:")
+        self.gridLayout.addWidget(self.foolcheck_label, 3, 0, 1, 1)
+
+        self.foolcheck_listWidget = QtWidgets.QListWidget(self.centralwidget)
+        self.foolcheck_listWidget.setObjectName("foolcheck_listView")
+        self.foolcheck_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: grey;")
+
+        self.gridLayout.addWidget(self.foolcheck_listWidget, 4, 0, 1, 3)
+
+        self.sendDeadline_pushButton = QtWidgets.QPushButton(self.centralwidget)
+        self.sendDeadline_pushButton.setObjectName("sendDeadline_pushButton")
+        self.sendDeadline_pushButton.setText("Send To Deadline")
+        self.gridLayout.addWidget(self.sendDeadline_pushButton, 6, 0, 1, 3)
+
+        spacerItem = QtWidgets.QSpacerItem(20, 15, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+        self.gridLayout.addItem(spacerItem, 2, 0, 1, 1)
+        spacerItem1 = QtWidgets.QSpacerItem(20, 15, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+        self.gridLayout.addItem(spacerItem1, 5, 0, 1, 1)
+        self.setCentralWidget(self.centralwidget)
+
+        self.menubar = QtWidgets.QMenuBar(self)
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 656, 21))
+        self.menubar.setObjectName("menubar")
+        self.setMenuBar(self.menubar)
+        self.statusbar = QtWidgets.QStatusBar(self)
+        self.statusbar.setObjectName("statusbar")
+        self.setStatusBar(self.statusbar)
+
+        self.setProject_pushButton.clicked.connect(self.onSetProject)
+        self.foolcheck_listWidget.doubleClicked.connect(self.onDoubleClick)
+
+    def onSetProject(self):
+        self.imanager.setProject()
+        self.projectPath_lineEdit.setText(self.imanager.currentProject)
+
+    def populateWarnings(self):
+        codeDict = {-1: QtGui.QColor(255, 0, 0, 255), 1: QtGui.QColor(0, 255, 0, 255), 0: QtGui.QColor(255, 255, 0, 255)} # dictionary for color codes red, green, yellow
+
+        # print "ASDFASDF", self.imanager.feedBackMajor
+        self.foolcheck_listWidget.clear()
+        #first major warnings
+        for warning in self.imanager.majorProblemNodes:
+            widgetItem = QtWidgets.QListWidgetItem()
+            widgetItem.setText(warning[3])
+            widgetItem.setForeground(codeDict[-1])
+            widgetItem.setFont(QtGui.QFont('Helvetica', 12, bold=True))
+            self.foolcheck_listWidget.addItem(widgetItem)
+            # self.foolcheck_listWidget.currentItem().setForeground(codeDict[-1])
+
+            # nodeToGet = self.commonSettings[index[0] - 1][0]
+            # layerToGo = self.commonSettings[index[0] - 1][1]
+            # melToEval = self.commonSettings[index[0] - 1][2]
+        for warning in self.imanager.minorProblemNodes:
+            widgetItem = QtWidgets.QListWidgetItem()
+            widgetItem.setText(warning[3])
+            widgetItem.setForeground(codeDict[0])
+            widgetItem.setFont(QtGui.QFont('Arial', 12, bold=True))
+            self.foolcheck_listWidget.addItem(widgetItem)
+
+    def onDoubleClick(self):
+        row = self.foolcheck_listWidget.currentRow()
+        if row == -1:
+            return
+        if (row+1) <= len(self.imanager.majorProblemNodes):
+            nodeToGet = self.imanager.majorProblemNodes[(row)][0]
+            layerToGo = self.imanager.majorProblemNodes[(row)][1]
+            melToEval = self.imanager.majorProblemNodes[(row)][2]
+        else:
+            nodeToGet = self.imanager.minorProblemNodes[(row)-(len(self.imanager.majorProblemNodes))][0]
+            layerToGo = self.imanager.minorProblemNodes[(row)-(len(self.imanager.majorProblemNodes))][1]
+            melToEval = self.imanager.minorProblemNodes[(row)-(len(self.imanager.majorProblemNodes))][2]
+
+        if nodeToGet != None:
+            # first go to the problematic layer
+            pm.editRenderLayerGlobals(currentRenderLayer=layerToGo)
+            pm.select(nodeToGet)
+        mel.eval(melToEval)
+
+
+
+    def infoPop(self, textTitle="info", textHeader="", textInfo="", type="I", parent=None):
+        self.msg = QtWidgets.QMessageBox(parent=parent)
+        if type == "I":
+            self.msg.setIcon(QtWidgets.QMessageBox.Information)
+        if type == "C":
+            self.msg.setIcon(QtWidgets.QMessageBox.Critical)
+
+        self.msg.setText(textHeader)
+        self.msg.setInformativeText(textInfo)
+        self.msg.setWindowTitle(textTitle)
+        self.msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        self.msg.show()

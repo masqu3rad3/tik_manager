@@ -51,7 +51,7 @@
 #     m.regularSaveUpdate()
 # maya.utils.executeDeferred('SMid = OpenMaya.MSceneMessage.addCallback(OpenMaya.MSceneMessage.kAfterSave, smUpdate)')
 
-SM_Version = "SceneManager v1.82"
+SM_Version = "SceneManager v1.821"
 
 # import suMod
 import ctypes
@@ -460,6 +460,10 @@ class TikManager(object):
         # file.write("{0}\n".format(L5))
         file.close()
         pass
+
+    def setProject(self):
+        mel.eval("SetProject;")
+        self.currentProject = pm.workspace(q=1, rd=1)
 
     def projectReport(self):
 
@@ -1626,6 +1630,7 @@ class MainUI(QtWidgets.QMainWindow):
         # file.addAction(checkReferences_fm)
 
         #save
+        file.addAction(createProject_fm)
         file.addAction(saveVersion_fm)
         file.addAction(saveBaseScene_fm)
 
@@ -2919,8 +2924,9 @@ class MainUI(QtWidgets.QMainWindow):
 
 
     def onSetProject(self):
-        mel.eval("SetProject;")
-        self.manager.currentProject = pm.workspace(q=1, rd=1)
+        # mel.eval("SetProject;")
+        # self.manager.currentProject = pm.workspace(q=1, rd=1)
+        self.manager.setProject()
         self.projectPath_lineEdit.setText(self.manager.currentProject)
         # self.onSubProjectChanged()
         self.manager.subProjectList = self.manager.scanSubProjects()
