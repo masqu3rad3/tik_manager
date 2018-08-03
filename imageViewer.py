@@ -177,9 +177,6 @@ class MainUI(QtWidgets.QMainWindow):
         row = self.sequences_listWidget.currentRow()
         if row == -1:
             return
-        # print self.sequences_listWidget.currentItem().text()
-        # index = self.sequences_listWidget.
-        # print index
         os.startfile(self.sequenceData[row].dirname)
 
 
@@ -201,7 +198,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         id = 0
         for x in gen:
-
             for i in x[2]:
                 QtWidgets.QApplication.processEvents()
                 # execPath = os.path.join(x[0],i[0])
@@ -213,10 +209,8 @@ class MainUI(QtWidgets.QMainWindow):
                 id += 1
     def onRunItem(self):
         row = self.sequences_listWidget.currentRow()
-        # print self.sequenceData[row].path()
-
         item = self.sequenceData[row]
-        firstImagePath = os.path.join(item.dirname, item[0])
+        firstImagePath = os.path.join(os.path.normpath(item.dirname), str(item[0]))
         os.startfile(firstImagePath)
 
 

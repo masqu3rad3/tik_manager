@@ -68,17 +68,8 @@ class ImageManager(TikManager):
 
         self.folderTemplate = "{4}/{0}/{1}/{3}/{2}/"
         self.nameTemplate = "{0}_{1}_{2}_{3}_"
-        self.resolvedName=""
-        self.minorProblemNodes = []
-        self.majorProblemNodes = []
-        # self.feedBackMinor = []
-        # self.feedBackMajor = []
-        self.initRenderer()
-        self.foolerMaster()
-
-
-        # self.template = "<images>/<subProject>/<shotName>/<version>/<RenderLayer>/<subProject>_<shotName>_<RenderLayer>_<version>"
-
+        self.supportedRenderers = ["arnold", "vray", "mentalRay", "redShift"]
+        self.currentRenderer = ""
 
         # 0 => subProject
         # 1 => shotName
@@ -86,56 +77,11 @@ class ImageManager(TikManager):
         # 3 => Version
         # 4 => images directory,
 
-    # def resolveImageName(self):
-    #
-    #     #get the images folder
-    #     sceneVersion = pathOps(pm.sceneName(), "filename")[-4:]
-    #     projectImgDir = os.path.join(self.sceneInfo["projectPath"], "images")
-    #
-    #     if self.sceneInfo["subProject"] != "None":
-    #         shotImgDir = os.path.join(projectImgDir, self.sceneInfo["subProject"], self.sceneInfo["shotName"])
-    #     else:
-    #         shotImgDir = os.path.join(projectImgDir, self.sceneInfo["shotName"])
-    #
-    #     folderCheck(shotImgDir ) # folder check creates the directory if it does not (or they dont) exist
-    #
-    #     curRenderer = pm.getAttr('defaultRenderGlobals.currentRenderer')
-    #
-    #
-    #     if curRenderer == "arnold":
-    #         # set the image format to 'exr'
-    #         arnoldDriver = pm.PyNode('defaultArnoldDriver')
-    #         arnoldDriver.ai_translator.set("exr")
-    #         # set the compression to 'zips'
-    #         pm.setAttr("%s.exrCompression" %arnoldDriver, 2)
-    #         # Frame/Animation ext and Frame Padding
-    #         pm.setAttr("defaultRenderGlobals.outFormatControl", 0)
-    #         pm.setAttr("defaultRenderGlobals.animation", 1)
-    #         pm.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
-    #         pm.setAttr("defaultRenderGlobals.extensionPadding", 4)
-    #
-    #     elif curRenderer == "vray":
-    #         # set the image format to 'exr'
-    #         vraySettings = pm.PyNode("vraySettings")
-    #         pm.setAttr("%s.imageFormatStr" % vraySettings, 'exr')
-    #         # set the compression to 'zips'
-    #         pm.setAttr("%s.imgOpt_exr_compression" % vraySettings, 3)
-    #         # Frame/Animation ext and Frame Padding
-    #         pm.setAttr("%s.animType" % vraySettings, 1)
-    #         pm.setAttr(vraySettings.fileNamePadding, 4)
-    #
-    #
-    #     elif curRenderer == "mentalRay":
-    #         pass
-    #     elif curRenderer == "redshift":
-    #         pass
-    #     else:
-    #         pass
-    #
-    #     resolvedName = "{0}/{1}/<RenderLayer>/{2}_{1}".format(shotImgDir, sceneVersion, self.sceneInfo["shotName"])
-    #
-    #     pm.setAttr("defaultRenderGlobals.imageFilePrefix", resolvedName)
-    #     return shotImgDir
+        self.resolvedName=""
+        self.minorProblemNodes = []
+        self.majorProblemNodes = []
+        self.initRenderer()
+        self.foolerMaster()
 
     def resolvePath(self, vray=False):
         projectImgDir = os.path.join(self.sceneInfo["projectPath"], "images")
@@ -158,27 +104,10 @@ class ImageManager(TikManager):
         # print self.nameTemplate
         return os.path.join(self.folderTemplate, self.nameTemplate)
 
-
-    # def getImageDir(self):
-    #     # get the images folder
-    #     projectImgDir = os.path.join(self.sceneInfo["projectPath"], "images")
-    #
-    #     if self.sceneInfo["subProject"] != "None":
-    #         shotImgDir = os.path.join(projectImgDir, self.sceneInfo["subProject"], self.sceneInfo["shotName"])
-    #     else:
-    #         shotImgDir = os.path.join(projectImgDir, self.sceneInfo["shotName"])
-    #
-    #     folderCheck(shotImgDir)  # folder check creates the directory if it does not (or they dont) exist
-    #     return shotImgDir
-
     def initRenderer(self):
-        curRenderer = pm.getAttr('defaultRenderGlobals.currentRenderer')
-        # imgDir = self.getImageDir()
-        # sceneVersion = pathOps(pm.sceneName(), "filename")[-4:]
-        # resolvedName = "{0}/{1}/<RenderLayer>/{2}_{1}".format(imgDir, self.sceneInfo["version"], self.sceneInfo["shotName"])
-        # pm.setAttr("defaultRenderGlobals.imageFilePrefix", resolvedName)
+        self.currentRenderer = pm.getAttr('defaultRenderGlobals.currentRenderer')
 
-        if curRenderer == "arnold":
+        if self.currentRenderer == "arnold":
             # set the image format to 'exr'
             arnoldDriver = pm.PyNode('defaultArnoldDriver')
             arnoldDriver.ai_translator.set("exr")
@@ -190,11 +119,11 @@ class ImageManager(TikManager):
             pm.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
             pm.setAttr("defaultRenderGlobals.extensionPadding", 4)
             # set File Name Prefix
-            # resolvedName = "{0}/{1}/<RenderLayer>/{2}_{1}".format(imgDir, self.sceneInfo["version"], self.sceneInfo["shotName"])
             self.resolvedName = self.resolvePath()
             pm.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName)
+            return
 
-        elif curRenderer == "vray":
+        elif self.currentRenderer == "vray":
             # set the image format to 'exr'
             vraySettings = pm.PyNode("vraySettings")
             pm.setAttr("%s.imageFormatStr" % vraySettings, 'exr')
@@ -204,11 +133,11 @@ class ImageManager(TikManager):
             pm.setAttr("%s.animType" % vraySettings, 1)
             pm.setAttr(vraySettings.fileNamePadding, 4)
             # set File Name Prefix
-            # resolvedName = "{0}/{1}/<Layer>/{2}_{1}".format(imgDir, self.sceneInfo["version"], self.sceneInfo["shotName"])
             self.resolvedName = self.resolvePath(vray=True)
             pm.setAttr("%s.fileNamePrefix" %vraySettings, self.resolvedName)
+            return
 
-        elif curRenderer == "mentalRay":
+        elif self.currentRenderer == "mentalRay":
             # set the image format to 'exr'
             pm.setAttr("defaultRenderGlobals.imageFormat", 51)
             pm.setAttr("defaultRenderGlobals.imfPluginKey", "exr")
@@ -221,11 +150,11 @@ class ImageManager(TikManager):
             pm.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
             pm.setAttr("defaultRenderGlobals.extensionPadding", 4)
             # set File Name Prefix
-            # resolvedName = "{0}/{1}/<RenderLayer>/{2}_{1}".format(imgDir, self.sceneInfo["version"], self.sceneInfo["shotName"])
             self.resolvedName = self.resolvePath()
             pm.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName)
+            return
 
-        elif curRenderer == "redshift":
+        elif self.currentRenderer == "redshift":
             # set the image format to 'exr'
             pm.setAttr("redshiftOptions.imageFormat", 1)
             # set the compression to 'zips'
@@ -237,13 +166,14 @@ class ImageManager(TikManager):
             pm.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
             pm.setAttr("defaultRenderGlobals.extensionPadding", 4)
             # set File Name Prefix
-            # resolvedName = "{0}/{1}/<RenderLayer>/{2}_{1}".format(imgDir, self.sceneInfo["version"], self.sceneInfo["shotName"])
             self.resolvedName = self.resolvePath()
             pm.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName)
+            return
 
         else:
             logger.warning("Render Engine is not supported. Skipping Engine specific settings")
-            renderLayer = "<RenderLayer>"
+            self.resolvedName = ("Render Engine is NOT supported, set image path manually")
+            return
             pass
 
     def getAttrInLayer(self, node, attr, layer, returnAnyWay=False):
@@ -525,12 +455,29 @@ class ImageManager(TikManager):
         warningLevel += self.foolCheckRenderSettings(self.allUsableRenderLayers)
         warningLevel += self.foolCheckPaths()
 
-        print "MAJORS:\n", self.majorProblemNodes
-        print "minors:\n", self.minorProblemNodes
-        print "Warning Level:", warningLevel
+        # print "MAJORS:\n", self.majorProblemNodes
+        # print "minors:\n", self.minorProblemNodes
+        # print "Warning Level:", warningLevel
+
+    def callDeadlineScript(self):
+        scriptLocation = os.path.dirname(os.path.abspath(__file__))
+        scriptPath = os.path.join(scriptLocation, "SubmitMayaToDeadlineCustom.mel")
+        print "hede", scriptPath
+        if os.path.isfile(scriptPath):
+            scriptPath = scriptPath.replace("\\", "//") ## for compatibility with mel syntax.
+            # mel.eval('source "%s//SubmitMayaToDeadlineCustom.mel";' % compatibility)
+            # print os.path.normpath(scriptPath)
+            cmd = ('source "{0}";'.format(scriptPath))
+            mel.eval(cmd)
+            mel.eval('SubmitJobToDeadline()')
+            return None, None
+        else:
+            msg = "SubmitMayaToDeadlineCustom.mel is not exist under the tik_manager directory"
+            pm.warning(msg)
+            return -1, msg
 
 class MainUI(QtWidgets.QMainWindow):
-    def __init__(self):
+    def __init__(self, scriptJob=None):
 
         for entry in QtWidgets.QApplication.allWidgets():
             try:
@@ -540,15 +487,9 @@ class MainUI(QtWidgets.QMainWindow):
                 pass
         parent = getMayaMainWindow()
         super(MainUI, self).__init__(parent=parent)
-
         self.imanager = ImageManager()
         if not self.imanager.sceneInfo:
             self.infoPop(textTitle="Warning - Not a Base Scene", textHeader="Scene is not a Base Scene. Save it using SceneManager")
-            # ret = self.msg.exec_()
-            # if ret:
-            #     self.close()
-            #     return
-
             return
 
         if not self.imanager.sceneInfo["category"] == "Render":
@@ -566,13 +507,20 @@ class MainUI(QtWidgets.QMainWindow):
         self.centralwidget = QtWidgets.QWidget(self)
         self.centralwidget.setObjectName("centralwidget")
 
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+
         self.buildUI()
-
-        self.setCentralWidget(self.centralwidget)
-        self.imagePath_lineEdit.setText(self.imanager.resolvedName)
-        self.populateWarnings()
-        self.show()
-
+        self.refresh()
+        scriptJobs = []
+        if scriptJob:
+            ## create a script jobs
+            self.job_1 = pm.scriptJob(ac=["defaultRenderGlobals.currentRenderer", "%s.refresh()" %scriptJob], parent=windowName)
+            self.job_2 = pm.scriptJob(e=["NewSceneOpened", "%s.refresh()" %scriptJob], parent=windowName)
+            self.job_3 = pm.scriptJob(e=["playbackRangeSliderChanged", "%s.refresh()" %scriptJob], parent=windowName)
+            self.job_4 = pm.scriptJob(e=["SceneOpened", "%s.refresh()" %scriptJob], parent=windowName)
+            self.job_5 = pm.scriptJob(e=["timeUnitChanged", "%s.refresh()" %scriptJob], parent=windowName)
+            self.job_6 = pm.scriptJob(e=["renderLayerChange", "%s.refresh()" %scriptJob], parent=windowName)
+            self.scriptJobs = [self.job_1, self.job_2, self.job_3, self.job_4, self.job_5, self.job_6]
 
             # return
     def buildUI(self):
@@ -590,7 +538,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.projectPath_lineEdit = QtWidgets.QLineEdit(self.centralwidget)
         self.projectPath_lineEdit.setObjectName("projectPath_lineEdit")
-        self.projectPath_lineEdit.setText(self.imanager.currentProject)
+        # self.projectPath_lineEdit.setText(self.imanager.currentProject)
         self.projectPath_lineEdit.setReadOnly(True)
         self.gridLayout.addWidget(self.projectPath_lineEdit, 0, 1, 1, 1)
 
@@ -647,32 +595,61 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.setProject_pushButton.clicked.connect(self.onSetProject)
         self.foolcheck_listWidget.doubleClicked.connect(self.onDoubleClick)
+        self.sendDeadline_pushButton.clicked.connect(self.onDeadline)
+
+        shortcutRefresh = Qt.QtWidgets.QShortcut(Qt.QtGui.QKeySequence("F5"), self, self.refresh)
+
+
+        self.setCentralWidget(self.centralwidget)
+        # self.imagePath_lineEdit.setText(self.imanager.resolvedName)
+        # self.populateWarnings()
+        self.show()
+
 
     def onSetProject(self):
         self.imanager.setProject()
         self.projectPath_lineEdit.setText(self.imanager.currentProject)
 
-    def populateWarnings(self):
-        codeDict = {-1: QtGui.QColor(255, 0, 0, 255), 1: QtGui.QColor(0, 255, 0, 255), 0: QtGui.QColor(255, 255, 0, 255)} # dictionary for color codes red, green, yellow
+    def refresh(self):
 
-        # print "ASDFASDF", self.imanager.feedBackMajor
+        self.imanager.initRenderer()
+        self.imanager.foolerMaster()
+        self.imanager.currentProject = pm.workspace(q=1, rd=1)
+
+        if not self.imanager.currentRenderer in self.imanager.supportedRenderers:
+            self.infoPop(textTitle="Render Engine Not Supported", textHeader="%s is not supported by Image Manager" %self.imanager.currentRenderer, textInfo="Image Path will not be set by Image Manager")
+            self.imagePath_lineEdit.setStyleSheet("color: red")
+        else:
+            self.imagePath_lineEdit.setStyleSheet("color: rgb(200,200,200)")
+
+        self.imagePath_lineEdit.setText(self.imanager.resolvedName)
+        self.projectPath_lineEdit.setText(self.imanager.currentProject)
+        self.populateWarnings()
+
+    # def closeEvent(self, event):
+    #     # do stuff
+    #     try:
+    #         for i in self.scriptJobs:
+    #             pm.scriptJob(kill=i)
+    #     except AttributeError:
+    #         pass
+
+
+    def populateWarnings(self):
+
         self.foolcheck_listWidget.clear()
         #first major warnings
         for warning in self.imanager.majorProblemNodes:
             widgetItem = QtWidgets.QListWidgetItem()
             widgetItem.setText(warning[3])
-            widgetItem.setForeground(codeDict[-1])
+            widgetItem.setForeground(QtGui.QColor(255, 0, 0, 255))
             widgetItem.setFont(QtGui.QFont('Helvetica', 12, bold=True))
             self.foolcheck_listWidget.addItem(widgetItem)
-            # self.foolcheck_listWidget.currentItem().setForeground(codeDict[-1])
 
-            # nodeToGet = self.commonSettings[index[0] - 1][0]
-            # layerToGo = self.commonSettings[index[0] - 1][1]
-            # melToEval = self.commonSettings[index[0] - 1][2]
         for warning in self.imanager.minorProblemNodes:
             widgetItem = QtWidgets.QListWidgetItem()
             widgetItem.setText(warning[3])
-            widgetItem.setForeground(codeDict[0])
+            widgetItem.setForeground(QtGui.QColor(255, 255, 0, 255))
             widgetItem.setFont(QtGui.QFont('Arial', 12, bold=True))
             self.foolcheck_listWidget.addItem(widgetItem)
 
@@ -693,7 +670,14 @@ class MainUI(QtWidgets.QMainWindow):
             # first go to the problematic layer
             pm.editRenderLayerGlobals(currentRenderLayer=layerToGo)
             pm.select(nodeToGet)
+
         mel.eval(melToEval)
+
+    def onDeadline(self):
+        code, msg = self.imanager.callDeadlineScript()
+        if code == -1:
+            if code == -1:
+                self.infoPop(textTitle="Missing File", textInfo="Cannot Submit Scene", textHeader=msg)
 
 
 

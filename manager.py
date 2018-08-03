@@ -1,3 +1,6 @@
+# version 1.9 changes:
+    #  imageManager connection added
+    # scriptJobs added for imageManager connection. (look below for usage)
 # version 1.82 changes: # various code and UI optimizations
 # version 1.8 changes:
     # color code yellow added for the scenes if the referenced version is not the last version
@@ -40,18 +43,35 @@
 
 # version 1.0 initial
 
-##### CALLBACK FUnction for SAVE #####
+
+##### INSTALL #####
 # Add these lines to usersetup.py under scripts folder (Or create the file)
 
+# import os
+# import sys
 # import maya.utils
 # import maya.OpenMaya as OpenMaya
+#
+# def initFolder(targetFolder):
+#     if targetFolder in sys.path:
+#         return
+#     if not os.path.isdir(targetFolder):
+#         print ('Path is not valid (%s)' % targetFolder)
+#     sys.path.append(targetFolder)
+#
 # def smUpdate(*args):
 #     import sceneManager
 #     m = sceneManager.TikManager()
 #     m.regularSaveUpdate()
+#
+# initFolder('M:/Projects/__database//scripts')
 # maya.utils.executeDeferred('SMid = OpenMaya.MSceneMessage.addCallback(OpenMaya.MSceneMessage.kAfterSave, smUpdate)')
 
-SM_Version = "SceneManager v1.821"
+# Restart Maya, Run from python commandline:
+# from tik_manager import setup
+
+
+SM_Version = "SceneManager v1.9"
 
 # import suMod
 import ctypes
@@ -83,7 +103,6 @@ elif Qt.__binding__.startswith('PyQt'):
     from sip import wrapinstance as wrapInstance
 else:
     from shiboken2 import wrapInstance
-
 
 def getOldestFile(rootfolder, extension=".avi"):
     return min(
@@ -1373,8 +1392,8 @@ class TikManager(object):
         dumpJson(jsonInfo, jsonPath)
 
 class MainUI(QtWidgets.QMainWindow):
-    def __init__(self):
-
+    def __init__(self, scriptJob=None):
+        self.scriptJob=scriptJob
         for entry in QtWidgets.QApplication.allWidgets():
             try:
                 if entry.objectName() == SM_Version:
@@ -1402,7 +1421,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.manager = TikManager()
 
         self.scenesInCategory = None
-
+        self.imageManagerINS = None
         self.setObjectName((SM_Version))
         self.resize(680, 600)
         self.setMaximumSize(QtCore.QSize(680, 600))
@@ -1666,14 +1685,20 @@ class MainUI(QtWidgets.QMainWindow):
         add_remove_users_fm.triggered.connect(self.addRemoveUserUI)
 
         tools = self.menubar.addMenu("Tools")
-        foolsMate = QtWidgets.QAction("&Fool's Mate", self)
+        # foolsMate = QtWidgets.QAction("&Fool's Mate", self)
+        imanager = QtWidgets.QAction("&Image Manager", self)
+        iviewer = QtWidgets.QAction("&Image Viewer", self)
         createPB = QtWidgets.QAction("&Create PlayBlast", self)
-        tools.addAction(foolsMate)
+        # tools.addAction(foolsMate)
+        tools.addAction(imanager)
+        tools.addAction(iviewer)
         tools.addAction(createPB)
         # submitToDeadline = QtWidgets.QAction("&Submit to Deadline", self)
         # tools.addAction(submitToDeadline)
 
-        foolsMate.triggered.connect(self.onFoolsMate)
+        # foolsMate.triggered.connect(self.onFoolsMate)
+        imanager.triggered.connect(self.onImanager)
+        iviewer.triggered.connect(self.onIviewer)
         createPB.triggered.connect(self.onCreatePB)
         # submitToDeadline.triggered.connect()
 
@@ -2387,9 +2412,22 @@ class MainUI(QtWidgets.QMainWindow):
                          }
         self.manager.setPBsettings(newPbSettings)
 
-    def onFoolsMate(self):
-        import foolsMate
-        foolsMate.startFoolin()
+    def onImanager(self):
+        import imageManager as iman
+        if self.scriptJob:
+            scriptJob = "%s.imageManagerINS" %(self.scriptJob)
+        else:
+            scriptJob = None
+
+        self.imageManagerINS = iman.MainUI(scriptJob=scriptJob)
+
+    def onIviewer(self):
+        import imageViewer as iview
+        iview.MainUI().show()
+
+    # def onFoolsMate(self):
+    #     import foolsMate
+    #     foolsMate.startFoolin()
 
     def saveBaseSceneDialog(self):
         self.save_Dialog = QtWidgets.QDialog(parent=self)
