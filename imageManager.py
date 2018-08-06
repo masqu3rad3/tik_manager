@@ -30,7 +30,7 @@ __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Scene Manager for Maya Project"
 __credits__ = []
 __license__ = "GPL"
-__version__ = "0.1"
+__version__ = "0.2"
 __maintainer__ = "Arda Kutlu"
 __email__ = "ardakutlu@gmail.com"
 __status__ = "Development"
@@ -289,7 +289,7 @@ class ImageManager(TikManager):
             animEnd = pm.getAttr("defaultRenderGlobals.endFrame")
             if animStart != startFrame or animEnd != endFrame:
                 # msg = "Timeslider range and render ranges are different in {4}. {0}-{1} >> {2}-{3}".format(startFrame,
-                msg = "Timeslider range and Render ranges are different"
+                msg = "Timeslider range and Render ranges are different (%s)" %layer
                 self.minorProblemNodes.append(
                     ["defaultRenderGlobals", layer, "unifiedRenderGlobalsWindow;", msg])  # RG is for Render Globals
                 severity += 1
