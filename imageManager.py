@@ -520,7 +520,8 @@ class MainUI(QtWidgets.QMainWindow):
             self.job_4 = pm.scriptJob(e=["SceneOpened", "%s.refresh()" %scriptJob], parent=windowName)
             self.job_5 = pm.scriptJob(e=["timeUnitChanged", "%s.refresh()" %scriptJob], parent=windowName)
             self.job_6 = pm.scriptJob(e=["renderLayerChange", "%s.refresh()" %scriptJob], parent=windowName)
-            self.scriptJobs = [self.job_1, self.job_2, self.job_3, self.job_4, self.job_5, self.job_6]
+            self.job_7 = pm.scriptJob(e=["workspaceChanged", "%s.refresh()" %scriptJob], parent=windowName)
+            self.scriptJobs = [self.job_1, self.job_2, self.job_3, self.job_4, self.job_5, self.job_6, self.job_7]
 
             # return
     def buildUI(self):

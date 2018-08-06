@@ -1,3 +1,4 @@
+# version 1.91 changes: # added scriptJob for project change, refresh method added
 # version 1.9 changes:
     #  imageManager connection added
     # scriptJobs added for imageManager connection. (look below for usage)
@@ -71,7 +72,7 @@
 # from tik_manager import setup
 
 
-SM_Version = "SceneManager v1.9"
+SM_Version = "SceneManager v1.91"
 
 # import suMod
 import ctypes
@@ -1427,13 +1428,14 @@ class MainUI(QtWidgets.QMainWindow):
         self.setMaximumSize(QtCore.QSize(680, 600))
         self.setWindowTitle((SM_Version))
         self.setToolTip((""))
-        self.setStatusTip((""))
-        self.setWhatsThis((""))
-        self.setAccessibleName((""))
-        self.setAccessibleDescription((""))
         self.centralwidget = QtWidgets.QWidget(self)
         self.centralwidget.setObjectName(("centralwidget"))
         self.buildUI()
+
+        # create scripJobs
+        # scriptJob = "tik_sceneManager"
+        if scriptJob:
+            self.job_1 = pm.scriptJob(e=["workspaceChanged", "%s.refresh()" % scriptJob], parent=SM_Version)
 
         # self.statusBar().showMessage("System Status | Normal")
 
@@ -1778,12 +1780,22 @@ class MainUI(QtWidgets.QMainWindow):
         rcAction_6.triggered.connect(lambda: self.onChangeThumbnail("file"))
 
         #######
-        shortcutRefresh = Qt.QtWidgets.QShortcut(Qt.QtGui.QKeySequence("F5"), self, self.populateScenes)
+        shortcutRefresh = Qt.QtWidgets.QShortcut(Qt.QtGui.QKeySequence("F5"), self, self.refresh)
 
         self.userPrefLoad()
         self.populateScenes()
         # self.manager.remoteLogger()
         self.statusBar().showMessage("Status | Idle")
+
+    def refresh(self):
+        self.manager.__init__()
+        # self.__init__()
+        # if the project changed:
+        if self.projectPath_lineEdit.text() != self.manager.currentProject:
+            self.projectPath_lineEdit.setText(self.manager.currentProject)
+            self.manager.subProjectList = self.manager.scanSubProjects()
+            self.manager.currentSubProjectIndex = 0
+        self.populateScenes()
 
     def addRemoveUserUI(self):
 
