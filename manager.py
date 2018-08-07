@@ -1,80 +1,6 @@
-# version 1.91 changes: # added scriptJob for project change, refresh method added
-# version 1.9 changes:
-    #  imageManager connection added
-    # scriptJobs added for imageManager connection. (look below for usage)
-# version 1.82 changes: # various code and UI optimizations
-# version 1.8 changes:
-    # color code yellow added for the scenes if the referenced version is not the last version
-    # playblast bug fixes
-    # minor code optimizations
-# version 1.7 changes: # added thumbnails
-# version 1.65 changes: # Linux compatibility issues fixed
-# version 1.63 changes: # UI improvements
-# version 1.62 changes: # bugfix: when switching projects, subproject index will be reset to 0 now
-# version 1.61 changes: # create new project bugfix (workspace.mel creation)
-# version 1.6 changes:
-# added "add note" function
-# minor code improvements with the playblast, and note checking methods
-# version 1.58 changes:
-# minor bug fixes with createPlayblast method
-# version 1.57 changes:
-# Kill Turtle method updated
-# Version Number added to the scene dialog
-# version 1.56 changes:# After loading new scene menu refreshes
-# version 1.55 changes:
-# regularSaveUpdate function added for Save callback
-# sound problem fixed with playblasts
-# version 1.45 changes:# Create New Project Function added, Settings menu renamed as File
-# version 1.44 changes:# Bug fix with playblasts Maya 2017 (hud display camera location was inproper)
-# version 1.43 changes:# current scene info line added to the top of the window
-# version 1.42 changes:# sceneInfo right click menu added for base scenes
-# version 1.41 changes:# namespace added while referencing a scene
-# version 1.4 changes: # added wire on shaded and default material settings to the playblast settings file
-# version 1.3 changes:
-# suMod removed. Everything is in a single file. For password protection share only the compiled version.
-# various bug fixes
-# version 1.2 changes:
-# fixed the loading and referencing system. Now it checks for the selected rows 'name' not the list number id.
-# fixed the name check for duplicate base scenes. It doesnt allow creating base scenes with the same name disregarding it
-# has lower case or upper case characters.
-
-# version 1.1 changes:
-# "Frame Range" Hud option is added to playblast settings.
-# In "Reference Mode" Scene List highlighted with red border for visual reference.
-
-# version 1.0 initial
-
-
-##### INSTALL #####
-# Add these lines to usersetup.py under scripts folder (Or create the file)
-
-# import os
-# import sys
-# import maya.utils
-# import maya.OpenMaya as OpenMaya
-#
-# def initFolder(targetFolder):
-#     if targetFolder in sys.path:
-#         return
-#     if not os.path.isdir(targetFolder):
-#         print ('Path is not valid (%s)' % targetFolder)
-#     sys.path.append(targetFolder)
-#
-# def smUpdate(*args):
-#     import sceneManager
-#     m = sceneManager.TikManager()
-#     m.regularSaveUpdate()
-#
-# initFolder('M:/Projects/__database//scripts')
-# maya.utils.executeDeferred('SMid = OpenMaya.MSceneMessage.addCallback(OpenMaya.MSceneMessage.kAfterSave, smUpdate)')
-
-# Restart Maya, Run from python commandline:
-# from tik_manager import setup
-
-
-SM_Version = "SceneManager v1.91"
-
-# import suMod
+"""Manager is the main module for tik_manager.
+Manages the file names and conventions for Save, Load, Reference and Playblast operations
+"""
 import ctypes
 import datetime
 import filecmp
@@ -83,13 +9,11 @@ import io
 import json
 import os
 import platform
-# reload(suMod)
 import pprint
 import re
 import socket
 from shutil import copyfile
 
-#### Import for UI
 import Qt
 import maya.cmds as cmds
 import maya.mel
@@ -104,6 +28,17 @@ elif Qt.__binding__.startswith('PyQt'):
     from sip import wrapinstance as wrapInstance
 else:
     from shiboken2 import wrapInstance
+
+__author__ = "Arda Kutlu"
+__copyright__ = "Copyright 2018, Scene Manager for Maya Project"
+__credits__ = []
+__license__ = "GPL"
+__version__ = "0.2"
+__maintainer__ = "Arda Kutlu"
+__email__ = "ardakutlu@gmail.com"
+__status__ = "Development"
+
+SM_Version = "SceneManager v1.92"
 
 def getOldestFile(rootfolder, extension=".avi"):
     return min(
@@ -282,12 +217,7 @@ class TikManager(object):
         self.currentPlatform = platform.system()
         self.currentProject = pm.workspace(q=1, rd=1)
         self.currentSubProjectIndex = 0
-
-        self.userDB = "M://Projects//__database//sceneManagerUsers.json"
-        if os.path.isfile(self.userDB):
-            self.userList = loadJson(self.userDB)
-        else:
-            self.userList = {"Generic": "gn"}
+        self.userList = self.initUserList()[0]
         self.validCategories = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
         self.padding = 3
         self.subProjectList = self.scanSubProjects()
@@ -343,24 +273,35 @@ class TikManager(object):
             return None
 
     def initUserList(self):
-        imajDefaultDB = "M://Projects//__database//sceneManagerUsers.json"
-        homedir = os.path.expanduser("~")
-        usersFilePath = os.path.join(homedir, "smUserpaths.json")
-        if os.path.isfile(usersFilePath):
-            info = loadJson(usersFilePath)
-            try:
-                self.userDB = info["userDBLocation"]
-            except KeyError:
-                if os.path.isfile(imajDefaultDB):
-                    self.userDB = imajDefaultDB
-                    self.userList = loadJson(self.userDB)
-                else:
-                    self.userList = {"Generic": "gn"}
+        userDBLocation = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sceneManagerUsers.json")
+        if not os.path.isfile(userDBLocation):
+            userDB = {"Generic": "gn"}
+            dumpJson(userDB, userDBLocation)
+            return userDB, userDBLocation
         else:
-            info = {"userDBLocation": None}
-            dumpJson(info, usersFilePath)
+            userDB = loadJson(userDBLocation)
+            return userDB, userDBLocation
 
-        pass
+    def addUser(self, fullName, initials):
+        currentDB, dbFile = self.initUserList()
+        initialsList = currentDB.values()
+        if initials in initialsList:
+            msg="Initials are in use"
+            print msg
+            return -1, msg
+        currentDB[fullName] = initials
+        dumpJson(currentDB, dbFile)
+        self.userList = currentDB
+        return None, None
+
+    def removeUser(self, fullName):
+        currentDB, dbFile = self.initUserList()
+        del currentDB[fullName]
+        dumpJson(currentDB, dbFile)
+        self.userList = currentDB
+
+    def listUsers(self):
+        print self.userList
 
     def createNewProject(self, projectPath):
         # check if there is a duplicate
@@ -1727,7 +1668,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.load_pushButton.clicked.connect(self.onloadScene)
 
-        self.userName_comboBox.currentIndexChanged.connect(self.onUsernameChanged)
+        self.userName_comboBox.currentIndexChanged.connect(self.userPrefSave)
 
         self.version_comboBox.activated.connect(self.refreshNotes)
         self.version_comboBox.activated.connect(self.refreshThumbnail)
@@ -1795,6 +1736,13 @@ class MainUI(QtWidgets.QMainWindow):
             self.projectPath_lineEdit.setText(self.manager.currentProject)
             self.manager.subProjectList = self.manager.scanSubProjects()
             self.manager.currentSubProjectIndex = 0
+
+        # user DB
+        self.userName_comboBox.clear() # clear the combobox items
+        userListSorted = sorted(self.manager.userList.keys())
+        for num in range(len(userListSorted)):
+            self.userName_comboBox.addItem((userListSorted[num]))
+            self.userName_comboBox.setItemText(num, (userListSorted[num]))
         self.populateScenes()
 
     def addRemoveUserUI(self):
@@ -1815,27 +1763,13 @@ class MainUI(QtWidgets.QMainWindow):
         users_Dialog.setModal(True)
         users_Dialog.setObjectName(("users_Dialog"))
         users_Dialog.resize(380, 483)
-        users_Dialog.setMinimumSize(QtCore.QSize(342, 243))
-        users_Dialog.setMaximumSize(QtCore.QSize(342, 243))
+        users_Dialog.setMinimumSize(QtCore.QSize(342, 177))
+        users_Dialog.setMaximumSize(QtCore.QSize(342, 177))
         users_Dialog.setWindowTitle(("Add/Remove Users"))
-
-        userdatabase_groupBox = QtWidgets.QGroupBox(users_Dialog)
-        userdatabase_groupBox.setGeometry(QtCore.QRect(10, 10, 321, 51))
-        userdatabase_groupBox.setTitle(("User Database"))
-        userdatabase_groupBox.setObjectName(("userdatabase_groupBox"))
-
-        userdatabase_lineEdit = QtWidgets.QLineEdit(userdatabase_groupBox)
-        userdatabase_lineEdit.setGeometry(QtCore.QRect(10, 20, 231, 20))
-        userdatabase_lineEdit.setObjectName(("userdatabase_lineEdit"))
-
-        userdatabasebrowse_pushButton = QtWidgets.QPushButton(self.userdatabase_groupBox)
-        userdatabasebrowse_pushButton.setGeometry(QtCore.QRect(250, 20, 61, 21))
-
-        userdatabasebrowse_pushButton.setText(("Browse"))
-        userdatabasebrowse_pushButton.setObjectName(("userdatabasebrowse_pushButton"))
+        users_Dialog.setFocus()
 
         addnewuser_groupBox = QtWidgets.QGroupBox(users_Dialog)
-        addnewuser_groupBox.setGeometry(QtCore.QRect(10, 70, 321, 91))
+        addnewuser_groupBox.setGeometry(QtCore.QRect(10, 10, 321, 91))
         addnewuser_groupBox.setTitle(("Add New User"))
         addnewuser_groupBox.setObjectName(("addnewuser_groupBox"))
 
@@ -1846,10 +1780,10 @@ class MainUI(QtWidgets.QMainWindow):
         fullname_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         fullname_label.setObjectName(("fullname_label"))
 
-        fullname_lineEdit = QtWidgets.QLineEdit(addnewuser_groupBox)
-        fullname_lineEdit.setGeometry(QtCore.QRect(90, 30, 151, 20))
-        fullname_lineEdit.setPlaceholderText(("e.g \"John Doe\""))
-        fullname_lineEdit.setObjectName(("fullname_lineEdit"))
+        self.fullname_lineEdit = QtWidgets.QLineEdit(addnewuser_groupBox)
+        self.fullname_lineEdit.setGeometry(QtCore.QRect(90, 30, 151, 20))
+        self.fullname_lineEdit.setPlaceholderText(("e.g \"John Doe\""))
+        self.fullname_lineEdit.setObjectName(("fullname_lineEdit"))
 
         initials_label = QtWidgets.QLabel(addnewuser_groupBox)
         initials_label.setGeometry(QtCore.QRect(0, 60, 81, 21))
@@ -1858,11 +1792,11 @@ class MainUI(QtWidgets.QMainWindow):
         initials_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         initials_label.setObjectName(("initials_label"))
 
-        initials_lineEdit = QtWidgets.QLineEdit(addnewuser_groupBox)
-        initials_lineEdit.setGeometry(QtCore.QRect(90, 60, 151, 20))
-        initials_lineEdit.setText((""))
-        initials_lineEdit.setPlaceholderText(("e.g \"jd\" (must be unique)"))
-        initials_lineEdit.setObjectName(("initials_lineEdit"))
+        self.initials_lineEdit = QtWidgets.QLineEdit(addnewuser_groupBox)
+        self.initials_lineEdit.setGeometry(QtCore.QRect(90, 60, 151, 20))
+        self.initials_lineEdit.setText((""))
+        self.initials_lineEdit.setPlaceholderText(("e.g \"jd\" (must be unique)"))
+        self.initials_lineEdit.setObjectName(("initials_lineEdit"))
 
         addnewuser_pushButton = QtWidgets.QPushButton(addnewuser_groupBox)
         addnewuser_pushButton.setGeometry(QtCore.QRect(250, 30, 61, 51))
@@ -1870,20 +1804,65 @@ class MainUI(QtWidgets.QMainWindow):
         addnewuser_pushButton.setObjectName(("addnewuser_pushButton"))
 
         deleteuser_groupBox = QtWidgets.QGroupBox(users_Dialog)
-        deleteuser_groupBox.setGeometry(QtCore.QRect(10, 170, 321, 51))
+        deleteuser_groupBox.setGeometry(QtCore.QRect(10, 110, 321, 51))
         deleteuser_groupBox.setTitle(("Delete User"))
         deleteuser_groupBox.setObjectName(("deleteuser_groupBox"))
 
-        selectuser_comboBox = QtWidgets.QComboBox(deleteuser_groupBox)
-        selectuser_comboBox.setGeometry(QtCore.QRect(10, 20, 231, 22))
-        selectuser_comboBox.setObjectName(("selectuser_comboBox"))
+        self.selectuser_comboBox = QtWidgets.QComboBox(deleteuser_groupBox)
+        self.selectuser_comboBox.setGeometry(QtCore.QRect(10, 20, 231, 22))
+        self.selectuser_comboBox.setObjectName(("selectuser_comboBox"))
+
+        userListSorted = sorted(self.manager.userList.keys())
+        for num in range(len(userListSorted)):
+            self.selectuser_comboBox.addItem((userListSorted[num]))
+            self.selectuser_comboBox.setItemText(num, (userListSorted[num]))
 
         deleteuser_pushButton = QtWidgets.QPushButton(deleteuser_groupBox)
         deleteuser_pushButton.setGeometry(QtCore.QRect(250, 20, 61, 21))
         deleteuser_pushButton.setText(("Delete"))
         deleteuser_pushButton.setObjectName(("deleteuser_pushButton"))
 
+        addnewuser_pushButton.clicked.connect(self.onAddUser)
+        # addnewuser_pushButton.clicked.connect(self.refresh)
+        # addnewuser_pushButton.clicked.connect(users_Dialog.close)
+        deleteuser_pushButton.clicked.connect(self.onRemoveUser)
+        # deleteuser_pushButton.clicked.connect(self.refresh)
+        # deleteuser_pushButton.clicked.connect(users_Dialog.close)
+
+        self.fullname_lineEdit.textChanged.connect(
+            lambda: checkValidity(self.fullname_lineEdit.text(), addnewuser_pushButton,
+                                  self.fullname_lineEdit))
+        self.initials_lineEdit.textChanged.connect(
+            lambda: checkValidity(self.initials_lineEdit.text(), addnewuser_pushButton,
+                                  self.initials_lineEdit))
+
         users_Dialog.show()
+
+    def onAddUser(self):
+        ret, msg = self.manager.addUser(self.fullname_lineEdit.text(), self.initials_lineEdit.text())
+        if ret == -1:
+            self.infoPop(textTitle="Cannot Add User", textHeader=msg)
+            return
+        self.refresh()
+        userListSorted = sorted(self.manager.userList.keys())
+        self.selectuser_comboBox.clear()
+        for num in range(len(userListSorted)):
+            self.selectuser_comboBox.addItem((userListSorted[num]))
+            self.selectuser_comboBox.setItemText(num, (userListSorted[num]))
+        self.statusBar().showMessage("Status | User Added => %s" % self.fullname_lineEdit.text())
+        self.fullname_lineEdit.setText("")
+        self.initials_lineEdit.setText("")
+        pass
+
+    def onRemoveUser(self):
+        self.manager.removeUser(self.selectuser_comboBox.currentText())
+        self.refresh()
+        userListSorted = sorted(self.manager.userList.keys())
+        self.selectuser_comboBox.clear()
+        for num in range(len(userListSorted)):
+            self.selectuser_comboBox.addItem((userListSorted[num]))
+            self.selectuser_comboBox.setItemText(num, (userListSorted[num]))
+        pass
 
     def createProjectUI(self):
 
@@ -2840,9 +2819,10 @@ class MainUI(QtWidgets.QMainWindow):
 
         settingsData = {"currentTabIndex": self.category_tabWidget.currentIndex(),
                         "currentSubIndex": self.subProject_comboBox.currentIndex(),
-                        "currentUserIndex": self.userName_comboBox.currentIndex(),
+                        #"currentUserIndex": self.userName_comboBox.currentIndex(),
+                        "currentUser": self.userName_comboBox.currentText(),
                         "currentMode": self.referenceMode_radioButton.isChecked()}
-
+        # print self.userName_comboBox.currentText()
         dumpJson(settingsData, settingsFilePath)
 
     def userPrefLoad(self):
@@ -2853,18 +2833,27 @@ class MainUI(QtWidgets.QMainWindow):
             settingsData = loadJson(settingsFilePath)
         else:
             # return defaults
-            settingsData = {"currentTabIndex": 0, "currentSubIndex": 0, "currentUserIndex": 0, "currentMode": 0}
+            # settingsData = {"currentTabIndex": 0, "currentSubIndex": 0, "currentUserIndex": 0, "currentMode": 0}
+            settingsData = {"currentTabIndex": 0, "currentSubIndex": 0, "currentUser": "", "currentMode": 0}
             dumpJson(settingsData, settingsFilePath)
 
         self.referenceMode_radioButton.setChecked(settingsData["currentMode"])
         self.loadMode_radioButton.setChecked(not settingsData["currentMode"])
 
-        if settingsData["currentUserIndex"] <= (len(self.manager.userList)):
-            currentUserIndex = settingsData["currentUserIndex"]
+        # if settingsData["currentUserIndex"] <= (len(self.manager.userList)):
+        #     currentUserIndex = settingsData["currentUserIndex"]
+        # else:
+        #     currentUserIndex = 0
+        if not settingsData["currentUser"] in (self.manager.userList.keys()):
+            currentUser = self.manager.userList[self.manager.userList.keys()[0]]
         else:
-            currentUserIndex = 0
+            currentUser = settingsData["currentUser"]
         # self.manager.currentUserIndex=currentUserIndex
-        self.userName_comboBox.setCurrentIndex(currentUserIndex)
+        userNameindex = self.userName_comboBox.findText(currentUser, QtCore.Qt.MatchFixedString)
+        if userNameindex >= 0:
+            self.userName_comboBox.setCurrentIndex(userNameindex)
+        else:
+            self.userName_comboBox.setCurrentIndex(0)
 
         if settingsData["currentSubIndex"] < (len(self.manager.subProjectList)):
             currentSubIndex = settingsData["currentSubIndex"]
@@ -2876,9 +2865,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.subProject_comboBox.setCurrentIndex(currentSubIndex)
 
         self.category_tabWidget.setCurrentIndex(settingsData["currentTabIndex"])
-
-    def onUsernameChanged(self):
-        self.userPrefSave()
 
     def rcAction(self, command):
         if command == "importScene":
