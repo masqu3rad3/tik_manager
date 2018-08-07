@@ -1724,15 +1724,18 @@ class MainUI(QtWidgets.QMainWindow):
 
 
         createProject_fm.triggered.connect(self.createProjectUI)
+        saveVersion_fm.triggered.connect(self.saveAsVersionDialog)
+        saveBaseScene_fm.triggered.connect(self.saveBaseSceneDialog)
+        loadReferenceScene_fm.triggered.connect(self.onloadScene)
+        add_remove_users_fm.triggered.connect(self.addRemoveUserUI)
         deleteFile_fm.triggered.connect(lambda: self.onDeleteBaseScene())
         deleteReference_fm.triggered.connect(self.onDeleteReference)
         # reBuildDatabase_fm.triggered.connect(lambda: suMod.SuManager().rebuildDatabase())
         projectReport_fm.triggered.connect(lambda: self.manager.projectReport())
         pb_settings_fm.triggered.connect(self.pbSettingsUI)
-
         checkReferences_fm.triggered.connect(lambda: self.onReferenceCheck(deepCheck=True))
 
-        add_remove_users_fm.triggered.connect(self.addRemoveUserUI)
+
 
         tools = self.menubar.addMenu("Tools")
         # foolsMate = QtWidgets.QAction("&Fool's Mate", self)
@@ -2082,7 +2085,6 @@ class MainUI(QtWidgets.QMainWindow):
             self.createproject_Dialog.accept()
             melProofPath = self.newProjectPath.replace("\\", "\\\\")
             evalstr = 'setProject("' + (melProofPath) + '");'  # OK
-            # print("evalstr=" + evalstr);
             mel.eval(evalstr)  # OK
 
             # mel.eval('setProject \"' + os.path.normpath(self.newProjectPath) + '\"')
@@ -2237,7 +2239,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.fileformat_comboBox.currentIndexChanged.connect(self.updateCodecs)
 
         # get the index number from the name in the settings file and make that index active
-        # print currentSettings["Codec"]
         cindex = self.codec_comboBox.findText(currentSettings["Codec"], QtCore.Qt.MatchFixedString)
         if cindex >= 0:
             self.codec_comboBox.setCurrentIndex(cindex)
@@ -2714,12 +2715,16 @@ class MainUI(QtWidgets.QMainWindow):
         sv_buttonBox.rejected.connect(saveV_Dialog.reject)
         QtCore.QMetaObject.connectSlotsByName(saveV_Dialog)
 
-        saveV_Dialog.show()
+        sceneInfo = self.manager.getSceneInfo()
+        if sceneInfo:
+            saveV_Dialog.show()
+        else:
+            self.infoPop(textInfo="Save Version FAILED",
+                         textHeader="Current Scene is not a Base Scene. No Version saved", textTitle="ERROR: SAVE VERSION", type="C")
 
     def onSaveBaseScene(self):
         userInitials = self.manager.userList[self.userName_comboBox.currentText()]
         subProject = self.sdSubP_comboBox.currentIndex()
-        print subProject
 
         name = nameCheck(self.sdName_lineEdit.text())
         if name == -1:
@@ -2737,9 +2742,8 @@ class MainUI(QtWidgets.QMainWindow):
             self.statusBar().showMessage("Status | Base Scene Created => %s" % sceneFile)
 
         else:
-            self.infoPop(
-                textHeader="Save Base Scene FAILED. A Base Scene with the same name already exists in the same sub-project and same category. Choose an unique one.",
-                textInfo="", textTitle="ERROR: Saving Base Scene", type="C")
+            self.infoPop(textInfo="Save Version FAILED",
+                         textHeader="Current Scene is not a Base Scene. No Version saved", textTitle="ERROR: SAVE VERSION", type="C")
 
 
 
@@ -2808,7 +2812,6 @@ class MainUI(QtWidgets.QMainWindow):
         notes, pbDict = self.manager.getVersionNotes(sceneJson, version=version)
         if len(pbDict.keys()) == 1:
             path = pbDict[pbDict.keys()[0]]
-            # print path
             self.manager.playPlayblast(path)
         else:
             zortMenu = QtWidgets.QMenu()
@@ -2929,7 +2932,6 @@ class MainUI(QtWidgets.QMainWindow):
                         #"currentUserIndex": self.userName_comboBox.currentIndex(),
                         "currentUser": self.userName_comboBox.currentText(),
                         "currentMode": self.referenceMode_radioButton.isChecked()}
-        # print self.userName_comboBox.currentText()
         dumpJson(settingsData, settingsFilePath)
 
     def userPrefLoad(self):
@@ -2968,7 +2970,6 @@ class MainUI(QtWidgets.QMainWindow):
             currentSubIndex = 0
 
         self.manager.currentSubProjectIndex = currentSubIndex
-        print "index", self.manager.currentSubProjectIndex
         self.subProject_comboBox.setCurrentIndex(currentSubIndex)
 
         self.category_tabWidget.setCurrentIndex(settingsData["currentTabIndex"])
@@ -3010,7 +3011,6 @@ class MainUI(QtWidgets.QMainWindow):
 
                 path = os.path.join(os.path.normpath(self.manager.currentProject), os.path.normpath(sceneData["Path"]))
                 path = path.replace("scenes", "Playblasts")
-                print path
                 if os.path.isdir(path):
                     if self.manager.currentPlatform == "Windows":
                         os.startfile(path)
@@ -3064,6 +3064,7 @@ class MainUI(QtWidgets.QMainWindow):
             index = self.scenesInCategory.index(path)
             if self.scenes_listWidget.item(index):
                 self.scenes_listWidget.item(index).setForeground(color)
+        self.statusBar().showMessage("References Checked")
 
 
     def onSetProject(self):
@@ -3107,20 +3108,11 @@ class MainUI(QtWidgets.QMainWindow):
 
         if not row == -1:
             sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
-            # takethefirstjson as example for rootpath
-            # jPath = pathOps(self.scenesInCategory[0], "path")
             sceneJson = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
-
-            # sceneData = loadJson(os.path.join(jPath, sceneName))
             version = self.version_comboBox.currentIndex()
-            # self.notes_textEdit.setPlainText(sceneData["Versions"][currentIndex][1])
-            # print "\nscene", sceneJson
-            # print "\nversion", version
 
             notes, pbDict = self.manager.getVersionNotes(sceneJson, version)
-            # print "notes", notes
 
-            # if sceneData["Versions"][currentIndex][4].keys():
             self.notes_textEdit.setPlainText(notes)
             if pbDict.keys():
                 self.showPB_pushButton.setEnabled(True)
@@ -3192,8 +3184,7 @@ class MainUI(QtWidgets.QMainWindow):
             jPath = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
             sceneData = loadJson(jPath)
             textInfo = pprint.pformat(sceneData)
-            # self.infoPop(textInfo=textInfo, type="I")
-            # pprint.pprint(sceneData)
+
             self.messageDialog = QtWidgets.QDialog()
             self.messageDialog.setWindowTitle("Scene Info")
 
