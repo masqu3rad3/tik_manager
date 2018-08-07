@@ -1,5 +1,10 @@
+=============================
+Scene Manager Version History
+=============================
+
+
 1.92
-=====
+-----
 * **New:** add/remove user functions added
 * **Update:** IMPORTANT user preferences (smSettings.json) structure changed. Delete old preference data under user/Documents
 
