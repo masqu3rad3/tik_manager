@@ -8,27 +8,27 @@ Installing Scene Manager
 replace 'M://Projects//__database//scripts'
 
 .. code-block::
-    import os
-    import sys
-    import maya.utils
-    import maya.OpenMaya as OpenMaya
+import os
+import sys
+import maya.utils
+import maya.OpenMaya as OpenMaya
 
-    def initFolder(targetFolder):
-        if targetFolder in sys.path:
-            return
-        if not os.path.isdir(targetFolder):
-            print ('Path is not valid (%s)' % targetFolder)
-        sys.path.append(targetFolder)
+def initFolder(targetFolder):
+    if targetFolder in sys.path:
+        return
+    if not os.path.isdir(targetFolder):
+        print ('Path is not valid (%s)' % targetFolder)
+    sys.path.append(targetFolder)
 
-    def smUpdate(*args):
-        import sceneManager
-        m = sceneManager.TikManager()
-        m.regularSaveUpdate()
+def smUpdate(*args):
+    import sceneManager
+    m = sceneManager.TikManager()
+    m.regularSaveUpdate()
 
-    initFolder('M://Projects//__database//scripts')
-    maya.utils.executeDeferred('SMid = OpenMaya.MSceneMessage.addCallback(OpenMaya.MSceneMessage.kAfterSave, smUpdate)')
+initFolder('M://Projects//__database//scripts')
+maya.utils.executeDeferred('SMid = OpenMaya.MSceneMessage.addCallback(OpenMaya.MSceneMessage.kAfterSave, smUpdate)')
 
 - Restart Maya
 - Run from python commandline:
 .. code-block::
-    from tik_manager import setup
+from tik_manager import setup
