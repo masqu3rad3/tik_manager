@@ -4,13 +4,13 @@ On initialization, script changes the image name template according to the defin
 and checks the scene for possible errors
 Double Clicking on warnings open up the related dialog.
 """
+import __init__
 import pymel.core as pm
 import os
 import logging
 import maya.mel as mel
 from manager import TikManager
-# reload(TikManager)
-from manager import pathOps, getPathsFromScene, folderCheck
+
 import Qt
 from Qt import QtWidgets, QtCore, QtGui
 from maya import OpenMayaUI as omui
@@ -24,18 +24,18 @@ else:
     from shiboken2 import wrapInstance
     from Qt.QtCore import Signal
 
-from manager import loadJson, dumpJson
+# from manager import loadJson, dumpJson
 
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Scene Manager for Maya Project"
 __credits__ = []
 __license__ = "GPL"
-__version__ = "0.2"
+# __version__ = "0.2"
 __maintainer__ = "Arda Kutlu"
 __email__ = "ardakutlu@gmail.com"
 __status__ = "Development"
 
-windowName = "Image Manager v0.1"
+windowName = "Image Manager v%s" %__init__.__version__
 
 logging.basicConfig()
 logger = logging.getLogger('ImageManager')
@@ -195,7 +195,7 @@ class ImageManager(TikManager):
                 nodeAttr = ".".join(attr_component_list[0:-1])
                 return pm.getAttr("%s.value" % nodeAttr)  # return
             else:
-                if returnAnyWay == True:
+                if returnAnyWay:
                     return pm.getAttr(nodeAttr)  # return
                 else:
                     return None
@@ -215,7 +215,7 @@ class ImageManager(TikManager):
         for layer in renderLayerList:
             for ip in allImagePlanes:
                 dMode = self.getAttrInLayer(ip, "displayMode", layer=layer, returnAnyWay=False)
-                if dMode != None:
+                if not dMode == None:
                     if dMode != 0:
                         msg = "ImagePlane (%s) in %s is renderable!" % (ip, layer)
                         if len(renderLayerList) > 1 and layer == "defaultRenderLayer":
@@ -306,7 +306,7 @@ class ImageManager(TikManager):
 
                 matInfo = None
 
-            if matInfo != None:
+            if not matInfo == None:
                 sGroup = pm.getAttr(matInfo.shadingGroup)
                 if len(sGroup) > 0:
                     try:
@@ -359,7 +359,7 @@ class ImageManager(TikManager):
 
                 fnPPcount += 1
                 msg = "Texture File (%s => %s) is not in the Project Folder" % (fn, fileBase)
-                if (isAssigned(fn)) == True:
+                if (isAssigned(fn)):
 
                     self.majorProblemNodes.append([fn, "defaultRenderLayer", "openAEWindow;", msg])
                     severity += 6
@@ -379,7 +379,7 @@ class ImageManager(TikManager):
             #         self.feedBackMinor.append(msg)
             #         self.pathsSeverity += 1
             if projectsFolder not in filePath:
-                if (isAssigned(fn)) == True:
+                if (isAssigned(fn)):
                     msg = "Texture File (ASSIGNED) is NOT even in %s !!! (%s)" % (projectsFolder,fileBase)
                     self.majorProblemNodes.append([fn, "defaultRenderLayer", "openAEWindow;", msg])
                     severity += 10
@@ -667,7 +667,7 @@ class MainUI(QtWidgets.QMainWindow):
             layerToGo = self.imanager.minorProblemNodes[(row)-(len(self.imanager.majorProblemNodes))][1]
             melToEval = self.imanager.minorProblemNodes[(row)-(len(self.imanager.majorProblemNodes))][2]
 
-        if nodeToGet != None:
+        if not nodeToGet == None:
             # first go to the problematic layer
             pm.editRenderLayerGlobals(currentRenderLayer=layerToGo)
             pm.select(nodeToGet)

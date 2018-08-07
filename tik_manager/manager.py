@@ -21,7 +21,8 @@ import maya.mel as mel
 import pymel.core as pm
 from Qt import QtWidgets, QtCore, QtGui
 from maya import OpenMayaUI as omui
-
+import __init__
+reload(__init__)
 if Qt.__binding__ == "PySide":
     from shiboken import wrapInstance
 elif Qt.__binding__.startswith('PyQt'):
@@ -33,14 +34,21 @@ __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Scene Manager for Maya Project"
 __credits__ = []
 __license__ = "GPL"
-__version__ = "0.2"
 __maintainer__ = "Arda Kutlu"
 __email__ = "ardakutlu@gmail.com"
 __status__ = "Development"
 
-SM_Version = "SceneManager v1.92"
+SM_Version = "Scene Manager v%s" %__init__.__version__
 
 def getOldestFile(rootfolder, extension=".avi"):
+    """
+    Gets the oldest file in given folder
+    Args:
+        rootfolder: (String) Folder to search
+        extension: (String) Extensions to filter down
+
+    Returns: (String) OldestFile
+    """
     return min(
         (os.path.join(dirname, filename)
          for dirname, dirnames, filenames in os.walk(rootfolder)
@@ -48,8 +56,15 @@ def getOldestFile(rootfolder, extension=".avi"):
          if filename.endswith(extension)),
         key=lambda fn: os.stat(fn).st_mtime)
 
-
 def getNewestFile(rootfolder, extension=".avi"):
+    """
+    Gets the most recent file in given folder
+    Args:
+        rootfolder: (String) Folder to search
+        extension: (String) Extensions to filter down
+
+    Returns: (String) MostRecentFile
+    """
     return max(
         (os.path.join(dirname, filename)
          for dirname, dirnames, filenames in os.walk(rootfolder)
@@ -59,6 +74,11 @@ def getNewestFile(rootfolder, extension=".avi"):
 
 
 def killTurtle():
+    """
+    Kills the turtle nodes
+    Returns:None
+
+    """
     try:
         pm.lockNode('TurtleDefaultBakeLayer', lock=False)
         pm.delete('TurtleDefaultBakeLayer')
@@ -87,6 +107,11 @@ def killTurtle():
 
 
 def checkRequirements():
+    """
+    Checks the requirements for platform and administrator rights. Returns [None, None] if passes both
+    Returns: (List) [ErrorCode, ErrorMessage]
+
+    """
     ## check platform
     currentOs = platform.system()
     if currentOs != "Linux" and currentOs != "Windows":
@@ -116,11 +141,27 @@ def getMayaMainWindow():
 
 
 def folderCheck(folder):
+    """
+    Checks the folder for existence. If not, creates it
+    Args:
+        folder: (String) Folder to check
+
+    Returns: None
+
+    """
     if not os.path.isdir(os.path.normpath(folder)):
         os.makedirs(os.path.normpath(folder))
 
 
 def loadJson(file):
+    """
+    Loads the given json file
+    Args:
+        file: (String) Path to the json file
+
+    Returns: JsonData
+
+    """
     if os.path.isfile(file):
         with open(file, 'r') as f:
             # The JSON module will read our file, and convert it to a python dictionary
@@ -131,11 +172,28 @@ def loadJson(file):
 
 
 def dumpJson(data, file):
+    """
+    Saves the data to the json file
+    Args:
+        data: Data to save
+        file: (String) Path to the json file
+
+    Returns: None
+
+    """
     with open(file, "w") as f:
         json.dump(data, f, indent=4)
 
 
 def nameCheck(text):
+    """
+    Checks the given text for illegal characters
+    Args:
+        text: (String) Text to check
+
+    Returns: (Integer)/(String) -1 for Error, <String> for corrected Text
+
+    """
     text = text.replace("|", "__")
     if re.match("^[A-Za-z0-9_-]*$", text):
         if text == "":
@@ -148,6 +206,16 @@ def nameCheck(text):
 
 
 def checkValidity(text, button, lineEdit):
+    """
+    Checks the given text for illegal characters. If illegal, disables the QPushButton and outlines the lineEdit QWidget Red
+    Args:
+        text: (String)
+        button: (QPushButton)
+        lineEdit: (QLineEdit)
+
+    Returns: None
+
+    """
     if not re.match("^[A-Za-z0-9_-]*$", text):
         lineEdit.setStyleSheet("background-color: red; color: black")
         button.setEnabled(False)
@@ -183,8 +251,12 @@ def pathOps(fullPath, mode):
     if mode == "extension":
         return ext
 
+def getPaths():
+    """
+    Collects the necessary path data from the scene
+    Returns: (Dictionary) projectPath, dataPath, jsonPath, scenesPath, playBlastRoot
 
-def getPathsFromScene(*args, **kwargs):
+    """
     projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
     dataPath = os.path.normpath(os.path.join(projectPath, "data"))
     folderCheck(dataPath)
@@ -194,21 +266,14 @@ def getPathsFromScene(*args, **kwargs):
     folderCheck(scenesPath)
     playBlastRoot = os.path.normpath(os.path.join(projectPath, "Playblasts"))
     folderCheck(playBlastRoot)
-    returnList = []
-    for i in args:
-        if i == "projectPath":
-            returnList.append(projectPath)
-        if i == "dataPath":
-            returnList.append(dataPath)
-        if i == "jsonPath":
-            returnList.append(jsonPath)
-        if i == "scenesPath":
-            returnList.append(scenesPath)
-        if i == "playBlastRoot":
-            returnList.append(playBlastRoot)
-    if len(returnList) < 2:
-        returnList = returnList[0]
-    return returnList
+    pathDictionary = {"projectPath": projectPath,
+                      "dataPath": dataPath,
+                      "jsonPath": jsonPath,
+                      "scenesPath": scenesPath,
+                      "playBlastRoot": playBlastRoot
+                      }
+    return pathDictionary
+
 
 
 class TikManager(object):
@@ -220,7 +285,9 @@ class TikManager(object):
         self.userList = self.initUserList()[0]
         self.validCategories = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
         self.padding = 3
+        self.scenePaths = getPaths()
         self.subProjectList = self.scanSubProjects()
+
 
     def getSceneInfo(self):
         """
@@ -233,7 +300,9 @@ class TikManager(object):
             # pm.warning("This is not a base scene (Untitled)")
             return None
 
-        projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
+        # projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
+        projectPath = self.scenePaths["projectPath"]
+        jsonPath = self.scenePaths["jsonPath"]
         # first get the parent dir
         shotDirectory = os.path.abspath(os.path.join(pm.sceneName(), os.pardir))
         shotName = os.path.basename(shotDirectory)
@@ -429,9 +498,15 @@ class TikManager(object):
     def projectReport(self):
 
         # // TODO Create a through REPORT
-        projectPath, dataPath, jsonPath, scenesPath, playBlastRoot = getPathsFromScene("projectPath", "dataPath",
-                                                                                       "jsonPath", "scenesPath",
-                                                                                       "playBlastRoot")
+        # projectPath, dataPath, jsonPath, scenesPath, playBlastRoot = getPathsFromScene("projectPath", "dataPath",
+        #                                                                                "jsonPath", "scenesPath",
+        #                                                                                "playBlastRoot")
+        projectPath = self.scenePaths["projectPath"]
+        dataPath = self.scenePaths["dataPath"]
+        jsonPath = self.scenePaths["jsonPath"]
+        scenesPath = self.scenePaths["scenePath"]
+        playBlastRoot = self.scenePaths["playBlastRoot"]
+
         # get All json files:
         oldestFile = getOldestFile(scenesPath, extension=(".mb", ".ma"))
         # oldestTime = os.stat(oldestFile).st_mtime
@@ -480,11 +555,12 @@ class TikManager(object):
         try:
             session = ftplib.FTP('ardakutlu.com', 'customLogs@ardakutlu.com', 'Dq%}3LwVMZms')
             now = datetime.datetime.now()
-            filename = (
-            "{0}_{1}".format(now.strftime("%Y.%m.%d.%H.%M"), pathOps(getPathsFromScene("projectPath"), "basename")))
+            # filename = ("{0}_{1}".format(now.strftime("%Y.%m.%d.%H.%M"), pathOps(getPathsFromScene("projectPath"), "basename")))
+            filename = ("{0}_{1}".format(now.strftime("%Y.%m.%d.%H.%M"), pathOps(self.scenePaths["projectPath"], "basename")))
 
             logInfo = "{0}\n{1}\n{2}".format(
-                getPathsFromScene("projectPath"),
+                # getPathsFromScene("projectPath"),
+                self.scenePaths["projectPath"],
                 socket.gethostname(),
                 (socket.gethostbyname(socket.gethostname())),
             )
@@ -509,7 +585,9 @@ class TikManager(object):
         if not sceneName:
             return
 
-        projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
+        # projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
+        projectPath = self.scenePaths["projectPath"]
+        jsonPath = self.scenePaths["jsonPath"]
 
         shotDirectory = os.path.abspath(os.path.join(pm.sceneName(), os.pardir))
         shotName = os.path.basename(shotDirectory)
@@ -581,7 +659,11 @@ class TikManager(object):
                 pm.warning("Choose an unique name")
                 return -1
 
-        projectPath, jsonPath, scenesPath = getPathsFromScene("projectPath", "jsonPath", "scenesPath")
+        # projectPath, jsonPath, scenesPath = getPathsFromScene("projectPath", "jsonPath", "scenesPath")
+        projectPath = self.scenePaths["projectPath"]
+        jsonPath = self.scenePaths["jsonPath"]
+        scenesPath = self.scenePaths["scenesPath"]
+
         categoryPath = os.path.normpath(os.path.join(scenesPath, category))
         folderCheck(categoryPath)
 
@@ -683,8 +765,7 @@ class TikManager(object):
             return -1
 
         sceneInfo = self.getSceneInfo()
-        # jsonFile = self.getCurrentJson()
-        # projectPath = getPathsFromScene("projectPath")
+
 
 
         if sceneInfo: ## getCurrentJson returns None if the resolved json path is missing
@@ -723,7 +804,9 @@ class TikManager(object):
 
     def getPBsettings(self):
 
-        projectPath, playBlastRoot = getPathsFromScene("projectPath", "playBlastRoot")
+        # projectPath, playBlastRoot = getPathsFromScene("projectPath", "playBlastRoot")
+        projectPath = self.scenePaths["projectPath"]
+        playBlastRoot = self.scenePaths["playBlastRoot"]
 
         # pbSettingsFile = "{0}\\PBsettings.json".format(os.path.join(projectPath, playBlastRoot))
         pbSettingsFile = os.path.join(os.path.join(projectPath, playBlastRoot), "PBsettings.json")
@@ -754,7 +837,10 @@ class TikManager(object):
 
     def setPBsettings(self, pbSettingsDict):
 
-        projectPath, playBlastRoot = getPathsFromScene("projectPath", "playBlastRoot")
+        # projectPath, playBlastRoot = getPathsFromScene("projectPath", "playBlastRoot")
+        projectPath = self.scenePaths["projectPath"]
+        playBlastRoot = self.scenePaths["playBlastRoot"]
+
         pbSettingsFile = os.path.join(os.path.join(projectPath, playBlastRoot), "PBsettings.json")
         dumpJson(pbSettingsDict, pbSettingsFile)
         return
@@ -790,7 +876,10 @@ class TikManager(object):
             pm.warning(msg)
             return -1, msg
 
-        projectPath, jsonPath, playBlastRoot = getPathsFromScene("projectPath", "jsonPath", "playBlastRoot")
+        # projectPath, jsonPath, playBlastRoot = getPathsFromScene("projectPath", "jsonPath", "playBlastRoot")
+        projectPath = self.scenePaths["projectPath"]
+        jsonPath = self.scenePaths["jsonPath"]
+        playBlastRoot = self.scenePaths["playBlastRoot"]
 
         # first get the parent dir
         shotDirectory = os.path.abspath(os.path.join(pm.sceneName(), os.pardir))
@@ -991,7 +1080,8 @@ class TikManager(object):
             #######
 
     def playPlayblast(self, relativePath):
-        projectPath = getPathsFromScene("projectPath")
+        # projectPath = getPathsFromScene("projectPath")
+        projectPath = self.scenePaths["projectPath"]
 
         PBfile = os.path.join(projectPath, relativePath)
         if self.currentPlatform == "Windows":
@@ -1016,7 +1106,9 @@ class TikManager(object):
         if (nameOfSubProject.lower()) == "none":
             pm.warning("Naming mismatch")
             return None
-        projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
+        # projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
+        projectPath = self.scenePaths["projectPath"]
+        jsonPath = self.scenePaths["jsonPath"]
         subPjson = os.path.normpath(os.path.join(jsonPath, "subPdata.json"))
         subInfo = []
         if os.path.isfile(subPjson):
@@ -1028,7 +1120,9 @@ class TikManager(object):
         return subInfo
 
     def scanSubProjects(self):
-        projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
+        # projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
+        projectPath = self.scenePaths["projectPath"]
+        jsonPath = self.scenePaths["jsonPath"]
         subPjson = os.path.normpath(os.path.join(jsonPath, "subPdata.json"))
         if not os.path.isfile(subPjson):
             subInfo = ["None"]
@@ -1102,7 +1196,9 @@ class TikManager(object):
             subProjectIndex = subProjectAs
         else:
             subProjectIndex = self.currentSubProjectIndex
-        projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
+        # projectPath, jsonPath = getPathsFromScene("projectPath", "jsonPath")
+        projectPath = self.scenePaths["projectPath"]
+        jsonPath = self.scenePaths["jsonPath"]
 
         subPjson = os.path.normpath(os.path.join(jsonPath, "subPdata.json"))
         if not os.path.isfile(subPjson):
@@ -1142,7 +1238,8 @@ class TikManager(object):
         Returns: None
 
         """
-        projectPath = getPathsFromScene("projectPath")
+        # projectPath = getPathsFromScene("projectPath")
+        projectPath = self.scenePaths["projectPath"]
         jsonInfo = loadJson(jsonFile)
         relSceneFile = jsonInfo["Versions"][version][0]  ## this is the relative scene path of the specified version
         sceneFile = os.path.join(projectPath, relSceneFile)
@@ -1156,7 +1253,9 @@ class TikManager(object):
             pm.error("File in Scene Manager database doesnt exist")
 
     def deleteBaseScene(self, jsonFile):
-        projectPath = getPathsFromScene("projectPath")
+        # projectPath = getPathsFromScene("projectPath")
+        projectPath = self.scenePaths["projectPath"]
+
         jsonInfo = loadJson(jsonFile)
 
         # delete all version files
@@ -1188,7 +1287,9 @@ class TikManager(object):
             pass
 
     def deleteReference(self, jsonFile):
-        projectPath = getPathsFromScene("projectPath")
+        # projectPath = getPathsFromScene("projectPath")
+        projectPath = self.scenePaths["projectPath"]
+
         jsonInfo = loadJson(jsonFile)
         if jsonInfo["ReferenceFile"]:
             try:
@@ -1214,7 +1315,9 @@ class TikManager(object):
         """
 
         # projectPath = pm.workspace(q=1, rd=1)
-        projectPath = getPathsFromScene("projectPath")
+        # projectPath = getPathsFromScene("projectPath")
+        projectPath = self.scenePaths["projectPath"]
+
         jsonInfo = loadJson(jsonFile)
 
         if version == 0 or version > len(jsonInfo["Versions"]):
@@ -1244,7 +1347,9 @@ class TikManager(object):
         Returns: True => 1 False => -1 No Reference => 0
 
         """
-        projectPath = getPathsFromScene("projectPath")
+        # projectPath = getPathsFromScene("projectPath")
+        projectPath = self.scenePaths["projectPath"]
+
         jsonInfo = loadJson(jsonFile)
         if jsonInfo["ReferenceFile"]:
             relRefVersion = jsonInfo["Versions"][jsonInfo["ReferencedVersion"] - 1][0]
@@ -1266,7 +1371,9 @@ class TikManager(object):
 
 
     def loadReference(self, jsonFile):
-        projectPath = getPathsFromScene("projectPath")
+        # projectPath = getPathsFromScene("projectPath")
+        projectPath = self.scenePaths["projectPath"]
+
         jsonInfo = loadJson(jsonFile)
         relReferenceFile = jsonInfo["ReferenceFile"]
 
@@ -3263,7 +3370,7 @@ class MainUI(QtWidgets.QMainWindow):
     def onDeleteBaseScene(self):
 
         state = self.queryPop("password", textTitle= "DELETE BASE SCENE", textInfo="!!!DELETING BASE SCENE!!!\n\nAre you absolutely sure?", password="682")
-        if state == True:
+        if state:
             row = self.scenes_listWidget.currentRow()
             if not row == -1:
                 sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
@@ -3276,7 +3383,7 @@ class MainUI(QtWidgets.QMainWindow):
 
     def onDeleteReference(self):
         state = self.queryPop("password", textTitle= "DELETE BASE SCENE", textInfo="DELETING Reference File\n\nAre you sure?", password="682")
-        if state == True:
+        if state:
             row = self.scenes_listWidget.currentRow()
             if not row == -1:
                 sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()

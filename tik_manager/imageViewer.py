@@ -5,7 +5,7 @@ Meaning all the sequence under the selected folder will be listed
 recursively.
 Double clicking on the seguence will execute the file on the defined application
 """
-
+import __init__
 import pyseq as seq
 import os
 import pymel.core as pm
@@ -16,13 +16,13 @@ from maya import OpenMayaUI as omui
 import json
 import datetime
 import fileCopyProgress as fCopy
-# reload(fCopy)
+
 
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Scene Manager for Maya Project"
 __credits__ = []
 __license__ = "GPL"
-__version__ = "0.1"
+# __version__ = "0.1"
 __maintainer__ = "Arda Kutlu"
 __email__ = "ardakutlu@gmail.com"
 __status__ = "Development"
@@ -37,7 +37,7 @@ else:
     from shiboken2 import wrapInstance
     from Qt.QtCore import Signal
 
-windowName = "Image Viewer v0.1"
+windowName = "Image Viewer v%s" %__init__.__version__
 
 # def getTheImages():
 #     imagesFolder = os.path.join(os.path.normpath(pm.workspace(q=1, rd=1)), "images")
@@ -78,6 +78,11 @@ def dumpJson(data, file):
         json.dump(data, f, indent=4)
 
 def initDB():
+    """
+    Initializes json Database for remote server transfer location
+    Returns: (List) if successfull [0, transferLocation] if failed [-1, "N/A"]
+
+    """
     projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
     jsonPath = os.path.normpath(os.path.join(projectPath, "data", "SMdata"))
     tLocationFile = os.path.normpath(os.path.join(jsonPath, "tLocation.json"))
@@ -88,6 +93,14 @@ def initDB():
         return -1, "N/A"
 
 def setTlocation(path):
+    """
+    Sets the Remote Server transfer location and saves it into the json database
+    Args:
+        path: (String) Path of the remote directory
+
+    Returns: None
+
+    """
     projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
     jsonPath = os.path.normpath(os.path.join(projectPath, "data", "SMdata"))
     folderCheck(jsonPath)
@@ -95,6 +108,17 @@ def setTlocation(path):
     dumpJson(path, tLocationFile)
 
 def transferFiles(files, tLocation, projectPath):
+    """
+    Copies the files to the remote server with proper directory structure. The files maintains the same folder structure\
+    as rendered and gathered under a current date folder (YYMMDD)
+    Args:
+        files: (List) List of files
+        tLocation: (String) Remote server base directory
+        projectPath: (String) Base directory of files
+
+    Returns: (Bool) True if canceled All remaining transfer commands
+
+    """
     if not os.path.isdir(tLocation):
         # transfer location is not exist
         return -1, "Transfer Location not exists"
@@ -285,7 +309,7 @@ class MainUI(QtWidgets.QMainWindow):
             # print tFilesList
 
             ret = transferFiles(tFilesList, tLocation=self.tLocation, projectPath=self.projectPath)
-            if ret == True: ## cancel all?
+            if ret: ## cancel all?
                 return
 
     def onShowInExplorer(self):
@@ -309,7 +333,7 @@ class MainUI(QtWidgets.QMainWindow):
         else:
             rec=1
 
-        gen = seq.walk(fullPath, level=rec, includes=['*.jpg', '*.exr', '*.tga', '*.png'])
+        gen = seq.walk(fullPath, level=rec, includes=['*.jpg', '*.exr', '*.tga', '*.png', '*.tif'])
 
         id = 0
         for x in gen:

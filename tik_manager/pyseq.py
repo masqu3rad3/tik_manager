@@ -1175,6 +1175,9 @@ def walk(source, level=-1, topdown=True, onerror=None, followlinks=False, hidden
     :param onerror: callable to handle os.listdir errors
     :param followlinks: whether to follow links
     :param hidden: include hidden files and dirs
+
+    Args:
+        includes: (List) List of extensions to filter down
     """
     # transform glob patterns to regular expressions
     includes = r'|'.join([fnmatch.translate(x) for x in includes])
