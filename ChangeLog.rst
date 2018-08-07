@@ -9,7 +9,7 @@ Scene Manager Version History
 * **Update:** IMPORTANT user preferences (smSettings.json) structure changed. Delete old preference data under user/Documents
 
 1.91
-=====
+----
 * **New:** added scriptJob to the manager class for project change
 * **Update:** refresh method added
 
