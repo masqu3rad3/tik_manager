@@ -7,6 +7,7 @@ Double clicking on the seguence will execute the file on the defined application
 """
 import __init__
 import pyseq as seq
+reload(seq)
 import os
 import pymel.core as pm
 
@@ -37,7 +38,7 @@ else:
     from shiboken2 import wrapInstance
     from Qt.QtCore import Signal
 
-windowName = "Image Viewer v%s" %__init__.__version__
+windowName = "Image Viewer DEVv%s" %__init__.__version__
 
 # def getTheImages():
 #     imagesFolder = os.path.join(os.path.normpath(pm.workspace(q=1, rd=1)), "images")
@@ -154,6 +155,8 @@ class MainUI(QtWidgets.QMainWindow):
                 pass
         parent = getMayaMainWindow()
         super(MainUI, self).__init__(parent=parent)
+        self._generator = None
+        self._timerId = None
         self.projectPath = os.path.join(os.path.normpath(pm.workspace(q=1, rd=1)), "images")
         # self.projectPath = os.path.join(os.path.normpath(pm.workspace(q=1, rd=1)), "") # temporary
         self.sequenceData = []
@@ -169,6 +172,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.model.setFilter(QtCore.QDir.AllDirs|QtCore.QDir.NoDotAndDotDot)
         self.tLocation = initDB()[1]
         self.buildUI()
+        self.filterList=[]
+        self.onCheckbox()
 
         self.setCentralWidget(self.centralwidget)
         # self.menubar = QtGui.QMenuBar(self)
@@ -231,6 +236,43 @@ class MainUI(QtWidgets.QMainWindow):
         self.browseRaid_pushButton.setObjectName(("browseRaid_pushButton"))
         self.gridLayout.addWidget(self.browseRaid_pushButton, 1, 2, 1, 1)
 
+        self.chkboxLayout = QtWidgets.QHBoxLayout()
+        self.chkboxLayout.setAlignment(QtCore.Qt.AlignRight)
+
+        ## checkboxes
+        self.chkbox1_checkbox = QtWidgets.QCheckBox()
+        self.chkbox1_checkbox.setText(("jpg"))
+        self.chkbox1_checkbox.setChecked(True)
+        self.chkbox1_checkbox.setObjectName(("chkbox1_checkbox"))
+        self.chkbox2_checkbox = QtWidgets.QCheckBox()
+        self.chkbox2_checkbox.setText(("png"))
+        self.chkbox2_checkbox.setChecked(True)
+        self.chkbox2_checkbox.setObjectName(("chkbox2_checkbox"))
+        self.chkbox3_checkbox = QtWidgets.QCheckBox()
+        self.chkbox3_checkbox.setText(("exr"))
+        self.chkbox3_checkbox.setChecked(True)
+        self.chkbox3_checkbox.setObjectName(("chkbox3_checkbox"))
+        self.chkbox4_checkbox = QtWidgets.QCheckBox()
+        self.chkbox4_checkbox.setText(("tif"))
+        self.chkbox4_checkbox.setChecked(True)
+        self.chkbox4_checkbox.setObjectName(("chkbox4_checkbox"))
+        self.chkbox5_checkbox = QtWidgets.QCheckBox()
+        self.chkbox5_checkbox.setText(("tga"))
+        self.chkbox5_checkbox.setChecked(True)
+        self.chkbox5_checkbox.setObjectName(("chkbox5_checkbox"))
+
+        spacerItem = QtWidgets.QSpacerItem(400, 25, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+
+
+        self.chkboxLayout.addWidget(self.chkbox1_checkbox)
+        self.chkboxLayout.addWidget(self.chkbox2_checkbox)
+        self.chkboxLayout.addWidget(self.chkbox3_checkbox)
+        self.chkboxLayout.addWidget(self.chkbox4_checkbox)
+        self.chkboxLayout.addWidget(self.chkbox5_checkbox)
+        self.chkboxLayout.addItem(spacerItem)
+
+
+        self.gridLayout.addLayout(self.chkboxLayout, 2, 0, 1, 4)
 
         self.splitter = QtWidgets.QSplitter(self.centralwidget)
         self.splitter.setOrientation(QtCore.Qt.Horizontal)
@@ -238,8 +280,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.directories_treeView = QtWidgets.QTreeView(self.splitter)
         self.directories_treeView.setObjectName(("directories_treeView"))
-        # self.directories_treeView.headerItem().setText(0, "Directories")
-        # self.directories_treeView.setSortingEnabled(False)
         self.directories_treeView.setModel(self.model)
         self.directories_treeView.setRootIndex(self.model.index(self.projectPath))
         self.directories_treeView.hideColumn(1)
@@ -249,13 +289,19 @@ class MainUI(QtWidgets.QMainWindow):
         self.sequences_listWidget = QtWidgets.QListWidget(self.splitter)
         self.sequences_listWidget.setObjectName(("sequences_listWidget"))
         self.sequences_listWidget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-        self.gridLayout.addWidget(self.splitter, 2, 0, 1, 4)
+        self.gridLayout.addWidget(self.splitter, 3, 0, 1, 4)
 
         self.browse_pushButton.clicked.connect(self.onBrowse)
         self.directories_treeView.selectionModel().selectionChanged.connect(self.populate)
         self.recursive_checkBox.stateChanged.connect(self.populate)
         self.sequences_listWidget.doubleClicked.connect(self.onRunItem)
         self.browseRaid_pushButton.clicked.connect(self.onBrowseRaid)
+
+        self.chkbox1_checkbox.toggled.connect(self.onCheckbox)
+        self.chkbox2_checkbox.toggled.connect(self.onCheckbox)
+        self.chkbox3_checkbox.toggled.connect(self.onCheckbox)
+        self.chkbox4_checkbox.toggled.connect(self.onCheckbox)
+        self.chkbox5_checkbox.toggled.connect(self.onCheckbox)
 
         ## RIGHT CLICK MENUS
         self.sequences_listWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -269,10 +315,21 @@ class MainUI(QtWidgets.QMainWindow):
         rcAction_0.triggered.connect(lambda: self.onShowInExplorer())
         rcAction_1.triggered.connect(lambda: self.onTransferFiles())
 
-        # self.popMenu.addSeparator()
-
-
         ## check if there is a json file on the project data path for target drive
+
+    def onCheckbox(self):
+        self.filterList = []
+        if self.chkbox1_checkbox.isChecked():
+            self.filterList.append("*.jpg")
+        if self.chkbox2_checkbox.isChecked():
+            self.filterList.append("*.png")
+        if self.chkbox3_checkbox.isChecked():
+            self.filterList.append("*.exr")
+        if self.chkbox4_checkbox.isChecked():
+            self.filterList.append("*.tif")
+        if self.chkbox5_checkbox.isChecked():
+            self.filterList.append("*.tga")
+        self.populate()
 
     # @Qt.QtCore.pyqtSlot("QItemSelection, QItemSelection")
     def onContextMenu_images(self, point):
@@ -281,6 +338,7 @@ class MainUI(QtWidgets.QMainWindow):
     def onBrowse(self):
         dir = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory"))
         if dir:
+            self.directories_treeView.reset()
             self.projectPath=os.path.normpath(dir)
             self.model.setRootPath(dir)
             self.directories_treeView.setRootIndex(self.model.index(dir))
@@ -298,6 +356,8 @@ class MainUI(QtWidgets.QMainWindow):
             return path
 
     def onTransferFiles(self):
+        if self.tLocation == "N/A":
+            return
         row = self.sequences_listWidget.currentRow()
         selList = [x.row() for x in self.sequences_listWidget.selectedIndexes()]
         # return
@@ -333,19 +393,46 @@ class MainUI(QtWidgets.QMainWindow):
         else:
             rec=1
 
-        gen = seq.walk(fullPath, level=rec, includes=['*.jpg', '*.exr', '*.tga', '*.png', '*.tif'])
+        gen = seq.walk(fullPath, level=rec, includes=self.filterList)
+        self.stop() # Stop any existing Timer
+        self._generator = self.listingLoop(gen) # start the loop
+        self._timerId = self.startTimer(0) # idle timer
 
-        id = 0
+        # id = 0
+        # for x in gen:
+        #     for i in x[2]:
+        #         QtWidgets.QApplication.processEvents()
+        #         # execPath = os.path.join(x[0],i[0])
+        #         # execPath = i[0].path
+        #         self.sequenceData.append(i)
+        #         # name = i.format('%h%t %R')
+        #         self.sequences_listWidget.addItem(i.format('%h%t %R'))
+        #         # self.sequenceData.append()
+        #         id += 1
+
+    def listingLoop(self, gen):
         for x in gen:
             for i in x[2]:
-                QtWidgets.QApplication.processEvents()
-                # execPath = os.path.join(x[0],i[0])
-                # execPath = i[0].path
+                QtWidgets.QApplication.processEvents(QtCore.QEventLoop.ExcludeUserInputEvents)
                 self.sequenceData.append(i)
-                # name = i.format('%h%t %R')
                 self.sequences_listWidget.addItem(i.format('%h%t %R'))
-                # self.sequenceData.append()
-                id += 1
+                yield
+
+    def stop(self):  # Connect to Stop-button clicked()
+        if self._timerId is not None:
+            self.killTimer(self._timerId)
+        self._generator = None
+        self._timerId = None
+
+    def timerEvent(self, event):
+        # This is called every time the GUI is idle.
+        if self._generator is None:
+            return
+        try:
+            next(self._generator)  # Run the next iteration
+        except StopIteration:
+            self.stop()  # Iteration has finshed, kill the timer
+
     def onRunItem(self):
         row = self.sequences_listWidget.currentRow()
         item = self.sequenceData[row]

@@ -11,6 +11,7 @@ Scene Manager Version History
 * **Update:** Various code clean-ups
 * **Update:** Added .tif extension to the imageViewer
 * **Fix** Sub-menu item connections fixed
+* **Fix** imageViewer refreshing issues fixed
 
 1.91
 ----
