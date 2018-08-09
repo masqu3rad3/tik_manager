@@ -38,7 +38,7 @@ else:
     from shiboken2 import wrapInstance
     from Qt.QtCore import Signal
 
-windowName = "Image Viewer DEVv%s" %__init__.__version__
+windowName = "Image Viewer v%s" %__init__.__version__
 
 # def getTheImages():
 #     imagesFolder = os.path.join(os.path.normpath(pm.workspace(q=1, rd=1)), "images")
