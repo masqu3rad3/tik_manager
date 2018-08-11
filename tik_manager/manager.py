@@ -280,7 +280,7 @@ class TikManager(object):
     def __init__(self):
         super(TikManager, self).__init__()
         self.currentPlatform = platform.system()
-        self.currentProject = pm.workspace(q=1, rd=1)
+        # self.currentProject = pm.workspace(q=1, rd=1)
         self.currentSubProjectIndex = 0
         self.userList = self.initUserList()[0]
         self.validCategories = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
@@ -493,7 +493,7 @@ class TikManager(object):
 
     def setProject(self):
         mel.eval("SetProject;")
-        self.currentProject = pm.workspace(q=1, rd=1)
+        self.scenePaths["projectPath"] = pm.workspace(q=1, rd=1)
 
     def projectReport(self):
 
@@ -1394,17 +1394,20 @@ class TikManager(object):
         if jsonPath and version:
             version= "v%s" %(str(version).zfill(self.padding))
             shotName=pathOps(jsonPath, "filename")
+            projectPath = self.scenePaths["projectPath"]
 
         else: # if keywords are not given
         # resolve the path of the currently open scene
             sceneInfo = self.getSceneInfo()
             if not sceneInfo:
                 return None
+            projectPath=sceneInfo["projectPath"]
             jsonPath=sceneInfo["jsonFile"]
             shotName=sceneInfo["shotName"]
             version=sceneInfo["version"]
 
         thumbPath = "{0}_{1}_thumb.jpg".format(os.path.join(pathOps(jsonPath, "path"), shotName), version)
+        relThumbPath = os.path.relpath(thumbPath, projectPath)
         # print thumbPath
         # create a thumbnail using playblast
         if os.path.exists(pathOps(thumbPath, "path")):
@@ -1417,7 +1420,8 @@ class TikManager(object):
         else:
             pm.warning("something went wrong with thumbnail. Skipping thumbnail")
             return None
-        return thumbPath
+        # return thumbPath
+        return relThumbPath
 
 
 
@@ -1518,7 +1522,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.projectPath_lineEdit = QtWidgets.QLineEdit(self.centralwidget)
         self.projectPath_lineEdit.setGeometry(QtCore.QRect(90, 36, 471, 21))
         self.projectPath_lineEdit.setStatusTip((""))
-        self.projectPath_lineEdit.setText((self.manager.currentProject))
+        self.projectPath_lineEdit.setText((self.manager.scenePaths["projectPath"]))
         self.projectPath_lineEdit.setReadOnly(True)
         self.projectPath_lineEdit.setObjectName(("projectPath_lineEdit"))
 
@@ -1842,8 +1846,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.manager.__init__()
         # self.__init__()
         # if the project changed:
-        if self.projectPath_lineEdit.text() != self.manager.currentProject:
-            self.projectPath_lineEdit.setText(self.manager.currentProject)
+        if self.projectPath_lineEdit.text() != self.manager.scenePaths["projectPath"]:
+            self.projectPath_lineEdit.setText(self.manager.scenePaths["projectPath"])
             self.manager.subProjectList = self.manager.scanSubProjects()
             self.manager.currentSubProjectIndex = 0
 
@@ -1991,7 +1995,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.projectroot_label.setText(("Project Path:"))
         self.projectroot_label.setObjectName(("projectpath_label"))
 
-        currentProjects = os.path.abspath(os.path.join(self.manager.currentProject, os.pardir))
+        currentProjects = os.path.abspath(os.path.join(self.manager.scenePaths["projectPath"], os.pardir))
         self.projectroot_lineEdit = QtWidgets.QLineEdit(self.createproject_Dialog)
         self.projectroot_lineEdit.setGeometry(QtCore.QRect(90, 30, 241, 21))
         self.projectroot_lineEdit.setText((currentProjects))
@@ -2088,8 +2092,9 @@ class MainUI(QtWidgets.QMainWindow):
             mel.eval(evalstr)  # OK
 
             # mel.eval('setProject \"' + os.path.normpath(self.newProjectPath) + '\"')
-            self.manager.currentProject = pm.workspace(q=1, rd=1)
-            self.projectPath_lineEdit.setText(self.manager.currentProject)
+            # self.manager.currentProject = pm.workspace(q=1, rd=1)
+            self.manager.setProject()
+            self.projectPath_lineEdit.setText(self.manager.scenePaths["projectPath"])
             # self.onSubProjectChanged()
             self.manager.subProjectList = self.manager.scanSubProjects()
             self.populateScenes()
@@ -2992,7 +2997,7 @@ class MainUI(QtWidgets.QMainWindow):
 
                 sceneData = loadJson(jPath)
 
-                path = os.path.join(os.path.normpath(self.manager.currentProject), os.path.normpath(sceneData["Path"]))
+                path = os.path.join(os.path.normpath(self.manager.scenePaths["projectPath"]), os.path.normpath(sceneData["Path"]))
 
                 if self.manager.currentPlatform == "Windows":
                     os.startfile(path)
@@ -3009,7 +3014,7 @@ class MainUI(QtWidgets.QMainWindow):
                 # sceneData = loadJson(os.path.join(jPath, sceneName))
                 sceneData = loadJson(jPath)
 
-                path = os.path.join(os.path.normpath(self.manager.currentProject), os.path.normpath(sceneData["Path"]))
+                path = os.path.join(os.path.normpath(self.manager.scenePaths["projectPath"]), os.path.normpath(sceneData["Path"]))
                 path = path.replace("scenes", "Playblasts")
                 if os.path.isdir(path):
                     if self.manager.currentPlatform == "Windows":
@@ -3071,7 +3076,7 @@ class MainUI(QtWidgets.QMainWindow):
         # mel.eval("SetProject;")
         # self.manager.currentProject = pm.workspace(q=1, rd=1)
         self.manager.setProject()
-        self.projectPath_lineEdit.setText(self.manager.currentProject)
+        self.projectPath_lineEdit.setText(self.manager.scenePaths["projectPath"])
         # self.onSubProjectChanged()
         self.manager.subProjectList = self.manager.scanSubProjects()
         self.manager.currentSubProjectIndex = 0
@@ -3137,7 +3142,8 @@ class MainUI(QtWidgets.QMainWindow):
 
             jsonInfo = loadJson(sceneJson)
             try:
-                thumb = jsonInfo["Versions"][version][5]
+                thumb = os.path.join(self.manager.scenePaths["projectPath"], jsonInfo["Versions"][version][5])
+                # print "thumb", thumb
                 if os.path.isfile(thumb):
                     self.tPixmap = QtGui.QPixmap((thumb))
                     self.thumbnail_label.setPixmap(self.tPixmap.scaledToHeight(124))
@@ -3161,7 +3167,7 @@ class MainUI(QtWidgets.QMainWindow):
         else:
             return
         if mode == "file":
-            fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', self.manager.currentProject,"Image files (*.jpg *.gif)")[0]
+            fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', self.manager.scenePaths["projectPath"],"Image files (*.jpg *.gif)")[0]
             if not fname: # if dialog is canceled
                 return
 

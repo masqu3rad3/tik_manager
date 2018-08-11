@@ -4,14 +4,15 @@ Scene Manager Version History
 
 1.92
 -----
-* **New:** add/remove user functions added
-* **Update:** IMPORTANT user preferences (smSettings.json) structure changed. Delete old preference data under user/Documents
-* **Update:** method for getting necessary scene paths has re-written
-* **Update:** Documentation and Docstring updates
-* **Update:** Various code clean-ups
-* **Update:** Added .tif extension to the imageViewer
-* **Fix** Sub-menu item connections fixed
-* **Fix** imageViewer refreshing issues fixed
+* **New.0:** add/remove user functions added
+* **Update.0:** IMPORTANT user preferences (smSettings.json) structure changed. Delete old preference data under user/Documents
+* **Update.0:** method for getting necessary scene paths has re-written
+* **Update.0:** Documentation and Docstring updates
+* **Update.0:** Various code clean-ups
+* **Update.0:** Added .tif extension to the imageViewer
+* **Fix.0** Sub-menu item connections fixed
+* **Fix.0** imageViewer refreshing issues fixed
+* **Fix.1** Thumbnails are now stored as relative paths in the json db
 
 1.91
 ----
