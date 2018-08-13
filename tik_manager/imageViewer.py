@@ -5,7 +5,7 @@ Meaning all the sequence under the selected folder will be listed
 recursively.
 Double clicking on the seguence will execute the file on the defined application
 """
-import __init__
+import _version
 import pyseq as seq
 reload(seq)
 import os
@@ -38,7 +38,7 @@ else:
     from shiboken2 import wrapInstance
     from Qt.QtCore import Signal
 
-windowName = "Image Viewer v%s" %__init__.__version__
+windowName = "Image Viewer v%s" %_version.__version__
 
 # def getTheImages():
 #     imagesFolder = os.path.join(os.path.normpath(pm.workspace(q=1, rd=1)), "images")

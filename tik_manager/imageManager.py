@@ -4,7 +4,7 @@ On initialization, script changes the image name template according to the defin
 and checks the scene for possible errors
 Double Clicking on warnings open up the related dialog.
 """
-import __init__
+import _version
 import pymel.core as pm
 import os
 import logging
@@ -35,7 +35,7 @@ __maintainer__ = "Arda Kutlu"
 __email__ = "ardakutlu@gmail.com"
 __status__ = "Development"
 
-windowName = "Image Manager v%s" %__init__.__version__
+windowName = "Image Manager v%s" %_version.__version__
 
 logging.basicConfig()
 logger = logging.getLogger('ImageManager')

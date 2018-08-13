@@ -21,8 +21,8 @@ import maya.mel as mel
 import pymel.core as pm
 from Qt import QtWidgets, QtCore, QtGui
 from maya import OpenMayaUI as omui
-import __init__
-reload(__init__)
+import _version
+
 if Qt.__binding__ == "PySide":
     from shiboken import wrapInstance
 elif Qt.__binding__.startswith('PyQt'):
@@ -38,7 +38,8 @@ __maintainer__ = "Arda Kutlu"
 __email__ = "ardakutlu@gmail.com"
 __status__ = "Development"
 
-SM_Version = "Scene Manager v%s" %__init__.__version__
+SM_Version = "Scene Manager v%s" %(_version.__version__)
+
 
 def getOldestFile(rootfolder, extension=".avi"):
     """
