@@ -16,7 +16,44 @@ from Qt import QtWidgets, QtCore, QtGui
 from maya import OpenMayaUI as omui
 import json
 import datetime
-import fileCopyProgress as fCopy
+# import fileCopyProgress as fCopy
+# reload(fCopy)
+import seqCopyProgress as sCopy
+reload(sCopy)
+
+import logging
+reload(logging)
+# logname = "C:\\smTest32.log"
+# logger = logging.getLogger("imageViewer")
+# logging.basicConfig(filename=logname,
+#                             filemode='w',
+#                             format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+#                             datefmt='%H:%M:%S',
+#                             level=logging.DEBUG)
+# console handler
+# console = logging.StreamHandler()
+# console.setLevel(logging.ERROR)
+# logging.getLogger("").addHandler(console)
+# logger = logging.getLogger("imageViewer")
+
+
+# # create the logging instance for logging to file only
+# logger = logging.getLogger('imageViewer')
+#
+# # create the handler for the main logger
+# file_logger = logging.FileHandler('C:\\sm_test12.txt')
+# # NEW_FORMAT = '[%(asctime)s] - [%(levelname)s] - %(message)s'
+# # file_logger_format = logging.Formatter(NEW_FORMAT)
+#
+# # tell the handler to use the above format
+# # file_logger.setFormatter(file_logger_format)
+#
+# # finally, add the handler to the base logger
+# logger.addHandler(file_logger)
+#
+# # remember that by default, logging will start at 'warning' unless
+# # we set it manually
+# logger.setLevel(logging.DEBUG)
 
 
 __author__ = "Arda Kutlu"
@@ -47,6 +84,20 @@ windowName = "Image Viewer v%s" %_version.__version__
 #
 #
 #     return treeDataList
+
+def setupLogger(handlerPath):
+    logger = logging.getLogger('imageViewer')
+    file_logger = logging.FileHandler(handlerPath)
+    logger.addHandler(file_logger)
+    logger.setLevel(logging.DEBUG)
+    return logger
+
+def deleteLogger(logger):
+    for i in logger.handlers:
+        logger.removeHandler(i)
+        i.flush()
+        i.close()
+
 def getTheImages(path, level=1):
     treeDataList = [a for a in seq.walk(path, level=level)]
     return treeDataList
@@ -108,43 +159,6 @@ def setTlocation(path):
     tLocationFile = os.path.normpath(os.path.join(jsonPath, "tLocation.json"))
     dumpJson(path, tLocationFile)
 
-def transferFiles(files, tLocation, projectPath):
-    """
-    Copies the files to the remote server with proper directory structure. The files maintains the same folder structure\
-    as rendered and gathered under a current date folder (YYMMDD)
-    Args:
-        files: (List) List of files
-        tLocation: (String) Remote server base directory
-        projectPath: (String) Base directory of files
-
-    Returns: (Bool) True if canceled All remaining transfer commands
-
-    """
-    if not os.path.isdir(tLocation):
-        # transfer location is not exist
-        return -1, "Transfer Location not exists"
-
-    subPath = os.path.split(os.path.relpath(files[0], projectPath))[0] ## get the relative path
-
-
-    now = datetime.datetime.now()
-    currentDate = now.strftime("%y%m%d")
-
-    targetPath = os.path.join(tLocation, currentDate, subPath)
-    folderCheck(targetPath)
-
-    ret = fCopy.FileCopyProgress(src=files, dest=targetPath)
-    ret.close()
-    return ret.cancelAll
-    # try:
-    #     copyfile(files, targetPath)
-    # except:
-    #     pass
-
-
-
-
-
 class MainUI(QtWidgets.QMainWindow):
     def __init__(self):
         for entry in QtWidgets.QApplication.allWidgets():
@@ -169,7 +183,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.model.setRootPath(self.projectPath)
         # filter = Qt.QStringList("")
-        self.model.setFilter(QtCore.QDir.AllDirs|QtCore.QDir.NoDotAndDotDot)
+        # self.model.setFilter(QtCore.QDir.AllDirs|QtCore.QDir.NoDotAndDotDot)
+        self.model.setFilter(QtCore.QDir.AllDirs|QtCore.QDir.NoDotDot)
         self.tLocation = initDB()[1]
         self.buildUI()
         self.filterList=[]
@@ -344,7 +359,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.directories_treeView.setRootIndex(self.model.index(dir))
             self.rootFolder_lineEdit.setText(self.projectPath)
             self.sequences_listWidget.clear()
-            # self.populate()
+            self.populate()
         else:
             return
 
@@ -352,8 +367,11 @@ class MainUI(QtWidgets.QMainWindow):
         path = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory", self.tLocation))
         if path:
             setTlocation(path)
+            self.tLocation = path
             self.raidFolder_lineEdit.setText(path)
             return path
+
+
 
     def onTransferFiles(self):
         if self.tLocation == "N/A":
@@ -364,13 +382,12 @@ class MainUI(QtWidgets.QMainWindow):
         if row == -1:
             return
 
-        for sel in selList:
-            tFilesList = [i.path for i in self.sequenceData[sel]]
-            # print tFilesList
+        projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
+        logPath = os.path.join(projectPath,"data","transferLogs")
 
-            ret = transferFiles(tFilesList, tLocation=self.tLocation, projectPath=self.projectPath)
-            if ret: ## cancel all?
-                return
+        seqCopy = sCopy.SeqCopyProgress()
+        seqCopy.copysequence(self.sequenceData, selList, self.tLocation, logPath, projectPath)
+
 
     def onShowInExplorer(self):
         row = self.sequences_listWidget.currentRow()

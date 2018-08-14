@@ -13,6 +13,9 @@ Scene Manager Version History
 * **Fix.0** Sub-menu item connections fixed
 * **Fix.0** imageViewer refreshing issues fixed
 * **Fix.1** Thumbnails are now stored as relative paths in the json db
+* **Update.2** ImageViewer root search added
+* **Fix.2** When browsing for raid, updating the paths fixed.
+* **Update.2** sequence transfer commands moved to seqCopyProgress module.
 
 1.91
 ----

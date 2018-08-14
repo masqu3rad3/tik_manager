@@ -1,3 +1,5 @@
+# Obselete
+
 import os
 from shutil import copyfile
 
@@ -15,9 +17,9 @@ else:
 
 class FileCopyProgress(QtWidgets.QWidget):
 
-    def __init__(self, src=None, dest=None):
+    def __init__(self, src=None, dest=None, logger=None):
         super(FileCopyProgress, self).__init__()
-
+        self.logger = logger
         self.src = src
         self.dest = dest
         self.build_ui()
@@ -49,17 +51,21 @@ class FileCopyProgress(QtWidgets.QWidget):
         vbox.addWidget(self.cancelAllButton)
         hbox.addLayout(vbox)
         self.setLayout(hbox)
-
-
-
-
         self.setWindowTitle('File copy')
-
-
         self.cancelButton.clicked.connect(self.terminate)
         self.cancelAllButton.clicked.connect(lambda: self.terminate(all=True))
-
         self.show()
+
+    def success_ui(self):
+
+        self.msg = QtWidgets.QMessageBox(parent=self)
+        self.msg.setIcon(QtWidgets.QMessageBox.Information)
+        self.msg.setText("Transfer Successfull")
+        self.msg.setInformativeText("All selected sequences are transferred to the target location. Log file saved under <project>/data/transferLogs")
+        self.msg.setWindowTitle("Transfer report")
+        self.msg.setDetailedText("The details are as follows:")
+        self.msg.show()
+
 
     def closeEvent(self, *args, **kwargs):
         self.terminated = True
@@ -70,7 +76,11 @@ class FileCopyProgress(QtWidgets.QWidget):
         self.pb.setValue(100)
         self.close()
 
-
+    def safeLog(self, msg):
+        try:
+            self.logger.debug(msg)
+        except AttributeError:
+            pass
 
     def copyfileobj(self, src, dst):
 
@@ -79,11 +89,16 @@ class FileCopyProgress(QtWidgets.QWidget):
 
         for i in src:
             targetPath = os.path.join(dst, os.path.basename(i))
-            copyfile(i, targetPath)
+            try:
+                copyfile(i, targetPath)
+                print i
+            except:
+                self.safeLog("FAILED - unknown error")
             percent = (100 * current) / totalCount
             self.pb.setValue(percent)
             current += 1
             QtWidgets.QApplication.processEvents()
+            self.safeLog("Success - {0}".format(targetPath))
             if self.terminated:
+                self.safeLog("FAILED - terminated by user")
                 break
-
