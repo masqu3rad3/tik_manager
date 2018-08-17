@@ -1783,7 +1783,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.load_pushButton.clicked.connect(self.onloadScene)
 
-        self.userName_comboBox.currentIndexChanged.connect(self.userPrefSave)
+        # self.userName_comboBox.currentIndexChanged.connect(self.userPrefSave)
+        self.userName_comboBox.activated.connect(self.userPrefSave)
 
         self.version_comboBox.activated.connect(self.refreshNotes)
         self.version_comboBox.activated.connect(self.refreshThumbnail)
@@ -1858,6 +1859,7 @@ class MainUI(QtWidgets.QMainWindow):
         for num in range(len(userListSorted)):
             self.userName_comboBox.addItem((userListSorted[num]))
             self.userName_comboBox.setItemText(num, (userListSorted[num]))
+        self.userPrefLoad()
         self.populateScenes()
 
     def addRemoveUserUI(self):
