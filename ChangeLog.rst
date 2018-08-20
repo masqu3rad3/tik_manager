@@ -17,6 +17,7 @@ Scene Manager Version History
 * **Fix.2** When browsing for raid, updating the paths fixed.
 * **Update.2** sequence transfer commands moved to seqCopyProgress module.
 * **Fix.3** 'Current user resetting to the first one' issue fixed.
+* **Fix.4** currentProject check bug with imageManager
 
 1.91
 ----

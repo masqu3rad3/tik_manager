@@ -66,6 +66,7 @@ class ImageManager(TikManager):
             logger.warning("Base Scene must be under Render Category")
             return
 
+        self.currentProject = pm.workspace(q=1, rd=1)
         self.folderTemplate = "{4}/{0}/{1}/{3}/{2}/"
         self.nameTemplate = "{0}_{1}_{2}_{3}_"
         self.supportedRenderers = ["arnold", "vray", "mentalRay", "redShift"]
