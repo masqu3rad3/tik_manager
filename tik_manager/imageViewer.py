@@ -384,6 +384,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
         logPath = os.path.join(projectPath,"data","transferLogs")
+        folderCheck(logPath)
 
         seqCopy = sCopy.SeqCopyProgress()
         seqCopy.copysequence(self.sequenceData, selList, self.tLocation, logPath, projectPath)

@@ -18,6 +18,7 @@ Scene Manager Version History
 * **Update.2** sequence transfer commands moved to seqCopyProgress module.
 * **Fix.3** 'Current user resetting to the first one' issue fixed.
 * **Fix.4** currentProject check bug with imageManager
+* **Fix.5** I/O error fixed when uploading the files to remote directory
 
 1.91
 ----
