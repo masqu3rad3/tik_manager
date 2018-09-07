@@ -276,6 +276,78 @@ def getPaths():
     return pathDictionary
 
 
+def compareVersions(version):
+    print "version", version
+    versionDict = {200800: "v2008",
+                   200806: "v2008_EXT2",
+                   200806: "v2008_SP1",
+                   200900: "v2009",
+                   200904: "v2009_EXT1",
+                   200906: "v2009_SP1A",
+                   201000: "v2010",
+                   201100: "v2011",
+                   201101: "v2011_HOTFIX1",
+                   201102: "v2011_HOTFIX2",
+                   201103: "v2011_HOTFIX3",
+                   201104: "v2011_SP1",
+                   201200: "v2012",
+                   201201: "v2012_HOTFIX1",
+                   201202: "v2012_HOTFIX2",
+                   201203: "v2012_HOTFIX3",
+                   201204: "v2012_HOTFIX4",
+                   201209: "v2012_SAP1",
+                   201217: "v2012_SAP1SP1",
+                   201209: "v2012_SP1",
+                   201217: "v2012_SP2",
+                   201300: "v2013",
+                   201400: "v2014",
+                   201450: "v2014_EXT1",
+                   201451: "v2014_EXT1SP1",
+                   201459: "v2014_EXT1SP2",
+                   201402: "v2014_SP1",
+                   201404: "v2014_SP2",
+                   201406: "v2014_SP3",
+                   201500: "v2015",
+                   201506: "v2015_EXT1",
+                   201507: "v2015_EXT1SP5",
+                   201501: "v2015_SP1",
+                   201502: "v2015_SP2",
+                   201505: "v2015_SP3",
+                   201506: "v2015_SP4",
+                   201507: "v2015_SP5",
+                   201600: "v2016",
+                   201650: "v20165",
+                   201651: "v20165_SP1",
+                   201653: "v20165_SP2",
+                   201605: "v2016_EXT1",
+                   201607: "v2016_EXT1SP4",
+                   201650: "v2016_EXT2",
+                   201651: "v2016_EXT2SP1",
+                   201653: "v2016_EXT2SP2",
+                   201605: "v2016_SP3",
+                   201607: "v2016_SP4",
+                   201700: "v2017",
+                   201701: "v2017U1",
+                   201720: "v2017U2",
+                   201740: "v2017U3",
+                   20180000: "v2018"}
+
+    currentVersion = pm.versions.current()
+    try:
+        niceVName=versionDict[version]
+    except KeyError:
+        niceVName = version
+    message = ""
+    if version == currentVersion:
+        return 0, message
+    elif pm.versions.current() > version:
+        message = "Base Scene is created with a LOWER Maya version ({0}). Are you sure you want to continue?".format(
+            niceVName)
+        return -1, message
+    elif pm.versions.current() < version:
+        message = "Base Scene is created with a HIGHER Maya version ({0}). Are you sure you want to continue?".format(
+            niceVName)
+        return -1, message
 
 class TikManager(object):
     def __init__(self):
@@ -1473,7 +1545,7 @@ class MainUI(QtWidgets.QMainWindow):
                 self.deleteLater()
 
         self.manager = TikManager()
-
+        self.favList = []
         self.scenesInCategory = None
         self.imageManagerINS = None
         self.setObjectName((SM_Version))
@@ -1844,304 +1916,6 @@ class MainUI(QtWidgets.QMainWindow):
         # self.manager.remoteLogger()
         self.statusBar().showMessage("Status | Idle")
 
-    def refresh(self):
-        self.manager.__init__()
-        # self.__init__()
-        # if the project changed:
-        if self.projectPath_lineEdit.text() != self.manager.scenePaths["projectPath"]:
-            self.projectPath_lineEdit.setText(self.manager.scenePaths["projectPath"])
-            self.manager.subProjectList = self.manager.scanSubProjects()
-            self.manager.currentSubProjectIndex = 0
-
-        # user DB
-        self.userName_comboBox.clear() # clear the combobox items
-        userListSorted = sorted(self.manager.userList.keys())
-        for num in range(len(userListSorted)):
-            self.userName_comboBox.addItem((userListSorted[num]))
-            self.userName_comboBox.setItemText(num, (userListSorted[num]))
-        self.userPrefLoad()
-        self.populateScenes()
-
-    def addRemoveUserUI(self):
-
-        admin_pswd = "682"
-        passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query", "Enter Admin Password:",
-                                                   QtWidgets.QLineEdit.Password)
-        if ok:
-            if passw == admin_pswd:
-                pass
-            else:
-                self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
-                return
-        else:
-            return
-
-        users_Dialog = QtWidgets.QDialog(parent=self)
-        users_Dialog.setModal(True)
-        users_Dialog.setObjectName(("users_Dialog"))
-        users_Dialog.resize(380, 483)
-        users_Dialog.setMinimumSize(QtCore.QSize(342, 177))
-        users_Dialog.setMaximumSize(QtCore.QSize(342, 177))
-        users_Dialog.setWindowTitle(("Add/Remove Users"))
-        users_Dialog.setFocus()
-
-        addnewuser_groupBox = QtWidgets.QGroupBox(users_Dialog)
-        addnewuser_groupBox.setGeometry(QtCore.QRect(10, 10, 321, 91))
-        addnewuser_groupBox.setTitle(("Add New User"))
-        addnewuser_groupBox.setObjectName(("addnewuser_groupBox"))
-
-        fullname_label = QtWidgets.QLabel(addnewuser_groupBox)
-        fullname_label.setGeometry(QtCore.QRect(0, 30, 81, 21))
-        fullname_label.setLayoutDirection(QtCore.Qt.LeftToRight)
-        fullname_label.setText(("Full Name:"))
-        fullname_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        fullname_label.setObjectName(("fullname_label"))
-
-        self.fullname_lineEdit = QtWidgets.QLineEdit(addnewuser_groupBox)
-        self.fullname_lineEdit.setGeometry(QtCore.QRect(90, 30, 151, 20))
-        self.fullname_lineEdit.setPlaceholderText(("e.g \"John Doe\""))
-        self.fullname_lineEdit.setObjectName(("fullname_lineEdit"))
-
-        initials_label = QtWidgets.QLabel(addnewuser_groupBox)
-        initials_label.setGeometry(QtCore.QRect(0, 60, 81, 21))
-        initials_label.setLayoutDirection(QtCore.Qt.LeftToRight)
-        initials_label.setText(("Initials:"))
-        initials_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        initials_label.setObjectName(("initials_label"))
-
-        self.initials_lineEdit = QtWidgets.QLineEdit(addnewuser_groupBox)
-        self.initials_lineEdit.setGeometry(QtCore.QRect(90, 60, 151, 20))
-        self.initials_lineEdit.setText((""))
-        self.initials_lineEdit.setPlaceholderText(("e.g \"jd\" (must be unique)"))
-        self.initials_lineEdit.setObjectName(("initials_lineEdit"))
-
-        addnewuser_pushButton = QtWidgets.QPushButton(addnewuser_groupBox)
-        addnewuser_pushButton.setGeometry(QtCore.QRect(250, 30, 61, 51))
-        addnewuser_pushButton.setText(("Add"))
-        addnewuser_pushButton.setObjectName(("addnewuser_pushButton"))
-
-        deleteuser_groupBox = QtWidgets.QGroupBox(users_Dialog)
-        deleteuser_groupBox.setGeometry(QtCore.QRect(10, 110, 321, 51))
-        deleteuser_groupBox.setTitle(("Delete User"))
-        deleteuser_groupBox.setObjectName(("deleteuser_groupBox"))
-
-        self.selectuser_comboBox = QtWidgets.QComboBox(deleteuser_groupBox)
-        self.selectuser_comboBox.setGeometry(QtCore.QRect(10, 20, 231, 22))
-        self.selectuser_comboBox.setObjectName(("selectuser_comboBox"))
-
-        userListSorted = sorted(self.manager.userList.keys())
-        for num in range(len(userListSorted)):
-            self.selectuser_comboBox.addItem((userListSorted[num]))
-            self.selectuser_comboBox.setItemText(num, (userListSorted[num]))
-
-        deleteuser_pushButton = QtWidgets.QPushButton(deleteuser_groupBox)
-        deleteuser_pushButton.setGeometry(QtCore.QRect(250, 20, 61, 21))
-        deleteuser_pushButton.setText(("Delete"))
-        deleteuser_pushButton.setObjectName(("deleteuser_pushButton"))
-
-        addnewuser_pushButton.clicked.connect(self.onAddUser)
-        # addnewuser_pushButton.clicked.connect(self.refresh)
-        # addnewuser_pushButton.clicked.connect(users_Dialog.close)
-        deleteuser_pushButton.clicked.connect(self.onRemoveUser)
-        # deleteuser_pushButton.clicked.connect(self.refresh)
-        # deleteuser_pushButton.clicked.connect(users_Dialog.close)
-
-        self.fullname_lineEdit.textChanged.connect(
-            lambda: checkValidity(self.fullname_lineEdit.text(), addnewuser_pushButton,
-                                  self.fullname_lineEdit))
-        self.initials_lineEdit.textChanged.connect(
-            lambda: checkValidity(self.initials_lineEdit.text(), addnewuser_pushButton,
-                                  self.initials_lineEdit))
-
-        users_Dialog.show()
-
-    def onAddUser(self):
-        ret, msg = self.manager.addUser(self.fullname_lineEdit.text(), self.initials_lineEdit.text())
-        if ret == -1:
-            self.infoPop(textTitle="Cannot Add User", textHeader=msg)
-            return
-        self.refresh()
-        userListSorted = sorted(self.manager.userList.keys())
-        self.selectuser_comboBox.clear()
-        for num in range(len(userListSorted)):
-            self.selectuser_comboBox.addItem((userListSorted[num]))
-            self.selectuser_comboBox.setItemText(num, (userListSorted[num]))
-        self.statusBar().showMessage("Status | User Added => %s" % self.fullname_lineEdit.text())
-        self.fullname_lineEdit.setText("")
-        self.initials_lineEdit.setText("")
-        pass
-
-    def onRemoveUser(self):
-        self.manager.removeUser(self.selectuser_comboBox.currentText())
-        self.refresh()
-        userListSorted = sorted(self.manager.userList.keys())
-        self.selectuser_comboBox.clear()
-        for num in range(len(userListSorted)):
-            self.selectuser_comboBox.addItem((userListSorted[num]))
-            self.selectuser_comboBox.setItemText(num, (userListSorted[num]))
-        pass
-
-    def createProjectUI(self):
-
-        self.createproject_Dialog = QtWidgets.QDialog(parent=self)
-        self.createproject_Dialog.setObjectName(("createproject_Dialog"))
-        self.createproject_Dialog.resize(419, 249)
-        self.createproject_Dialog.setWindowTitle(("Create New Project"))
-        self.createproject_Dialog.setToolTip((""))
-        self.createproject_Dialog.setStatusTip((""))
-        self.createproject_Dialog.setWhatsThis((""))
-        self.createproject_Dialog.setAccessibleName((""))
-        self.createproject_Dialog.setAccessibleDescription((""))
-
-        self.projectroot_label = QtWidgets.QLabel(self.createproject_Dialog)
-        self.projectroot_label.setGeometry(QtCore.QRect(20, 30, 71, 20))
-        self.projectroot_label.setText(("Project Path:"))
-        self.projectroot_label.setObjectName(("projectpath_label"))
-
-        currentProjects = os.path.abspath(os.path.join(self.manager.scenePaths["projectPath"], os.pardir))
-        self.projectroot_lineEdit = QtWidgets.QLineEdit(self.createproject_Dialog)
-        self.projectroot_lineEdit.setGeometry(QtCore.QRect(90, 30, 241, 21))
-        self.projectroot_lineEdit.setText((currentProjects))
-        self.projectroot_lineEdit.setPlaceholderText((""))
-        self.projectroot_lineEdit.setObjectName(("projectpath_lineEdit"))
-
-        self.browse_pushButton = QtWidgets.QPushButton(self.createproject_Dialog)
-        self.browse_pushButton.setText(("Browse"))
-        self.browse_pushButton.setGeometry(QtCore.QRect(340, 30, 61, 21))
-        self.browse_pushButton.setObjectName(("browse_pushButton"))
-
-        self.resolvedpath_label = QtWidgets.QLabel(self.createproject_Dialog)
-        self.resolvedpath_label.setGeometry(QtCore.QRect(20, 70, 381, 21))
-        self.resolvedpath_label.setObjectName(("resolvedpath_label"))
-
-        self.brandname_label = QtWidgets.QLabel(self.createproject_Dialog)
-        self.brandname_label.setGeometry(QtCore.QRect(20, 110, 111, 20))
-        self.brandname_label.setFrameShape(QtWidgets.QFrame.Box)
-        self.brandname_label.setText(("Brand Name"))
-        self.brandname_label.setAlignment(QtCore.Qt.AlignCenter)
-        self.brandname_label.setObjectName(("brandname_label"))
-
-        self.projectname_label = QtWidgets.QLabel(self.createproject_Dialog)
-        self.projectname_label.setGeometry(QtCore.QRect(140, 110, 131, 20))
-        self.projectname_label.setFrameShape(QtWidgets.QFrame.Box)
-        self.projectname_label.setText(("Project Name"))
-        self.projectname_label.setAlignment(QtCore.Qt.AlignCenter)
-        self.projectname_label.setObjectName(("projectname_label"))
-
-        self.client_label = QtWidgets.QLabel(self.createproject_Dialog)
-        self.client_label.setGeometry(QtCore.QRect(280, 110, 121, 20))
-        self.client_label.setFrameShape(QtWidgets.QFrame.Box)
-        self.client_label.setText(("Client"))
-        self.client_label.setAlignment(QtCore.Qt.AlignCenter)
-        self.client_label.setObjectName(("client_label"))
-
-        self.brandname_lineEdit = QtWidgets.QLineEdit(self.createproject_Dialog)
-        self.brandname_lineEdit.setGeometry(QtCore.QRect(20, 140, 111, 21))
-        self.brandname_lineEdit.setText((""))
-        self.brandname_lineEdit.setPlaceholderText(("(optional)"))
-        self.brandname_lineEdit.setObjectName(("brandname_lineEdit"))
-
-        self.projectname_lineEdit = QtWidgets.QLineEdit(self.createproject_Dialog)
-        self.projectname_lineEdit.setGeometry(QtCore.QRect(140, 140, 131, 21))
-        self.projectname_lineEdit.setText((""))
-        self.projectname_lineEdit.setPlaceholderText(("Mandatory Field"))
-        self.projectname_lineEdit.setObjectName(("projectname_lineEdit"))
-
-        self.client_lineEdit = QtWidgets.QLineEdit(self.createproject_Dialog)
-        self.client_lineEdit.setGeometry(QtCore.QRect(280, 140, 121, 21))
-        self.client_lineEdit.setText((""))
-        self.client_lineEdit.setPlaceholderText(("Mandatory Field"))
-        self.client_lineEdit.setObjectName(("client_lineEdit"))
-
-        self.createproject_buttonBox = QtWidgets.QDialogButtonBox(self.createproject_Dialog)
-        self.createproject_buttonBox.setGeometry(QtCore.QRect(30, 190, 371, 32))
-        self.createproject_buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.createproject_buttonBox.setStandardButtons(
-            QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
-        self.createproject_buttonBox.setObjectName(("buttonBox"))
-
-        self.cp_button = self.createproject_buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
-        self.cp_button.setText('Create Project')
-
-        self.createproject_Dialog.show()
-
-        self.resolveProjectPath()
-        self.browse_pushButton.clicked.connect(self.browseProjectRoot)
-        self.brandname_lineEdit.textEdited.connect(self.resolveProjectPath)
-        self.projectname_lineEdit.textEdited.connect(self.resolveProjectPath)
-        self.client_lineEdit.textEdited.connect(self.resolveProjectPath)
-
-        self.createproject_buttonBox.accepted.connect(self.onAcceptNewProject)
-        self.createproject_buttonBox.rejected.connect(self.createproject_Dialog.reject)
-
-        self.brandname_lineEdit.textChanged.connect(
-            lambda: checkValidity(self.brandname_lineEdit.text(), self.createproject_buttonBox,
-                                  self.brandname_lineEdit))
-        self.projectname_lineEdit.textChanged.connect(
-            lambda: checkValidity(self.projectname_lineEdit.text(), self.createproject_buttonBox,
-                                  self.projectname_lineEdit))
-        self.client_lineEdit.textChanged.connect(
-            lambda: checkValidity(self.client_lineEdit.text(), self.createproject_buttonBox, self.client_lineEdit))
-
-    def onAcceptNewProject(self):
-
-        self.resolveProjectPath()
-
-        if self.newProjectPath:
-            self.manager.createNewProject(self.newProjectPath)
-            self.createproject_Dialog.accept()
-            melProofPath = self.newProjectPath.replace("\\", "\\\\")
-            evalstr = 'setProject("' + (melProofPath) + '");'  # OK
-            mel.eval(evalstr)  # OK
-
-            # mel.eval('setProject \"' + os.path.normpath(self.newProjectPath) + '\"')
-            # self.manager.currentProject = pm.workspace(q=1, rd=1)
-            self.manager.setProject()
-            self.projectPath_lineEdit.setText(self.manager.scenePaths["projectPath"])
-            # self.onSubProjectChanged()
-            self.manager.subProjectList = self.manager.scanSubProjects()
-            self.populateScenes()
-            self.statusBar().showMessage("Status | Project Created => %s" %self.newProjectPath)
-            return
-        else:
-            self.infoPop(textTitle="Missing Fields", textHeader="There are missing fields",
-                         textInfo="Project Root, Brand Name and Project Names must be filled", type="C")
-            return
-
-    def resolveProjectPath(self):
-        if self.projectname_lineEdit.text() == "" or self.client_lineEdit.text() == "" or self.projectroot_lineEdit.text() == "":
-            self.resolvedpath_label.setText("Fill the mandatory fields")
-            self.newProjectPath = None
-            return
-        projectDate = datetime.datetime.now().strftime("%y%m%d")
-        brandname = self.brandname_lineEdit.text()
-        projectname = self.projectname_lineEdit.text()
-        clientname = self.client_lineEdit.text()
-        projectroot = self.projectroot_lineEdit.text()
-        if brandname:
-            brandname = "%s_" % brandname
-        else:
-            brandname = ""
-        fullName = "{0}{1}_{2}_{3}".format(brandname, projectname, clientname, projectDate)
-        self.newProjectPath = os.path.join(projectroot, fullName)
-        self.resolvedpath_label.setText(self.newProjectPath)
-
-    def browseProjectRoot(self, updateLine=None):
-        dlg = QtWidgets.QFileDialog()
-        dlg.setFileMode(QtWidgets.QFileDialog.Directory)
-
-        if dlg.exec_():
-            selectedroot = os.path.normpath(dlg.selectedFiles()[0])
-            self.projectroot_lineEdit.setText(selectedroot)
-            self.resolveProjectPath()
-
-
-    def onCreatePB(self):
-        code, msg = self.manager.createPlayblast()
-        if code == -1:
-            self.infoPop(textHeader="PlayBlast Error", textTitle="Cannot Create Playblast", textInfo=msg)
-        else:
-            self.statusBar().showMessage("Status | Playblast Created")
     def pbSettingsUI(self):
 
         admin_pswd = "682"
@@ -2494,6 +2268,579 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.pbSettings_dialog.show()
 
+    def createSubProjectUI(self):
+
+        newSub, ok = QtWidgets.QInputDialog.getText(self, "Create New Sub-Project", "Enter an unique Sub-Project name:")
+        if ok:
+            name = nameCheck(newSub)
+            if not name == -1:
+                self.subProject_comboBox.clear()
+                self.manager.subProjectList = self.manager.createSubProject(name)
+                self.populateScenes()
+            else:
+                self.infoPop(textTitle="Naming Error", textHeader="Naming Error",
+                             textInfo="Choose an unique name with latin characters without spaces", type="C")
+
+    def createProjectUI(self):
+
+        self.createproject_Dialog = QtWidgets.QDialog(parent=self)
+        self.createproject_Dialog.setObjectName(("createproject_Dialog"))
+        self.createproject_Dialog.resize(419, 249)
+        self.createproject_Dialog.setWindowTitle(("Create New Project"))
+        self.createproject_Dialog.setToolTip((""))
+        self.createproject_Dialog.setStatusTip((""))
+        self.createproject_Dialog.setWhatsThis((""))
+        self.createproject_Dialog.setAccessibleName((""))
+        self.createproject_Dialog.setAccessibleDescription((""))
+
+        self.projectroot_label = QtWidgets.QLabel(self.createproject_Dialog)
+        self.projectroot_label.setGeometry(QtCore.QRect(20, 30, 71, 20))
+        self.projectroot_label.setText(("Project Path:"))
+        self.projectroot_label.setObjectName(("projectpath_label"))
+
+        currentProjects = os.path.abspath(os.path.join(self.manager.scenePaths["projectPath"], os.pardir))
+        self.projectroot_lineEdit = QtWidgets.QLineEdit(self.createproject_Dialog)
+        self.projectroot_lineEdit.setGeometry(QtCore.QRect(90, 30, 241, 21))
+        self.projectroot_lineEdit.setText((currentProjects))
+        self.projectroot_lineEdit.setPlaceholderText((""))
+        self.projectroot_lineEdit.setObjectName(("projectpath_lineEdit"))
+
+        self.browse_pushButton = QtWidgets.QPushButton(self.createproject_Dialog)
+        self.browse_pushButton.setText(("Browse"))
+        self.browse_pushButton.setGeometry(QtCore.QRect(340, 30, 61, 21))
+        self.browse_pushButton.setObjectName(("browse_pushButton"))
+
+        self.resolvedpath_label = QtWidgets.QLabel(self.createproject_Dialog)
+        self.resolvedpath_label.setGeometry(QtCore.QRect(20, 70, 381, 21))
+        self.resolvedpath_label.setObjectName(("resolvedpath_label"))
+
+        self.brandname_label = QtWidgets.QLabel(self.createproject_Dialog)
+        self.brandname_label.setGeometry(QtCore.QRect(20, 110, 111, 20))
+        self.brandname_label.setFrameShape(QtWidgets.QFrame.Box)
+        self.brandname_label.setText(("Brand Name"))
+        self.brandname_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.brandname_label.setObjectName(("brandname_label"))
+
+        self.projectname_label = QtWidgets.QLabel(self.createproject_Dialog)
+        self.projectname_label.setGeometry(QtCore.QRect(140, 110, 131, 20))
+        self.projectname_label.setFrameShape(QtWidgets.QFrame.Box)
+        self.projectname_label.setText(("Project Name"))
+        self.projectname_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.projectname_label.setObjectName(("projectname_label"))
+
+        self.client_label = QtWidgets.QLabel(self.createproject_Dialog)
+        self.client_label.setGeometry(QtCore.QRect(280, 110, 121, 20))
+        self.client_label.setFrameShape(QtWidgets.QFrame.Box)
+        self.client_label.setText(("Client"))
+        self.client_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.client_label.setObjectName(("client_label"))
+
+        self.brandname_lineEdit = QtWidgets.QLineEdit(self.createproject_Dialog)
+        self.brandname_lineEdit.setGeometry(QtCore.QRect(20, 140, 111, 21))
+        self.brandname_lineEdit.setText((""))
+        self.brandname_lineEdit.setPlaceholderText(("(optional)"))
+        self.brandname_lineEdit.setObjectName(("brandname_lineEdit"))
+
+        self.projectname_lineEdit = QtWidgets.QLineEdit(self.createproject_Dialog)
+        self.projectname_lineEdit.setGeometry(QtCore.QRect(140, 140, 131, 21))
+        self.projectname_lineEdit.setText((""))
+        self.projectname_lineEdit.setPlaceholderText(("Mandatory Field"))
+        self.projectname_lineEdit.setObjectName(("projectname_lineEdit"))
+
+        self.client_lineEdit = QtWidgets.QLineEdit(self.createproject_Dialog)
+        self.client_lineEdit.setGeometry(QtCore.QRect(280, 140, 121, 21))
+        self.client_lineEdit.setText((""))
+        self.client_lineEdit.setPlaceholderText(("Mandatory Field"))
+        self.client_lineEdit.setObjectName(("client_lineEdit"))
+
+        self.createproject_buttonBox = QtWidgets.QDialogButtonBox(self.createproject_Dialog)
+        self.createproject_buttonBox.setGeometry(QtCore.QRect(30, 190, 371, 32))
+        self.createproject_buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        self.createproject_buttonBox.setStandardButtons(
+            QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
+        self.createproject_buttonBox.setObjectName(("buttonBox"))
+
+        self.cp_button = self.createproject_buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
+        self.cp_button.setText('Create Project')
+
+        self.createproject_Dialog.show()
+
+        self.resolveProjectPath()
+        self.browse_pushButton.clicked.connect(self.browseProjectRoot)
+        self.brandname_lineEdit.textEdited.connect(self.resolveProjectPath)
+        self.projectname_lineEdit.textEdited.connect(self.resolveProjectPath)
+        self.client_lineEdit.textEdited.connect(self.resolveProjectPath)
+
+        self.createproject_buttonBox.accepted.connect(self.onAcceptNewProject)
+        self.createproject_buttonBox.rejected.connect(self.createproject_Dialog.reject)
+
+        self.brandname_lineEdit.textChanged.connect(
+            lambda: checkValidity(self.brandname_lineEdit.text(), self.createproject_buttonBox,
+                                  self.brandname_lineEdit))
+        self.projectname_lineEdit.textChanged.connect(
+            lambda: checkValidity(self.projectname_lineEdit.text(), self.createproject_buttonBox,
+                                  self.projectname_lineEdit))
+        self.client_lineEdit.textChanged.connect(
+            lambda: checkValidity(self.client_lineEdit.text(), self.createproject_buttonBox, self.client_lineEdit))
+
+    def addRemoveUserUI(self):
+
+        admin_pswd = "682"
+        passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query", "Enter Admin Password:",
+                                                   QtWidgets.QLineEdit.Password)
+        if ok:
+            if passw == admin_pswd:
+                pass
+            else:
+                self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
+                return
+        else:
+            return
+
+        users_Dialog = QtWidgets.QDialog(parent=self)
+        users_Dialog.setModal(True)
+        users_Dialog.setObjectName(("users_Dialog"))
+        users_Dialog.resize(380, 483)
+        users_Dialog.setMinimumSize(QtCore.QSize(342, 177))
+        users_Dialog.setMaximumSize(QtCore.QSize(342, 177))
+        users_Dialog.setWindowTitle(("Add/Remove Users"))
+        users_Dialog.setFocus()
+
+        addnewuser_groupBox = QtWidgets.QGroupBox(users_Dialog)
+        addnewuser_groupBox.setGeometry(QtCore.QRect(10, 10, 321, 91))
+        addnewuser_groupBox.setTitle(("Add New User"))
+        addnewuser_groupBox.setObjectName(("addnewuser_groupBox"))
+
+        fullname_label = QtWidgets.QLabel(addnewuser_groupBox)
+        fullname_label.setGeometry(QtCore.QRect(0, 30, 81, 21))
+        fullname_label.setLayoutDirection(QtCore.Qt.LeftToRight)
+        fullname_label.setText(("Full Name:"))
+        fullname_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        fullname_label.setObjectName(("fullname_label"))
+
+        self.fullname_lineEdit = QtWidgets.QLineEdit(addnewuser_groupBox)
+        self.fullname_lineEdit.setGeometry(QtCore.QRect(90, 30, 151, 20))
+        self.fullname_lineEdit.setPlaceholderText(("e.g \"John Doe\""))
+        self.fullname_lineEdit.setObjectName(("fullname_lineEdit"))
+
+        initials_label = QtWidgets.QLabel(addnewuser_groupBox)
+        initials_label.setGeometry(QtCore.QRect(0, 60, 81, 21))
+        initials_label.setLayoutDirection(QtCore.Qt.LeftToRight)
+        initials_label.setText(("Initials:"))
+        initials_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        initials_label.setObjectName(("initials_label"))
+
+        self.initials_lineEdit = QtWidgets.QLineEdit(addnewuser_groupBox)
+        self.initials_lineEdit.setGeometry(QtCore.QRect(90, 60, 151, 20))
+        self.initials_lineEdit.setText((""))
+        self.initials_lineEdit.setPlaceholderText(("e.g \"jd\" (must be unique)"))
+        self.initials_lineEdit.setObjectName(("initials_lineEdit"))
+
+        addnewuser_pushButton = QtWidgets.QPushButton(addnewuser_groupBox)
+        addnewuser_pushButton.setGeometry(QtCore.QRect(250, 30, 61, 51))
+        addnewuser_pushButton.setText(("Add"))
+        addnewuser_pushButton.setObjectName(("addnewuser_pushButton"))
+
+        deleteuser_groupBox = QtWidgets.QGroupBox(users_Dialog)
+        deleteuser_groupBox.setGeometry(QtCore.QRect(10, 110, 321, 51))
+        deleteuser_groupBox.setTitle(("Delete User"))
+        deleteuser_groupBox.setObjectName(("deleteuser_groupBox"))
+
+        self.selectuser_comboBox = QtWidgets.QComboBox(deleteuser_groupBox)
+        self.selectuser_comboBox.setGeometry(QtCore.QRect(10, 20, 231, 22))
+        self.selectuser_comboBox.setObjectName(("selectuser_comboBox"))
+
+        userListSorted = sorted(self.manager.userList.keys())
+        for num in range(len(userListSorted)):
+            self.selectuser_comboBox.addItem((userListSorted[num]))
+            self.selectuser_comboBox.setItemText(num, (userListSorted[num]))
+
+        deleteuser_pushButton = QtWidgets.QPushButton(deleteuser_groupBox)
+        deleteuser_pushButton.setGeometry(QtCore.QRect(250, 20, 61, 21))
+        deleteuser_pushButton.setText(("Delete"))
+        deleteuser_pushButton.setObjectName(("deleteuser_pushButton"))
+
+        addnewuser_pushButton.clicked.connect(self.onAddUser)
+        # addnewuser_pushButton.clicked.connect(self.refresh)
+        # addnewuser_pushButton.clicked.connect(users_Dialog.close)
+        deleteuser_pushButton.clicked.connect(self.onRemoveUser)
+        # deleteuser_pushButton.clicked.connect(self.refresh)
+        # deleteuser_pushButton.clicked.connect(users_Dialog.close)
+
+        self.fullname_lineEdit.textChanged.connect(
+            lambda: checkValidity(self.fullname_lineEdit.text(), addnewuser_pushButton,
+                                  self.fullname_lineEdit))
+        self.initials_lineEdit.textChanged.connect(
+            lambda: checkValidity(self.initials_lineEdit.text(), addnewuser_pushButton,
+                                  self.initials_lineEdit))
+
+        users_Dialog.show()
+
+    def setProjectUI(self):
+
+        self.setProject_Dialog = QtWidgets.QDialog(parent=self)
+        self.setProject_Dialog.setObjectName(("setProject_Dialog"))
+        self.setProject_Dialog.resize(982, 928)
+        self.setProject_Dialog.setWindowTitle(("Set Project"))
+
+        gridLayout = QtWidgets.QGridLayout(self.setProject_Dialog)
+        gridLayout.setObjectName(("gridLayout"))
+
+        M1_horizontalLayout = QtWidgets.QHBoxLayout()
+        M1_horizontalLayout.setObjectName(("M1_horizontalLayout"))
+
+        lookIn_label = QtWidgets.QLabel(self.setProject_Dialog)
+        lookIn_label.setText(("Look in:"))
+        lookIn_label.setObjectName(("lookIn_label"))
+
+        M1_horizontalLayout.addWidget(lookIn_label)
+
+        self.lookIn_lineEdit = QtWidgets.QLineEdit(self.setProject_Dialog)
+        self.lookIn_lineEdit.setText((""))
+        self.lookIn_lineEdit.setPlaceholderText((""))
+        self.lookIn_lineEdit.setObjectName(("lookIn_lineEdit"))
+
+        M1_horizontalLayout.addWidget(self.lookIn_lineEdit)
+
+        browse_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(browse_pushButton.sizePolicy().hasHeightForWidth())
+        browse_pushButton.setSizePolicy(sizePolicy)
+        browse_pushButton.setMaximumSize(QtCore.QSize(50, 16777215))
+        browse_pushButton.setText("Browse")
+        browse_pushButton.setObjectName(("browse_pushButton"))
+
+        M1_horizontalLayout.addWidget(browse_pushButton)
+
+        back_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(back_pushButton.sizePolicy().hasHeightForWidth())
+        back_pushButton.setSizePolicy(sizePolicy)
+        back_pushButton.setMaximumSize(QtCore.QSize(30, 16777215))
+        back_pushButton.setText(("<"))
+        back_pushButton.setShortcut((""))
+        back_pushButton.setObjectName(("back_pushButton"))
+
+        M1_horizontalLayout.addWidget(back_pushButton)
+
+        forward_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
+        forward_pushButton.setMaximumSize(QtCore.QSize(30, 16777215))
+        forward_pushButton.setText((">"))
+        forward_pushButton.setShortcut((""))
+        forward_pushButton.setObjectName(("forward_pushButton"))
+
+        M1_horizontalLayout.addWidget(forward_pushButton)
+
+        up_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
+        up_pushButton.setMaximumSize(QtCore.QSize(30, 16777215))
+        up_pushButton.setText(("Up"))
+        up_pushButton.setShortcut((""))
+        up_pushButton.setObjectName(("up_pushButton"))
+
+        M1_horizontalLayout.addWidget(up_pushButton)
+
+        gridLayout.addLayout(M1_horizontalLayout, 0, 0, 1, 1)
+
+        M2_horizontalLayout = QtWidgets.QHBoxLayout()
+        M2_horizontalLayout.setObjectName(("M2_horizontalLayout"))
+
+        M2_splitter = QtWidgets.QSplitter(self.setProject_Dialog)
+        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        # sizePolicy.setHorizontalStretch(0)
+        # sizePolicy.setVerticalStretch(0)
+        # sizePolicy.setHeightForWidth(self.M2_splitter.sizePolicy().hasHeightForWidth())
+        #
+        # self.M2_splitter.setSizePolicy(sizePolicy)
+        # self.M2_splitter.setFrameShape(QtWidgets.QFrame.NoFrame)
+        # self.M2_splitter.setOrientation(QtCore.Qt.Horizontal)
+        M2_splitter.setHandleWidth(10)
+        M2_splitter.setObjectName(("M2_splitter"))
+
+
+        # self.folders_tableView = QtWidgets.QTableView(self.M2_splitter)
+        self.folders_tableView = QtWidgets.QTreeView(M2_splitter)
+        self.folders_tableView.setMinimumSize(QtCore.QSize(0, 0))
+        self.folders_tableView.setDragEnabled(True)
+        self.folders_tableView.setDragDropMode(QtWidgets.QAbstractItemView.DragOnly)
+        self.folders_tableView.setObjectName(("folders_tableView"))
+
+        self.folders_tableView.setFrameShape(QtWidgets.QFrame.NoFrame)
+        # self.folders_tableView.setGridStyle(QtCore.Qt.PenStyle.NoPen)
+        # self.folders_tableView.setColumnHidden(2, True)
+        self.folders_tableView.setItemsExpandable(False)
+        self.folders_tableView.setRootIsDecorated(False)
+        self.folders_tableView.setSortingEnabled(True)
+        self.folders_tableView.sortByColumn(0, QtCore.Qt.SortOrder.AscendingOrder)
+
+        # self.folders_tableView.sortByColumn(0)
+
+        verticalLayoutWidget = QtWidgets.QWidget(M2_splitter)
+        verticalLayoutWidget.setObjectName(("verticalLayoutWidget"))
+
+        M2_S2_verticalLayout = QtWidgets.QVBoxLayout(verticalLayoutWidget)
+        M2_S2_verticalLayout.setContentsMargins(0, 10, 0, 10)
+        M2_S2_verticalLayout.setSpacing(6)
+        M2_S2_verticalLayout.setObjectName(("M2_S2_verticalLayout"))
+
+        favorites_label = QtWidgets.QLabel(verticalLayoutWidget)
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        font.setBold(True)
+        font.setWeight(75)
+        favorites_label.setFont(font)
+        favorites_label.setText(("Favorites"))
+        favorites_label.setObjectName(("favorites_label"))
+
+        M2_S2_verticalLayout.addWidget(favorites_label)
+
+        self.favorites_listWidget = DropListWidget(verticalLayoutWidget)
+        self.favorites_listWidget.setAlternatingRowColors(True)
+        self.favorites_listWidget.setObjectName(("favorites_listWidget"))
+
+
+        # self.favorites_listWidget.dropped.connect(self.onDragAndDrop)
+
+        M2_S2_verticalLayout.addWidget(self.favorites_listWidget)
+        M2_S2_horizontalLayout = QtWidgets.QHBoxLayout()
+        M2_S2_horizontalLayout.setObjectName(("M2_S2_horizontalLayout"))
+
+        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+
+        M2_S2_horizontalLayout.addItem(spacerItem)
+
+        remove_pushButton = QtWidgets.QPushButton(verticalLayoutWidget)
+        remove_pushButton.setMaximumSize(QtCore.QSize(25, 16777215))
+        remove_pushButton.setText(("-"))
+        remove_pushButton.setObjectName(("remove_pushButton"))
+
+        M2_S2_horizontalLayout.addWidget(remove_pushButton)
+
+        add_pushButton = QtWidgets.QPushButton(verticalLayoutWidget)
+        add_pushButton.setMaximumSize(QtCore.QSize(25, 16777215))
+        add_pushButton.setText(("+"))
+        add_pushButton.setObjectName(("add_pushButton"))
+
+        M2_S2_horizontalLayout.addWidget(add_pushButton)
+
+        M2_S2_verticalLayout.addLayout(M2_S2_horizontalLayout)
+
+        M2_horizontalLayout.addWidget(M2_splitter)
+
+        gridLayout.addLayout(M2_horizontalLayout, 1, 0, 1, 1)
+
+        M3_horizontalLayout = QtWidgets.QHBoxLayout()
+
+        M3_horizontalLayout.setContentsMargins(0, 20, -1, -1)
+
+        M3_horizontalLayout.setObjectName(("M3_horizontalLayout"))
+
+        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+
+        M3_horizontalLayout.addItem(spacerItem1)
+
+        cancel_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
+        cancel_pushButton.setMaximumSize(QtCore.QSize(70, 16777215))
+        cancel_pushButton.setText("Cancel")
+        cancel_pushButton.setObjectName(("cancel_pushButton"))
+
+        M3_horizontalLayout.addWidget(cancel_pushButton, QtCore.Qt.AlignRight)
+
+        set_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
+        set_pushButton.setMaximumSize(QtCore.QSize(70, 16777215))
+        set_pushButton.setText("Set")
+        set_pushButton.setObjectName(("set_pushButton"))
+
+        M3_horizontalLayout.addWidget(set_pushButton, QtCore.Qt.AlignRight)
+
+        gridLayout.addLayout(M3_horizontalLayout, 2, 0, 1, 1)
+
+        verticalLayoutWidget.raise_()
+
+        M2_splitter.setStretchFactor(0,1)
+
+        ## Initial Stuff
+        # projectsDir = os.pardir(self.manager.scenePaths["projectPath"])
+        self.projectsDir = os.path.abspath(os.path.join(self.manager.scenePaths["projectPath"], os.pardir))
+        self.projectsHistory = [self.projectsDir]
+        self.projectsDirIndex = 0
+
+        self.setPmodel = QtWidgets.QFileSystemModel()
+        self.setPmodel.setRootPath(self.projectsDir)
+        self.setPmodel.setFilter(QtCore.QDir.AllDirs | QtCore.QDir.NoDotAndDotDot | QtCore.QDir.Time)
+
+
+        self.folders_tableView.setModel(self.setPmodel)
+        self.folders_tableView.setRootIndex(self.setPmodel.index(self.projectsDir))
+        self.folders_tableView.hideColumn(1)
+        self.folders_tableView.hideColumn(2)
+        self.folders_tableView.setColumnWidth(0,400)
+
+        self.userFavoritesLoad()
+        self.favorites_listWidget.addItems([x[0] for x in self.favList])
+
+        self.lookIn_lineEdit.setText(self.projectsDir)
+
+
+
+        ## SIGNALS & SLOTS
+        self.favorites_listWidget.dropped.connect(lambda path: self.onDragAndDrop(path, mode="favorites"))
+        remove_pushButton.clicked.connect(self.onRemoveFavs)
+        add_pushButton.clicked.connect(self.onAddFavs)
+
+        self.favorites_listWidget.doubleClicked.connect(self.onSetProject)
+
+        up_pushButton.clicked.connect(lambda: self.onBrowseSetProject("up"))
+
+        self.setProject_Dialog.show()
+
+    def onBrowseSetProject(self, command):
+        if command == "init":
+            pass
+        if command == "up":
+            upDir = os.path.abspath(os.path.join(self.projectsDir, os.pardir))
+            if not upDir == self.projectsDir:
+                self.projectsHistory.append(upDir)
+                self.projectsDirIndex = len(self.projectsHistory)-1
+            self.folders_tableView.setRootIndex(self.setPmodel.index(self.projectsHistory[self.projectsDirIndex]))
+            self.lookIn_lineEdit.setText(self.projectsHistory[self.projectsDirIndex])
+            pass
+        if command == "back":
+            self.folders_tableView.setRootIndex(self.setPmodel.index(self.projectsHistory[self.projectsDirIndex-1]))
+            self.lookIn_lineEdit.setText(self.projectsHistory[self.projectsDirIndex-1])
+            pass
+        if command == "forward":
+            self.folders_tableView.setRootIndex(self.setPmodel.index(self.projectsHistory[self.projectsDirIndex+1]))
+            self.lookIn_lineEdit.setText(self.projectsHistory[self.projectsDirIndex+1])
+            pass
+        if command == "browse":
+            pass
+
+
+    def onRemoveFavs(self):
+        row = self.favorites_listWidget.currentRow()
+        if row == -1:
+            return
+        # item = self.favList[row]
+        self.userFavoritesRemove(row)
+        self.favorites_listWidget.takeItem(row)
+
+    def onAddFavs(self):
+        index = self.folders_tableView.currentIndex()
+        if index.row() == -1: # no row selected, abort
+            return
+        fullPath = self.setPmodel.filePath(index)
+        self.onDragAndDrop(fullPath, "favorites")
+
+
+    def refresh(self):
+        self.manager.__init__()
+        # self.__init__()
+        # if the project changed:
+        if self.projectPath_lineEdit.text() != self.manager.scenePaths["projectPath"]:
+            self.projectPath_lineEdit.setText(self.manager.scenePaths["projectPath"])
+            self.manager.subProjectList = self.manager.scanSubProjects()
+            self.manager.currentSubProjectIndex = 0
+
+        # user DB
+        self.userName_comboBox.clear() # clear the combobox items
+        userListSorted = sorted(self.manager.userList.keys())
+        for num in range(len(userListSorted)):
+            self.userName_comboBox.addItem((userListSorted[num]))
+            self.userName_comboBox.setItemText(num, (userListSorted[num]))
+        self.userPrefLoad()
+        self.populateScenes()
+
+
+    def onAddUser(self):
+        ret, msg = self.manager.addUser(self.fullname_lineEdit.text(), self.initials_lineEdit.text())
+        if ret == -1:
+            self.infoPop(textTitle="Cannot Add User", textHeader=msg)
+            return
+        self.refresh()
+        userListSorted = sorted(self.manager.userList.keys())
+        self.selectuser_comboBox.clear()
+        for num in range(len(userListSorted)):
+            self.selectuser_comboBox.addItem((userListSorted[num]))
+            self.selectuser_comboBox.setItemText(num, (userListSorted[num]))
+        self.statusBar().showMessage("Status | User Added => %s" % self.fullname_lineEdit.text())
+        self.fullname_lineEdit.setText("")
+        self.initials_lineEdit.setText("")
+        pass
+
+    def onRemoveUser(self):
+        self.manager.removeUser(self.selectuser_comboBox.currentText())
+        self.refresh()
+        userListSorted = sorted(self.manager.userList.keys())
+        self.selectuser_comboBox.clear()
+        for num in range(len(userListSorted)):
+            self.selectuser_comboBox.addItem((userListSorted[num]))
+            self.selectuser_comboBox.setItemText(num, (userListSorted[num]))
+        pass
+
+    def onAcceptNewProject(self):
+
+        self.resolveProjectPath()
+
+        if self.newProjectPath:
+            self.manager.createNewProject(self.newProjectPath)
+            self.createproject_Dialog.accept()
+            melProofPath = self.newProjectPath.replace("\\", "\\\\")
+            evalstr = 'setProject("' + (melProofPath) + '");'  # OK
+            mel.eval(evalstr)  # OK
+
+            # mel.eval('setProject \"' + os.path.normpath(self.newProjectPath) + '\"')
+            # self.manager.currentProject = pm.workspace(q=1, rd=1)
+            self.manager.setProject()
+            self.projectPath_lineEdit.setText(self.manager.scenePaths["projectPath"])
+            # self.onSubProjectChanged()
+            self.manager.subProjectList = self.manager.scanSubProjects()
+            self.populateScenes()
+            self.statusBar().showMessage("Status | Project Created => %s" %self.newProjectPath)
+            return
+        else:
+            self.infoPop(textTitle="Missing Fields", textHeader="There are missing fields",
+                         textInfo="Project Root, Brand Name and Project Names must be filled", type="C")
+            return
+
+    def resolveProjectPath(self):
+        if self.projectname_lineEdit.text() == "" or self.client_lineEdit.text() == "" or self.projectroot_lineEdit.text() == "":
+            self.resolvedpath_label.setText("Fill the mandatory fields")
+            self.newProjectPath = None
+            return
+        projectDate = datetime.datetime.now().strftime("%y%m%d")
+        brandname = self.brandname_lineEdit.text()
+        projectname = self.projectname_lineEdit.text()
+        clientname = self.client_lineEdit.text()
+        projectroot = self.projectroot_lineEdit.text()
+        if brandname:
+            brandname = "%s_" % brandname
+        else:
+            brandname = ""
+        fullName = "{0}{1}_{2}_{3}".format(brandname, projectname, clientname, projectDate)
+        self.newProjectPath = os.path.join(projectroot, fullName)
+        self.resolvedpath_label.setText(self.newProjectPath)
+
+    def browseProjectRoot(self, updateLine=None):
+        dlg = QtWidgets.QFileDialog()
+        dlg.setFileMode(QtWidgets.QFileDialog.Directory)
+
+        if dlg.exec_():
+            selectedroot = os.path.normpath(dlg.selectedFiles()[0])
+            self.projectroot_lineEdit.setText(selectedroot)
+            self.resolveProjectPath()
+
+
+    def onCreatePB(self):
+        code, msg = self.manager.createPlayblast()
+        if code == -1:
+            self.infoPop(textHeader="PlayBlast Error", textTitle="Cannot Create Playblast", textInfo=msg)
+        else:
+            self.statusBar().showMessage("Status | Playblast Created")
+
     def updateCodecs(self):
         codecs = pm.mel.eval('playblast -format "{0}" -q -compression;'.format(self.fileformat_comboBox.currentText()))
         self.codec_comboBox.clear()
@@ -2531,10 +2878,6 @@ class MainUI(QtWidgets.QMainWindow):
     def onIviewer(self):
         import imageViewer as iview
         iview.MainUI().show()
-
-    # def onFoolsMate(self):
-    #     import foolsMate
-    #     foolsMate.startFoolin()
 
     def saveBaseSceneDialog(self):
         self.save_Dialog = QtWidgets.QDialog(parent=self)
@@ -2778,8 +3121,18 @@ class MainUI(QtWidgets.QMainWindow):
         sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
         # takethefirstjson as example for rootpath
 
-
         sceneJson = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
+        try:
+            sceneInfo = loadJson(sceneJson)
+        except:
+            self.infoPop(textTitle="Error Finding Database", textInfo="Database file => {0} does not exist".format(sceneJson), type="C")
+            return
+
+        res, msg = compareVersions(sceneInfo["MayaVersion"])
+        if res == -1:
+            mismatch = self.queryPop(type="yesNo", textTitle="Version Mismatch", textHeader=msg)
+            if mismatch == "no":
+                return
 
         # sceneJson = self.scenesInCategory[row]
 
@@ -2982,6 +3335,30 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.category_tabWidget.setCurrentIndex(settingsData["currentTabIndex"])
 
+    def userFavoritesLoad(self):
+        homedir = os.path.expanduser("~")
+        bookmarksFilePath = os.path.join(homedir, "smBookmarks.json")
+        if os.path.isfile(bookmarksFilePath):
+            bookmarksData = loadJson(bookmarksFilePath)
+        else:
+            bookmarksData = []
+            dumpJson(bookmarksData, bookmarksFilePath)
+        self.favList = bookmarksData
+        return bookmarksData, bookmarksFilePath
+
+    def userFavoritesAdd(self, shortName, path):
+        data, filePath = self.userFavoritesLoad()
+        data.append([shortName, path])
+        self.favList = data
+        dumpJson(data, filePath)
+
+    def userFavoritesRemove(self, index):
+        data, filePath = self.userFavoritesLoad()
+        # data.remove([shortName, path])
+        del data[index]
+        self.favList = data
+        dumpJson(data, filePath)
+
     def rcAction(self, command):
         if command == "importScene":
             row = self.scenes_listWidget.currentRow()
@@ -3050,19 +3427,6 @@ class MainUI(QtWidgets.QMainWindow):
     def onSubProjectChanged(self):
         self.manager.currentSubProjectIndex = self.subProject_comboBox.currentIndex()
         self.populateScenes()
-
-    def createSubProjectUI(self):
-
-        newSub, ok = QtWidgets.QInputDialog.getText(self, "Create New Sub-Project", "Enter an unique Sub-Project name:")
-        if ok:
-            name = nameCheck(newSub)
-            if not name == -1:
-                self.subProject_comboBox.clear()
-                self.manager.subProjectList = self.manager.createSubProject(name)
-                self.populateScenes()
-            else:
-                self.infoPop(textTitle="Naming Error", textHeader="Naming Error",
-                             textInfo="Choose an unique name with latin characters without spaces", type="C")
 
     def onReferenceCheck(self, deepCheck=False):
         codeDict = {-1: QtGui.QColor(255, 0, 0, 255), 1: QtGui.QColor(0, 255, 0, 255), 0: QtGui.QColor(255, 255, 0, 255)} # dictionary for color codes red, green, yellow
@@ -3393,4 +3757,45 @@ class MainUI(QtWidgets.QMainWindow):
                 self.populateScenes()
                 self.statusBar().showMessage("Status | Reference of %s is deleted" % sceneName)
 
+    def onDragAndDrop(self, path, mode):
+        """
+        drag and drop actions
+        :param path: (String) value emitted by the custom listwidget
+        :param mode: (String) This condition is for possible use of the function on multiple dragDrop scenartios
+        :return: None
+        """
+        if mode=="favorites":
+            normPath = os.path.normpath(path)
+            fName = pathOps(normPath,"basename")
+            if [fName, normPath] in self.favList:
+                return
+            self.favorites_listWidget.addItem(fName)
+            self.userFavoritesAdd(fName, normPath)
 
+
+class DropListWidget(QtWidgets.QListWidget):
+    dropped = Qt.QtCore.Signal(str)
+    def __init__(self, type, parent=None):
+        super(DropListWidget, self).__init__(parent)
+        self.setAcceptDrops(True)
+
+    def dragEnterEvent(self, event):
+        # print (help(event.mimeData()))
+        print event.mimeData().formats()
+        if event.mimeData().hasFormat('text/uri-list'):
+            event.accept()
+        else:
+            event.ignore()
+
+    def dragMoveEvent(self, event):
+        if event.mimeData().hasFormat('text/uri-list'):
+            event.setDropAction(QtCore.Qt.CopyAction)
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        rawPath = event.mimeData().data('text/uri-list').__str__()
+        path = rawPath.replace("file:///", "").splitlines()[0]
+        self.dropped.emit(path)
+        # self.addItem(path)

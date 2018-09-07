@@ -1,10 +1,12 @@
 
 
-delModules=["tik_manager", "tik_manager.manager", "tik_manager.imageManager", "tik_manager.imageViewer", "tik_manager.__init__"]
+delModules=["tik_manager", "tik_manager.manager", "tik_manager.imageManager", "tik_manager.imageViewer", "tik_manager.__init__", "tik_manager._version"]
 import sys
 for i in delModules:
     try:
+        toDel = str(sys.modules[i])
         del sys.modules[i]
+        print "{0} removed from memory".format(toDel)
     except KeyError:
         pass
 
