@@ -411,22 +411,13 @@ class MainUI(QtWidgets.QMainWindow):
         else:
             rec=1
 
-        gen = seq.walk(fullPath, level=rec, includes=self.filterList)
+        # gen = seq.walk(fullPath, level=rec, includes=self.filterList)
+        filter = (f for f in self.filterList)
+        gen = seq.walk(fullPath, level=rec, includes=filter)
         self.stop() # Stop any existing Timer
         self._generator = self.listingLoop(gen) # start the loop
         self._timerId = self.startTimer(0) # idle timer
 
-        # id = 0
-        # for x in gen:
-        #     for i in x[2]:
-        #         QtWidgets.QApplication.processEvents()
-        #         # execPath = os.path.join(x[0],i[0])
-        #         # execPath = i[0].path
-        #         self.sequenceData.append(i)
-        #         # name = i.format('%h%t %R')
-        #         self.sequences_listWidget.addItem(i.format('%h%t %R'))
-        #         # self.sequenceData.append()
-        #         id += 1
 
     def listingLoop(self, gen):
         for x in gen:
@@ -435,6 +426,12 @@ class MainUI(QtWidgets.QMainWindow):
                 self.sequenceData.append(i)
                 self.sequences_listWidget.addItem(i.format('%h%t %R'))
                 yield
+
+    def onRunItem(self):
+        row = self.sequences_listWidget.currentRow()
+        item = self.sequenceData[row]
+        firstImagePath = os.path.join(os.path.normpath(item.dirname), item.name)
+        os.startfile(firstImagePath)
 
     def stop(self):  # Connect to Stop-button clicked()
         if self._timerId is not None:
@@ -451,12 +448,7 @@ class MainUI(QtWidgets.QMainWindow):
         except StopIteration:
             self.stop()  # Iteration has finshed, kill the timer
 
-    def onRunItem(self):
-        row = self.sequences_listWidget.currentRow()
-        item = self.sequenceData[row]
-        firstImagePath = os.path.join(os.path.normpath(item.dirname), item.name)
-        # firstImagePath = os.path.join(os.path.normpath(item.dirname), str(item[0]))
-        os.startfile(firstImagePath)
+
 
 
 

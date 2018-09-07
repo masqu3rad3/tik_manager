@@ -1164,7 +1164,7 @@ def iget_sequences(source):
     log.debug("time: %s", datetime.now() - start)
 
 
-def walk(source, level=-1, topdown=True, onerror=None, followlinks=False, hidden=False, includes=[]):
+def walk(source, level=-1, topdown=True, onerror=None, followlinks=False, hidden=False, includes=()):
     """Generator that traverses a directory structure starting at
     source looking for sequences.
 
@@ -1192,8 +1192,8 @@ def walk(source, level=-1, topdown=True, onerror=None, followlinks=False, hidden
             files = [f for f in files if not f[0] == '.']
             dirs[:] = [d for d in dirs if not d[0] == '.']
 
-        files = [os.path.join(root, f) for f in files]
-        files = [f for f in files if re.match(includes, f)]
+        files = [os.path.join(root, f) for f in files if re.match(includes,f)]
+        # files = [f for f in files if re.match(includes, f)]
         ##
 
         if topdown is True:
