@@ -2457,25 +2457,25 @@ class MainUI(QtWidgets.QMainWindow):
 
         M1_horizontalLayout.addWidget(browse_pushButton)
 
-        back_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
+        self.back_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(back_pushButton.sizePolicy().hasHeightForWidth())
-        back_pushButton.setSizePolicy(sizePolicy)
-        back_pushButton.setMaximumSize(QtCore.QSize(30, 16777215))
-        back_pushButton.setText(("<"))
-        back_pushButton.setShortcut((""))
-        back_pushButton.setObjectName(("back_pushButton"))
+        sizePolicy.setHeightForWidth(self.back_pushButton.sizePolicy().hasHeightForWidth())
+        self.back_pushButton.setSizePolicy(sizePolicy)
+        self.back_pushButton.setMaximumSize(QtCore.QSize(30, 16777215))
+        self.back_pushButton.setText(("<"))
+        self.back_pushButton.setShortcut((""))
+        self.back_pushButton.setObjectName(("back_pushButton"))
 
-        M1_horizontalLayout.addWidget(back_pushButton)
+        M1_horizontalLayout.addWidget(self.back_pushButton)
 
         self.forward_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
         self.forward_pushButton.setMaximumSize(QtCore.QSize(30, 16777215))
         self.forward_pushButton.setText((">"))
         self.forward_pushButton.setShortcut((""))
         self.forward_pushButton.setObjectName(("forward_pushButton"))
-        self.forward_pushButton.setEnabled(False)
+        # self.forward_pushButton.setEnabled(False)
 
         M1_horizontalLayout.addWidget(self.forward_pushButton)
 
@@ -2609,13 +2609,14 @@ class MainUI(QtWidgets.QMainWindow):
         ## Initial Stuff
         # projectsDir = os.pardir(self.manager.scenePaths["projectPath"])
         self.projectsDir = os.path.abspath(os.path.join(self.manager.scenePaths["projectPath"], os.pardir))
-        self.projectsHistory = [self.projectsDir]
-        self.projectsDirIndex = 0
+        # self.projectsHistory = [self.projectsDir]
+        # self.projectsDirIndex = 0
+        self.browser = Browse()
+
 
         self.setPmodel = QtWidgets.QFileSystemModel()
         self.setPmodel.setRootPath(self.projectsDir)
         self.setPmodel.setFilter(QtCore.QDir.AllDirs | QtCore.QDir.NoDotAndDotDot | QtCore.QDir.Time)
-
 
         self.folders_tableView.setModel(self.setPmodel)
         self.folders_tableView.setRootIndex(self.setPmodel.index(self.projectsDir))
@@ -2628,7 +2629,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.lookIn_lineEdit.setText(self.projectsDir)
 
-
+        self.onBrowseSetProject("init")
 
         ## SIGNALS & SLOTS
         self.favorites_listWidget.dropped.connect(lambda path: self.onDragAndDrop(path, mode="favorites"))
@@ -2638,52 +2639,47 @@ class MainUI(QtWidgets.QMainWindow):
         self.favorites_listWidget.doubleClicked.connect(self.onSetProject)
 
         up_pushButton.clicked.connect(lambda: self.onBrowseSetProject("up"))
-        back_pushButton.clicked.connect(lambda: self.onBrowseSetProject("back"))
+        self.back_pushButton.clicked.connect(lambda: self.onBrowseSetProject("back"))
         self.forward_pushButton.clicked.connect(lambda: self.onBrowseSetProject("forward"))
         browse_pushButton.clicked.connect(lambda: self.onBrowseSetProject("browse"))
 
+        self.folders_tableView.doubleClicked.connect(lambda index: self.onBrowseSetProject("folder", index=index))
+
         self.setProject_Dialog.show()
 
-    def onBrowseSetProject(self, command):
+    def onBrowseSetProject(self, command, index=None):
         if command == "init":
-            pass
-        if command == "up":
-            upDir = os.path.abspath(os.path.join(self.projectsDir, os.pardir))
-            # print upDir, self.projectsHistory[-1]
-            if not upDir == self.projectsHistory[-1]:
-                self.projectsHistory.append(upDir)
-                self.projectsDirIndex += 1
-                del self.projectsHistory[self.projectsDirIndex+1:]
-                # lock forward
-                self.forward_pushButton.setEnabled(False)
+            # feed the initial data
+            self.browser.addData(self.projectsDir)
 
-            self.folders_tableView.setRootIndex(self.setPmodel.index(self.projectsHistory[self.projectsDirIndex]))
-            self.lookIn_lineEdit.setText(self.projectsHistory[self.projectsDirIndex])
-            pass
+        if command == "up":
+            self.projectsDir = os.path.abspath(os.path.join(self.projectsDir, os.pardir))
+            self.browser.addData(self.projectsDir)
+
         if command == "back":
-            # self.projectsHistory.pop(-1)
-            self.projectsDirIndex = self.projectsDirIndex - 1
-            self.folders_tableView.setRootIndex(self.setPmodel.index(self.projectsHistory[self.projectsDirIndex]))
-            self.lookIn_lineEdit.setText(self.projectsHistory[self.projectsDirIndex])
-            #unlock forward
-            self.forward_pushButton.setEnabled(True)
-            pass
+            self.browser.backward()
+
         if command == "forward":
-            self.projectsDirIndex = self.projectsDirIndex + 1
-            self.folders_tableView.setRootIndex(self.setPmodel.index(self.projectsHistory[self.projectsDirIndex]))
-            self.lookIn_lineEdit.setText(self.projectsHistory[self.projectsDirIndex])
-            pass
+            self.browser.forward()
+
         if command == "browse":
             dir = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory"))
-            if dir and not dir == self.projectsHistory[-1]:
-                self.projectsHistory.append(dir)
-                self.projectsDirIndex += 1
-                del self.projectsHistory[self.projectsDirIndex + 1:]
+            if dir:
+                self.projectsDir = dir
+                self.browser.addData(self.projectsDir)
             else:
-                pass
-            self.folders_tableView.setRootIndex(self.setPmodel.index(self.projectsHistory[self.projectsDirIndex]))
-            self.lookIn_lineEdit.setText(self.projectsHistory[self.projectsDirIndex])
+                return
 
+        if command == "folder":
+            index = self.folders_tableView.currentIndex()
+            self.projectsDir = os.path.normpath((self.setPmodel.filePath(index)))
+            self.browser.addData(self.projectsDir)
+
+
+        self.forward_pushButton.setDisabled(self.browser.isForwardLocked())
+        self.back_pushButton.setDisabled(self.browser.isBackwardLocked())
+        self.folders_tableView.setRootIndex(self.setPmodel.index(self.browser.getData()))
+        self.lookIn_lineEdit.setText(self.browser.getData())
 
     def onRemoveFavs(self):
         row = self.favorites_listWidget.currentRow()
@@ -3769,3 +3765,62 @@ class DropListWidget(QtWidgets.QListWidget):
         path = rawPath.replace("file:///", "").splitlines()[0]
         self.dropped.emit(path)
         # self.addItem(path)
+
+
+class Browse(object):
+    def __init__(self):
+        super(Browse, self).__init__()
+        self.history = []
+        self.index = 0
+        self.undoCount = 10
+        # self.forwardLimit = True
+        # self.backwardLimit = True
+
+
+    def forward(self):
+        if not self.isForwardLocked():
+            self.index += 1
+        else:
+            pass
+            # print "No More Forward"
+
+    def backward(self):
+        if not self.isBackwardLocked():
+            self.index -= 1
+        else:
+            pass
+            # print "No More Backward"
+
+    def addData(self, data):
+        # if the incoming data is identical with the current, do nothing
+        try:
+            currentData = self.history[self.index]
+            if data == currentData:
+                return
+        except IndexError:
+            pass
+
+        # delete history after index
+        del self.history[self.index+1:]
+        self.history.append(data)
+        if len(self.history) > self.undoCount:
+            self.history.pop(0)
+        self.index = len(self.history)-1
+        # the new data writes the history, so there is no future
+        self.forwardLimit = True
+        # but there is past
+        self.backwardLimit = False
+
+
+    def getData(self, index=None):
+        if index:
+            return self.history[index]
+        else:
+            return self.history[self.index]
+
+    def isBackwardLocked(self):
+        return self.index == 0
+
+    def isForwardLocked(self):
+        return self.index == (len(self.history)-1)
+
