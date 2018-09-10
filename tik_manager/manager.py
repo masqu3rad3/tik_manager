@@ -13,6 +13,7 @@ import pprint
 import re
 import socket
 from shutil import copyfile
+import smDatabaseOps as db
 
 import Qt
 import maya.cmds as cmds
@@ -141,50 +142,17 @@ def getMayaMainWindow():
     return ptr
 
 
-def folderCheck(folder):
-    """
-    Checks the folder for existence. If not, creates it
-    Args:
-        folder: (String) Folder to check
-
-    Returns: None
-
-    """
-    if not os.path.isdir(os.path.normpath(folder)):
-        os.makedirs(os.path.normpath(folder))
-
-
-def loadJson(file):
-    """
-    Loads the given json file
-    Args:
-        file: (String) Path to the json file
-
-    Returns: JsonData
-
-    """
-    if os.path.isfile(file):
-        with open(file, 'r') as f:
-            # The JSON module will read our file, and convert it to a python dictionary
-            data = json.load(f)
-            return data
-    else:
-        return None
-
-
-def dumpJson(data, file):
-    """
-    Saves the data to the json file
-    Args:
-        data: Data to save
-        file: (String) Path to the json file
-
-    Returns: None
-
-    """
-    with open(file, "w") as f:
-        json.dump(data, f, indent=4)
-
+# def folderCheck(folder):
+#     """
+#     Checks the folder for existence. If not, creates it
+#     Args:
+#         folder: (String) Folder to check
+#
+#     Returns: None
+#
+#     """
+#     if not os.path.isdir(os.path.normpath(folder)):
+#         os.makedirs(os.path.normpath(folder))
 
 def nameCheck(text):
     """
@@ -260,13 +228,13 @@ def getPaths():
     """
     projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
     dataPath = os.path.normpath(os.path.join(projectPath, "data"))
-    folderCheck(dataPath)
+    db.folderCheck(dataPath)
     jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
-    folderCheck(jsonPath)
+    db.folderCheck(jsonPath)
     scenesPath = os.path.normpath(os.path.join(projectPath, "scenes"))
-    folderCheck(scenesPath)
+    db.folderCheck(scenesPath)
     playBlastRoot = os.path.normpath(os.path.join(projectPath, "Playblasts"))
-    folderCheck(playBlastRoot)
+    db.folderCheck(playBlastRoot)
     pathDictionary = {"projectPath": projectPath,
                       "dataPath": dataPath,
                       "jsonPath": jsonPath,
@@ -277,7 +245,6 @@ def getPaths():
 
 
 def compareVersions(version):
-    print "version", version
     versionDict = {200800: "v2008",
                    200806: "v2008_EXT2",
                    200806: "v2008_SP1",
@@ -352,10 +319,11 @@ def compareVersions(version):
 class TikManager(object):
     def __init__(self):
         super(TikManager, self).__init__()
+        self.database = db.SmDatabase()
         self.currentPlatform = platform.system()
         # self.currentProject = pm.workspace(q=1, rd=1)
         self.currentSubProjectIndex = 0
-        self.userList = self.initUserList()[0]
+        self.userList = self.database.initUsers()[0]
         self.validCategories = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
         self.padding = 3
         self.scenePaths = getPaths()
@@ -390,16 +358,16 @@ class TikManager(object):
             category = os.path.basename(categoryDir)
 
             jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
-            folderCheck(jsonCategoryPath)
+            db.folderCheck(jsonCategoryPath)
             jsonPath = os.path.normpath(os.path.join(jsonCategoryPath, subProject))
-            folderCheck(jsonPath)
+            db.folderCheck(jsonPath)
 
         else:
             subProject = self.subProjectList[0]
             categoryDir = upperShotDir
             category = upperShot
             jsonPath = os.path.normpath(os.path.join(jsonPath, category))
-            folderCheck(jsonPath)
+            db.folderCheck(jsonPath)
 
         jsonFile = os.path.join(jsonPath, "{}.json".format(shotName))
         if os.path.isfile(jsonFile):
@@ -414,33 +382,6 @@ class TikManager(object):
         else:
             return None
 
-    def initUserList(self):
-        userDBLocation = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sceneManagerUsers.json")
-        if not os.path.isfile(userDBLocation):
-            userDB = {"Generic": "gn"}
-            dumpJson(userDB, userDBLocation)
-            return userDB, userDBLocation
-        else:
-            userDB = loadJson(userDBLocation)
-            return userDB, userDBLocation
-
-    def addUser(self, fullName, initials):
-        currentDB, dbFile = self.initUserList()
-        initialsList = currentDB.values()
-        if initials in initialsList:
-            msg="Initials are in use"
-            print msg
-            return -1, msg
-        currentDB[fullName] = initials
-        dumpJson(currentDB, dbFile)
-        self.userList = currentDB
-        return None, None
-
-    def removeUser(self, fullName):
-        currentDB, dbFile = self.initUserList()
-        del currentDB[fullName]
-        dumpJson(currentDB, dbFile)
-        self.userList = currentDB
 
     def listUsers(self):
         print self.userList
@@ -675,21 +616,21 @@ class TikManager(object):
             category = os.path.basename(categoryDir)
 
             jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
-            folderCheck(jsonCategoryPath)
+            db.folderCheck(jsonCategoryPath)
             jsonPath = os.path.normpath(os.path.join(jsonCategoryPath, subProject))
-            folderCheck(jsonPath)
+            db.folderCheck(jsonPath)
 
         else:
             categoryDir = upperShotDir
             category = upperShot
             jsonPath = os.path.normpath(os.path.join(jsonPath, category))
-            folderCheck(jsonPath)
+            db.folderCheck(jsonPath)
 
         jsonFile = os.path.join(jsonPath, "{}.json".format(shotName))
 
         # check if the saved file be
         if os.path.isfile(jsonFile):
-            jsonInfo = loadJson(jsonFile)
+            jsonInfo = self.database.loadJson(jsonFile)
             # check is the baseScene has a reference file
             if jsonInfo["ReferenceFile"]:
                 absRefFile = os.path.join(projectPath, jsonInfo["ReferenceFile"])
@@ -728,7 +669,7 @@ class TikManager(object):
 
         scenesToCheck = self.scanScenes(category, subProjectAs=subProject)[0]
         for z in scenesToCheck:
-            if baseName.lower() == loadJson(z)["Name"].lower():
+            if baseName.lower() == self.database.loadJson(z)["Name"].lower():
                 pm.warning("Choose an unique name")
                 return -1
 
@@ -738,26 +679,26 @@ class TikManager(object):
         scenesPath = self.scenePaths["scenesPath"]
 
         categoryPath = os.path.normpath(os.path.join(scenesPath, category))
-        folderCheck(categoryPath)
+        db.folderCheck(categoryPath)
 
         ## eger subproject olarak kaydedilecekse
         if not subProject == 0:
             subProjectPath = os.path.normpath(os.path.join(categoryPath, self.subProjectList[subProject]))
-            folderCheck(subProjectPath)
+            db.folderCheck(subProjectPath)
             shotPath = os.path.normpath(os.path.join(subProjectPath, baseName))
-            folderCheck(shotPath)
+            db.folderCheck(shotPath)
 
             jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
-            folderCheck(jsonCategoryPath)
+            db.folderCheck(jsonCategoryPath)
             jsonCategorySubPath = os.path.normpath(os.path.join(jsonCategoryPath, self.subProjectList[subProject]))
-            folderCheck(jsonCategorySubPath)
+            db.folderCheck(jsonCategorySubPath)
             jsonFile = os.path.join(jsonCategorySubPath, "{}.json".format(baseName))
         else:
             shotPath = os.path.normpath(os.path.join(categoryPath, baseName))
-            folderCheck(shotPath)
+            db.folderCheck(shotPath)
 
             jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
-            folderCheck(jsonCategoryPath)
+            db.folderCheck(jsonCategoryPath)
             jsonFile = os.path.join(jsonCategoryPath, "{}.json".format(baseName))
 
         version = 1
@@ -792,27 +733,27 @@ class TikManager(object):
         jsonInfo["CreatorHost"] = (socket.gethostname())
         jsonInfo["Versions"] = [ # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
             [relSceneFile, completeNote, userName, socket.gethostname(), {}, thumbPath]]
-        dumpJson(jsonInfo, jsonFile)
+        self.database.dumpJson(jsonInfo, jsonFile)
         return relSceneFile
 
-    def getVersionNotes(self, jsonFile, version=None):
-        """
-        Returns: [versionNotes, playBlastDictionary]
-        """
-        jsonInfo = loadJson(jsonFile)
-        # print "versions\n"
-        # pprint.pprint(jsonInfo["Versions"][version][1])
-        return jsonInfo["Versions"][version][1], jsonInfo["Versions"][version][4]
+    # def getVersionNotes(self, jsonFile, version=None):
+    #     """
+    #     Returns: [versionNotes, playBlastDictionary]
+    #     """
+    #     jsonInfo = self.database.loadJson(jsonFile)
+    #     # print "versions\n"
+    #     # pprint.pprint(jsonInfo["Versions"][version][1])
+    #     return jsonInfo["Versions"][version][1], jsonInfo["Versions"][version][4]
 
-    def addVersionNotes(self, additionalNote, jsonFile, version, user):
-        jsonInfo = loadJson(jsonFile)
-        currentNotes = jsonInfo["Versions"][version][1]
-        ## add username and date to the beginning of the note:
-        now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
-        completeNote = "%s\n[%s] on %s\n%s\n" % (currentNotes, user, now, additionalNote)
-        jsonInfo["Versions"][version][1] = completeNote
-        ##
-        dumpJson(jsonInfo, jsonFile)
+    # def addVersionNotes(self, additionalNote, jsonFile, version, user):
+    #     jsonInfo = loadJson(jsonFile)
+    #     currentNotes = jsonInfo["Versions"][version][1]
+    #     ## add username and date to the beginning of the note:
+    #     now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
+    #     completeNote = "%s\n[%s] on %s\n%s\n" % (currentNotes, user, now, additionalNote)
+    #     jsonInfo["Versions"][version][1] = completeNote
+    #     ##
+    #     dumpJson(jsonInfo, jsonFile)
 
     def saveVersion(self, userName, makeReference=True, versionNotes="", *args, **kwargs):
         """
@@ -843,7 +784,7 @@ class TikManager(object):
 
         if sceneInfo: ## getCurrentJson returns None if the resolved json path is missing
             jsonFile = sceneInfo["jsonFile"]
-            jsonInfo = loadJson(jsonFile)
+            jsonInfo = self.database.loadJson(jsonFile)
 
             currentVersion = len(jsonInfo["Versions"]) + 1
             sceneName = "{0}_{1}_{2}_v{3}".format(jsonInfo["Name"], jsonInfo["Category"], userName,
@@ -869,57 +810,57 @@ class TikManager(object):
                 copyfile(sceneFile, referenceFile)
                 jsonInfo["ReferenceFile"] = relReferenceFile
                 jsonInfo["ReferencedVersion"] = currentVersion
-            dumpJson(jsonInfo, jsonFile)
+            self.database.dumpJson(jsonInfo, jsonFile)
         else:
             pm.warning("This is not a base scene (Json file cannot be found)")
             return -1
         return relSceneFile
 
-    def getPBsettings(self):
+    # def getPBsettings(self):
+    #
+    #     # projectPath, playBlastRoot = getPathsFromScene("projectPath", "playBlastRoot")
+    #     projectPath = self.scenePaths["projectPath"]
+    #     playBlastRoot = self.scenePaths["playBlastRoot"]
+    #
+    #     # pbSettingsFile = "{0}\\PBsettings.json".format(os.path.join(projectPath, playBlastRoot))
+    #     pbSettingsFile = os.path.join(os.path.join(projectPath, playBlastRoot), "PBsettings.json")
+    #
+    #     if not os.path.isfile(pbSettingsFile):
+    #         defaultSettings = {"Resolution": (1280, 720),  ## done
+    #                            "Format": 'avi',  ## done
+    #                            "Codec": 'IYUV',  ## done
+    #                            "Percent": 100,  ## done
+    #                            "Quality": 100,  ## done
+    #                            "ShowFrameNumber": True,
+    #                            "ShowSceneName": False,
+    #                            "ShowCategory": False,
+    #                            "ShowFrameRange": True,
+    #                            "ShowFPS": True,
+    #                            "PolygonOnly": True,  ## done
+    #                            "ShowGrid": False,  ## done
+    #                            "ClearSelection": True,  ## done
+    #                            "DisplayTextures": True,  ## done
+    #                            "WireOnShaded": False,
+    #                            "UseDefaultMaterial": False,
+    #                            }
+    #         dumpJson(defaultSettings, pbSettingsFile)
+    #         return defaultSettings
+    #     else:
+    #         pbSettings = loadJson(pbSettingsFile)
+    #         return pbSettings
 
-        # projectPath, playBlastRoot = getPathsFromScene("projectPath", "playBlastRoot")
-        projectPath = self.scenePaths["projectPath"]
-        playBlastRoot = self.scenePaths["playBlastRoot"]
-
-        # pbSettingsFile = "{0}\\PBsettings.json".format(os.path.join(projectPath, playBlastRoot))
-        pbSettingsFile = os.path.join(os.path.join(projectPath, playBlastRoot), "PBsettings.json")
-
-        if not os.path.isfile(pbSettingsFile):
-            defaultSettings = {"Resolution": (1280, 720),  ## done
-                               "Format": 'avi',  ## done
-                               "Codec": 'IYUV',  ## done
-                               "Percent": 100,  ## done
-                               "Quality": 100,  ## done
-                               "ShowFrameNumber": True,
-                               "ShowSceneName": False,
-                               "ShowCategory": False,
-                               "ShowFrameRange": True,
-                               "ShowFPS": True,
-                               "PolygonOnly": True,  ## done
-                               "ShowGrid": False,  ## done
-                               "ClearSelection": True,  ## done
-                               "DisplayTextures": True,  ## done
-                               "WireOnShaded": False,
-                               "UseDefaultMaterial": False,
-                               }
-            dumpJson(defaultSettings, pbSettingsFile)
-            return defaultSettings
-        else:
-            pbSettings = loadJson(pbSettingsFile)
-            return pbSettings
-
-    def setPBsettings(self, pbSettingsDict):
-
-        # projectPath, playBlastRoot = getPathsFromScene("projectPath", "playBlastRoot")
-        projectPath = self.scenePaths["projectPath"]
-        playBlastRoot = self.scenePaths["playBlastRoot"]
-
-        pbSettingsFile = os.path.join(os.path.join(projectPath, playBlastRoot), "PBsettings.json")
-        dumpJson(pbSettingsDict, pbSettingsFile)
-        return
+    # def setPBsettings(self, pbSettingsDict):
+    #
+    #     # projectPath, playBlastRoot = getPathsFromScene("projectPath", "playBlastRoot")
+    #     projectPath = self.scenePaths["projectPath"]
+    #     playBlastRoot = self.scenePaths["playBlastRoot"]
+    #
+    #     pbSettingsFile = os.path.join(os.path.join(projectPath, playBlastRoot), "PBsettings.json")
+    #     dumpJson(pbSettingsDict, pbSettingsFile)
+    #     return
 
     def createPlayblast(self, *args, **kwargs):
-        pbSettings = self.getPBsettings()
+        pbSettings = self.database.loadPBSettings()
 
         validFormats = pm.playblast(format=True, q=True)
         validCodecs = pm.playblast(c=True, q=True)
@@ -968,26 +909,26 @@ class TikManager(object):
             category = os.path.basename(categoryDir)
 
             jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
-            folderCheck(jsonCategoryPath)
+            db.folderCheck(jsonCategoryPath)
             jsonPath = os.path.normpath(os.path.join(jsonCategoryPath, subProject))
-            folderCheck(jsonPath)
+            db.folderCheck(jsonPath)
 
             pbCategoryPath = os.path.normpath(os.path.join(playBlastRoot, category))
-            folderCheck(pbCategoryPath)
+            db.folderCheck(pbCategoryPath)
             pbSubPath = os.path.normpath(os.path.join(pbCategoryPath, subProject))
-            folderCheck(pbSubPath)
+            db.folderCheck(pbSubPath)
             pbPath = os.path.normpath(os.path.join(pbSubPath, shotName))
-            folderCheck(pbPath)
+            db.folderCheck(pbPath)
 
         else:
             # categoryDir = upperShotDir
             category = upperShot
             jsonPath = os.path.normpath(os.path.join(jsonPath, category))
-            folderCheck(jsonPath)
+            db.folderCheck(jsonPath)
             pbCategoryPath = os.path.normpath(os.path.join(playBlastRoot, category))
-            folderCheck(pbCategoryPath)
+            db.folderCheck(pbCategoryPath)
             pbPath = os.path.normpath(os.path.join(pbCategoryPath, shotName))
-            folderCheck(pbPath)
+            db.folderCheck(pbPath)
 
         jsonFile = os.path.join(jsonPath, "{}.json".format(shotName))
 
@@ -995,7 +936,7 @@ class TikManager(object):
 
             selection = pm.ls(sl=True)
             pm.select(d=pbSettings["ClearSelection"])
-            jsonInfo = loadJson(jsonFile)
+            jsonInfo = self.database.loadJson(jsonFile)
 
             currentCam = pm.modelPanel(pm.getPanel(wf=True), q=True, cam=True)
 
@@ -1144,7 +1085,9 @@ class TikManager(object):
                 if relVersionName == i[0]:
                     i[4][currentCam] = relPlayBlastFile
 
-            dumpJson(jsonInfo, jsonFile)
+            self.database.dumpJson(jsonInfo, jsonFile)
+            return 0, ""
+
         else:
             msg = "This is not a base scene (Json file cannot be found)"
             pm.warning(msg)
@@ -1165,13 +1108,13 @@ class TikManager(object):
         return
 
     def removePlayblast(self, relativePath, jsonFile, version):
-        jsonInfo = loadJson(jsonFile)
+        jsonInfo = self.database.loadJson(jsonFile)
         pbDict = jsonInfo["Versions"][version][4]
         for key, value in pbDict.iteritems():  # for name, age in list.items():  (for Python 3.x)
             if value == relativePath:
                 pbDict.pop(key, None)
                 jsonInfo["Versions"][version][4] = pbDict
-                dumpJson(jsonInfo, jsonFile)
+                self.database.dumpJson(jsonInfo, jsonFile)
                 return
 
 
@@ -1185,11 +1128,11 @@ class TikManager(object):
         subPjson = os.path.normpath(os.path.join(jsonPath, "subPdata.json"))
         subInfo = []
         if os.path.isfile(subPjson):
-            subInfo = loadJson(subPjson)
+            subInfo = self.database.loadJson(subPjson)
 
         subInfo.append(nameOfSubProject)
         self.currentSubProjectIndex = len(subInfo) - 1  ## make the current sub project index the new created one.
-        dumpJson(subInfo, subPjson)
+        self.database.dumpJson(subInfo, subPjson)
         return subInfo
 
     def scanSubProjects(self):
@@ -1199,10 +1142,10 @@ class TikManager(object):
         subPjson = os.path.normpath(os.path.join(jsonPath, "subPdata.json"))
         if not os.path.isfile(subPjson):
             subInfo = ["None"]
-            dumpJson(subInfo, subPjson)
+            self.database.dumpJson(subInfo, subPjson)
 
         else:
-            subInfo = loadJson(subPjson)
+            subInfo = self.database.loadJson(subPjson)
         return subInfo
 
         # def renameScene(self, jsonFile, newName, version=None):
@@ -1275,20 +1218,20 @@ class TikManager(object):
 
         subPjson = os.path.normpath(os.path.join(jsonPath, "subPdata.json"))
         if not os.path.isfile(subPjson):
-            dumpJson(["None"], subPjson)
+            self.database.dumpJson(["None"], subPjson)
         # eger subproject olarak aranilacaksa
         if not (subProjectIndex == 0):
             jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
-            folderCheck(jsonCategoryPath)
+            db.folderCheck(jsonCategoryPath)
 
             jsonCategorySubPath = os.path.normpath(
                 os.path.join(jsonCategoryPath, (self.subProjectList)[subProjectIndex]))
 
-            folderCheck(jsonCategorySubPath)
+            db.folderCheck(jsonCategorySubPath)
             searchFolder = jsonCategorySubPath
         else:
             jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, category))
-            folderCheck(jsonCategoryPath)
+            db.folderCheck(jsonCategoryPath)
             searchFolder = jsonCategoryPath
 
         allJsonFiles = []
@@ -1313,7 +1256,7 @@ class TikManager(object):
         """
         # projectPath = getPathsFromScene("projectPath")
         projectPath = self.scenePaths["projectPath"]
-        jsonInfo = loadJson(jsonFile)
+        jsonInfo = self.database.loadJson(jsonFile)
         relSceneFile = jsonInfo["Versions"][version][0]  ## this is the relative scene path of the specified version
         sceneFile = os.path.join(projectPath, relSceneFile)
 
@@ -1329,7 +1272,7 @@ class TikManager(object):
         # projectPath = getPathsFromScene("projectPath")
         projectPath = self.scenePaths["projectPath"]
 
-        jsonInfo = loadJson(jsonFile)
+        jsonInfo = self.database.loadJson(jsonFile)
 
         # delete all version files
         for s in jsonInfo["Versions"]:
@@ -1363,13 +1306,13 @@ class TikManager(object):
         # projectPath = getPathsFromScene("projectPath")
         projectPath = self.scenePaths["projectPath"]
 
-        jsonInfo = loadJson(jsonFile)
+        jsonInfo = self.database.loadJson(jsonFile)
         if jsonInfo["ReferenceFile"]:
             try:
                 os.remove(os.path.join(projectPath, jsonInfo["ReferenceFile"]))
                 jsonInfo["ReferenceFile"] = None
                 jsonInfo["ReferencedVersion"] = None
-                dumpJson(jsonInfo, jsonFile)
+                self.database.dumpJson(jsonInfo, jsonFile)
             except:
                 pm.warning("Cannot delete reference file %s" % (jsonInfo["ReferenceFile"]))
                 pass
@@ -1391,7 +1334,7 @@ class TikManager(object):
         # projectPath = getPathsFromScene("projectPath")
         projectPath = self.scenePaths["projectPath"]
 
-        jsonInfo = loadJson(jsonFile)
+        jsonInfo = self.database.loadJson(jsonFile)
 
         if version == 0 or version > len(jsonInfo["Versions"]):
             pm.error("version number mismatch - (makeReference method)")
@@ -1408,7 +1351,7 @@ class TikManager(object):
         jsonInfo["ReferenceFile"] = relReferenceFile
         jsonInfo["ReferencedVersion"] = version
 
-        dumpJson(jsonInfo, jsonFile)
+        self.database.dumpJson(jsonInfo, jsonFile)
 
     def checkReference(self, jsonFile, deepCheck=False):
         """
@@ -1423,7 +1366,7 @@ class TikManager(object):
         # projectPath = getPathsFromScene("projectPath")
         projectPath = self.scenePaths["projectPath"]
 
-        jsonInfo = loadJson(jsonFile)
+        jsonInfo = self.database.loadJson(jsonFile)
         if jsonInfo["ReferenceFile"]:
             relRefVersion = jsonInfo["Versions"][jsonInfo["ReferencedVersion"] - 1][0]
             refVersion = os.path.join(projectPath, relRefVersion)
@@ -1447,7 +1390,7 @@ class TikManager(object):
         # projectPath = getPathsFromScene("projectPath")
         projectPath = self.scenePaths["projectPath"]
 
-        jsonInfo = loadJson(jsonFile)
+        jsonInfo = self.database.loadJson(jsonFile)
         relReferenceFile = jsonInfo["ReferenceFile"]
 
         # os.path.isfile(referenceFile)
@@ -1499,7 +1442,7 @@ class TikManager(object):
 
 
     def replaceThumbnail(self, mode="file", jsonPath=None, version=None, filePath=None ):
-        jsonInfo = loadJson(jsonPath)
+        jsonInfo = self.database.loadJson(jsonPath)
         if mode == "file":
             if not filePath:
                 pm.warning("filePath flag cannot be None in mode='file'")
@@ -1515,7 +1458,7 @@ class TikManager(object):
             jsonInfo["Versions"][version][5]=filePath
         except IndexError: # if this is an older file without thumbnail
             jsonInfo["Versions"][version].append(filePath)
-        dumpJson(jsonInfo, jsonPath)
+            self.database.dumpJson(jsonInfo, jsonPath)
 
 class MainUI(QtWidgets.QMainWindow):
     def __init__(self, scriptJob=None):
@@ -1765,7 +1708,6 @@ class MainUI(QtWidgets.QMainWindow):
         reBuildDatabase_fm = QtWidgets.QAction("&Re-build Project Database", self)
         projectReport_fm = QtWidgets.QAction("&Project Report", self)
         checkReferences_fm = QtWidgets.QAction("&Check References", self)
-
         # file.addAction(createProject_fm)
         # file.addAction(pb_settings_fm)
         # file.addAction(add_remove_users_fm)
@@ -1912,6 +1854,7 @@ class MainUI(QtWidgets.QMainWindow):
         shortcutRefresh = Qt.QtWidgets.QShortcut(Qt.QtGui.QKeySequence("F5"), self, self.refresh)
 
         self.userPrefLoad()
+
         self.populateScenes()
         # self.manager.remoteLogger()
         self.statusBar().showMessage("Status | Idle")
@@ -1929,7 +1872,7 @@ class MainUI(QtWidgets.QMainWindow):
                 return
         else:
             return
-        currentSettings = self.manager.getPBsettings()
+        currentSettings = self.manager.database.loadPBSettings()
 
         self.pbSettings_dialog = QtWidgets.QDialog(parent=self)
         self.pbSettings_dialog.setModal(True)
@@ -2527,13 +2470,14 @@ class MainUI(QtWidgets.QMainWindow):
 
         M1_horizontalLayout.addWidget(back_pushButton)
 
-        forward_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
-        forward_pushButton.setMaximumSize(QtCore.QSize(30, 16777215))
-        forward_pushButton.setText((">"))
-        forward_pushButton.setShortcut((""))
-        forward_pushButton.setObjectName(("forward_pushButton"))
+        self.forward_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
+        self.forward_pushButton.setMaximumSize(QtCore.QSize(30, 16777215))
+        self.forward_pushButton.setText((">"))
+        self.forward_pushButton.setShortcut((""))
+        self.forward_pushButton.setObjectName(("forward_pushButton"))
+        self.forward_pushButton.setEnabled(False)
 
-        M1_horizontalLayout.addWidget(forward_pushButton)
+        M1_horizontalLayout.addWidget(self.forward_pushButton)
 
         up_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
         up_pushButton.setMaximumSize(QtCore.QSize(30, 16777215))
@@ -2679,7 +2623,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.folders_tableView.hideColumn(2)
         self.folders_tableView.setColumnWidth(0,400)
 
-        self.userFavoritesLoad()
+        self.favList = self.manager.database.loadFavorites()[0]
         self.favorites_listWidget.addItems([x[0] for x in self.favList])
 
         self.lookIn_lineEdit.setText(self.projectsDir)
@@ -2694,6 +2638,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.favorites_listWidget.doubleClicked.connect(self.onSetProject)
 
         up_pushButton.clicked.connect(lambda: self.onBrowseSetProject("up"))
+        back_pushButton.clicked.connect(lambda: self.onBrowseSetProject("back"))
+        self.forward_pushButton.clicked.connect(lambda: self.onBrowseSetProject("forward"))
+        browse_pushButton.clicked.connect(lambda: self.onBrowseSetProject("browse"))
 
         self.setProject_Dialog.show()
 
@@ -2702,22 +2649,40 @@ class MainUI(QtWidgets.QMainWindow):
             pass
         if command == "up":
             upDir = os.path.abspath(os.path.join(self.projectsDir, os.pardir))
-            if not upDir == self.projectsDir:
+            # print upDir, self.projectsHistory[-1]
+            if not upDir == self.projectsHistory[-1]:
                 self.projectsHistory.append(upDir)
-                self.projectsDirIndex = len(self.projectsHistory)-1
+                self.projectsDirIndex += 1
+                del self.projectsHistory[self.projectsDirIndex+1:]
+                # lock forward
+                self.forward_pushButton.setEnabled(False)
+
             self.folders_tableView.setRootIndex(self.setPmodel.index(self.projectsHistory[self.projectsDirIndex]))
             self.lookIn_lineEdit.setText(self.projectsHistory[self.projectsDirIndex])
             pass
         if command == "back":
-            self.folders_tableView.setRootIndex(self.setPmodel.index(self.projectsHistory[self.projectsDirIndex-1]))
-            self.lookIn_lineEdit.setText(self.projectsHistory[self.projectsDirIndex-1])
+            # self.projectsHistory.pop(-1)
+            self.projectsDirIndex = self.projectsDirIndex - 1
+            self.folders_tableView.setRootIndex(self.setPmodel.index(self.projectsHistory[self.projectsDirIndex]))
+            self.lookIn_lineEdit.setText(self.projectsHistory[self.projectsDirIndex])
+            #unlock forward
+            self.forward_pushButton.setEnabled(True)
             pass
         if command == "forward":
-            self.folders_tableView.setRootIndex(self.setPmodel.index(self.projectsHistory[self.projectsDirIndex+1]))
-            self.lookIn_lineEdit.setText(self.projectsHistory[self.projectsDirIndex+1])
+            self.projectsDirIndex = self.projectsDirIndex + 1
+            self.folders_tableView.setRootIndex(self.setPmodel.index(self.projectsHistory[self.projectsDirIndex]))
+            self.lookIn_lineEdit.setText(self.projectsHistory[self.projectsDirIndex])
             pass
         if command == "browse":
-            pass
+            dir = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory"))
+            if dir and not dir == self.projectsHistory[-1]:
+                self.projectsHistory.append(dir)
+                self.projectsDirIndex += 1
+                del self.projectsHistory[self.projectsDirIndex + 1:]
+            else:
+                pass
+            self.folders_tableView.setRootIndex(self.setPmodel.index(self.projectsHistory[self.projectsDirIndex]))
+            self.lookIn_lineEdit.setText(self.projectsHistory[self.projectsDirIndex])
 
 
     def onRemoveFavs(self):
@@ -2725,7 +2690,7 @@ class MainUI(QtWidgets.QMainWindow):
         if row == -1:
             return
         # item = self.favList[row]
-        self.userFavoritesRemove(row)
+        self.favList = self.manager.database.removeFromFavorites(row)
         self.favorites_listWidget.takeItem(row)
 
     def onAddFavs(self):
@@ -2756,7 +2721,7 @@ class MainUI(QtWidgets.QMainWindow):
 
 
     def onAddUser(self):
-        ret, msg = self.manager.addUser(self.fullname_lineEdit.text(), self.initials_lineEdit.text())
+        ret, msg = self.manager.database.addUser(self.fullname_lineEdit.text(), self.initials_lineEdit.text())
         if ret == -1:
             self.infoPop(textTitle="Cannot Add User", textHeader=msg)
             return
@@ -2772,7 +2737,7 @@ class MainUI(QtWidgets.QMainWindow):
         pass
 
     def onRemoveUser(self):
-        self.manager.removeUser(self.selectuser_comboBox.currentText())
+        self.manager.database.removeUser(self.selectuser_comboBox.currentText())
         self.refresh()
         userListSorted = sorted(self.manager.userList.keys())
         self.selectuser_comboBox.clear()
@@ -2864,7 +2829,8 @@ class MainUI(QtWidgets.QMainWindow):
                          "WireOnShaded": self.wireonshaded_checkBox.isChecked(),
                          "UseDefaultMaterial": self.usedefaultmaterial_checkBox.isChecked()
                          }
-        self.manager.setPBsettings(newPbSettings)
+        self.manager.database.savePBSettings(newPbSettings)
+        self.statusBar().showMessage("Status | Playblast Settings Saved")
 
     def onImanager(self):
         import imageManager as iman
@@ -3093,8 +3059,8 @@ class MainUI(QtWidgets.QMainWindow):
             self.statusBar().showMessage("Status | Base Scene Created => %s" % sceneFile)
 
         else:
-            self.infoPop(textInfo="Save Version FAILED",
-                         textHeader="Current Scene is not a Base Scene. No Version saved", textTitle="ERROR: SAVE VERSION", type="C")
+            self.infoPop(textInfo="Save Base Scene FAILED",
+                         textHeader="There is another Base Scene with the same name", textTitle="ERROR: Save Base Scene", type="C")
 
 
 
@@ -3123,7 +3089,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         sceneJson = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
         try:
-            sceneInfo = loadJson(sceneJson)
+            sceneInfo = self.manager.database.loadJson(sceneJson)
         except:
             self.infoPop(textTitle="Error Finding Database", textInfo="Database file => {0} does not exist".format(sceneJson), type="C")
             return
@@ -3170,7 +3136,7 @@ class MainUI(QtWidgets.QMainWindow):
         # takethefirstjson as example for rootpath
         sceneJson = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
         version = self.version_comboBox.currentIndex()
-        notes, pbDict = self.manager.getVersionNotes(sceneJson, version=version)
+        notes, pbDict = self.manager.database.loadVersionNotes(sceneJson, version=version)
         if len(pbDict.keys()) == 1:
             path = pbDict[pbDict.keys()[0]]
             self.manager.playPlayblast(path)
@@ -3258,7 +3224,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         addNotes_buttonBox.setObjectName(("addNotes_buttonBox"))
         addNotes_buttonBox.accepted.connect(
-            lambda: self.manager.addVersionNotes(addNotes_textEdit.toPlainText(), sceneJson, version, userName))
+            lambda: self.manager.database.addVersionNotes(addNotes_textEdit.toPlainText(), sceneJson, version, userName))
         addNotes_buttonBox.accepted.connect(self.populateScenes)
         addNotes_buttonBox.accepted.connect(addNotes_Dialog.accept)
 
@@ -3285,27 +3251,34 @@ class MainUI(QtWidgets.QMainWindow):
     def userPrefSave(self):
         # pass
 
-        homedir = os.path.expanduser("~")
-        settingsFilePath = os.path.join(homedir, "smSettings.json")
-
-        settingsData = {"currentTabIndex": self.category_tabWidget.currentIndex(),
-                        "currentSubIndex": self.subProject_comboBox.currentIndex(),
-                        #"currentUserIndex": self.userName_comboBox.currentIndex(),
-                        "currentUser": self.userName_comboBox.currentText(),
-                        "currentMode": self.referenceMode_radioButton.isChecked()}
-        dumpJson(settingsData, settingsFilePath)
+        # homedir = os.path.expanduser("~")
+        # settingsFilePath = os.path.join(homedir, "smSettings.json")
+        #
+        # settingsData = {"currentTabIndex": self.category_tabWidget.currentIndex(),
+        #                 "currentSubIndex": self.subProject_comboBox.currentIndex(),
+        #                 #"currentUserIndex": self.userName_comboBox.currentIndex(),
+        #                 "currentUser": self.userName_comboBox.currentText(),
+        #                 "currentMode": self.referenceMode_radioButton.isChecked()}
+        # dumpJson(settingsData, settingsFilePath)
+        self.manager.database.saveUserPrefs(self.category_tabWidget.currentIndex(),
+                              self.subProject_comboBox.currentIndex(),
+                              self.userName_comboBox.currentText(),
+                              self.referenceMode_radioButton.isChecked()
+                              )
 
     def userPrefLoad(self):
         # pass
-        homedir = os.path.expanduser("~")
-        settingsFilePath = os.path.join(homedir, "smSettings.json")
-        if os.path.isfile(settingsFilePath):
-            settingsData = loadJson(settingsFilePath)
-        else:
-            # return defaults
-            # settingsData = {"currentTabIndex": 0, "currentSubIndex": 0, "currentUserIndex": 0, "currentMode": 0}
-            settingsData = {"currentTabIndex": 0, "currentSubIndex": 0, "currentUser": "", "currentMode": 0}
-            dumpJson(settingsData, settingsFilePath)
+        # homedir = os.path.expanduser("~")
+        # settingsFilePath = os.path.join(homedir, "smSettings.json")
+        # if os.path.isfile(settingsFilePath):
+        #     settingsData = loadJson(settingsFilePath)
+        # else:
+        #     # return defaults
+        #     # settingsData = {"currentTabIndex": 0, "currentSubIndex": 0, "currentUserIndex": 0, "currentMode": 0}
+        #     settingsData = {"currentTabIndex": 0, "currentSubIndex": 0, "currentUser": "", "currentMode": 0}
+        #     dumpJson(settingsData, settingsFilePath)
+
+        settingsData = self.manager.database.loadUserPrefs()
 
         self.referenceMode_radioButton.setChecked(settingsData["currentMode"])
         self.loadMode_radioButton.setChecked(not settingsData["currentMode"])
@@ -3335,29 +3308,29 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.category_tabWidget.setCurrentIndex(settingsData["currentTabIndex"])
 
-    def userFavoritesLoad(self):
-        homedir = os.path.expanduser("~")
-        bookmarksFilePath = os.path.join(homedir, "smBookmarks.json")
-        if os.path.isfile(bookmarksFilePath):
-            bookmarksData = loadJson(bookmarksFilePath)
-        else:
-            bookmarksData = []
-            dumpJson(bookmarksData, bookmarksFilePath)
-        self.favList = bookmarksData
-        return bookmarksData, bookmarksFilePath
+    # def userFavoritesLoad(self):
+    #     homedir = os.path.expanduser("~")
+    #     bookmarksFilePath = os.path.join(homedir, "smBookmarks.json")
+    #     if os.path.isfile(bookmarksFilePath):
+    #         bookmarksData = loadJson(bookmarksFilePath)
+    #     else:
+    #         bookmarksData = []
+    #         dumpJson(bookmarksData, bookmarksFilePath)
+    #     self.favList = bookmarksData
+    #     return bookmarksData, bookmarksFilePath
 
-    def userFavoritesAdd(self, shortName, path):
-        data, filePath = self.userFavoritesLoad()
-        data.append([shortName, path])
-        self.favList = data
-        dumpJson(data, filePath)
+    # def userFavoritesAdd(self, shortName, path):
+    #     data, filePath = self.userFavoritesLoad()
+    #     data.append([shortName, path])
+    #     self.favList = data
+    #     dumpJson(data, filePath)
 
-    def userFavoritesRemove(self, index):
-        data, filePath = self.userFavoritesLoad()
-        # data.remove([shortName, path])
-        del data[index]
-        self.favList = data
-        dumpJson(data, filePath)
+    # def userFavoritesRemove(self, index):
+    #     data, filePath = self.userFavoritesLoad()
+    #     # data.remove([shortName, path])
+    #     del data[index]
+    #     self.favList = data
+    #     dumpJson(data, filePath)
 
     def rcAction(self, command):
         if command == "importScene":
@@ -3375,7 +3348,7 @@ class MainUI(QtWidgets.QMainWindow):
                 # takethefirstjson as example for rootpath
                 jPath = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
 
-                sceneData = loadJson(jPath)
+                sceneData = self.manager.database.loadJson(jPath)
 
                 path = os.path.join(os.path.normpath(self.manager.scenePaths["projectPath"]), os.path.normpath(sceneData["Path"]))
 
@@ -3392,7 +3365,7 @@ class MainUI(QtWidgets.QMainWindow):
                 jPath = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
 
                 # sceneData = loadJson(os.path.join(jPath, sceneName))
-                sceneData = loadJson(jPath)
+                sceneData = self.manager.database.loadJson(jPath)
 
                 path = os.path.join(os.path.normpath(self.manager.scenePaths["projectPath"]), os.path.normpath(sceneData["Path"]))
                 path = path.replace("scenes", "Playblasts")
@@ -3457,7 +3430,7 @@ class MainUI(QtWidgets.QMainWindow):
         sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
         # takethefirstjson as example for rootpath
         jPath = pathOps(self.scenesInCategory[0], "path")
-        sceneData = loadJson(os.path.join(jPath, sceneName))
+        sceneData = self.manager.database.loadJson(os.path.join(jPath, sceneName))
 
         for num in range(len(sceneData["Versions"])):
             self.version_comboBox.addItem("v{0}".format(str(num + 1).zfill(3)))
@@ -3483,7 +3456,7 @@ class MainUI(QtWidgets.QMainWindow):
             sceneJson = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
             version = self.version_comboBox.currentIndex()
 
-            notes, pbDict = self.manager.getVersionNotes(sceneJson, version)
+            notes, pbDict = self.manager.database.loadVersionNotes(sceneJson, version)
 
             self.notes_textEdit.setPlainText(notes)
             if pbDict.keys():
@@ -3507,10 +3480,9 @@ class MainUI(QtWidgets.QMainWindow):
             sceneJson = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
             version = self.version_comboBox.currentIndex()
 
-            jsonInfo = loadJson(sceneJson)
+            jsonInfo = self.manager.database.loadJson(sceneJson)
             try:
                 thumb = os.path.join(self.manager.scenePaths["projectPath"], jsonInfo["Versions"][version][5])
-                # print "thumb", thumb
                 if os.path.isfile(thumb):
                     self.tPixmap = QtGui.QPixmap((thumb))
                     self.thumbnail_label.setPixmap(self.tPixmap.scaledToHeight(124))
@@ -3555,7 +3527,7 @@ class MainUI(QtWidgets.QMainWindow):
             sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
             # takethefirstjson as example for rootpath
             jPath = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
-            sceneData = loadJson(jPath)
+            sceneData = self.manager.database.loadJson(jPath)
             textInfo = pprint.pformat(sceneData)
 
             self.messageDialog = QtWidgets.QDialog()
@@ -3608,7 +3580,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         if self.referenceMode_radioButton.isChecked():
             for i in self.scenesInCategory:
-                jsonFile = loadJson(i)
+                jsonFile = self.manager.database.loadJson(i)
                 if jsonFile["ReferenceFile"]:
                     self.scenes_listWidget.addItem(pathOps(i, "filename"))
             self.version_comboBox.setEnabled(False)
@@ -3770,7 +3742,7 @@ class MainUI(QtWidgets.QMainWindow):
             if [fName, normPath] in self.favList:
                 return
             self.favorites_listWidget.addItem(fName)
-            self.userFavoritesAdd(fName, normPath)
+            self.favList = self.manager.database.addToFavorites(fName, normPath)
 
 
 class DropListWidget(QtWidgets.QListWidget):
@@ -3780,8 +3752,6 @@ class DropListWidget(QtWidgets.QListWidget):
         self.setAcceptDrops(True)
 
     def dragEnterEvent(self, event):
-        # print (help(event.mimeData()))
-        print event.mimeData().formats()
         if event.mimeData().hasFormat('text/uri-list'):
             event.accept()
         else:

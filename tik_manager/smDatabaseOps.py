@@ -1,6 +1,7 @@
 import json
 import os
 import pymel.core as pm
+import datetime
 
 def folderCheck(folder):
     if not os.path.isdir(os.path.normpath(folder)):
@@ -42,8 +43,28 @@ class SmDatabase(object):
         Returns: None
 
         """
+
         with open(file, "w") as f:
             json.dump(data, f, indent=4)
+
+
+    def loadVersionNotes(self, jsonFile, version=None):
+        # oldname getVersionNotes
+        """
+        Returns: [versionNotes, playBlastDictionary]
+        """
+        jsonInfo = self.loadJson(jsonFile)
+        return jsonInfo["Versions"][version][1], jsonInfo["Versions"][version][4]
+
+    def addVersionNotes(self, additionalNote, jsonFile, version, user):
+        jsonInfo = self.loadJson(jsonFile)
+        currentNotes = jsonInfo["Versions"][version][1]
+        ## add username and date to the beginning of the note:
+        now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
+        completeNote = "%s\n[%s] on %s\n%s\n" % (currentNotes, user, now, additionalNote)
+        jsonInfo["Versions"][version][1] = completeNote
+        ##
+        self.dumpJson(jsonInfo, jsonFile)
 
     def initUsers(self):
         # old Name
@@ -115,17 +136,19 @@ class SmDatabase(object):
 
     def loadUserPrefs(self):
         # old Name userPrefLoad
+
         settingsFilePath = os.path.join(self.userSettings_Path, "smSettings.json")
         if os.path.isfile(settingsFilePath):
             settingsData = self.loadJson(settingsFilePath)
         else:
             settingsData = {"currentTabIndex": 0, "currentSubIndex": 0, "currentUser": "", "currentMode": 0}
+            folderCheck(self.userSettings_Path)
             self.dumpJson(settingsData, settingsFilePath)
         return settingsData
 
     def saveUserPrefs(self, tabIndex, subIndex, user, mode):
         # old Name userPrefSave
-        settingsFilePath = os.path.join(self.userSettings_Path, "smSettings.json")
+        settingsFilePath = os.path.normpath(os.path.join(self.userSettings_Path, "smSettings.json"))
 
         settingsData = {"currentTabIndex": tabIndex,
                         "currentSubIndex": subIndex,
@@ -141,19 +164,18 @@ class SmDatabase(object):
         else:
             bookmarksData = []
             self.dumpJson(bookmarksData, bookmarksFilePath)
-        self.favList = bookmarksData
         return bookmarksData, bookmarksFilePath
 
     def addToFavorites(self, shortName, absPath):
         # old Name userFavoritesAdd
         data, filePath = self.loadFavorites()
         data.append([shortName, absPath])
-        self.favList = data
         self.dumpJson(data, filePath)
+        return data
 
     def removeFromFavorites(self, index):
         # old Name userFavoritesRemove
         data, filePath = self.loadFavorites()
         del data[index]
-        self.favList = data
         self.dumpJson(data, filePath)
+        return data

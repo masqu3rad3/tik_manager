@@ -1,6 +1,11 @@
 =============================
 Scene Manager Version History
 =============================
+1.93
+----
+* **Update.0:** database operations moved to a seperate module
+* **New.1:** Brand new Set Project Scene (WIP)
+* **TODO** Copy the upgrades from sequence viewer to image viewer
 
 1.92
 -----

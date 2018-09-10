@@ -21,8 +21,8 @@ Installing Scene Manager
         sys.path.append(targetFolder)
 
     def smUpdate(*args):
-        import sceneManager
-        m = sceneManager.TikManager()
+        from tik_manager import manager
+        m = manager.TikManager()
         m.regularSaveUpdate()
 
     initFolder('M://Projects//__database//scripts')
