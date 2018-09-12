@@ -505,8 +505,10 @@ class TikManager(object):
         file.close()
         pass
 
-    def setProject(self):
-        mel.eval("SetProject;")
+    def setProject(self, path):
+        melCompPath = path.replace("\\", "/") # mel is picky
+        command = 'setProject "%s";' %melCompPath
+        mel.eval(command)
         self.scenePaths["projectPath"] = pm.workspace(q=1, rd=1)
 
     def projectReport(self):
@@ -1778,7 +1780,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.referenceMode_radioButton.toggled.connect(self.onRadioButtonsToggled)
 
 
-        self.setProject_pushButton.clicked.connect(self.onSetProject)
+        self.setProject_pushButton.clicked.connect(self.setProjectUI)
 
         self.category_tabWidget.currentChanged.connect(self.populateScenes)
 
@@ -2421,9 +2423,14 @@ class MainUI(QtWidgets.QMainWindow):
 
     def setProjectUI(self):
 
+        iconFont = QtGui.QFont()
+        iconFont.setPointSize(12)
+        iconFont.setBold(True)
+        iconFont.setWeight(75)
+
         self.setProject_Dialog = QtWidgets.QDialog(parent=self)
         self.setProject_Dialog.setObjectName(("setProject_Dialog"))
-        self.setProject_Dialog.resize(982, 928)
+        self.setProject_Dialog.resize(982, 450)
         self.setProject_Dialog.setWindowTitle(("Set Project"))
 
         gridLayout = QtWidgets.QGridLayout(self.setProject_Dialog)
@@ -2464,6 +2471,7 @@ class MainUI(QtWidgets.QMainWindow):
         sizePolicy.setHeightForWidth(self.back_pushButton.sizePolicy().hasHeightForWidth())
         self.back_pushButton.setSizePolicy(sizePolicy)
         self.back_pushButton.setMaximumSize(QtCore.QSize(30, 16777215))
+        self.back_pushButton.setFont(iconFont)
         self.back_pushButton.setText(("<"))
         self.back_pushButton.setShortcut((""))
         self.back_pushButton.setObjectName(("back_pushButton"))
@@ -2472,6 +2480,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.forward_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
         self.forward_pushButton.setMaximumSize(QtCore.QSize(30, 16777215))
+        self.forward_pushButton.setFont(iconFont)
         self.forward_pushButton.setText((">"))
         self.forward_pushButton.setShortcut((""))
         self.forward_pushButton.setObjectName(("forward_pushButton"))
@@ -2510,6 +2519,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.folders_tableView.setMinimumSize(QtCore.QSize(0, 0))
         self.folders_tableView.setDragEnabled(True)
         self.folders_tableView.setDragDropMode(QtWidgets.QAbstractItemView.DragOnly)
+        self.folders_tableView.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.folders_tableView.setObjectName(("folders_tableView"))
 
         self.folders_tableView.setFrameShape(QtWidgets.QFrame.NoFrame)
@@ -2536,7 +2546,7 @@ class MainUI(QtWidgets.QMainWindow):
         font.setBold(True)
         font.setWeight(75)
         favorites_label.setFont(font)
-        favorites_label.setText(("Favorites"))
+        favorites_label.setText(("Bookmarks:"))
         favorites_label.setObjectName(("favorites_label"))
 
         M2_S2_verticalLayout.addWidget(favorites_label)
@@ -2557,14 +2567,16 @@ class MainUI(QtWidgets.QMainWindow):
         M2_S2_horizontalLayout.addItem(spacerItem)
 
         remove_pushButton = QtWidgets.QPushButton(verticalLayoutWidget)
-        remove_pushButton.setMaximumSize(QtCore.QSize(25, 16777215))
+        remove_pushButton.setMaximumSize(QtCore.QSize(35, 35))
+        remove_pushButton.setFont(iconFont)
         remove_pushButton.setText(("-"))
         remove_pushButton.setObjectName(("remove_pushButton"))
 
         M2_S2_horizontalLayout.addWidget(remove_pushButton)
 
         add_pushButton = QtWidgets.QPushButton(verticalLayoutWidget)
-        add_pushButton.setMaximumSize(QtCore.QSize(25, 16777215))
+        add_pushButton.setMaximumSize(QtCore.QSize(35, 35))
+        add_pushButton.setFont(iconFont)
         add_pushButton.setText(("+"))
         add_pushButton.setObjectName(("add_pushButton"))
 
@@ -2612,6 +2624,8 @@ class MainUI(QtWidgets.QMainWindow):
         # self.projectsHistory = [self.projectsDir]
         # self.projectsDirIndex = 0
         self.browser = Browse()
+        self.spActiveProjectPath = None
+        self.__flagView = True
 
 
         self.setPmodel = QtWidgets.QFileSystemModel()
@@ -2642,10 +2656,49 @@ class MainUI(QtWidgets.QMainWindow):
         self.back_pushButton.clicked.connect(lambda: self.onBrowseSetProject("back"))
         self.forward_pushButton.clicked.connect(lambda: self.onBrowseSetProject("forward"))
         browse_pushButton.clicked.connect(lambda: self.onBrowseSetProject("browse"))
+        self.lookIn_lineEdit.returnPressed.connect(lambda: self.onBrowseSetProject("lineEnter"))
 
         self.folders_tableView.doubleClicked.connect(lambda index: self.onBrowseSetProject("folder", index=index))
 
+        self.favorites_listWidget.currentItemChanged.connect(self.favoritesActivated)
+        self.folders_tableView.selectionModel().currentRowChanged.connect(self.foldersViewActivated)
+
+        self.favorites_listWidget.doubleClicked.connect(self.onSetProject)
+
+        cancel_pushButton.clicked.connect(self.setProject_Dialog.close)
+        set_pushButton.clicked.connect(self.onSetProject)
+        set_pushButton.clicked.connect(self.setProject_Dialog.close)
+
         self.setProject_Dialog.show()
+
+    def favoritesActivated(self):
+
+        row = self.favorites_listWidget.currentRow()
+        self.spActiveProjectPath = self.favList[row][1]
+
+        self.folders_tableView.selectionModel().blockSignals(True) # block the signal to prevent unwanted cycle
+        # clear the selection in folders view
+        self.folders_tableView.setCurrentIndex(self.setPmodel.index(self.projectsDir))
+        self.folders_tableView.selectionModel().blockSignals(False)
+
+    def foldersViewActivated(self):
+
+        index = self.folders_tableView.currentIndex()
+        self.spActiveProjectPath = os.path.normpath((self.setPmodel.filePath(index)))
+
+        self.favorites_listWidget.blockSignals(True) # block the signal to prevent unwanted cycle
+        # clear the selection in favorites view
+        self.favorites_listWidget.setCurrentRow(-1)
+        self.favorites_listWidget.blockSignals(False)
+
+
+
+    def onSetProject(self):
+        self.manager.setProject(self.spActiveProjectPath)
+        self.projectPath_lineEdit.setText(self.manager.scenePaths["projectPath"])
+        self.manager.subProjectList = self.manager.scanSubProjects()
+        self.manager.currentSubProjectIndex = 0
+        self.populateScenes()
 
     def onBrowseSetProject(self, command, index=None):
         if command == "init":
@@ -2675,6 +2728,13 @@ class MainUI(QtWidgets.QMainWindow):
             self.projectsDir = os.path.normpath((self.setPmodel.filePath(index)))
             self.browser.addData(self.projectsDir)
 
+        if command == "lineEnter":
+            dir = self.lookIn_lineEdit.text()
+            if os.path.isdir(dir):
+                self.projectsDir = dir
+                self.browser.addData(self.projectsDir)
+            else:
+                self.lookIn_lineEdit.setText(self.projectsDir)
 
         self.forward_pushButton.setDisabled(self.browser.isForwardLocked())
         self.back_pushButton.setDisabled(self.browser.isBackwardLocked())
@@ -2682,7 +2742,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.lookIn_lineEdit.setText(self.browser.getData())
 
     def onRemoveFavs(self):
+
         row = self.favorites_listWidget.currentRow()
+        print row
         if row == -1:
             return
         # item = self.favList[row]
@@ -3407,16 +3469,6 @@ class MainUI(QtWidgets.QMainWindow):
                 self.scenes_listWidget.item(index).setForeground(color)
         self.statusBar().showMessage("References Checked")
 
-
-    def onSetProject(self):
-        # mel.eval("SetProject;")
-        # self.manager.currentProject = pm.workspace(q=1, rd=1)
-        self.manager.setProject()
-        self.projectPath_lineEdit.setText(self.manager.scenePaths["projectPath"])
-        # self.onSubProjectChanged()
-        self.manager.subProjectList = self.manager.scanSubProjects()
-        self.manager.currentSubProjectIndex = 0
-        self.populateScenes()
 
     def sceneInfo(self):
         self.version_comboBox.clear()
