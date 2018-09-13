@@ -28,67 +28,28 @@ dataPath, jsonPath, scenesPath, playBlastRoot
 
 import platform
 import smDatabaseOps as db
+import pymel.core as pm
 import os
+import logging
 
-def pathOps(fullPath, mode):
-    """
-    performs basic path operations.
-    Args:
-        fullPath: (Unicode) Absolute Path
-        mode: (String) Valid modes are 'path', 'basename', 'filename', 'extension', 'drive'
+logging.basicConfig()
+logger = logging.getLogger('smSkeleton')
+logger.setLevel(logging.INFO)
 
-    Returns:
-        Unicode
-
-    """
-
-    if mode == "drive":
-        drive = os.path.splitdrive(fullPath)
-        return drive
-
-    path, basename = os.path.split(fullPath)
-    if mode == "path":
-        return path
-    if mode == "basename":
-        return basename
-    filename, ext = os.path.splitext(basename)
-    if mode == "filename":
-        return filename
-    if mode == "extension":
-        return ext
-
-def getPaths():
-    """
-    Collects the necessary path data from the scene
-    Returns: (Dictionary) projectPath, dataPath, jsonPath, scenesPath, playBlastRoot
-
-    """
-    projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
-    dataPath = os.path.normpath(os.path.join(projectPath, "data"))
-    db.folderCheck(dataPath)
-    jsonPath = os.path.normpath(os.path.join(dataPath, "SMdata"))
-    db.folderCheck(jsonPath)
-    scenesPath = os.path.normpath(os.path.join(projectPath, "scenes"))
-    db.folderCheck(scenesPath)
-    playBlastRoot = os.path.normpath(os.path.join(projectPath, "Playblasts"))
-    db.folderCheck(playBlastRoot)
-    pathDictionary = {"projectPath": projectPath,
-                      "dataPath": dataPath,
-                      "jsonPath": jsonPath,
-                      "scenesPath": scenesPath,
-                      "playBlastRoot": playBlastRoot
-                      }
-    return pathDictionary
-
+def folderCheck(folder):
+    if not os.path.isdir(os.path.normpath(folder)):
+        os.makedirs(os.path.normpath(folder))
 
 class TikManager(object):
     def __init__(self):
         super(TikManager, self).__init__()
+
+        self.__init_paths()
+        self.__backwardcompatibility()
         self.database = db.SmDatabase()
         self.currentPlatform = platform.system()
         # self.currentProject = pm.workspace(q=1, rd=1)
 
-        self.userList = self.database.initUsers()[0]
         self.currentUserIndex = 0
         self.validCategories = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
         self.currentCategoryIndex = 0
@@ -103,28 +64,63 @@ class TikManager(object):
         self.currentUser = ""
         self.currentMode = False
 
-    def __initializePaths(self):
-        # PATH(abs) projectPath
-        # PATH(abs) software database (jsonPath)
-        # PATH(abs) current scene file
-        # PATH(s)(abs, list) sub-projects
-        # PATH(abs) software specific Real Scenes Folder Path
+    def __backwardcompatibility(self):
+        """
+        This function checks for the old database structure and creates a copy with the new structure
+        :return: None
+        """
+        old_dbDir = os.path.normpath(os.path.join(self.projectDir, "data", "SMdata"))
+        if os.path.isdir(old_dbDir):
+            # TODO: copy/move all contents of the folder to the new structure
+            logger.info("All database contents moved to the new structure folder => %s" %self.databaseDir)
+            pass
 
+
+
+
+    def __init_paths(self):
+        # This function should be overriden for each software
+        # all paths in here must be absolute paths
+
+        self.projectDir = os.path.normpath(pm.workspace(q=1, rd=1))
+        self.masterDir = os.path.normpath(os.path.join(self.projectDir, "smDatabase"))
+        folderCheck(self.masterDir)
+        self.databaseDir = os.path.normpath(os.path.join(self.masterDir, "mayaDB"))
+        folderCheck(self.databaseDir)
+        self.scenesDir = os.path.normpath(os.path.join(self.projectDir, "scenes"))
+        folderCheck(self.scenesDir)
+        self.sceneFile = pm.sceneName()
+        self.subprojectFile = os.path.normpath(os.path.join(self.databaseDir, "subPdata.json")) # dont change
+        self.previewsDir = os.path.normpath(os.path.join(self.projectDir, "Playblasts")) # dont change
+        folderCheck(self.scenesDir)
+        self.previewsettingsFile = os.path.normpath(os.path.join(self.previewsDir, "PBsettings.json")) # dont change
         pass
 
-    def __initializeUsers(self):
+    def __init_users(self):
         self.userList = self.database.initUsers()[0]
         pass
 
-    def __initializeHistory(self):
+    def __init_history(self):
         self.current = self.database.loadUserPrefs()
         if not self.current["currentUser"] in (self.userList.keys()):
             self.current["currentUser"] = self.userList[self.userList.keys()[0]]
         # pass
 
-    def __updateHistory(self):
+    def __update_history(self):
+        pass
 
-    def getSceneInfo(self):
+    def change_user(self):
+        pass
+
+    def change_category(self):
+        pass
+
+    def change_mode(self):
+        pass
+
+    def change_subproject(self):
+
+    def get_sceneinfo(self):
         pass
         ## What we need:
         # current scene name
@@ -133,36 +129,92 @@ class TikManager(object):
         # PATH(abs) current scene file
         # PATH(s)(abs, list) sub-projects
 
-    def createNewProject(self, projectPath):
+    def create_newproject(self, projectPath):
         pass
         # totally software specific or N/A
 
 
-    def setProject(self, path):
+    def set_project(self, path):
         pass
         # totally software specific or N/A
 
 
-    def projectReport(self):
+    def get_project_report(self):
         pass
         ## What we need:
         # PATH(abs) projectPath
         # PATH(abs) software specific Real Scenes Folder Path
         # software project file extensions
 
-    def regularSaveUpdate(self):
+    def save_callback(self):
         pass
         ## What we need:
         # Results of getSceneInfo
 
-      def saveBaseScene(self, category, userName, baseName, subProject=0, makeReference=True, versionNotes="", *args,
+    def save_basescene(self, category, baseName, subProject=0, makeReference=True, versionNotes="", *args,
                           **kwargs):
-          pass
+        pass
         ## What we need:
         # current user
         # PATH(abs) projectPath
         # PATH(abs) software database (jsonPath)
         # PATH(abs) software specific Real Scenes Folder Path
+
+    def save_version(self, makeReference=True, versionNotes="", *args, **kwargs):
+        pass
+        ## What we need:
+        # current user
+
+    def create_preview(self, *args, **kwargs):
+        pass
+        ## What we need:
+        # PATH(abs) pbSettings file
+
+    def play_preview(self, relativePath):
+        pass
+        ## What we need:
+        # PATH(abs) projectPath
+
+    def remove_preview(self, relativePath, jsonFile, version):
+        pass
+
+    def create_subproject(self, nameOfSubProject):
+        pass
+        ## What we need:
+        # PATH(abs) software database (jsonPath)
+        # PATH(s)(abs, list) sub-projects
+
+    def scan_subprojects(self):
+        pass
+
+    def scan_basescenes(self):
+        pass
+
+    def load_basescene(self):
+        pass
+
+    def delete_basescene(self):
+        #ADMIN ACCESS
+        pass
+
+    def delete_reference(self):
+        #ADMIN ACCESS
+        pass
+
+    def make_reference(self):
+        pass
+
+    def check_reference(self):
+        pass
+
+    def load_reference(self):
+        pass
+
+    def create_thumbnail(self):
+        pass
+
+    def replace_thumbnail(self):
+        pass
 
 
 
