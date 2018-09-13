@@ -27,7 +27,7 @@ dataPath, jsonPath, scenesPath, playBlastRoot
 
 
 import platform
-import smDatabaseOps as db
+import SmDatabase as db
 import pymel.core as pm
 import os
 import logging
@@ -54,7 +54,6 @@ class TikManager(object):
         self.validCategories = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
         self.currentCategoryIndex = 0
         self.padding = 3
-        self.scenePaths = getPaths()
         self.subProjectList = self.scanSubProjects()
 
         ## currents
@@ -93,11 +92,13 @@ class TikManager(object):
         self.subprojectFile = os.path.normpath(os.path.join(self.databaseDir, "subPdata.json")) # dont change
         self.previewsDir = os.path.normpath(os.path.join(self.projectDir, "Playblasts")) # dont change
         folderCheck(self.scenesDir)
-        self.previewsettingsFile = os.path.normpath(os.path.join(self.previewsDir, "PBsettings.json")) # dont change
+        self.previewSettingsFile = os.path.normpath(os.path.join(self.previewsDir, "PBsettings.json")) # dont change
+        self.generalSettingsDir = os.path.dirname(os.path.abspath(__file__))
+        self.usersFile = os.path.normpath(os.path.join(self.generalSettingsDir, "sceneManagerUsers.json"))
         pass
 
     def __init_users(self):
-        self.userList = self.database.initUsers()[0]
+        self.userList = self.database.initUsers(self.usersFile)
         pass
 
     def __init_history(self):
@@ -105,6 +106,9 @@ class TikManager(object):
         if not self.current["currentUser"] in (self.userList.keys()):
             self.current["currentUser"] = self.userList[self.userList.keys()[0]]
         # pass
+
+    def __init_databases(self):
+        self.userList = self.database.initUsers(self.usersFile)
 
     def __update_history(self):
         pass

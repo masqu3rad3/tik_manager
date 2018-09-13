@@ -66,16 +66,15 @@ class SmDatabase(object):
         ##
         self.dumpJson(jsonInfo, jsonFile)
 
-    def initUsers(self):
+    def initUsers(self, dbfilePath):
         # old Name
-        userDBLocation = os.path.join(self.generalSettings_Path, "sceneManagerUsers.json")
-        if not os.path.isfile(userDBLocation):
+        if not os.path.isfile(dbfilePath):
             userDB = {"Generic": "gn"}
-            self.dumpJson(userDB, userDBLocation)
-            return userDB, userDBLocation
+            self.dumpJson(userDB, dbfilePath)
+            return userDB
         else:
-            userDB = self.loadJson(userDBLocation)
-            return userDB, userDBLocation
+            userDB = self.loadJson(dbfilePath)
+            return userDB
 
     def addUser(self, fullName, initials):
         # old Name
