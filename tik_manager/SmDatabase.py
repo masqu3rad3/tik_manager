@@ -10,9 +10,9 @@ def folderCheck(folder):
 class SmDatabase(object):
     def __init__(self):
         super(SmDatabase, self).__init__()
-        self.userSettings_Path = os.path.join(os.path.expanduser("~"),"SceneManager")
+        # self.userSettings_Path = os.path.join(os.path.expanduser("~"),"SceneManager")
         # self.project_Path =  os.path.normpath(pm.workspace(q=1, rd=1))
-        self.generalSettings_Path = os.path.dirname(os.path.abspath(__file__))
+        # self.generalSettings_Path = os.path.dirname(os.path.abspath(__file__))
 
 
 
@@ -66,7 +66,7 @@ class SmDatabase(object):
         ##
         self.dumpJson(jsonInfo, jsonFile)
 
-    def initUsers(self, dbfilePath):
+    def loadUsers(self, dbfilePath):
         # old Name
         if not os.path.isfile(dbfilePath):
             userDB = {"Generic": "gn"}
@@ -78,7 +78,7 @@ class SmDatabase(object):
 
     def addUser(self, fullName, initials):
         # old Name
-        currentDB, dbFile = self.initUsers()
+        currentDB, dbFile = self.loadUsers()
         initialsList = currentDB.values()
         if initials in initialsList:
             msg="Initials are in use"
@@ -91,7 +91,7 @@ class SmDatabase(object):
 
     def removeUser(self, fullName):
         # old Name removeUser
-        currentDB, dbFile = self.initUsers()
+        currentDB, dbFile = self.loadUsers()
         del currentDB[fullName]
         self.dumpJson(currentDB, dbFile)
         self.userList = currentDB
@@ -133,10 +133,10 @@ class SmDatabase(object):
         self.dumpJson(pbSettingsDict, pbSettingsFile)
         return
 
-    def loadUserPrefs(self):
+    def loadUserPrefs(self, settingsFilePath):
         # old Name userPrefLoad
 
-        settingsFilePath = os.path.join(self.userSettings_Path, "smSettings.json")
+        # settingsFilePath = os.path.join(self.userSettings_Path, "smSettings.json")
         if os.path.isfile(settingsFilePath):
             settingsData = self.loadJson(settingsFilePath)
         else:
@@ -145,19 +145,19 @@ class SmDatabase(object):
             self.dumpJson(settingsData, settingsFilePath)
         return settingsData
 
-    def saveUserPrefs(self, tabIndex, subIndex, user, mode):
-        # old Name userPrefSave
-        settingsFilePath = os.path.normpath(os.path.join(self.userSettings_Path, "smSettings.json"))
+    def saveUserPrefs(self, settingsData, settingsFilePath):
+        try:
+            self.dumpJson(settingsData, settingsFilePath)
+            msg = ""
+            return 0, msg
+        except:
+            msg = "Cannot save current settings"
+            return -1, msg
 
-        settingsData = {"currentTabIndex": tabIndex,
-                        "currentSubIndex": subIndex,
-                        "currentUser": user,
-                        "currentMode": mode}
-        self.dumpJson(settingsData, settingsFilePath)
 
-    def loadFavorites(self):
+    def loadFavorites(self, bookmarksFilePath):
         # old Name userFavoritesLoad
-        bookmarksFilePath = os.path.join(self.userSettings_Path, "smBookmarks.json")
+        # bookmarksFilePath = os.path.join(self.userSettings_Path, "smBookmarks.json")
         if os.path.isfile(bookmarksFilePath):
             bookmarksData = self.loadJson(bookmarksFilePath)
         else:
@@ -165,16 +165,64 @@ class SmDatabase(object):
             self.dumpJson(bookmarksData, bookmarksFilePath)
         return bookmarksData, bookmarksFilePath
 
-    def addToFavorites(self, shortName, absPath):
+    def addToFavorites(self, shortName, absPath, bookmarksFilePath):
         # old Name userFavoritesAdd
-        data, filePath = self.loadFavorites()
+        data, filePath = self.loadFavorites(bookmarksFilePath)
         data.append([shortName, absPath])
         self.dumpJson(data, filePath)
         return data
 
-    def removeFromFavorites(self, index):
+    def removeFromFavorites(self, index, bookmarksFilePath):
         # old Name userFavoritesRemove
-        data, filePath = self.loadFavorites()
+        data, filePath = self.loadFavorites(bookmarksFilePath)
         del data[index]
         self.dumpJson(data, filePath)
         return data
+
+    def loadSubprojects(self, subprojectsFilePath):
+        if not os.path.isfile(subprojectsFilePath):
+            data = ["None"]
+            self.dumpJson(data, subprojectsFilePath)
+        else:
+            data = self.loadJson(subprojectsFilePath)
+        return data
+
+    def loadSceneInfo(self, sceneFile, projectDir, subProjectsList, databaseDir):
+        if not sceneFile:
+            msg = "This is not a base scene (Untitled)"
+            return -1, msg
+        sceneDir = os.path.abspath(os.path.join(sceneFile, os.pardir))
+        sceneName = os.path.basename(sceneDir)
+
+        upSceneDir = os.path.abspath(os.path.join(sceneDir, os.pardir))
+        upScene = os.path.basename(upSceneDir)
+
+        if upScene in subProjectsList:
+            subprojectDir = upSceneDir
+            subproject = upScene
+            categoryDir = os.path.abspath(os.path.join(subprojectDir, os.pardir))
+            category = os.path.basename(categoryDir)
+
+            dbCategoryDir = os.path.normpath(os.path.join(databaseDir, category))
+            dbPath = os.path.normpath(os.path.join(dbCategoryDir, subproject))
+
+        else:
+            subproject = subProjectsList[0] # meaning None
+            categoryDir = upSceneDir
+            category = upScene
+            dbPath = os.path.normpath(os.path.join(databaseDir, category))
+
+        jsonFile = os.path.join(dbPath, "{}.json".format(sceneName))
+        if os.path.isfile(jsonFile):
+            path, basename = os.path.split(sceneFile)
+            filename, ext = os.path.splitext(basename)
+            version = filename[-4:]
+            return {"jsonFile":jsonFile,
+                    "projectPath":projectDir,
+                    "subProject":subproject,
+                    "category":category,
+                    "shotName":sceneName,
+                    "version":version
+                    }
+        else:
+            return None
