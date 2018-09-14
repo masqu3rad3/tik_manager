@@ -141,7 +141,6 @@ class SmDatabase(object):
             settingsData = self.loadJson(settingsFilePath)
         else:
             settingsData = {"currentTabIndex": 0, "currentSubIndex": 0, "currentUser": "", "currentMode": 0}
-            folderCheck(self.userSettings_Path)
             self.dumpJson(settingsData, settingsFilePath)
         return settingsData
 
@@ -226,3 +225,24 @@ class SmDatabase(object):
                     }
         else:
             return None
+
+    def getCurrentProject(self, currentProjectFile):
+        """Function to read the current project setting file.
+        Does not apply for Maya since its own project structure has been used"""
+        try:
+            currentProject = self.loadJson(currentProjectFile)
+        except:
+            msg = "Cannot load current project file (%s)" %currentProjectFile
+            return -1, msg
+
+
+
+    def setCurrentProject(self, currentProject, currentProjectFile):
+        """Function to read the current project setting file.
+        Does not apply for Maya since its own project structure has been used"""
+        try:
+            self.dumpJson(currentProject, currentProjectFile)
+        except:
+            msg = "Cannot save current project file (%s)" %currentProjectFile
+            return -1, msg
+

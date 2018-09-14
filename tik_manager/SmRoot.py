@@ -24,16 +24,67 @@
 ##
 ##
 
+# software specific commands used in common functions:
+
+# Init
+# pm.workspace(q=1, rd=1)
+# pm.sceneName()
+# pm.scriptJob() # optional, previously used in UI
+
+# Compare versions
+# pm.versions.current()
+
+# Save Base Scene()
+# pm.versions.current()
+
+# Save Version
+# pm.saveAs()
+
+# Load Scene
+# cmds.file()
+
+# Load Reference
+# cmds.file()
+
+# SetProject
+# mel.eval('setProject "%s";' %melCompPath)
+
+# create Playblast
+# mel.eval('$tmpVar=$gPlayBackSlider')  # get playback slier
+# pm.playblast()
+# pm.playbackOptions()
+# pm.ls()
+# pm.select()
+# pm.modelPanel()
+# pm.window()
+# pm.paneLayout()
+# pm.modelPanel()
+# pm.showWindow()
+# pm.setFocus()
+# pm.modelEditor()
+# pm.camera()
+# pm.headsUpDisplay()
+# pm.timeControl()
+# pm.deleteUI()
+
+# Create Thumbnail
+# pm.currentTime()
+# pm.getAttr()
+# pm.setAttr()
+# pm.playblast()
+
 
 
 import platform
 import SmDatabase as db
-import pymel.core as pm
+
+# import pymel.core as pm
 import os
 import logging
+# import maya.mel as mel
 
 logging.basicConfig()
-logger = logging.getLogger('smSkeleton')
+logger = logging.getLogger('smRoot')
 logger.setLevel(logging.INFO)
 
 def folderCheck(folder):
@@ -67,79 +118,141 @@ def folderCheck(folder):
 #     if mode == "extension":
 #         return ext
 
-class TikManager(object):
+class RootManager(object):
     def __init__(self):
-        super(TikManager, self).__init__()
+        super(RootManager, self).__init__()
         self.database = db.SmDatabase()
         self.validCategories = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
-        self.__init_paths()
-        self.__init_database()
-        self.__backwardcompatibility()
 
         self.currentPlatform = platform.system()
 
         self.padding = 3
 
 
-    def __backwardcompatibility(self):
+    def backwardcompatibility(self):
         """
         This function checks for the old database structure and creates a copy with the new structure
         :return: None
         """
-        old_dbDir = os.path.normpath(os.path.join(self.projectDir, "data", "SMdata"))
+        old_dbDir = os.path.normpath(os.path.join(self.__projectDir, "data", "SMdata"))
         if os.path.isdir(old_dbDir):
-            # TODO: copy/move all contents of the folder to the new structure
-            logger.info("All database contents moved to the new structure folder => %s" %self.databaseDir)
+            # TODO: copy all contents of the folder to the new structure
+            # TODO: gather all scene json files, update the self locations
+            logger.info("All database contents moved to the new structure folder => %s" % self.__databaseDir)
             pass
 
 
-
-
-    def __init_paths(self):
+    def init_paths(self):
         # This function should be overridden for each software
         # all paths in here must be absolute paths
 
-        self.projectDir = os.path.normpath(pm.workspace(q=1, rd=1))
-        self.masterDir = os.path.normpath(os.path.join(self.projectDir, "smDatabase"))
-        folderCheck(self.masterDir)
-        self.databaseDir = os.path.normpath(os.path.join(self.masterDir, "mayaDB"))
-        folderCheck(self.databaseDir)
-        self.scenesDir = os.path.normpath(os.path.join(self.projectDir, "scenes"))
-        folderCheck(self.scenesDir)
-        self.sceneFile = pm.sceneName()
-        self.subprojectsFile = os.path.normpath(os.path.join(self.databaseDir, "subPdata.json")) # dont change
-        self.previewsDir = os.path.normpath(os.path.join(self.projectDir, "Playblasts")) # dont change
-        folderCheck(self.scenesDir)
-        self.pbSettingsFile = os.path.normpath(os.path.join(self.previewsDir, "PBsettings.json")) # dont change
-        self.generalSettingsDir = os.path.dirname(os.path.abspath(__file__))
-        self.usersFile = os.path.normpath(os.path.join(self.generalSettingsDir, "sceneManagerUsers.json"))
-        self.userSettingsDir = os.path.join(os.path.expanduser("~"), "SceneManager")
-        folderCheck(self.userSettingsDir)
-        self.bookmarksFile = os.path.normpath(os.path.join(self.userSettingsDir, "smBookmarks.json"))
-        self.currentsFile = os.path.normpath(os.path.join(self.userSettingsDir, "smCurrents.json"))
+        self.__projectDir = self.get_currentProjectDir()
+        self.__sceneFile = self.get_currentSceneFile()
+        if self.__projectDir == -1 or self.__sceneFile == -1:
+            logger.error("The following functions must be overridden in inherited class:\n'__get_currentProjectDir'\n'__get_currentSceneFile'")
+            raise Exception()
 
-    def __init_database(self):
-        self.usersDict = self.database.loadUsers(self.usersFile)
-        self.currentsDict = self.database.loadUserPrefs(self.currentsFile)
-        self.subProjectsList = self.database.loadSubprojects(self.subprojectsFile)
+        self.__masterDir = os.path.normpath(os.path.join(self.__projectDir, "smDatabase"))
+        folderCheck(self.__masterDir)
+        self.__databaseDir = os.path.normpath(os.path.join(self.__masterDir, "mayaDB"))
+        folderCheck(self.__databaseDir)
+        self.__scenesDir = os.path.normpath(os.path.join(self.__projectDir, "scenes"))
+        folderCheck(self.__scenesDir)
+        self.__subprojectsFile = os.path.normpath(os.path.join(self.__databaseDir, "subPdata.json")) # dont change
+        self.__previewsDir = os.path.normpath(os.path.join(self.__projectDir, "Playblasts")) # dont change
+        folderCheck(self.__scenesDir)
+        self.__pbSettingsFile = os.path.normpath(os.path.join(self.__previewsDir, "PBsettings.json")) # dont change
+        self.__generalSettingsDir = os.path.dirname(os.path.abspath(__file__))
+        self.__usersFile = os.path.normpath(os.path.join(self.__generalSettingsDir, "sceneManagerUsers.json"))
+        self.__userSettingsDir = os.path.join(os.path.expanduser("~"), "SceneManager")
+        folderCheck(self.__userSettingsDir)
+        self.__bookmarksFile = os.path.normpath(os.path.join(self.__userSettingsDir, "smBookmarks.json"))
+        self.__currentsFile = os.path.normpath(os.path.join(self.__userSettingsDir, "smCurrents.json"))
+
+        self.__acayipTest = "asdf"
+
+    def get_currentProjectDir(self):
+        """This function must be overriden"""
+        return -1
+
+    def get_currentSceneFile(self):
+        """This function must be overriden"""
+        return -1
+
+    def init_database(self):
+        self.__usersDict = self.database.loadUsers(self.__usersFile)
+        self.__currentsDict = self.database.loadUserPrefs(self.__currentsFile)
+        self.__subProjectsList = self.database.loadSubprojects(self.__subprojectsFile)
         # self.pbSettingsDict = self.database.loadPBSettings(self.pbSettingsFile) # not immediate
         # self.bookmarksList = self.database.loadFavorites(self.bookmarksFile) # not immediate
 
+    @property
+    def projectDir(self):
+        return self.__projectDir
+
+    @property
+    def sceneFile(self):
+        return self.__sceneFile
+
+    @property
+    def masterDir(self):
+        return self.__masterDir
+
+    @property
+    def databaseDir(self):
+        return self.__databaseDir
+
+    @property
+    def scenesDir(self):
+        return self.__scenesDir
+
+    @property
+    def subprojectsFile(self):
+        return self.__subprojectsFile
+
+    @property
+    def previewsDir(self):
+        return self.__previewsDir
+
+    @property
+    def pbSettingsFile(self):
+        return self.__pbSettingsFile
+
+    @property
+    def generalSettingsDir(self):
+        return self.__generalSettingsDir
+
+    @property
+    def usersFile(self):
+        return self.__usersFile
+
+    @property
+    def acayipTest(self):
+        return self.__acayipTest
+
+    @acayipTest.setter
+    def acayipTest (self, data):
+        self.setPath (self.acayipTest, data)
+
+    def setPath(self, att, path):
+        att = path
+
+
     def change_currentTabIndex(self, category):
-        self.currentsDict["currentTabIndex"] = category
-        self.database.saveUserPrefs(self.currentsDict, self.currentsFile)
+        self.__currentsDict["currentTabIndex"] = category
+        self.database.saveUserPrefs(self.__currentsDict, self.__currentsFile)
 
     def change_currentSubIndex(self, subindex):
-        self.currentsDict["currentSubIndex"] = subindex
-        self.database.saveUserPrefs(self.currentsDict, self.currentsFile)
+        self.__currentsDict["currentSubIndex"] = subindex
+        self.database.saveUserPrefs(self.__currentsDict, self.__currentsFile)
 
     def change_currentUser(self, user):
-        self.currentsDict["currentSubIndex"] = user
-        self.database.saveUserPrefs(self.currentsDict, self.currentsFile)
+        self.__currentsDict["currentSubIndex"] = user
+        self.database.saveUserPrefs(self.__currentsDict, self.__currentsFile)
 
     def change_currentMode(self, mode):
-        self.currentsDict["currentSubIndex"] = mode
-        self.database.saveUserPrefs(self.currentsDict, self.currentsFile)
+        self.__currentsDict["currentSubIndex"] = mode
+        self.database.saveUserPrefs(self.__currentsDict, self.__currentsFile)
 
     def create_newproject(self, projectPath):
         # check if there is a duplicate
@@ -255,12 +368,12 @@ class TikManager(object):
         file.close()
 
 
-    def set_project(self, path):
-        # totally software specific or N/A
-        melCompPath = path.replace("\\", "/") # mel is picky
-        command = 'setProject "%s";' %melCompPath
-        mel.eval(command)
-        self.scenePaths["projectPath"] = pm.workspace(q=1, rd=1)
+    # def set_project(self, path):
+    #     # totally software specific or N/A
+    #     melCompPath = path.replace("\\", "/") # mel is picky
+    #     command = 'setProject "%s";' %melCompPath
+    #     mel.eval(command)
+    #     self.projectDir = pm.workspace(q=1, rd=1)
 
 
     def get_project_report(self):
@@ -271,9 +384,8 @@ class TikManager(object):
         # software project file extensions
 
     def save_callback(self):
-        pass
-        ## What we need:
-        # Results of getSceneInfo
+        if not self.__sceneFile:
+            return
 
     def save_basescene(self):
         pass
