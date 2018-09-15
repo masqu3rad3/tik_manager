@@ -84,13 +84,18 @@ class ImageManager(TikManager):
         self.initRenderer()
         self.foolerMaster()
 
-    def resolvePath(self, vray=False):
+    def resolvePath(self, renderer="default"):
         projectImgDir = os.path.join(self.sceneInfo["projectPath"], "images")
         # folderCheck(projectImgDir)
-        if vray:
+        if renderer == "vray":
             renderlayer="<Layer>"
+            renderPass=""
+        if renderer == "arnold":
+            renderlayer="<RenderLayer>"
+            renderPass="<RenderPass>"
         else:
             renderlayer="<RenderLayer>"
+            renderPass=""
 
         # print "A", self.sceneInfo["subProject"]
         subProject = "" if self.sceneInfo["subProject"] == "None" else self.sceneInfo["subProject"]
@@ -99,7 +104,7 @@ class ImageManager(TikManager):
         version=self.sceneInfo["version"]
 
         self.folderTemplate = os.path.normpath(self.folderTemplate.format(subProject,shotName,renderlayer,version,projectImgDir))
-        self.nameTemplate = (self.nameTemplate.format(subProject,shotName,renderlayer,version)).lstrip("_")
+        self.nameTemplate = (self.nameTemplate.format(subProject,shotName,renderlayer,renderPass,version)).lstrip("_")
 
         # print self.folderTemplate
         # print self.nameTemplate
@@ -120,7 +125,7 @@ class ImageManager(TikManager):
             pm.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
             pm.setAttr("defaultRenderGlobals.extensionPadding", 4)
             # set File Name Prefix
-            self.resolvedName = self.resolvePath()
+            self.resolvedName = self.resolvePath(self.currentRenderer)
             pm.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName)
             return
 
@@ -134,7 +139,7 @@ class ImageManager(TikManager):
             pm.setAttr("%s.animType" % vraySettings, 1)
             pm.setAttr(vraySettings.fileNamePadding, 4)
             # set File Name Prefix
-            self.resolvedName = self.resolvePath(vray=True)
+            self.resolvedName = self.resolvePath(self.currentRenderer)
             pm.setAttr("%s.fileNamePrefix" %vraySettings, self.resolvedName)
             return
 
