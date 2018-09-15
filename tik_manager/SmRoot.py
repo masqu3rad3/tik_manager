@@ -77,6 +77,8 @@
 
 import platform
 import SmDatabase as db
+reload(db)
+import datetime
 
 # import pymel.core as pm
 import os
@@ -125,7 +127,7 @@ class RootManager(object):
         self.validCategories = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
 
         self.currentPlatform = platform.system()
-
+        self._pathsDict={}
         self.padding = 3
 
 
@@ -134,11 +136,11 @@ class RootManager(object):
         This function checks for the old database structure and creates a copy with the new structure
         :return: None
         """
-        old_dbDir = os.path.normpath(os.path.join(self.__projectDir, "data", "SMdata"))
+        old_dbDir = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "data", "SMdata"))
         if os.path.isdir(old_dbDir):
             # TODO: copy all contents of the folder to the new structure
             # TODO: gather all scene json files, update the self locations
-            logger.info("All database contents moved to the new structure folder => %s" % self.__databaseDir)
+            logger.info("All database contents moved to the new structure folder => %s" % self._pathsDict["databaseDir"])
             pass
 
 
@@ -146,156 +148,226 @@ class RootManager(object):
         # This function should be overridden for each software
         # all paths in here must be absolute paths
 
-        self.__projectDir = self.get_currentProjectDir()
-        self.__sceneFile = self.get_currentSceneFile()
-        if self.__projectDir == -1 or self.__sceneFile == -1:
+        self._pathsDict["projectDir"] = self.getProjectDir()
+        self._pathsDict["sceneFile"] = self.getSceneFile()
+        if self._pathsDict["projectDir"] == -1 or self._pathsDict["sceneFile"] == -1:
             logger.error("The following functions must be overridden in inherited class:\n'__get_currentProjectDir'\n'__get_currentSceneFile'")
             raise Exception()
 
-        self.__masterDir = os.path.normpath(os.path.join(self.__projectDir, "smDatabase"))
-        folderCheck(self.__masterDir)
-        self.__databaseDir = os.path.normpath(os.path.join(self.__masterDir, "mayaDB"))
-        folderCheck(self.__databaseDir)
-        self.__scenesDir = os.path.normpath(os.path.join(self.__projectDir, "scenes"))
-        folderCheck(self.__scenesDir)
-        self.__subprojectsFile = os.path.normpath(os.path.join(self.__databaseDir, "subPdata.json")) # dont change
-        self.__previewsDir = os.path.normpath(os.path.join(self.__projectDir, "Playblasts")) # dont change
-        folderCheck(self.__scenesDir)
-        self.__pbSettingsFile = os.path.normpath(os.path.join(self.__previewsDir, "PBsettings.json")) # dont change
-        self.__generalSettingsDir = os.path.dirname(os.path.abspath(__file__))
-        self.__usersFile = os.path.normpath(os.path.join(self.__generalSettingsDir, "sceneManagerUsers.json"))
-        self.__userSettingsDir = os.path.join(os.path.expanduser("~"), "SceneManager")
-        folderCheck(self.__userSettingsDir)
-        self.__bookmarksFile = os.path.normpath(os.path.join(self.__userSettingsDir, "smBookmarks.json"))
-        self.__currentsFile = os.path.normpath(os.path.join(self.__userSettingsDir, "smCurrents.json"))
+        self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
+        folderCheck(self._pathsDict["masterDir"])
 
-        self.__acayipTest = "asdf"
+        self._pathsDict["databaseDir"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "mayaDB"))
+        folderCheck(self._pathsDict["databaseDir"])
 
-    def get_currentProjectDir(self):
+        self._pathsDict["scenesDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "scenes"))
+        folderCheck(self._pathsDict["scenesDir"])
+
+        self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], "subPdata.json"))
+
+        self._pathsDict["previewsDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "Playblasts")) # dont change
+        folderCheck(self._pathsDict["previewsDir"])
+
+        self._pathsDict["pbSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["previewsDir"], "PBsettings.json")) # dont change
+
+        self._pathsDict["generalSettingsDir"] = os.path.dirname(os.path.abspath(__file__))
+
+        self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerUsers.json"))
+
+        self._pathsDict["userSettingsDir"] = os.path.join(os.path.expanduser("~"), "SceneManager")
+        folderCheck(self._pathsDict["userSettingsDir"])
+
+        self._pathsDict["bookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smBookmarks.json"))
+        self._pathsDict["currentsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smCurrents.json"))
+
+    def getProjectDir(self):
         """This function must be overriden"""
         return -1
 
-    def get_currentSceneFile(self):
+    def getSceneFile(self):
         """This function must be overriden"""
         return -1
 
     def init_database(self):
-        self.__usersDict = self.database.loadUsers(self.__usersFile)
-        self.__currentsDict = self.database.loadUserPrefs(self.__currentsFile)
-        self.__subProjectsList = self.database.loadSubprojects(self.__subprojectsFile)
+        self._usersDict = self.database.loadUsers(self._pathsDict["usersFile"])
+        self._currentsDict = self.database.loadUserPrefs(self._pathsDict["currentsFile"], self._usersDict.keys()[0])
+        self._subProjectsList = self.database.loadSubprojects(self._pathsDict["subprojectsFile"])
         # self.pbSettingsDict = self.database.loadPBSettings(self.pbSettingsFile) # not immediate
         # self.bookmarksList = self.database.loadFavorites(self.bookmarksFile) # not immediate
 
     @property
     def projectDir(self):
-        return self.__projectDir
+        return self._pathsDict["projectDir"]
 
     @property
     def sceneFile(self):
-        return self.__sceneFile
+        return self._pathsDict["sceneFile"]
 
     @property
     def masterDir(self):
-        return self.__masterDir
+        return self._pathsDict["masterDir"]
 
     @property
     def databaseDir(self):
-        return self.__databaseDir
+        return self._pathsDict["databaseDir"]
 
     @property
     def scenesDir(self):
-        return self.__scenesDir
+        return self._pathsDict["scenesDir"]
 
     @property
     def subprojectsFile(self):
-        return self.__subprojectsFile
+        return self._pathsDict["subprojectsFile"]
 
     @property
     def previewsDir(self):
-        return self.__previewsDir
+        return self._pathsDict["previewsDir"]
 
     @property
     def pbSettingsFile(self):
-        return self.__pbSettingsFile
+        return self._pathsDict["pbSettingsFile"]
 
     @property
     def generalSettingsDir(self):
-        return self.__generalSettingsDir
+        return self._pathsDict["generalSettingsDir"]
 
     @property
     def usersFile(self):
-        return self.__usersFile
+        return self._pathsDict["usersFile"]
 
     @property
-    def acayipTest(self):
-        return self.__acayipTest
+    def userSettingsDir(self):
+        return self._pathsDict["userSettingsDir"]
 
-    @acayipTest.setter
-    def acayipTest (self, data):
-        self.setPath (self.acayipTest, data)
+    @property
+    def bookmarksFile(self):
+        return self._pathsDict["bookmarksFile"]
 
-    def setPath(self, att, path):
-        att = path
+    @property
+    def currentsFile(self):
+        return self._pathsDict["currentsFile"]
+
+    #Currents
+    @property
+    def currentTabIndex(self):
+        return self._currentsDict["currentTabIndex"]
+
+    @property
+    def currentSubIndex(self):
+        return self._currentsDict["currentSubIndex"]
+
+    @property
+    def currentUser(self):
+        return self._currentsDict["currentUser"]
+
+    @property
+    def currentMode(self):
+        return self._currentsDict["currentMode"]
+
+    @currentTabIndex.setter
+    def currentTabIndex(self, indexData):
+        if not 0 <= indexData < len(self.validCategories):
+            logger.error(("entered index is out of range!"))
+            return
+        self._setCurrents("currentTabIndex", indexData)
+
+    @currentSubIndex.setter
+    def currentSubIndex(self, indexData):
+        if not 0 <= indexData < len(self._subProjectsList):
+            logger.error(("entered index is out of range!"))
+            return
+        self._setCurrents("currentSubIndex", indexData)
+
+    @currentUser.setter
+    def currentUser(self, name):
+        if name not in self._usersDict.keys():
+            logger.error(("%s is not a user!" %name))
+            return
+        self._setCurrents("currentUser", name)
+
+    @currentMode.setter
+    def currentMode(self, bool):
+        if not type(bool) is 'bool':
+            if bool is 0:
+                bool = False
+            elif bool is 1:
+                bool = True
+            else:
+                logger.error("only boolean or 0-1 accepted, entered %s" %bool)
+                return
+        self._setCurrents("currentMode", bool)
+
+    def _setCurrents(self, att, newdata):
+        self._currentsDict[att] = newdata
+        self.database.saveUserPrefs(self._currentsDict, self._pathsDict["currentsFile"])
+
+    def getUsers(self):
+        return self._usersDict
+
+    def getSubProjects(self):
+        return self._subProjectsList
+
+    def _resolveProjectPath(self, projectRoot, projectName, brandName, client):
+        if projectName == "" or client == "" or projectRoot == "":
+            msg = ("Fill the mandatory fields")
+            logger.warning(msg)
+            return -1, msg
+        projectDate = datetime.datetime.now().strftime("%y%m%d")
+
+        if brandName:
+            brandName = "%s_" % brandName
+        else:
+            brandName = ""
+        fullName = "{0}{1}_{2}_{3}".format(brandName, projectName, client, projectDate)
+        fullPath = os.path.join(os.path.normpath(projectRoot), fullName)
+        return fullPath
 
 
-    def change_currentTabIndex(self, category):
-        self.__currentsDict["currentTabIndex"] = category
-        self.database.saveUserPrefs(self.__currentsDict, self.__currentsFile)
+    def createNewProject(self, projectRoot, projectName, brandName, client):
+        # resolve the project path
+        resolvedPath = self._resolveProjectPath(projectRoot, projectName, brandName, client)
 
-    def change_currentSubIndex(self, subindex):
-        self.__currentsDict["currentSubIndex"] = subindex
-        self.database.saveUserPrefs(self.__currentsDict, self.__currentsFile)
-
-    def change_currentUser(self, user):
-        self.__currentsDict["currentSubIndex"] = user
-        self.database.saveUserPrefs(self.__currentsDict, self.__currentsFile)
-
-    def change_currentMode(self, mode):
-        self.__currentsDict["currentSubIndex"] = mode
-        self.database.saveUserPrefs(self.__currentsDict, self.__currentsFile)
-
-    def create_newproject(self, projectPath):
         # check if there is a duplicate
-        if not os.path.isdir(os.path.normpath(projectPath)):
-            os.makedirs(os.path.normpath(projectPath))
+        if not os.path.isdir(os.path.normpath(resolvedPath)):
+            os.makedirs(os.path.normpath(resolvedPath))
         else:
             logger.warning("Project already exists")
             return
 
         # create Directory structure:
-        os.mkdir(os.path.join(projectPath, "_COMP"))
-        os.makedirs(os.path.join(projectPath, "_MAX", "Animation"))
-        os.makedirs(os.path.join(projectPath, "_MAX", "Model"))
-        os.makedirs(os.path.join(projectPath, "_MAX", "Render"))
-        os.mkdir(os.path.join(projectPath, "_SCULPT"))
-        os.mkdir(os.path.join(projectPath, "_REALFLOW"))
-        os.mkdir(os.path.join(projectPath, "_HOUDINI"))
-        os.mkdir(os.path.join(projectPath, "_REF"))
-        os.mkdir(os.path.join(projectPath, "_TRACK"))
-        os.makedirs(os.path.join(projectPath, "_TRANSFER", "FBX"))
-        os.makedirs(os.path.join(projectPath, "_TRANSFER", "ALEMBIC"))
-        os.makedirs(os.path.join(projectPath, "_TRANSFER", "OBJ"))
-        os.makedirs(os.path.join(projectPath, "_TRANSFER", "MA"))
-        os.mkdir(os.path.join(projectPath, "assets"))
-        os.mkdir(os.path.join(projectPath, "cache"))
-        os.mkdir(os.path.join(projectPath, "clips"))
-        os.mkdir(os.path.join(projectPath, "data"))
-        os.makedirs(os.path.join(projectPath, "images", "_CompRenders"))
-        os.mkdir(os.path.join(projectPath, "movies"))
-        os.mkdir(os.path.join(projectPath, "particles"))
-        os.mkdir(os.path.join(projectPath, "Playblasts"))
-        os.makedirs(os.path.join(projectPath, "renderData", "depth"))
-        os.makedirs(os.path.join(projectPath, "renderData", "fur"))
-        os.makedirs(os.path.join(projectPath, "renderData", "iprImages"))
-        os.makedirs(os.path.join(projectPath, "renderData", "mentalray"))
-        os.makedirs(os.path.join(projectPath, "renderData", "shaders"))
-        os.mkdir(os.path.join(projectPath, "scenes"))
-        os.mkdir(os.path.join(projectPath, "scripts"))
-        os.mkdir(os.path.join(projectPath, "sound"))
-        os.makedirs(os.path.join(projectPath, "sourceimages", "_FOOTAGE"))
-        os.makedirs(os.path.join(projectPath, "sourceimages", "_HDR"))
+        os.mkdir(os.path.join(resolvedPath, "_COMP"))
+        os.makedirs(os.path.join(resolvedPath, "maxScenes", "Animation"))
+        os.makedirs(os.path.join(resolvedPath, "maxScenes", "Model"))
+        os.makedirs(os.path.join(resolvedPath, "maxScenes", "Render"))
+        os.mkdir(os.path.join(resolvedPath, "_SCULPT"))
+        os.mkdir(os.path.join(resolvedPath, "_REALFLOW"))
+        os.mkdir(os.path.join(resolvedPath, "_HOUDINI"))
+        os.mkdir(os.path.join(resolvedPath, "_REF"))
+        os.mkdir(os.path.join(resolvedPath, "_TRACK"))
+        os.makedirs(os.path.join(resolvedPath, "_TRANSFER", "FBX"))
+        os.makedirs(os.path.join(resolvedPath, "_TRANSFER", "ALEMBIC"))
+        os.makedirs(os.path.join(resolvedPath, "_TRANSFER", "OBJ"))
+        os.makedirs(os.path.join(resolvedPath, "_TRANSFER", "MA"))
+        os.mkdir(os.path.join(resolvedPath, "assets"))
+        os.mkdir(os.path.join(resolvedPath, "cache"))
+        os.mkdir(os.path.join(resolvedPath, "clips"))
+        os.mkdir(os.path.join(resolvedPath, "data"))
+        os.makedirs(os.path.join(resolvedPath, "images", "_CompRenders"))
+        os.mkdir(os.path.join(resolvedPath, "movies"))
+        os.mkdir(os.path.join(resolvedPath, "particles"))
+        os.mkdir(os.path.join(resolvedPath, "Playblasts"))
+        os.makedirs(os.path.join(resolvedPath, "renderData", "depth"))
+        os.makedirs(os.path.join(resolvedPath, "renderData", "fur"))
+        os.makedirs(os.path.join(resolvedPath, "renderData", "iprImages"))
+        os.makedirs(os.path.join(resolvedPath, "renderData", "mentalray"))
+        os.makedirs(os.path.join(resolvedPath, "renderData", "shaders"))
+        os.mkdir(os.path.join(resolvedPath, "scenes"))
+        os.mkdir(os.path.join(resolvedPath, "scripts"))
+        os.mkdir(os.path.join(resolvedPath, "sound"))
+        os.makedirs(os.path.join(resolvedPath, "sourceimages", "_FOOTAGE"))
+        os.makedirs(os.path.join(resolvedPath, "sourceimages", "_HDR"))
 
-        filePath = os.path.join(projectPath, "workspace.mel")
+        filePath = os.path.join(resolvedPath, "workspace.mel")
         file = open(filePath, "w")
 
         file.write('workspace -fr "scene" "scenes";\n')
@@ -375,19 +447,71 @@ class RootManager(object):
     #     mel.eval(command)
     #     self.projectDir = pm.workspace(q=1, rd=1)
 
+    def showInExplorer(self, path):
+        if not os.path.isdir(path):
+            logger.error("path is not a directory path or does not exist")
+            return
+        if self.currentPlatform == "Windows":
+            os.startfile(path)
+        if self.currentPlatform == "Linux":
+            os.system('nautilus %s' % path)
 
-    def get_project_report(self):
+    def scanBasescenes(self):
         pass
+
+
+    def getProjectReport(self):
+        # TODO Before this finish scan functions
+        def getOldestFile(rootfolder, extension=".avi"):
+            return min(
+                (os.path.join(dirname, filename)
+                 for dirname, dirnames, filenames in os.walk(rootfolder)
+                 for filename in filenames
+                 if filename.endswith(extension)),
+                key=lambda fn: os.stat(fn).st_mtime)
+
+        def getNewestFile(rootfolder, extension=".avi"):
+            return max(
+                (os.path.join(dirname, filename)
+                 for dirname, dirnames, filenames in os.walk(rootfolder)
+                 for filename in filenames
+                 if filename.endswith(extension)),
+                key=lambda fn: os.stat(fn).st_mtime)
+
+        oldestFile = getOldestFile(self.scenesDir, extension=(".mb", ".ma"))
+        pathOldestFile, nameOldestFile = os.path.split(oldestFile)
+        oldestTimeMod = datetime.datetime.fromtimestamp(os.path.getmtime(oldestFile))
+        newestFile = getNewestFile(self.scenesDir, extension=(".mb", ".ma"))
+        pathNewestFile, nameNewestFile = os.path.split(oldestFile)
+        newestTimeMod = datetime.datetime.fromtimestamp(os.path.getmtime(newestFile))
+
+        L1 = "Oldest Scene file: {0} - {1}".format(nameNewestFile, oldestTimeMod)
+        L2 = "Newest Scene file: {0} - {1}".format(nameNewestFile, newestTimeMod)
+        L3 = "Elapsed Time: {0}".format(str(newestTimeMod - oldestTimeMod))
+        L4 = "Scene Counts:"
+
+        report = {}
+        for subP in range(len(self._subProjectsList)):
+            subReport = {}
+            for category in self.validCategories:
+                categoryItems = (self.scanScenes(category, subProjectAs=subP)[0])
+                categoryItems = [x for x in categoryItems if x != []]
+
+                L4 = "{0}\n{1}: {2}".format(L4, category, len(categoryItems))
+                subReport[category] = categoryItems
+            report[self.subProjectList[subP]] = subReport
+
+        report = pprint.pformat(report)
         ## What we need:
         # PATH(abs) projectPath
         # PATH(abs) software specific Real Scenes Folder Path
         # software project file extensions
 
-    def save_callback(self):
-        if not self.__sceneFile:
+    def saveCallback(self):
+        if not self._pathsDict["sceneFile"]:
             return
 
-    def save_basescene(self):
+    def saveBasescene(self):
         pass
         ## What we need:
         # current user
@@ -395,60 +519,58 @@ class RootManager(object):
         # PATH(abs) software database (jsonPath)
         # PATH(abs) software specific Real Scenes Folder Path
 
-    def save_version(self):
+    def saveVersion(self):
         pass
         ## What we need:
         # current user
 
-    def create_preview(self):
+    def createPreview(self):
         pass
         ## What we need:
         # PATH(abs) pbSettings file
 
-    def play_preview(self):
+    def playPreview(self):
         pass
         ## What we need:
         # PATH(abs) projectPath
 
-    def remove_preview(self, relativePath, jsonFile, version):
+    def removePreview(self, relativePath, jsonFile, version):
         pass
 
-    def create_subproject(self, nameOfSubProject):
+    def createSubproject(self, nameOfSubProject):
         pass
         ## What we need:
         # PATH(abs) software database (jsonPath)
         # PATH(s)(abs, list) sub-projects
 
-    def scan_subprojects(self):
+
+
+
+
+    def loadBasescene(self):
         pass
 
-    def scan_basescenes(self):
-        pass
-
-    def load_basescene(self):
-        pass
-
-    def delete_basescene(self):
+    def deleteBasescene(self):
         #ADMIN ACCESS
         pass
 
-    def delete_reference(self):
+    def deleteReference(self):
         #ADMIN ACCESS
         pass
 
-    def make_reference(self):
+    def makeReference(self):
         pass
 
-    def check_reference(self):
+    def checkReference(self):
         pass
 
-    def load_reference(self):
+    def loadReference(self):
         pass
 
-    def create_thumbnail(self):
+    def createThumbnail(self):
         pass
 
-    def replace_thumbnail(self):
+    def replaceThumbnail(self):
         pass
 
 

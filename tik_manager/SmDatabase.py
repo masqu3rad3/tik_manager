@@ -133,14 +133,14 @@ class SmDatabase(object):
         self.dumpJson(pbSettingsDict, pbSettingsFile)
         return
 
-    def loadUserPrefs(self, settingsFilePath):
+    def loadUserPrefs(self, settingsFilePath, firstUser):
         # old Name userPrefLoad
 
         # settingsFilePath = os.path.join(self.userSettings_Path, "smSettings.json")
         if os.path.isfile(settingsFilePath):
             settingsData = self.loadJson(settingsFilePath)
         else:
-            settingsData = {"currentTabIndex": 0, "currentSubIndex": 0, "currentUser": "", "currentMode": 0}
+            settingsData = {"currentTabIndex": 0, "currentSubIndex": 0, "currentUser": firstUser, "currentMode": False}
             self.dumpJson(settingsData, settingsFilePath)
         return settingsData
 

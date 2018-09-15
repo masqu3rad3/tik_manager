@@ -1,4 +1,4 @@
-
+import os
 import SmRoot
 reload(SmRoot)
 from SmRoot import RootManager
@@ -13,10 +13,14 @@ class MayaManager(RootManager):
         self.init_database()
         self.backwardcompatibility()
 
-    def get_currentProjectDir(self):
-        return (cmds.workspace(q=1, rd=1))
-    def get_currentSceneFile(self):
-        return (cmds.file(q=True, sn=True))
+    def getProjectDir(self):
+        p_path = cmds.workspace(q=1, rd=1)
+        norm_p_path = os.path.normpath(p_path)
+        return norm_p_path
+    def getSceneFile(self):
+        s_path = cmds.file(q=True, sn=True)
+        norm_s_path = os.path.normpath(s_path)
+        return norm_s_path
 
     def set_project(self, path):
         # totally software specific or N/A
