@@ -457,6 +457,8 @@ class RootManager(object):
             os.system('nautilus %s' % path)
 
     def scanBasescenes(self):
+        if not (self.currentSubIndex == 0):
+            # TODO CONTINUE FROM HERE (manager.py ==> line 1225)
         pass
 
 
