@@ -83,7 +83,11 @@ import datetime
 # import pymel.core as pm
 import os
 import logging
-# import maya.mel as mel
+import pprint
+# from shutil import copyfile
+# from shutil import copytree
+import shutil
+from glob import glob
 
 logging.basicConfig()
 logger = logging.getLogger('smRoot')
@@ -124,11 +128,11 @@ class RootManager(object):
     def __init__(self):
         super(RootManager, self).__init__()
         self.database = db.SmDatabase()
-        self.validCategories = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
+        # self.validCategories = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
 
         self.currentPlatform = platform.system()
         self._pathsDict={}
-        self.padding = 3
+        # self.padding = 3
 
 
     def backwardcompatibility(self):
@@ -136,12 +140,53 @@ class RootManager(object):
         This function checks for the old database structure and creates a copy with the new structure
         :return: None
         """
+
+        def recursive_overwrite(src, dest, ignore=None):
+            if os.path.isdir(src):
+                if not os.path.isdir(dest):
+                    os.makedirs(dest)
+                files = os.listdir(src)
+                if ignore is not None:
+                    ignored = ignore(src, files)
+                else:
+                    ignored = set()
+                for f in files:
+                    if f not in ignored:
+                        recursive_overwrite(os.path.join(src, f),
+                                            os.path.join(dest, f),
+                                            ignore)
+            else:
+                shutil.copyfile(src, dest)
+
         old_dbDir = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "data", "SMdata"))
+        bck_dbDir = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "data", "SMdata_oldVersion"))
+        new_dbDir = self._pathsDict["databaseDir"]
         if os.path.isdir(old_dbDir):
-            # TODO: copy all contents of the folder to the new structure
+
+            recursive_overwrite(old_dbDir, new_dbDir)
+            logger.info("All old database contents copied to the new structure folder => %s" % self._pathsDict["databaseDir"])
+
             # TODO: gather all scene json files, update the self locations
-            logger.info("All database contents moved to the new structure folder => %s" % self._pathsDict["databaseDir"])
-            pass
+            oldCategories = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
+            for category in oldCategories:
+                categoryDBpath = os.path.normpath(os.path.join(new_dbDir, category))
+                if os.path.isdir(categoryDBpath):
+                    jsonFiles = [y for x in os.walk(categoryDBpath) for y in glob(os.path.join(x[0], '*.json'))]
+                    for file in jsonFiles:
+                        fileData = self.database.loadJson(file)
+                        for vers in fileData["Versions"]:
+                            vers[5] = vers[5].replace("data\\SMdata", "smDatabase\\mayaDB") # relative thumbnail path
+                            for key in vers[4].keys(): # Playblast dictionary
+                                vers[4][key] = vers[4][key].replace("data\\SMdata", "smDatabase\\mayaDB")
+                        self.database.dumpJson(fileData, file)
+            logger.info("Database preview and thumbnail paths are fixed")
+            os.rename(old_dbDir, bck_dbDir)
+
+            logger.info("Old database folder renamed to 'SMdata_oldVersion'")
+
+
+
+
 
 
     def init_paths(self):
@@ -164,6 +209,7 @@ class RootManager(object):
         folderCheck(self._pathsDict["scenesDir"])
 
         self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], "subPdata.json"))
+        self._pathsDict["categoriesFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], "categories.json"))
 
         self._pathsDict["previewsDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "Playblasts")) # dont change
         folderCheck(self._pathsDict["previewsDir"])
@@ -189,11 +235,15 @@ class RootManager(object):
         return -1
 
     def init_database(self):
+        # self.currentPlatform = platform.system()
+        self._categories = self.database.loadCategories(self._pathsDict["categoriesFile"])
         self._usersDict = self.database.loadUsers(self._pathsDict["usersFile"])
         self._currentsDict = self.database.loadUserPrefs(self._pathsDict["currentsFile"], self._usersDict.keys()[0])
         self._subProjectsList = self.database.loadSubprojects(self._pathsDict["subprojectsFile"])
-        # self.pbSettingsDict = self.database.loadPBSettings(self.pbSettingsFile) # not immediate
-        # self.bookmarksList = self.database.loadFavorites(self.bookmarksFile) # not immediate
+        # self._pbSettingsDict = self.database.loadPBSettings(self.pbSettingsFile) # not immediate
+        # self._bookmarksList = self.database.loadFavorites(self.bookmarksFile) # not immediate
+
+        # self.scanBasescenes()
 
     @property
     def projectDir(self):
@@ -266,7 +316,7 @@ class RootManager(object):
 
     @currentTabIndex.setter
     def currentTabIndex(self, indexData):
-        if not 0 <= indexData < len(self.validCategories):
+        if not 0 <= indexData < len(self._categories):
             logger.error(("entered index is out of range!"))
             return
         self._setCurrents("currentTabIndex", indexData)
@@ -297,9 +347,16 @@ class RootManager(object):
                 return
         self._setCurrents("currentMode", bool)
 
+    @property
+    def currentBaseScenes(self):
+        return self._currentBaseScenes
+
     def _setCurrents(self, att, newdata):
         self._currentsDict[att] = newdata
         self.database.saveUserPrefs(self._currentsDict, self._pathsDict["currentsFile"])
+
+    def getCategories(self):
+        return self._categories
 
     def getUsers(self):
         return self._usersDict
@@ -440,13 +497,6 @@ class RootManager(object):
         file.close()
 
 
-    # def set_project(self, path):
-    #     # totally software specific or N/A
-    #     melCompPath = path.replace("\\", "/") # mel is picky
-    #     command = 'setProject "%s";' %melCompPath
-    #     mel.eval(command)
-    #     self.projectDir = pm.workspace(q=1, rd=1)
-
     def showInExplorer(self, path):
         if not os.path.isdir(path):
             logger.error("path is not a directory path or does not exist")
@@ -456,101 +506,118 @@ class RootManager(object):
         if self.currentPlatform == "Linux":
             os.system('nautilus %s' % path)
 
+    # def scanBasescenes(self, categoryAs=None, subProjectAs=None):
     def scanBasescenes(self):
+        """Returns the basescene database files in current category"""
+        categoryDBpath = os.path.normpath(os.path.join(self.databaseDir, self._categories[self.currentTabIndex]))
+        folderCheck(categoryDBpath)
         if not (self.currentSubIndex == 0):
-            # TODO CONTINUE FROM HERE (manager.py ==> line 1225)
+            categorySubDBpath = os.path.normpath(os.path.join(categoryDBpath, (self._subProjectsList)[self.currentSubIndex])) # category name
+            folderCheck(categorySubDBpath)
+
+            searchDir = categorySubDBpath
+        else:
+            searchDir = categoryDBpath
+
+        self._currentBasescenes = self.database.loadDatabaseFiles(searchDir)
+        return self._currentBasescenes # list of json files
+
+
+    # def getProjectReport(self):
+    #     # TODO This function should be re-written considering all possible softwares
+    #     # TODO instead of clunking scanBasescenes with extra arguments, do the scanning inside this function
+    #     def getOldestFile(rootfolder, extension=".avi"):
+    #         return min(
+    #             (os.path.join(dirname, filename)
+    #              for dirname, dirnames, filenames in os.walk(rootfolder)
+    #              for filename in filenames
+    #              if filename.endswith(extension)),
+    #             key=lambda fn: os.stat(fn).st_mtime)
+    #
+    #     def getNewestFile(rootfolder, extension=".avi"):
+    #         return max(
+    #             (os.path.join(dirname, filename)
+    #              for dirname, dirnames, filenames in os.walk(rootfolder)
+    #              for filename in filenames
+    #              if filename.endswith(extension)),
+    #             key=lambda fn: os.stat(fn).st_mtime)
+    #
+    #     oldestFile = getOldestFile(self.scenesDir, extension=(".mb", ".ma"))
+    #     pathOldestFile, nameOldestFile = os.path.split(oldestFile)
+    #     oldestTimeMod = datetime.datetime.fromtimestamp(os.path.getmtime(oldestFile))
+    #     newestFile = getNewestFile(self.scenesDir, extension=(".mb", ".ma"))
+    #     pathNewestFile, nameNewestFile = os.path.split(oldestFile)
+    #     newestTimeMod = datetime.datetime.fromtimestamp(os.path.getmtime(newestFile))
+    #
+    #     L1 = "Oldest Scene file: {0} - {1}".format(nameOldestFile, oldestTimeMod)
+    #     L2 = "Newest Scene file: {0} - {1}".format(nameNewestFile, newestTimeMod)
+    #     L3 = "Elapsed Time: {0}".format(str(newestTimeMod - oldestTimeMod))
+    #     L4 = "Scene Counts:"
+    #
+    #     report = {}
+    #     for subP in range(len(self._subProjectsList)):
+    #         subReport = {}
+    #         for category in self._categories:
+    #             categoryItems = (self.scanBasescenes(categoryAs=category, subProjectAs=subP))
+    #             categoryItems = [x for x in categoryItems if x != []]
+    #
+    #             L4 = "{0}\n{1}: {2}".format(L4, category, len(categoryItems))
+    #             subReport[category] = categoryItems
+    #         report[self._subProjectsList[subP]] = subReport
+    #
+    #     report = pprint.pformat(report)
+    #     now = datetime.datetime.now()
+    #     filename = "summary_{0}.txt".format(now.strftime("%Y.%m.%d.%H.%M"))
+    #     filePath = os.path.join(self.projectDir, filename)
+    #     file = open(filePath, "w")
+    #     file.write("{0}\n".format(L1))
+    #     file.write("{0}\n".format(L2))
+    #     file.write("{0}\n".format(L3))
+    #     file.write("{0}\n".format(L4))
+    #     file.write((report))
+    #
+    #     file.close()
+    #     logger.info("Report has been logged => %s" %filePath)
+    #     return report
+
+    def getSceneInfo(self, basesceneFile):
         pass
 
+    def getVersionInfo(self, basesceneFile, version):
+        versionData = self.database.loadJson(basesceneFile)
+        return versionData["Versions"][version][1], versionData["Versions"][version][4] # versionNotes, playBlastDictionary
 
-    def getProjectReport(self):
-        # TODO Before this finish scan functions
-        def getOldestFile(rootfolder, extension=".avi"):
-            return min(
-                (os.path.join(dirname, filename)
-                 for dirname, dirnames, filenames in os.walk(rootfolder)
-                 for filename in filenames
-                 if filename.endswith(extension)),
-                key=lambda fn: os.stat(fn).st_mtime)
-
-        def getNewestFile(rootfolder, extension=".avi"):
-            return max(
-                (os.path.join(dirname, filename)
-                 for dirname, dirnames, filenames in os.walk(rootfolder)
-                 for filename in filenames
-                 if filename.endswith(extension)),
-                key=lambda fn: os.stat(fn).st_mtime)
-
-        oldestFile = getOldestFile(self.scenesDir, extension=(".mb", ".ma"))
-        pathOldestFile, nameOldestFile = os.path.split(oldestFile)
-        oldestTimeMod = datetime.datetime.fromtimestamp(os.path.getmtime(oldestFile))
-        newestFile = getNewestFile(self.scenesDir, extension=(".mb", ".ma"))
-        pathNewestFile, nameNewestFile = os.path.split(oldestFile)
-        newestTimeMod = datetime.datetime.fromtimestamp(os.path.getmtime(newestFile))
-
-        L1 = "Oldest Scene file: {0} - {1}".format(nameNewestFile, oldestTimeMod)
-        L2 = "Newest Scene file: {0} - {1}".format(nameNewestFile, newestTimeMod)
-        L3 = "Elapsed Time: {0}".format(str(newestTimeMod - oldestTimeMod))
-        L4 = "Scene Counts:"
-
-        report = {}
-        for subP in range(len(self._subProjectsList)):
-            subReport = {}
-            for category in self.validCategories:
-                categoryItems = (self.scanScenes(category, subProjectAs=subP)[0])
-                categoryItems = [x for x in categoryItems if x != []]
-
-                L4 = "{0}\n{1}: {2}".format(L4, category, len(categoryItems))
-                subReport[category] = categoryItems
-            report[self.subProjectList[subP]] = subReport
-
-        report = pprint.pformat(report)
-        ## What we need:
-        # PATH(abs) projectPath
-        # PATH(abs) software specific Real Scenes Folder Path
-        # software project file extensions
-
-    def saveCallback(self):
-        if not self._pathsDict["sceneFile"]:
-            return
-
-    def saveBasescene(self):
+    def addNote(self, basesceneFile, version, note):
         pass
-        ## What we need:
-        # current user
-        # PATH(abs) projectPath
-        # PATH(abs) software database (jsonPath)
-        # PATH(abs) software specific Real Scenes Folder Path
 
-    def saveVersion(self):
+    def getPreviews(self, basesceneFile, version):
         pass
-        ## What we need:
-        # current user
 
-    def createPreview(self):
+    def playPreview(self, basesceneFile, version, camera):
         pass
-        ## What we need:
-        # PATH(abs) pbSettings file
-
-    def playPreview(self):
-        pass
-        ## What we need:
-        # PATH(abs) projectPath
-
-    def removePreview(self, relativePath, jsonFile, version):
-        pass
+    #     absPath = os.path.join(self.projectDir, relativePath)
+    #     if self.currentPlatform == "Windows":
+    #         try:
+    #             os.startfile(absPath)
+    #         except WindowsError:
+    #             return -1, ["Cannot Find Playblast", "Playblast File is missing", "Do you want to remove it from the Database?"]
+    #     return
+    #
+    # def removePreview(self, relativePath, jsonFile, version):
+    #     jsonInfo = self.database.loadJson(jsonFile)
+    #     pbDict = jsonInfo["Versions"][version][4]
+    #     for key, value in pbDict.iteritems():  # for name, age in list.items():  (for Python 3.x)
+    #         if value == relativePath:
+    #             pbDict.pop(key, None)
+    #             jsonInfo["Versions"][version][4] = pbDict
+    #             self.database.dumpJson(jsonInfo, jsonFile)
+    #             return
 
     def createSubproject(self, nameOfSubProject):
         pass
         ## What we need:
         # PATH(abs) software database (jsonPath)
         # PATH(s)(abs, list) sub-projects
-
-
-
-
-
-    def loadBasescene(self):
-        pass
 
     def deleteBasescene(self):
         #ADMIN ACCESS
@@ -566,14 +633,9 @@ class RootManager(object):
     def checkReference(self):
         pass
 
-    def loadReference(self):
-        pass
 
-    def createThumbnail(self):
-        pass
 
-    def replaceThumbnail(self):
-        pass
+
 
 
 

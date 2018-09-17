@@ -29,4 +29,36 @@ class MayaManager(RootManager):
         mel.eval(command)
         self.projectDir = cmds.workspace(q=1, rd=1)
 
+    def saveCallback(self):
+        pass
+
+    def saveBasescene(self):
+        pass
+        ## What we need:
+        # current user
+        # PATH(abs) projectPath
+        # PATH(abs) software database (jsonPath)
+        # PATH(abs) software specific Real Scenes Folder Path
+
+    def saveVersion(self):
+        pass
+        ## What we need:
+        # current user
+
+    def createPreview(self):
+        pass
+        ## What we need:
+        # PATH(abs) pbSettings file
+
+    def loadBasescene(self):
+        pass
+
+    def loadReference(self):
+        pass
+
+    def createThumbnail(self):
+        pass
+
+    def replaceThumbnail(self):
+        pass
 

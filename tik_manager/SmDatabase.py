@@ -47,14 +47,26 @@ class SmDatabase(object):
         with open(file, "w") as f:
             json.dump(data, f, indent=4)
 
+    def loadDatabaseFiles(self, searchPath):
+        """returns all database files in given search path"""
+        # allDatabaseFiles = []
+        #
+        # for file in os.listdir(searchPath)
+        #     if file.endswith('.json'):
+        #         file = os.path.join(searchPath, file)
+        #         allDatabaseFiles.append(file)
+        allDatabaseFiles = [os.path.join(searchPath, file) for file in os.listdir(searchPath) if file.endswith('.json')]
+        return allDatabaseFiles
 
-    def loadVersionNotes(self, jsonFile, version=None):
-        # oldname getVersionNotes
-        """
-        Returns: [versionNotes, playBlastDictionary]
-        """
-        jsonInfo = self.loadJson(jsonFile)
-        return jsonInfo["Versions"][version][1], jsonInfo["Versions"][version][4]
+
+
+    # def loadVersionNotes(self, jsonFile, version=None):
+    #     # oldname getVersionNotes
+    #     """
+    #     Returns: [versionNotes, playBlastDictionary]
+    #     """
+    #     jsonInfo = self.loadJson(jsonFile)
+    #     return jsonInfo["Versions"][version][1], jsonInfo["Versions"][version][4]
 
     def addVersionNotes(self, additionalNote, jsonFile, version, user):
         jsonInfo = self.loadJson(jsonFile)
@@ -186,7 +198,7 @@ class SmDatabase(object):
             data = self.loadJson(subprojectsFilePath)
         return data
 
-    def loadSceneInfo(self, sceneFile, projectDir, subProjectsList, databaseDir):
+    def loadCurrentSceneInfo(self, sceneFile, projectDir, subProjectsList, databaseDir):
         if not sceneFile:
             msg = "This is not a base scene (Untitled)"
             return -1, msg
@@ -226,7 +238,39 @@ class SmDatabase(object):
         else:
             return None
 
-    def getCurrentProject(self, currentProjectFile):
+    def loadCategories(self, categoriesFilePath):
+        if os.path.isfile(categoriesFilePath):
+            categoriesData = self.loadJson(categoriesFilePath)
+        else:
+            categoriesData = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
+            self.dumpJson(categoriesData, categoriesFilePath)
+        return categoriesData
+
+    def addCategory(self, newCategory, categoriesFilePath):
+        categoryList = self.getCategories(categoriesFilePath)
+        categoryList.append(newCategory)
+        self.dumpJson(categoryList, categoriesFilePath)
+        return categoryList
+
+    def removeCategory(self, categoryIndex, categoriesFilePath):
+        categoryList = self.getCategories(categoriesFilePath)
+        del categoryList[categoryIndex]
+        self.dumpJson(categoryList, categoriesFilePath)
+        return categoryList
+
+    def loadPreview(self, sceneDBfile, version,):
+        pass
+
+    def addPreview(self):
+        pass
+
+    def removePreview(self):
+        pass
+
+
+
+
+    def loadCurrentProject(self, currentProjectFile):
         """Function to read the current project setting file.
         Does not apply for Maya since its own project structure has been used"""
         try:
@@ -245,4 +289,5 @@ class SmDatabase(object):
         except:
             msg = "Cannot save current project file (%s)" %currentProjectFile
             return -1, msg
+
 
