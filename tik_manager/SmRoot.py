@@ -176,7 +176,13 @@ class RootManager(object):
                     for file in jsonFiles:
                         fileData = self._loadJson(file)
                         for vers in fileData["Versions"]:
-                            vers[5] = vers[5].replace("data\\SMdata", "smDatabase\\mayaDB") # relative thumbnail path
+
+                            #if there is no thumbnail column, skip
+                            try:
+                                vers[5] = vers[5].replace("data\\SMdata", "smDatabase\\mayaDB") # relative thumbnail path
+                            except IndexError:
+                                pass
+
                             for key in vers[4].keys(): # Playblast dictionary
                                 vers[4][key] = vers[4][key].replace("data\\SMdata", "smDatabase\\mayaDB")
                         self._dumpJson(fileData, file)
@@ -242,61 +248,81 @@ class RootManager(object):
         # self._pbSettingsDict = self.loadPBSettings(self.pbSettingsFile) # not immediate
         # self._bookmarksList = self.loadFavorites(self.bookmarksFile) # not immediate
 
-        # self.scanBasescenes()
+        # unsaved DB
+        self._baseScenesInCategory = []
+        self._currentBaseSceneName = ""
+        self._currentVersionIndex = 0
+        self._currentPreviewIndex = 0
+        self._currentSceneInfo = {}
+
+        self.scanBaseScenes()
+
+    # @property
+    # def projectDir(self):
+    #     return self._pathsDict["projectDir"]
+
+    # @property
+    # def sceneFile(self):
+    #     return self._pathsDict["sceneFile"]
+
+    # @property
+    # def masterDir(self):
+    #     return self._pathsDict["masterDir"]
+
+    # @property
+    # def databaseDir(self):
+    #     return self._pathsDict["databaseDir"]
+
+    # @property
+    # def scenesDir(self):
+    #     return self._pathsDict["scenesDir"]
+
+    # @property
+    # def subprojectsFile(self):
+    #     return self._pathsDict["subprojectsFile"]
+
+    # @property
+    # def previewsDir(self):
+    #     return self._pathsDict["previewsDir"]
+
+    # @property
+    # def pbSettingsFile(self):
+    #     return self._pathsDict["pbSettingsFile"]
+
+    # @property
+    # def generalSettingsDir(self):
+    #     return self._pathsDict["generalSettingsDir"]
+
+    # @property
+    # def usersFile(self):
+    #     return self._pathsDict["usersFile"]
+
+    # @property
+    # def userSettingsDir(self):
+    #     return self._pathsDict["userSettingsDir"]
+
+    # @property
+    # def bookmarksFile(self):
+    #     return self._pathsDict["bookmarksFile"]
+
+    # @property
+    # def currentsFile(self):
+    #     return self._pathsDict["currentsFile"]
 
     @property
     def projectDir(self):
         return self._pathsDict["projectDir"]
 
     @property
-    def sceneFile(self):
-        return self._pathsDict["sceneFile"]
+    def subProject(self):
+        return self._subProjectsList[self.currentSubIndex]
 
     @property
-    def masterDir(self):
-        return self._pathsDict["masterDir"]
+    def baseScene(self):
+        baseSceneDir = os.path.abspath(os.path.join(self._pathsDict["sceneFile"], os.pardir))
+        return os.path.basename(baseSceneDir)
 
-    @property
-    def databaseDir(self):
-        return self._pathsDict["databaseDir"]
-
-    @property
-    def scenesDir(self):
-        return self._pathsDict["scenesDir"]
-
-    @property
-    def subprojectsFile(self):
-        return self._pathsDict["subprojectsFile"]
-
-    @property
-    def previewsDir(self):
-        return self._pathsDict["previewsDir"]
-
-    @property
-    def pbSettingsFile(self):
-        return self._pathsDict["pbSettingsFile"]
-
-    @property
-    def generalSettingsDir(self):
-        return self._pathsDict["generalSettingsDir"]
-
-    @property
-    def usersFile(self):
-        return self._pathsDict["usersFile"]
-
-    @property
-    def userSettingsDir(self):
-        return self._pathsDict["userSettingsDir"]
-
-    @property
-    def bookmarksFile(self):
-        return self._pathsDict["bookmarksFile"]
-
-    @property
-    def currentsFile(self):
-        return self._pathsDict["currentsFile"]
-
-    #Currents
+    #Currents (Database)
     @property
     def currentTabIndex(self):
         return self._currentsDict["currentTabIndex"]
@@ -313,19 +339,103 @@ class RootManager(object):
     def currentMode(self):
         return self._currentsDict["currentMode"]
 
+    # Currents (Non-Database)
+    @property
+    def currentBaseSceneName(self):
+        return self._currentBaseSceneName
+
+    @property
+    def currentVersionIndex(self):
+        return self._currentVersionIndex
+
+    @property
+    def currentPreviewIndex(self):
+        return self._currentPreviewIndex
+
+    @property
+    def baseScenesInCategory(self):
+        return sorted(self._baseScenesInCategory.keys())
+
     @currentTabIndex.setter
     def currentTabIndex(self, indexData):
         if not 0 <= indexData < len(self._categories):
-            logger.error(("entered index is out of range!"))
+            logger.error(("out of range!"))
             return
+        # if indexData == self.currentTabIndex:
+        #     logger.warning("Cursor is already at %s" %indexData)
+        #     return
         self._setCurrents("currentTabIndex", indexData)
+        self.scanBaseScenes()
+        self._currentBaseSceneName = ""
+        logger.info("\nCategory: {0}\nSubProject: {1}\nBaseScenes Under: {2}\nCurrent BaseScene: {3}\nVersion: {4}".format(
+            self._categories[self.currentTabIndex],
+            self._subProjectsList[self.currentSubIndex],
+            self._baseScenesInCategory.keys(),
+            self._currentBaseSceneName,
+            self._currentVersionIndex))
+
+        # self._currentVersionIndex = -1
+        # self._currentPreviewIndex = -1
+
+    @currentBaseSceneName.setter
+    def currentBaseSceneName(self, sceneName):
+        if sceneName not in self._baseScenesInCategory.keys():
+            logger.error("invalid name")
+            return
+        # if sceneName == self._currentBaseSceneName:
+        #     logger.warning("Cursor is already at %s" %sceneName)
+        #     return
+
+        self._currentBaseSceneName = sceneName
+        self._currentSceneInfo = self.getSceneInfo()
+
+        self._currentVersionIndex = 0
+        logger.info("\nCategory: {0}\nSubProject: {1}\nBaseScenes Under: {2}\nCurrent BaseScene: {3}\nVersion: {4}".format(
+            self._categories[self.currentTabIndex],
+            self._subProjectsList[self.currentSubIndex],
+            self._baseScenesInCategory.keys(),
+            self._currentBaseSceneName,
+            self._currentVersionIndex))
+        # self._currentPreviewIndex = 0
+
+    @currentVersionIndex.setter
+    def currentVersionIndex(self, indexData):
+        if not self._currentSceneInfo:
+            logger.warning(("BaseScene not Selected"))
+            return
+        # print "hede", len(self._currentSceneInfo["Versions"])
+        if not 0 <= indexData < len(self._currentSceneInfo["Versions"]):
+            logger.error(("out of range!"))
+            return
+        # if self._currentVersionIndex == indexData:
+        #     logger.warning("Cursor is already at %s" % indexData)
+        #     return
+        self._currentVersionIndex = indexData
+        logger.info("\nCategory: {0}\nSubProject: {1}\nBaseScenes Under: {2}\nCurrent BaseScene: {3}\nVersion: {4}".format(
+            self._categories[self.currentTabIndex],
+            self._subProjectsList[self.currentSubIndex],
+            self._baseScenesInCategory.keys(),
+            self._currentBaseSceneName,
+            self._currentVersionIndex))
+        pass
+
 
     @currentSubIndex.setter
     def currentSubIndex(self, indexData):
         if not 0 <= indexData < len(self._subProjectsList):
             logger.error(("entered index is out of range!"))
             return
+
         self._setCurrents("currentSubIndex", indexData)
+        self.scanBaseScenes()
+        # de-select previous base scene
+        self._currentBaseSceneName = ""
+        logger.info("\nCategory: {0}\nSubProject: {1}\nBaseScenes Under: {2}\nCurrent BaseScene: {3}\nVersion: {4}".format(
+            self._categories[self.currentTabIndex],
+            self._subProjectsList[self.currentSubIndex],
+            self._baseScenesInCategory.keys(),
+            self._currentBaseSceneName,
+            self._currentVersionIndex))
 
     @currentUser.setter
     def currentUser(self, name):
@@ -346,9 +456,7 @@ class RootManager(object):
                 return
         self._setCurrents("currentMode", bool)
 
-    @property
-    def currentBaseScenes(self):
-        return self._currentBaseScenes
+
 
     def _setCurrents(self, att, newdata):
         self._currentsDict[att] = newdata
@@ -586,10 +694,14 @@ class RootManager(object):
             logger.warning("OS is not supported")
             return
 
-    # def scanBasescenes(self, categoryAs=None, subProjectAs=None):
-    def scanBasescenes(self):
+    # def scanBaseScenes(self, categoryAs=None, subProjectAs=None):
+    def _niceName(self, path):
+        basename = os.path.split(path)[1]
+        return os.path.splitext(basename)[0]
+
+    def scanBaseScenes(self):
         """Returns the basescene database files in current category"""
-        categoryDBpath = os.path.normpath(os.path.join(self.databaseDir, self._categories[self.currentTabIndex]))
+        categoryDBpath = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], self._categories[self.currentTabIndex]))
         folderCheck(categoryDBpath)
         if not (self.currentSubIndex == 0):
             categorySubDBpath = os.path.normpath(os.path.join(categoryDBpath, (self._subProjectsList)[self.currentSubIndex])) # category name
@@ -599,20 +711,18 @@ class RootManager(object):
         else:
             searchDir = categoryDBpath
 
-        def niceName(path):
-            basename = os.path.split(path)[1]
-            return os.path.splitext(basename)[0]
 
-        self._currentBasescenes = {niceName(file):file for file in glob(os.path.join(searchDir, '*.json'))}
-        # self._currentBasescenes = [os.path.join(searchDir, file) for file in os.listdir(searchDir) if file.endswith('.json')]
+
+        self._baseScenesInCategory = {self._niceName(file):file for file in glob(os.path.join(searchDir, '*.json'))}
+        # self._currentBaseScenes = [os.path.join(searchDir, file) for file in os.listdir(searchDir) if file.endswith('.json')]
 
         # glob(os.path.join(x[0], '*.json'))
-        return self._currentBasescenes # dictionary of json files
+        return self._baseScenesInCategory # dictionary of json files
 
 
     # def getProjectReport(self):
     #     # TODO This function should be re-written considering all possible softwares
-    #     # TODO instead of clunking scanBasescenes with extra arguments, do the scanning inside this function
+    #     # TODO instead of clunking scanBaseScenes with extra arguments, do the scanning inside this function
     #     def getOldestFile(rootfolder, extension=".avi"):
     #         return min(
     #             (os.path.join(dirname, filename)
@@ -645,7 +755,7 @@ class RootManager(object):
     #     for subP in range(len(self._subProjectsList)):
     #         subReport = {}
     #         for category in self._categories:
-    #             categoryItems = (self.scanBasescenes(categoryAs=category, subProjectAs=subP))
+    #             categoryItems = (self.scanBaseScenes(categoryAs=category, subProjectAs=subP))
     #             categoryItems = [x for x in categoryItems if x != []]
     #
     #             L4 = "{0}\n{1}: {2}".format(L4, category, len(categoryItems))
@@ -668,10 +778,10 @@ class RootManager(object):
     #     return report
 
 
-    class sceneHandler()
 
-    def getSceneInfo(self, basesceneFile):
-        sceneInfo = self._loadJson(basesceneFile)
+    def getSceneInfo(self):
+        # sceneInfo = self._loadJson(basesceneFile)
+        sceneInfo = self._loadJson(self._baseScenesInCategory[self._currentBaseSceneName])
         return sceneInfo
 
     # def getVersionInfo(self, basesceneFile, version):
@@ -716,18 +826,18 @@ class RootManager(object):
         return
 
     # def removePreview(self, relativePath, jsonFile, version):
-    def removePreview(self, basesceneFile, sceneInfo, version, camera):
-
-        previewDict = self.getPreviews(sceneInfo, version)
-        relativePath = previewDict[camera]
-        dbFile =
-
-        for key, value in previewDict.iteritems():  # for name, age in list.items():  (for Python 3.x)
-            if value == relativePath:
-                previewDict.pop(key, None)
-                sceneInfo["Versions"][version][4] = previewDict
-                self._dumpJson(sceneInfo, basesceneFile)
-                return
+    # def removePreview(self, basesceneFile, sceneInfo, version, camera):
+    #
+    #     previewDict = self.getPreviews(sceneInfo, version)
+    #     relativePath = previewDict[camera]
+    #     dbFile =
+    #
+    #     for key, value in previewDict.iteritems():  # for name, age in list.items():  (for Python 3.x)
+    #         if value == relativePath:
+    #             previewDict.pop(key, None)
+    #             sceneInfo["Versions"][version][4] = previewDict
+    #             self._dumpJson(sceneInfo, basesceneFile)
+    #             return
 
     def createSubproject(self, nameOfSubProject):
         pass
