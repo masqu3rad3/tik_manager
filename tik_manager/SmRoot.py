@@ -76,8 +76,8 @@
 
 
 import platform
-import SmDatabase as db
-reload(db)
+# import SmDatabase as db
+# reload(db)
 import datetime
 
 # import pymel.core as pm
@@ -88,6 +88,7 @@ import pprint
 # from shutil import copytree
 import shutil
 from glob import glob
+import json
 
 logging.basicConfig()
 logger = logging.getLogger('smRoot')
@@ -127,7 +128,7 @@ def folderCheck(folder):
 class RootManager(object):
     def __init__(self):
         super(RootManager, self).__init__()
-        self.database = db.SmDatabase()
+        # self.database = db.SmDatabase()
         # self.validCategories = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
 
         self.currentPlatform = platform.system()
@@ -173,20 +174,18 @@ class RootManager(object):
                 if os.path.isdir(categoryDBpath):
                     jsonFiles = [y for x in os.walk(categoryDBpath) for y in glob(os.path.join(x[0], '*.json'))]
                     for file in jsonFiles:
-                        fileData = self.database.loadJson(file)
+                        fileData = self._loadJson(file)
                         for vers in fileData["Versions"]:
                             vers[5] = vers[5].replace("data\\SMdata", "smDatabase\\mayaDB") # relative thumbnail path
                             for key in vers[4].keys(): # Playblast dictionary
                                 vers[4][key] = vers[4][key].replace("data\\SMdata", "smDatabase\\mayaDB")
-                        self.database.dumpJson(fileData, file)
+                        self._dumpJson(fileData, file)
             logger.info("Database preview and thumbnail paths are fixed")
-            os.rename(old_dbDir, bck_dbDir)
-
-            logger.info("Old database folder renamed to 'SMdata_oldVersion'")
-
-
-
-
+            try:
+                os.rename(old_dbDir, bck_dbDir)
+                logger.info("Old database folder renamed to 'SMdata_oldVersion'")
+            except WindowsError:
+                logger.warning("Cannot rename the old database folder because of windows bullshit")
 
 
     def init_paths(self):
@@ -236,12 +235,12 @@ class RootManager(object):
 
     def init_database(self):
         # self.currentPlatform = platform.system()
-        self._categories = self.database.loadCategories(self._pathsDict["categoriesFile"])
-        self._usersDict = self.database.loadUsers(self._pathsDict["usersFile"])
-        self._currentsDict = self.database.loadUserPrefs(self._pathsDict["currentsFile"], self._usersDict.keys()[0])
-        self._subProjectsList = self.database.loadSubprojects(self._pathsDict["subprojectsFile"])
-        # self._pbSettingsDict = self.database.loadPBSettings(self.pbSettingsFile) # not immediate
-        # self._bookmarksList = self.database.loadFavorites(self.bookmarksFile) # not immediate
+        self._categories = self._loadCategories()
+        self._usersDict = self._loadUsers()
+        self._currentsDict = self._loadUserPrefs()
+        self._subProjectsList = self._loadSubprojects()
+        # self._pbSettingsDict = self.loadPBSettings(self.pbSettingsFile) # not immediate
+        # self._bookmarksList = self.loadFavorites(self.bookmarksFile) # not immediate
 
         # self.scanBasescenes()
 
@@ -353,7 +352,7 @@ class RootManager(object):
 
     def _setCurrents(self, att, newdata):
         self._currentsDict[att] = newdata
-        self.database.saveUserPrefs(self._currentsDict, self._pathsDict["currentsFile"])
+        self._saveUserPrefs(self._currentsDict)
 
     def getCategories(self):
         return self._categories
@@ -378,6 +377,84 @@ class RootManager(object):
         fullName = "{0}{1}_{2}_{3}".format(brandName, projectName, client, projectDate)
         fullPath = os.path.join(os.path.normpath(projectRoot), fullName)
         return fullPath
+
+    ## Database loading / saving functions
+    ## -----------------------------
+
+    def _loadJson(self, file):
+        """
+        Loads the given json file
+        Args:
+            file: (String) Path to the json file
+
+        Returns: JsonData
+
+        """
+        if os.path.isfile(file):
+            with open(file, 'r') as f:
+                # The JSON module will read our file, and convert it to a python dictionary
+                data = json.load(f)
+                return data
+        else:
+            return None
+
+    def _dumpJson(self, data, file):
+        """
+        Saves the data to the json file
+        Args:
+            data: Data to save
+            file: (String) Path to the json file
+
+        Returns: None
+
+        """
+
+        with open(file, "w") as f:
+            json.dump(data, f, indent=4)
+
+    def _loadUsers(self):
+        # old Name
+        if not os.path.isfile(self._pathsDict["usersFile"]):
+            userDB = {"Generic": "gn"}
+            self._dumpJson(userDB, self._pathsDict["usersFile"])
+            return userDB
+        else:
+            userDB = self._loadJson(self._pathsDict["usersFile"])
+            return userDB
+
+    def _loadCategories(self):
+        if os.path.isfile(self._pathsDict["categoriesFile"]):
+            categoriesData = self._loadJson(self._pathsDict["categoriesFile"])
+        else:
+            categoriesData = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
+            self._dumpJson(categoriesData, self._pathsDict["categoriesFile"])
+        return categoriesData
+
+    def _loadUserPrefs(self):
+
+        if os.path.isfile(self._pathsDict["currentsFile"]):
+            settingsData = self._loadJson(self._pathsDict["currentsFile"])
+        else:
+            settingsData = {"currentTabIndex": 0, "currentSubIndex": 0, "currentUser": self._usersDict.keys()[0], "currentMode": False}
+            self._dumpJson(settingsData, self._pathsDict["currentsFile"])
+        return settingsData
+
+    def _saveUserPrefs(self, settingsData):
+        try:
+            self._dumpJson(settingsData,  self._pathsDict["currentsFile"])
+            msg = ""
+            return 0, msg
+        except:
+            msg = "Cannot save current settings"
+            return -1, msg
+
+    def _loadSubprojects(self):
+        if not os.path.isfile(self._pathsDict["subprojectsFile"]):
+            data = ["None"]
+            self._dumpJson(data, self._pathsDict["subprojectsFile"])
+        else:
+            data = self._loadJson(self._pathsDict["subprojectsFile"])
+        return data
 
 
     def createNewProject(self, projectRoot, projectName, brandName, client):
@@ -503,8 +580,11 @@ class RootManager(object):
             return
         if self.currentPlatform == "Windows":
             os.startfile(path)
-        if self.currentPlatform == "Linux":
+        elif self.currentPlatform == "Linux":
             os.system('nautilus %s' % path)
+        else:
+            logger.warning("OS is not supported")
+            return
 
     # def scanBasescenes(self, categoryAs=None, subProjectAs=None):
     def scanBasescenes(self):
@@ -519,8 +599,15 @@ class RootManager(object):
         else:
             searchDir = categoryDBpath
 
-        self._currentBasescenes = self.database.loadDatabaseFiles(searchDir)
-        return self._currentBasescenes # list of json files
+        def niceName(path):
+            basename = os.path.split(path)[1]
+            return os.path.splitext(basename)[0]
+
+        self._currentBasescenes = {niceName(file):file for file in glob(os.path.join(searchDir, '*.json'))}
+        # self._currentBasescenes = [os.path.join(searchDir, file) for file in os.listdir(searchDir) if file.endswith('.json')]
+
+        # glob(os.path.join(x[0], '*.json'))
+        return self._currentBasescenes # dictionary of json files
 
 
     # def getProjectReport(self):
@@ -580,38 +667,67 @@ class RootManager(object):
     #     logger.info("Report has been logged => %s" %filePath)
     #     return report
 
+
+    class sceneHandler()
+
     def getSceneInfo(self, basesceneFile):
-        pass
+        sceneInfo = self._loadJson(basesceneFile)
+        return sceneInfo
 
-    def getVersionInfo(self, basesceneFile, version):
-        versionData = self.database.loadJson(basesceneFile)
-        return versionData["Versions"][version][1], versionData["Versions"][version][4] # versionNotes, playBlastDictionary
+    # def getVersionInfo(self, basesceneFile, version):
+    #     versionData = self._loadJson(basesceneFile)
+    #     return versionData["Versions"][version][1], versionData["Versions"][version][4] # versionNotes, playBlastDictionary
 
-    def addNote(self, basesceneFile, version, note):
-        pass
+    def addNote(self, note, basesceneFile, version):
+        sceneInfo = self.getSceneInfo(basesceneFile)
+        currentNotes = sceneInfo["Versions"][version][1]
+        now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
+        completeNote = "%s\n[%s] on %s\n%s\n" % (currentNotes, self.currentUser, now, note)
+        sceneInfo["Versions"][version][1] = completeNote
+        self._dumpJson(sceneInfo, basesceneFile)
 
-    def getPreviews(self, basesceneFile, version):
-        pass
+    # def getPreviews(self, basesceneFile, version):
+    #     pass
 
-    def playPreview(self, basesceneFile, version, camera):
-        pass
-    #     absPath = os.path.join(self.projectDir, relativePath)
-    #     if self.currentPlatform == "Windows":
-    #         try:
-    #             os.startfile(absPath)
-    #         except WindowsError:
-    #             return -1, ["Cannot Find Playblast", "Playblast File is missing", "Do you want to remove it from the Database?"]
-    #     return
-    #
+    def getPreviews(self, sceneInfo, version):
+
+        try:
+            previewDict = sceneInfo["Versions"][version][4]
+            return previewDict
+        except KeyError:
+            msg = "cannot get preview dictionary from sceneInfo"
+            logger.error(msg)
+            raise AssertionError()
+            # return -1, msg
+
+
+
+    def playPreview(self, sceneInfo, version, camera):
+
+        previewDict = self.getPreviews(sceneInfo, version)
+        relativePath = previewDict[camera]
+        absPath = os.path.join(self.projectDir, relativePath)
+        if self.currentPlatform == "Windows":
+            try:
+                os.startfile(absPath)
+            except WindowsError:
+                return -1, ["Cannot Find Playblast", "Playblast File is missing", "Do you want to remove it from the Database?"]
+        # TODO something to play the file in linux
+        return
+
     # def removePreview(self, relativePath, jsonFile, version):
-    #     jsonInfo = self.database.loadJson(jsonFile)
-    #     pbDict = jsonInfo["Versions"][version][4]
-    #     for key, value in pbDict.iteritems():  # for name, age in list.items():  (for Python 3.x)
-    #         if value == relativePath:
-    #             pbDict.pop(key, None)
-    #             jsonInfo["Versions"][version][4] = pbDict
-    #             self.database.dumpJson(jsonInfo, jsonFile)
-    #             return
+    def removePreview(self, basesceneFile, sceneInfo, version, camera):
+
+        previewDict = self.getPreviews(sceneInfo, version)
+        relativePath = previewDict[camera]
+        dbFile =
+
+        for key, value in previewDict.iteritems():  # for name, age in list.items():  (for Python 3.x)
+            if value == relativePath:
+                previewDict.pop(key, None)
+                sceneInfo["Versions"][version][4] = previewDict
+                self._dumpJson(sceneInfo, basesceneFile)
+                return
 
     def createSubproject(self, nameOfSubProject):
         pass

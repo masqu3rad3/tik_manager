@@ -11,7 +11,7 @@ class MayaManager(RootManager):
         super(MayaManager, self).__init__()
         self.init_paths()
         self.init_database()
-        self.backwardcompatibility()
+        # self.backwardcompatibility() # DO NOT RUN UNTIL RELEASE
 
     def getProjectDir(self):
         p_path = cmds.workspace(q=1, rd=1)

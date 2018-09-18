@@ -16,47 +16,47 @@ class SmDatabase(object):
 
 
 
-    def loadJson(self, file):
-        """
-        Loads the given json file
-        Args:
-            file: (String) Path to the json file
+    # def loadJson(self, file):
+    #     """
+    #     Loads the given json file
+    #     Args:
+    #         file: (String) Path to the json file
+    #
+    #     Returns: JsonData
+    #
+    #     """
+    #     if os.path.isfile(file):
+    #         with open(file, 'r') as f:
+    #             # The JSON module will read our file, and convert it to a python dictionary
+    #             data = json.load(f)
+    #             return data
+    #     else:
+    #         return None
+    #
+    # def dumpJson(self, data, file):
+    #     """
+    #     Saves the data to the json file
+    #     Args:
+    #         data: Data to save
+    #         file: (String) Path to the json file
+    #
+    #     Returns: None
+    #
+    #     """
+    #
+    #     with open(file, "w") as f:
+    #         json.dump(data, f, indent=4)
 
-        Returns: JsonData
-
-        """
-        if os.path.isfile(file):
-            with open(file, 'r') as f:
-                # The JSON module will read our file, and convert it to a python dictionary
-                data = json.load(f)
-                return data
-        else:
-            return None
-
-    def dumpJson(self, data, file):
-        """
-        Saves the data to the json file
-        Args:
-            data: Data to save
-            file: (String) Path to the json file
-
-        Returns: None
-
-        """
-
-        with open(file, "w") as f:
-            json.dump(data, f, indent=4)
-
-    def loadDatabaseFiles(self, searchPath):
-        """returns all database files in given search path"""
-        # allDatabaseFiles = []
-        #
-        # for file in os.listdir(searchPath)
-        #     if file.endswith('.json'):
-        #         file = os.path.join(searchPath, file)
-        #         allDatabaseFiles.append(file)
-        allDatabaseFiles = [os.path.join(searchPath, file) for file in os.listdir(searchPath) if file.endswith('.json')]
-        return allDatabaseFiles
+    # def loadDatabaseFiles(self, searchPath):
+    #     """returns all database files in given search path"""
+    #     # allDatabaseFiles = []
+    #     #
+    #     # for file in os.listdir(searchPath)
+    #     #     if file.endswith('.json'):
+    #     #         file = os.path.join(searchPath, file)
+    #     #         allDatabaseFiles.append(file)
+    #     allDatabaseFiles = [os.path.join(searchPath, file) for file in os.listdir(searchPath) if file.endswith('.json')]
+    #     return allDatabaseFiles
 
 
 
@@ -78,15 +78,15 @@ class SmDatabase(object):
         ##
         self.dumpJson(jsonInfo, jsonFile)
 
-    def loadUsers(self, dbfilePath):
-        # old Name
-        if not os.path.isfile(dbfilePath):
-            userDB = {"Generic": "gn"}
-            self.dumpJson(userDB, dbfilePath)
-            return userDB
-        else:
-            userDB = self.loadJson(dbfilePath)
-            return userDB
+    # def loadUsers(self, dbfilePath):
+    #     # old Name
+    #     if not os.path.isfile(dbfilePath):
+    #         userDB = {"Generic": "gn"}
+    #         self.dumpJson(userDB, dbfilePath)
+    #         return userDB
+    #     else:
+    #         userDB = self.loadJson(dbfilePath)
+    #         return userDB
 
     def addUser(self, fullName, initials):
         # old Name
@@ -190,13 +190,13 @@ class SmDatabase(object):
         self.dumpJson(data, filePath)
         return data
 
-    def loadSubprojects(self, subprojectsFilePath):
-        if not os.path.isfile(subprojectsFilePath):
-            data = ["None"]
-            self.dumpJson(data, subprojectsFilePath)
-        else:
-            data = self.loadJson(subprojectsFilePath)
-        return data
+    # def loadSubprojects(self, subprojectsFilePath):
+    #     if not os.path.isfile(subprojectsFilePath):
+    #         data = ["None"]
+    #         self.dumpJson(data, subprojectsFilePath)
+    #     else:
+    #         data = self.loadJson(subprojectsFilePath)
+    #     return data
 
     def loadCurrentSceneInfo(self, sceneFile, projectDir, subProjectsList, databaseDir):
         if not sceneFile:
@@ -238,13 +238,13 @@ class SmDatabase(object):
         else:
             return None
 
-    def loadCategories(self, categoriesFilePath):
-        if os.path.isfile(categoriesFilePath):
-            categoriesData = self.loadJson(categoriesFilePath)
-        else:
-            categoriesData = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
-            self.dumpJson(categoriesData, categoriesFilePath)
-        return categoriesData
+    # def loadCategories(self, categoriesFilePath):
+    #     if os.path.isfile(categoriesFilePath):
+    #         categoriesData = self.loadJson(categoriesFilePath)
+    #     else:
+    #         categoriesData = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
+    #         self.dumpJson(categoriesData, categoriesFilePath)
+    #     return categoriesData
 
     def addCategory(self, newCategory, categoriesFilePath):
         categoryList = self.getCategories(categoriesFilePath)
