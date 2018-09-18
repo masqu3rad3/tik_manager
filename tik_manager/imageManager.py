@@ -87,15 +87,13 @@ class ImageManager(TikManager):
     def resolvePath(self, renderer="default"):
         projectImgDir = os.path.join(self.sceneInfo["projectPath"], "images")
         # folderCheck(projectImgDir)
+        print "debug", renderer
         if renderer == "vray":
             renderlayer="<Layer>"
-            renderPass=""
-        if renderer == "arnold":
-            renderlayer="<RenderLayer>"
-            renderPass="<RenderPass>"
+        elif renderer == "arnold":
+            renderlayer="<RenderLayer>_<RenderPass>"
         else:
             renderlayer="<RenderLayer>"
-            renderPass=""
 
         # print "A", self.sceneInfo["subProject"]
         subProject = "" if self.sceneInfo["subProject"] == "None" else self.sceneInfo["subProject"]
@@ -104,7 +102,7 @@ class ImageManager(TikManager):
         version=self.sceneInfo["version"]
 
         self.folderTemplate = os.path.normpath(self.folderTemplate.format(subProject,shotName,renderlayer,version,projectImgDir))
-        self.nameTemplate = (self.nameTemplate.format(subProject,shotName,renderlayer,renderPass,version)).lstrip("_")
+        self.nameTemplate = (self.nameTemplate.format(subProject,shotName,renderlayer,version)).lstrip("_")
 
         # print self.folderTemplate
         # print self.nameTemplate
