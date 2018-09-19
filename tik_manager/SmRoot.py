@@ -181,7 +181,7 @@ class RootManager(object):
                             try:
                                 vers[5] = vers[5].replace("data\\SMdata", "smDatabase\\mayaDB") # relative thumbnail path
                             except IndexError:
-                                pass
+                                vers.append("") ## create the fifth column
 
                             for key in vers[4].keys(): # Playblast dictionary
                                 vers[4][key] = vers[4][key].replace("data\\SMdata", "smDatabase\\mayaDB")
@@ -252,8 +252,14 @@ class RootManager(object):
         self._baseScenesInCategory = []
         self._currentBaseSceneName = ""
         self._currentVersionIndex = 0
-        self._currentPreviewIndex = 0
+        self._currentPreviewCamera = ""
         self._currentSceneInfo = {}
+
+        #Scene related
+        self._currentVersionIndex = -1
+        self._currentPreviewsDict = {}
+        self._currentNotes = ""
+        self._currentThumbFile = ""
 
         self.scanBaseScenes()
 
@@ -349,8 +355,8 @@ class RootManager(object):
         return self._currentVersionIndex
 
     @property
-    def currentPreviewIndex(self):
-        return self._currentPreviewIndex
+    def currentPreviewCamera(self):
+        return self._currentPreviewCamera
 
     @property
     def baseScenesInCategory(self):
@@ -361,21 +367,35 @@ class RootManager(object):
         if not 0 <= indexData < len(self._categories):
             logger.error(("out of range!"))
             return
-        # if indexData == self.currentTabIndex:
-        #     logger.warning("Cursor is already at %s" %indexData)
-        #     return
+        if indexData == self.currentTabIndex:
+            # logger.warning("Cursor is already at %s" %indexData)
+            return
         self._setCurrents("currentTabIndex", indexData)
         self.scanBaseScenes()
-        self._currentBaseSceneName = ""
-        logger.info("\nCategory: {0}\nSubProject: {1}\nBaseScenes Under: {2}\nCurrent BaseScene: {3}\nVersion: {4}".format(
-            self._categories[self.currentTabIndex],
-            self._subProjectsList[self.currentSubIndex],
-            self._baseScenesInCategory.keys(),
-            self._currentBaseSceneName,
-            self._currentVersionIndex))
+        self.CurrentBaseSceneName = ""
+        self._currentVersionIndex = -1
+        self._currentPreviewCamera = -1
+        self.cursorInfo()
 
         # self._currentVersionIndex = -1
         # self._currentPreviewIndex = -1
+
+    @currentSubIndex.setter
+    def currentSubIndex(self, indexData):
+        if not 0 <= indexData < len(self._subProjectsList):
+            logger.error(("entered index is out of range!"))
+            return
+        if indexData == self.currentSubIndex:
+            # logger.warning("Cursor is already at %s" %indexData)
+            return
+
+        self._setCurrents("currentSubIndex", indexData)
+        self.scanBaseScenes()
+        # de-select previous base scene
+        self._currentBaseSceneName = ""
+        self._currentVersionIndex = -1
+        self._currentPreviewCamera = -1
+        self.cursorInfo()
 
     @currentBaseSceneName.setter
     def currentBaseSceneName(self, sceneName):
@@ -387,15 +407,15 @@ class RootManager(object):
         #     return
 
         self._currentBaseSceneName = sceneName
-        self._currentSceneInfo = self.getSceneInfo()
+        self.getSceneInfo()
+        if not sceneName:
+            self._currentVersionIndex = -1
 
-        self._currentVersionIndex = 0
-        logger.info("\nCategory: {0}\nSubProject: {1}\nBaseScenes Under: {2}\nCurrent BaseScene: {3}\nVersion: {4}".format(
-            self._categories[self.currentTabIndex],
-            self._subProjectsList[self.currentSubIndex],
-            self._baseScenesInCategory.keys(),
-            self._currentBaseSceneName,
-            self._currentVersionIndex))
+        if self._currentSceneInfo["ReferencedVersion"]:
+            self._currentVersionIndex = self._currentSceneInfo["ReferencedVersion"]
+        else:
+            self._currentVersionIndex = len(self._currentSceneInfo["Versions"])-1
+        self.cursorInfo()
         # self._currentPreviewIndex = 0
 
     @currentVersionIndex.setter
@@ -403,7 +423,6 @@ class RootManager(object):
         if not self._currentSceneInfo:
             logger.warning(("BaseScene not Selected"))
             return
-        # print "hede", len(self._currentSceneInfo["Versions"])
         if not 0 <= indexData < len(self._currentSceneInfo["Versions"]):
             logger.error(("out of range!"))
             return
@@ -411,31 +430,32 @@ class RootManager(object):
         #     logger.warning("Cursor is already at %s" % indexData)
         #     return
         self._currentVersionIndex = indexData
-        logger.info("\nCategory: {0}\nSubProject: {1}\nBaseScenes Under: {2}\nCurrent BaseScene: {3}\nVersion: {4}".format(
-            self._categories[self.currentTabIndex],
-            self._subProjectsList[self.currentSubIndex],
-            self._baseScenesInCategory.keys(),
-            self._currentBaseSceneName,
-            self._currentVersionIndex))
-        pass
+        self._currentNotes = self._currentSceneInfo["Versions"][self._currentVersionIndex][3]
+        self._currentPreviewsDict = self._currentSceneInfo["Versions"][self._currentVersionIndex][4]
+        if not self._currentPreviewsDict.keys():
+            self._currentPreviewCamera = ""
+        else:
+            self._currentPreviewCamera = sorted(self._currentPreviewsDict.keys())[0]
 
 
-    @currentSubIndex.setter
-    def currentSubIndex(self, indexData):
-        if not 0 <= indexData < len(self._subProjectsList):
-            logger.error(("entered index is out of range!"))
+        self._currentThumbFile = self._currentSceneInfo["Versions"][self._currentVersionIndex][5]
+
+
+        self.cursorInfo()
+
+    @currentPreviewCamera.setter
+    def currentPreviewIndex(self, indexData):
+        if not self._currentSceneInfo:
+            logger.warning(("BaseScene not Selected"))
             return
+        if not 0 <= indexData < len(self._currentPreviewsDict.items()):
+            logger.error(("out of range!"))
+            return
+        self._currentPreviewCamera = indexData
 
-        self._setCurrents("currentSubIndex", indexData)
-        self.scanBaseScenes()
-        # de-select previous base scene
-        self._currentBaseSceneName = ""
-        logger.info("\nCategory: {0}\nSubProject: {1}\nBaseScenes Under: {2}\nCurrent BaseScene: {3}\nVersion: {4}".format(
-            self._categories[self.currentTabIndex],
-            self._subProjectsList[self.currentSubIndex],
-            self._baseScenesInCategory.keys(),
-            self._currentBaseSceneName,
-            self._currentVersionIndex))
+        self.cursorInfo()
+
+
 
     @currentUser.setter
     def currentUser(self, name):
@@ -457,6 +477,24 @@ class RootManager(object):
         self._setCurrents("currentMode", bool)
 
 
+    def cursorInfo(self):
+        logger.info("""
+        Category: {0}
+        SubProject: {1}
+        BaseScenes Under: {2}
+        Current BaseScene: {3}
+        Version: {4}
+        Preview: {5}
+        Thumbnail: {6}
+        """.format(
+            self._categories[self.currentTabIndex],
+            self._subProjectsList[self.currentSubIndex],
+            sorted(self._baseScenesInCategory.keys()),
+            self._currentBaseSceneName,
+            self._currentVersionIndex,
+            self._currentPreviewCamera,
+            self._currentThumbFile
+            ))
 
     def _setCurrents(self, att, newdata):
         self._currentsDict[att] = newdata
@@ -466,7 +504,7 @@ class RootManager(object):
         return self._categories
 
     def getUsers(self):
-        return self._usersDict
+        return sorted(self._usersDict.keys())
 
     def getSubProjects(self):
         return self._subProjectsList
@@ -485,6 +523,26 @@ class RootManager(object):
         fullName = "{0}{1}_{2}_{3}".format(brandName, projectName, client, projectDate)
         fullPath = os.path.join(os.path.normpath(projectRoot), fullName)
         return fullPath
+
+
+    def projectChanged(self):
+        pass
+        # update Project
+        # update SubProject
+        # update Category
+        # get scenes in category
+        # set scene index to -1
+
+    def getNotes(self):
+        """returns (String) version notes on cursor position"""
+        return self._currentNotes
+
+    def getPreviews(self):
+        """returns (list) nice preview names of version on cursor position"""
+        return sorted(self._currentPreviewsDict.keys())
+
+    def getThumbnail(self):
+        """returns (String) thumbnail path of version on cursor position"""
 
     ## Database loading / saving functions
     ## -----------------------------
@@ -781,23 +839,25 @@ class RootManager(object):
 
     def getSceneInfo(self):
         # sceneInfo = self._loadJson(basesceneFile)
-        sceneInfo = self._loadJson(self._baseScenesInCategory[self._currentBaseSceneName])
-        return sceneInfo
+        self._currentSceneInfo = self._loadJson(self._baseScenesInCategory[self._currentBaseSceneName])
+        return self._currentSceneInfo
 
     # def getVersionInfo(self, basesceneFile, version):
     #     versionData = self._loadJson(basesceneFile)
     #     return versionData["Versions"][version][1], versionData["Versions"][version][4] # versionNotes, playBlastDictionary
 
-    def addNote(self, note, basesceneFile, version):
-        sceneInfo = self.getSceneInfo(basesceneFile)
-        currentNotes = sceneInfo["Versions"][version][1]
+    def addNote(self, note):
+        if not self._currentBaseSceneName:
+            logger.warning("No Base Scene file selected")
+            return
+        # sceneInfo = self.getSceneInfo()
+        # self._currentNotes = self._currentSceneInfo["Versions"][self._currentVersionIndex][1]
         now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
-        completeNote = "%s\n[%s] on %s\n%s\n" % (currentNotes, self.currentUser, now, note)
-        sceneInfo["Versions"][version][1] = completeNote
-        self._dumpJson(sceneInfo, basesceneFile)
+        self._currentNotes = "%s\n[%s] on %s\n%s\n" % (self._currentNotes, self.currentUser, now, note)
+        self._currentSceneInfo["Versions"][self._currentVersionIndex][1] = self._currentNotes
+        self._dumpJson(self._currentSceneInfo, self._baseScenesInCategory[self._currentBaseSceneName])
 
-    # def getPreviews(self, basesceneFile, version):
-    #     pass
+
 
     def getPreviews(self, sceneInfo, version):
 

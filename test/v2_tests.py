@@ -1,4 +1,11 @@
-from tik_manager import SmMaya as tm
-reload(tm)
 
-mm = tm.MayaManager()
+import maya.standalone
+maya.standalone.initialize()
+from tik_manager import SmMaya
+
+e = SmMaya.MayaManager()
+
+print e.projectDir
+
+
+print e.currentBaseSceneName
