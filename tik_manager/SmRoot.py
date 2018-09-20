@@ -277,11 +277,11 @@ class RootManager(object):
         """Returns the name of the current sub-project"""
         return self._subProjectsList[self.currentSubIndex]
 
-    @property
-    def baseScene(self):
-        """Returns the name of the Base Scene at cursor position"""
-        baseSceneDir = os.path.abspath(os.path.join(self._pathsDict["sceneFile"], os.pardir))
-        return os.path.basename(baseSceneDir)
+    # @property
+    # def baseScene(self):
+    #     """Returns the name of the Base Scene at cursor position"""
+    #     baseSceneDir = os.path.abspath(os.path.join(self._pathsDict["sceneFile"], os.pardir))
+    #     return os.path.basename(baseSceneDir)
 
     @property
     def currentTabIndex(self):
@@ -378,9 +378,9 @@ class RootManager(object):
             self._currentVersionIndex = -1
 
         if self._currentSceneInfo["ReferencedVersion"]:
-            self._currentVersionIndex = self._currentSceneInfo["ReferencedVersion"]
+            self.currentVersionIndex = self._currentSceneInfo["ReferencedVersion"]
         else:
-            self._currentVersionIndex = len(self._currentSceneInfo["Versions"])-1
+            self.currentVersionIndex = len(self._currentSceneInfo["Versions"])-1
         self.cursorInfo()
         # self._currentPreviewIndex = 0
 
@@ -748,11 +748,9 @@ class RootManager(object):
         self._dumpJson(self._currentSceneInfo, self._baseScenesInCategory[self._currentBaseSceneName])
 
 
-    def playPreview(self, sceneInfo, version, camera):
-
-        previewDict = self.getPreviews(sceneInfo, version)
-        relativePath = previewDict[camera]
-        absPath = os.path.join(self.projectDir, relativePath)
+    def playPreview(self):
+        """Runs the playblast at cursor position"""
+        absPath = os.path.join(self.projectDir, self._currentPreviewsDict[self._currentPreviewCamera])
         if self.currentPlatform == "Windows":
             try:
                 os.startfile(absPath)
@@ -761,22 +759,17 @@ class RootManager(object):
         # TODO something to play the file in linux
         return
 
-    # def removePreview(self, relativePath, jsonFile, version):
-    # def removePreview(self, basesceneFile, sceneInfo, version, camera):
-    #
-    #     previewDict = self.getPreviews(sceneInfo, version)
-    #     relativePath = previewDict[camera]
-    #     dbFile =
-    #
-    #     for key, value in previewDict.iteritems():  # for name, age in list.items():  (for Python 3.x)
-    #         if value == relativePath:
-    #             previewDict.pop(key, None)
-    #             sceneInfo["Versions"][version][4] = previewDict
-    #             self._dumpJson(sceneInfo, basesceneFile)
-    #             return
+    def removePreview(self):
+        # TODO // TEST IT
+        if self._currentPreviewCamera:
+            os.remove(os.path.join(self.projectDir, self._currentPreviewsDict[self._currentPreviewCamera]))
+            del self._currentPreviewsDict[self._currentPreviewCamera]
+            self._currentSceneInfo["Versions"][self._currentVersionIndex][4] = self._currentPreviewsDict
+            self._dumpJson(self._currentSceneInfo, self._baseScenesInCategory[self.currentBaseSceneName])
+
 
     def createSubproject(self, nameOfSubProject):
-        # TODO TEST IT
+        # TODO // TEST IT
         self._subProjectsList.append(nameOfSubProject)
         self._saveProjects(self._subProjectsList)
         self.currentSubIndex = len(self._subProjectsList)
@@ -785,10 +778,10 @@ class RootManager(object):
         # PATH(abs) software database (jsonPath)
         # PATH(s)(abs, list) sub-projects
 
-    def deleteBasescene(self, DatabaseFile):
+    def deleteBasescene(self, databaseFile):
         # TODO TEST IT
         #ADMIN ACCESS
-        jsonInfo = self.database.loadJson(DatabaseFile)
+        jsonInfo = self.database.loadJson(databaseFile)
         # delete all version files
         for s in jsonInfo["Versions"]:
             try:
@@ -814,14 +807,25 @@ class RootManager(object):
             pass
         # delete json database file
         try:
-            os.remove(os.path.join(self.projectDir, DatabaseFile))
+            os.remove(os.path.join(self.projectDir, databaseFile))
         except:
-            logger.warning("Cannot delete scene path %s" % (DatabaseFile))
+            logger.warning("Cannot delete scene path %s" % (databaseFile))
             pass
 
-    def deleteReference(self):
+    def deleteReference(self, databaseFile):
+        # TODO TEST IT
         #ADMIN ACCESS
-        pass
+        jsonInfo = self._loadJson(databaseFile)
+
+        if jsonInfo["ReferenceFile"]:
+            try:
+                os.remove(os.path.join(self.projectDir, jsonInfo["ReferenceFile"]))
+                jsonInfo["ReferenceFile"] = None
+                jsonInfo["ReferencedVersion"] = None
+                self._dumpJson(jsonInfo, databaseFile)
+            except:
+                logger.warning("Cannot delete reference file %s" % (jsonInfo["ReferenceFile"]))
+                pass
 
     def makeReference(self):
         pass
