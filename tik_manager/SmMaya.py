@@ -16,7 +16,15 @@ class MayaManager(RootManager):
     def getProjectDir(self):
         p_path = cmds.workspace(q=1, rd=1)
         norm_p_path = os.path.normpath(p_path)
+        projectsDict = self._loadProjects()
+
+        if not projectsDict:
+            projectsDict = {"MayaProject": norm_p_path}
+        else:
+            projectsDict["MayaProject"] = norm_p_path
+        self._saveProjects(projectsDict)
         return norm_p_path
+
     def getSceneFile(self):
         s_path = cmds.file(q=True, sn=True)
         norm_s_path = os.path.normpath(s_path)
@@ -27,7 +35,9 @@ class MayaManager(RootManager):
         melCompPath = path.replace("\\", "/") # mel is picky
         command = 'setProject "%s";' %melCompPath
         mel.eval(command)
-        self.projectDir = cmds.workspace(q=1, rd=1)
+        # self.projectDir = cmds.workspace(q=1, rd=1)
+        self.projectDir = self.getProjectDir()
+
 
     def saveCallback(self):
         pass
@@ -61,4 +71,8 @@ class MayaManager(RootManager):
 
     def replaceThumbnail(self):
         pass
+
+
+
+
 
