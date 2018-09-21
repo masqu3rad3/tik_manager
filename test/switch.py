@@ -7,9 +7,20 @@ import maya.cmds as cmds
 
 shareDir = 'M:\\Projects\\__database\\scripts'
 devDir = 'C:\\Users\\User\\Documents\\maya\\scripts\\dev\\tik_manager'
+delModules = ["tik_manager"]
 
 
 def devSwitch():
+    for module in sys.modules.keys():
+        for key in delModules:
+            if key in module:
+                try:
+                    r = module
+                    del sys.modules[module]
+                    print ("%s removed from memory" % r)
+                except KeyError:
+                    pass
+
     if shareDir in sys.path:
         sys.path.remove(shareDir)
         sys.path.append(devDir)
