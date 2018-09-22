@@ -9,13 +9,20 @@ import maya.mel as mel
 import pymel.core as pm
 import datetime
 import socket
+import logging
+
+logging.basicConfig()
+logger = logging.getLogger('smMaya')
+logger.setLevel(logging.DEBUG)
 
 class MayaManager(RootManager):
     def __init__(self):
         super(MayaManager, self).__init__()
+
         self.init_paths()
+        self.backwardcompatibility()  # DO NOT RUN UNTIL RELEASE
         self.init_database()
-        # self.backwardcompatibility() # DO NOT RUN UNTIL RELEASE
+
 
     def getSoftwarePaths(self):
         """Overriden function"""
@@ -31,7 +38,6 @@ class MayaManager(RootManager):
         p_path = cmds.workspace(q=1, rd=1)
         norm_p_path = os.path.normpath(p_path)
         projectsDict = self._loadProjects()
-
         if not projectsDict:
             projectsDict = {"MayaProject": norm_p_path}
         else:
@@ -59,7 +65,6 @@ class MayaManager(RootManager):
         Collects the necessary scene info by resolving the scene name and current project
         Returns: Dictionary{jsonFile, projectPath, subProject, category, shotName} or None
         """
-        # TODO // TEST IT
         self._pathsDict["sceneFile"] = self.getSceneFile()
         if not self._pathsDict["sceneFile"]:
             return None
@@ -94,7 +99,7 @@ class MayaManager(RootManager):
 
         jsonFile = os.path.join(dbPath, "{}.json".format(baseSceneName))
         if os.path.isfile(jsonFile):
-            version = (self._niceName(baseSceneName)[-4:])
+            version = (self._niceName(self._pathsDict["sceneFile"])[-4:])
             return {"jsonFile":jsonFile,
                     "projectPath":self._pathsDict["projectDir"],
                     "subProject":subProject,
@@ -198,6 +203,7 @@ class MayaManager(RootManager):
         jsonInfo = {}
 
         if makeReference:
+            # TODO // Find an elegant solution and add MA compatibility. Can be merged with makeReference function in derived class
             referenceName = "{0}_{1}_forReference".format(baseName, categoryName)
             referenceFile = os.path.join(shotPath, "{0}.mb".format(referenceName))
             ## relativity update
@@ -317,7 +323,7 @@ class MayaManager(RootManager):
 
         selection = cmds.ls(sl=True)
         cmds.select(d=pbSettings["ClearSelection"])
-        jsonInfo = self.database.loadJson(openSceneInfo["jsonFile"])
+        jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
 
         currentCam = cmds.modelPanel(cmds.getPanel(wf=True), q=True, cam=True)
 

@@ -13,13 +13,14 @@ import re
 
 logging.basicConfig()
 logger = logging.getLogger('smRoot')
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 
 
 class RootManager(object):
     def __init__(self):
         super(RootManager, self).__init__()
+
         # self.database = db.SmDatabase()
         # self.validCategories = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
 
@@ -54,12 +55,14 @@ class RootManager(object):
         old_dbDir = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "data", "SMdata"))
         bck_dbDir = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "data", "SMdata_oldVersion"))
         new_dbDir = self._pathsDict["databaseDir"]
+        if os.path.isdir(bck_dbDir):
+            logger.info("Old database backuped before. Returning without doing any modification")
+            return
         if os.path.isdir(old_dbDir):
 
             recursive_overwrite(old_dbDir, new_dbDir)
             logger.info("All old database contents copied to the new structure folder => %s" % self._pathsDict["databaseDir"])
 
-            # TODO: gather all scene json files, update the self locations
             oldCategories = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
             for category in oldCategories:
                 categoryDBpath = os.path.normpath(os.path.join(new_dbDir, category))
@@ -368,6 +371,7 @@ class RootManager(object):
 
     def getBaseScenesInCategory(self):
         """Returns list of nice base scene names under the category at cursor position"""
+        self.scanBaseScenes()
         return sorted(self._baseScenesInCategory.keys())
 
 
@@ -529,6 +533,17 @@ class RootManager(object):
 
         file.close()
 
+    def createSubproject(self, nameOfSubProject):
+        if nameOfSubProject in self._subProjectsList:
+            logger.warning("%s is already in sub-projects list" % nameOfSubProject)
+            return self._subProjectsList
+        self._subProjectsList.append(nameOfSubProject)
+        self._saveSubprojects(self._subProjectsList)
+        self.currentSubIndex = len(self._subProjectsList)-1
+        return self._subProjectsList
+        ## What we need:
+        # PATH(abs) software database (jsonPath)
+        # PATH(s)(abs, list) sub-projects
 
     def showInExplorer(self, path):
         """Opens the path in Windows Explorer(Windows) or Nautilus(Linux)"""
@@ -548,6 +563,9 @@ class RootManager(object):
 
     def scanBaseScenes(self, categoryAs=None, subProjectAs=None):
         """Returns the basescene database files in current category"""
+        if self.currentSubIndex >= len(self._subProjectsList):
+            self.currentSubIndex = 0
+
         if categoryAs:
             category = categoryAs
         else:
@@ -663,28 +681,22 @@ class RootManager(object):
         return
 
     def removePreview(self):
-        # TODO // TEST IT
         if self._currentPreviewCamera:
+            previewName = self._currentPreviewCamera
+            previewFile = self._currentPreviewsDict[self._currentPreviewCamera]
             os.remove(os.path.join(self.projectDir, self._currentPreviewsDict[self._currentPreviewCamera]))
             del self._currentPreviewsDict[self._currentPreviewCamera]
             self._currentSceneInfo["Versions"][self._currentVersionIndex-1][4] = self._currentPreviewsDict
             self._dumpJson(self._currentSceneInfo, self._baseScenesInCategory[self.currentBaseSceneName])
-
-
-    def createSubproject(self, nameOfSubProject):
-        # TODO // TEST IT
-        self._subProjectsList.append(nameOfSubProject)
-        self._saveProjects(self._subProjectsList)
-        self.currentSubIndex = len(self._subProjectsList)
-        return self._subProjectsList
-        ## What we need:
-        # PATH(abs) software database (jsonPath)
-        # PATH(s)(abs, list) sub-projects
+            logger.info("""Preview file deleted and removed from database successfully 
+            Preview Name: {0}
+            Path: {1}
+                        """.format(previewName, previewFile))
 
     def deleteBasescene(self, databaseFile):
         # TODO TEST IT
         #ADMIN ACCESS
-        jsonInfo = self.database.loadJson(databaseFile)
+        jsonInfo = self._loadJson(databaseFile)
         # delete all version files
         for s in jsonInfo["Versions"]:
             try:
@@ -702,8 +714,8 @@ class RootManager(object):
                 pass
 
         # delete base scene directory
+        scene_path = os.path.join(self.projectDir, jsonInfo["Path"])
         try:
-            scene_path = os.path.join(self.projectDir, jsonInfo["Path"])
             os.rmdir(scene_path)
         except:
             logger.warning("Cannot delete scene path %s" % (scene_path))
@@ -714,6 +726,7 @@ class RootManager(object):
         except:
             logger.warning("Cannot delete scene path %s" % (databaseFile))
             pass
+        logger.debug("all database entries and version files of %s deleted" %databaseFile)
 
     def deleteReference(self, databaseFile):
         # TODO // TEST IT
@@ -732,30 +745,34 @@ class RootManager(object):
 
     def makeReference(self):
         """Creates a Reference copy from the base scene version at cursor position"""
-        # TODO // TEST IT
         if self._currentVersionIndex == -1:
             logger.warning("Cursor is not on a Base Scene Version. Cancelling")
             return
 
         absVersionFile = os.path.join(self.projectDir, self._currentSceneInfo["Versions"][self._currentVersionIndex-1][0])
-        print absVersionFile
+        name = os.path.split(absVersionFile)[1]
+        filename, extension = os.path.splitext(name)
         referenceName = "{0}_{1}_forReference".format(self._currentSceneInfo["Name"], self._currentSceneInfo["Category"])
-        relReferenceFile = os.path.join(self._currentSceneInfo["Path"], "{0}.mb".format(referenceName))
+        relReferenceFile = os.path.join(self._currentSceneInfo["Path"], "{0}{1}".format(referenceName, extension))
         absReferenceFile = os.path.join(self.projectDir, relReferenceFile)
         shutil.copyfile(absVersionFile, absReferenceFile)
         self._currentSceneInfo["ReferenceFile"] = relReferenceFile
-        self._currentSceneInfo["ReferencedVersion"] = self._currentVersionIndex-1
+        # SET the referenced version as the 'VISUAL INDEX NUMBER' starting from 1
+        self._currentSceneInfo["ReferencedVersion"] = self._currentVersionIndex
 
         self._dumpJson(self._currentSceneInfo, self._baseScenesInCategory[self.currentBaseSceneName])
 
 
     def checkReference(self, deepCheck=False):
+        if not self._currentBaseSceneName:
+            logger.warning("Cursor is not on a Base Scene. Cancelling")
+            return
         if self._currentSceneInfo["ReferenceFile"]:
-            relVersionFile = self._currentSceneInfo["Versions"][self._currentSceneInfo["ReferencedVersion"] - 1]
+            relVersionFile = self._currentSceneInfo["Versions"][self._currentSceneInfo["ReferencedVersion"] - 1][0]
             absVersionFile = os.path.join(self.projectDir, relVersionFile)
-
             relRefFile = self._currentSceneInfo["ReferenceFile"]
             absRefFile = os.path.join(self.projectDir, relRefFile)
+
             if not os.path.isfile(absRefFile):
                 logger.warning("CODE RED: Reference File does not exist")
                 return -1 # code red
@@ -778,7 +795,7 @@ class RootManager(object):
         if not os.path.isdir(os.path.normpath(folder)):
             os.makedirs(os.path.normpath(folder))
 
-    def nameCheck(self, text):
+    def _nameCheck(self, text):
         """Checks the text for illegal characters, Returns:  corrected Text or -1 for Error """
         text = text.replace("|", "__")
         if re.match("^[A-Za-z0-9_-]*$", text):
@@ -907,7 +924,7 @@ class RootManager(object):
         if not os.path.isfile(self._pathsDict["pbSettingsFile"]):
             defaultSettings = {"Resolution": (1280, 720),  ## done
                                "Format": 'avi',  ## done
-                               "Codec": 'IYUV',  ## done
+                               "Codec": 'IYUV Codec',  ## done
                                "Percent": 100,  ## done
                                "Quality": 100,  ## done
                                "ShowFrameNumber": True,
