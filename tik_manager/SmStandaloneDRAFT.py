@@ -12,7 +12,6 @@ import sys, os
 
 windowName = "test"
 
-
 class MainUI(QtGui.QMainWindow):
     def __init__(self):
         super(MainUI, self).__init__()
@@ -266,31 +265,27 @@ class MainUI(QtGui.QMainWindow):
         self.textEdit.setObjectName(("textEdit"))
         self.verticalLayout.addWidget(self.textEdit)
 
-        testFile = os.path.normpath("D:\\PROJECT_AND_ARGE\\testo_testo_testo_180715\\DSC_2179.JPG")
-        self.tPixmap = QtGui.QPixmap((testFile))
+        # testFile = os.path.normpath("D:\\PROJECT_AND_ARGE\\testo_testo_testo_180715\\DSC_2179.JPG")
+        # self.tPixmap = QtGui.QPixmap((testFile))
 
-        # self.label = ImageWidget(self.frame)
-        self.label = QtGui.QLabel(self.frame)
-        self.label.setPixmap(self.tPixmap.scaledToHeight(300))
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(1)
+        self.label = ImageWidget(self.frame)
+        # self.label = QtGui.QLabel(self.frame)
+        # self.label.setPixmap(self.tPixmap.scaledToHeight(300))
+        # sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        # sizePolicy.setHorizontalStretch(0)
+        # sizePolicy.setVerticalStretch(0)
         # sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
-        sizePolicy.setHeightForWidth(True)
-        self.label.setSizePolicy(sizePolicy)
+        # sizePolicy.setHeightForWidth(True)
+        # self.label.setSizePolicy(sizePolicy)
 
-        # self.label.setMinimumSize(QtCore.QSize(221, 124))
-        self.label.setMaximumSize(QtCore.QSize(884, 496))
+        self.label.setMinimumSize(QtCore.QSize(221, 124))
+        # self.label.setMaximumSize(QtCore.QSize(884, 496))
         # self.label.setSizeIncrement(QtCore.QSize(1, 1))
         # self.label.setBaseSize(QtCore.QSize(0, 0))
-        self.label.setToolTip((""))
-        self.label.setStatusTip((""))
-        self.label.setWhatsThis((""))
-        self.label.setAccessibleName((""))
-        self.label.setAccessibleDescription((""))
+        self.label.setText(("test"))
         self.label.setFrameShape(QtGui.QFrame.Box)
-        self.label.setScaledContents(False)
-        self.label.setAlignment(QtCore.Qt.AlignCenter)
+        # self.label.setScaledContents(False)
+        # self.label.setAlignment(QtCore.Qt.AlignCenter)
         self.label.setObjectName(("label"))
         self.verticalLayout.addWidget(self.label)
         self.gridLayout_6.addLayout(self.verticalLayout, 3, 0, 1, 1)
@@ -435,20 +430,30 @@ class MainUI(QtGui.QMainWindow):
 class ImageWidget(QtGui.QLabel):
     def __init__(self, parent=None):
         super(ImageWidget, self).__init__()
-        self.setScaledContents(True)
-        self.color = QtGui.QColor(255, 0, 0)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHeightForWidth(True)
+        self.setSizePolicy(sizePolicy)
+
+    def resizeEvent(self, r):
+        # print r
+        w = self.width()
+        # print w
+        self.setMinimumHeight(w*0.5)
+        self.setMaximumHeight(w*0.5)
+
+
+    def heightForWidth(self, width):
+        return width * 1.5
     #
-    def hasHeightForWidth(self):
-        return self.pixmap() is not None
-
-
-
-    def heightForWidth(self, w):
-        # return w * 5
-        if self.pixmap():
-            return int(w * (self.pixmap().height() / self.pixmap().width()))
+    # def hasHeightForWidth(self):
+    #     return self.pixmap() is not None
+    #
+    #
+    #
+    # def heightForWidth(self, w):
+    #     # return w * 5
+    #     if self.pixmap():
+    #         return int(w * (self.pixmap().height() / self.pixmap().width()))
 
     # def retranslateUi(self, sceneManager_MainWindow):
     #     sceneManager_MainWindow.setWindowTitle(_translate("sceneManager_MainWindow", "Scene Manager", None))
