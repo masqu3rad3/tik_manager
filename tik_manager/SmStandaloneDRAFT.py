@@ -266,11 +266,15 @@ class MainUI(QtGui.QMainWindow):
         self.verticalLayout.addWidget(self.textEdit)
 
         # testFile = os.path.normpath("D:\\PROJECT_AND_ARGE\\testo_testo_testo_180715\\DSC_2179.JPG")
-        # self.tPixmap = QtGui.QPixmap((testFile))
-
+        testFile = os.path.normpath("C:\\a.JPG")
+        self.tPixmap = QtGui.QPixmap((testFile))
+        print testFile
+        # os.startfile(testFile)
         self.label = ImageWidget(self.frame)
         # self.label = QtGui.QLabel(self.frame)
-        # self.label.setPixmap(self.tPixmap.scaledToHeight(300))
+        self.label.setPixmap(self.tPixmap)
+
+        # self.label.setPixmap(self.tPixmap.scaledToWidth(self.label.width()))
         # sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         # sizePolicy.setHorizontalStretch(0)
         # sizePolicy.setVerticalStretch(0)
@@ -282,10 +286,10 @@ class MainUI(QtGui.QMainWindow):
         # self.label.setMaximumSize(QtCore.QSize(884, 496))
         # self.label.setSizeIncrement(QtCore.QSize(1, 1))
         # self.label.setBaseSize(QtCore.QSize(0, 0))
-        self.label.setText(("test"))
+        # self.label.setText(("test"))
         self.label.setFrameShape(QtGui.QFrame.Box)
-        # self.label.setScaledContents(False)
-        # self.label.setAlignment(QtCore.Qt.AlignCenter)
+        self.label.setScaledContents(True)
+        self.label.setAlignment(QtCore.Qt.AlignCenter)
         self.label.setObjectName(("label"))
         self.verticalLayout.addWidget(self.label)
         self.gridLayout_6.addLayout(self.verticalLayout, 3, 0, 1, 1)
@@ -414,19 +418,6 @@ class MainUI(QtGui.QMainWindow):
         self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(sceneManager_MainWindow)
 
-
-# class ScaledLabel(QtGui.QLabel):
-#     def __init__(self, *args, **kwargs):
-#         QtGui.QLabel.__init__(self)
-#         self.tPixmap = QtGui.QPixmap((""))
-#         # self.thumbnail_label.setPixmap(self.tPixmap)
-#         self._pixmap = QtGui.QPixmap(self.tPixmap)
-#
-#     def resizeEvent(self, event):
-#         self.setPixmap(self._pixmap.scaled(
-#             self.width(), self.height(),
-#             QtCore.Qt.KeepAspectRatio))
-
 class ImageWidget(QtGui.QLabel):
     def __init__(self, parent=None):
         super(ImageWidget, self).__init__()
@@ -435,25 +426,9 @@ class ImageWidget(QtGui.QLabel):
         self.setSizePolicy(sizePolicy)
 
     def resizeEvent(self, r):
-        # print r
-        w = self.width()
-        # print w
-        self.setMinimumHeight(w*0.5)
-        self.setMaximumHeight(w*0.5)
-
-
-    def heightForWidth(self, width):
-        return width * 1.5
-    #
-    # def hasHeightForWidth(self):
-    #     return self.pixmap() is not None
-    #
-    #
-    #
-    # def heightForWidth(self, w):
-    #     # return w * 5
-    #     if self.pixmap():
-    #         return int(w * (self.pixmap().height() / self.pixmap().width()))
+        h = self.width()
+        self.setMinimumHeight(h/1.78)
+        self.setMinimumHeight(h/1.78)
 
     # def retranslateUi(self, sceneManager_MainWindow):
     #     sceneManager_MainWindow.setWindowTitle(_translate("sceneManager_MainWindow", "Scene Manager", None))
