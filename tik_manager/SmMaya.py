@@ -11,9 +11,41 @@ import datetime
 import socket
 import logging
 
+import Qt
+from Qt import QtWidgets, QtCore, QtGui
+from maya import OpenMayaUI as omui
+
+if Qt.__binding__ == "PySide":
+    from shiboken import wrapInstance
+elif Qt.__binding__.startswith('PyQt'):
+    from sip import wrapinstance as wrapInstance
+else:
+    from shiboken2 import wrapInstance
+
+__author__ = "Arda Kutlu"
+__copyright__ = "Copyright 2018, Scene Manager for Maya Project"
+__credits__ = []
+__version__ = "V2.0.0"
+__license__ = "GPL"
+__maintainer__ = "Arda Kutlu"
+__email__ = "ardakutlu@gmail.com"
+__status__ = "Development"
+
+SM_Version = "Scene Manager v%s" %(__version__)
+
 logging.basicConfig()
 logger = logging.getLogger('smMaya')
 logger.setLevel(logging.DEBUG)
+
+def getMayaMainWindow():
+    """
+    Gets the memory adress of the main window to connect Qt dialog to it.
+    Returns:
+        (long) Memory Adress
+    """
+    win = omui.MQtUtil_mainWindow()
+    ptr = wrapInstance(long(win), QtWidgets.QMainWindow)
+    return ptr
 
 class MayaManager(RootManager):
     def __init__(self):
@@ -162,9 +194,8 @@ class MayaManager(RootManager):
                 cmds.warning(msg)
                 return -1, msg
 
-        # projectPath, jsonPath, scenesPath = getPathsFromScene("projectPath", "jsonPath", "scenesPath")
         projectPath = self.projectDir
-        jsonPath = self._pathsDict["databaseDir"]
+        databaseDir = self._pathsDict["databaseDir"]
         scenesPath = self._pathsDict["scenesDir"]
         categoryPath = os.path.normpath(os.path.join(scenesPath, categoryName))
         self._folderCheck(categoryPath)
@@ -176,7 +207,7 @@ class MayaManager(RootManager):
             shotPath = os.path.normpath(os.path.join(subProjectPath, baseName))
             self._folderCheck(shotPath)
 
-            jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, categoryName))
+            jsonCategoryPath = os.path.normpath(os.path.join(databaseDir, categoryName))
             self._folderCheck(jsonCategoryPath)
             jsonCategorySubPath = os.path.normpath(os.path.join(jsonCategoryPath, self._subProjectsList[subProjectIndex]))
             self._folderCheck(jsonCategorySubPath)
@@ -185,7 +216,7 @@ class MayaManager(RootManager):
             shotPath = os.path.normpath(os.path.join(categoryPath, baseName))
             self._folderCheck(shotPath)
 
-            jsonCategoryPath = os.path.normpath(os.path.join(jsonPath, categoryName))
+            jsonCategoryPath = os.path.normpath(os.path.join(databaseDir, categoryName))
             self._folderCheck(jsonCategoryPath)
             jsonFile = os.path.join(jsonCategoryPath, "{}.json".format(baseName))
 
@@ -198,14 +229,14 @@ class MayaManager(RootManager):
         # TODO // cmds may be used instead
         pm.saveAs(sceneFile)
 
-        thumbPath = self.createThumbnail(jsonPath=jsonFile, version=version)
+        thumbPath = self.createThumbnail(databaseDir=jsonFile, version=version)
 
         jsonInfo = {}
 
         if makeReference:
             # TODO // Find an elegant solution and add MA compatibility. Can be merged with makeReference function in derived class
             referenceName = "{0}_{1}_forReference".format(baseName, categoryName)
-            referenceFile = os.path.join(shotPath, "{0}.mb".format(referenceName))
+            referenceFile = os.path.join(shotPath, "{0}.{1}".format(referenceName, sceneFormat))
             ## relativity update
             relReferenceFile = os.path.relpath(referenceFile, start=projectPath)
             shutil.copyfile(sceneFile, referenceFile)
@@ -215,8 +246,8 @@ class MayaManager(RootManager):
             jsonInfo["ReferenceFile"] = None
             jsonInfo["ReferencedVersion"] = None
 
-        jsonInfo["ID"] = "SceneManagerV01_sceneFile"
-        jsonInfo["MayaVersion"] = pm.versions.current()
+        jsonInfo["ID"] = "SceneManagerV02_sceneFile"
+        jsonInfo["MayaVersion"] = cmds.about(q=True, api=True)
         jsonInfo["Name"] = baseName
         jsonInfo["Path"] = os.path.relpath(shotPath, start=projectPath)
         jsonInfo["Category"] = categoryName
@@ -275,7 +306,7 @@ class MayaManager(RootManager):
 
             if makeReference:
                 referenceName = "{0}_{1}_forReference".format(jsonInfo["Name"], jsonInfo["Category"])
-                relReferenceFile = os.path.join(jsonInfo["Path"], "{0}.mb".format(referenceName))
+                relReferenceFile = os.path.join(jsonInfo["Path"], "{0}.{1}".format(referenceName, sceneFormat))
                 referenceFile = os.path.join(sceneInfo["projectPath"], relReferenceFile)
 
                 shutil.copyfile(sceneFile, referenceFile)
@@ -426,9 +457,9 @@ class MayaManager(RootManager):
         activeSound = cmds.timeControl(aPlayBackSliderPython, q=True, sound=True)
 
         ## Check here: http://download.autodesk.com/us/maya/2011help/pymel/generated/functions/pymel.core.windows/pymel.core.windows.headsUpDisplay.html
-        print "playBlastFile", playBlastFile
+        # print "playBlastFile", playBlastFile
         normPB = os.path.normpath(playBlastFile)
-        print "normPath", normPB
+        # print "normPath", normPB
         cmds.playblast(format=pbSettings["Format"],
                      filename=playBlastFile,
                      widthHeight=pbSettings["Resolution"],
@@ -519,13 +550,13 @@ class MayaManager(RootManager):
             cmds.warning("There is no reference set for this scene. Nothing changed")
 
 
-    def createThumbnail(self, jsonPath=None, version=None):
+    def createThumbnail(self, databaseDir=None, version=None):
 
         ## TODO // TEST IT
 
-        if jsonPath and version:
+        if databaseDir and version:
             version= "v%s" %(str(version).zfill(3))
-            shotName=self._niceName(jsonPath)
+            shotName=self._niceName(databaseDir)
             projectPath = self.projectDir
 
         else: # if keywords are not given
@@ -534,11 +565,11 @@ class MayaManager(RootManager):
             if not openSceneInfo:
                 return None
             projectPath=openSceneInfo["projectPath"]
-            jsonPath=openSceneInfo["jsonFile"]
+            databaseDir=openSceneInfo["jsonFile"]
             shotName=openSceneInfo["shotName"]
             version=openSceneInfo["version"]
 
-        dbDir = os.path.split(jsonPath)[0]
+        dbDir = os.path.split(databaseDir)[0]
         thumbPath = "{0}_{1}_thumb.jpg".format(os.path.join(dbDir, shotName), version)
         relThumbPath = os.path.relpath(thumbPath, projectPath)
         # print thumbPath
@@ -558,8 +589,8 @@ class MayaManager(RootManager):
         return relThumbPath
 
 
-    def replaceThumbnail(self, mode="file", jsonPath=None, version=None, filePath=None ):
-        jsonInfo = self._loadJson(jsonPath)
+    def replaceThumbnail(self, mode="file", databaseDir=None, version=None, filePath=None ):
+        jsonInfo = self._loadJson(databaseDir)
         if mode == "file":
             if not filePath:
                 cmds.warning("filePath flag cannot be None in mode='file'")
@@ -569,13 +600,56 @@ class MayaManager(RootManager):
 
         if mode == "currentView":
             ## do the replacement
-            filePath = self.createThumbnail(jsonPath=jsonPath, version=version)
+            filePath = self.createThumbnail(databaseDir=databaseDir, version=version)
 
         try:
             jsonInfo["Versions"][version][5]=filePath
         except IndexError: # if this is an older file without thumbnail
             jsonInfo["Versions"][version].append(filePath)
-            self._dumpJson(jsonInfo, jsonPath)
+            self._dumpJson(jsonInfo, databaseDir)
+
+class MainUI(QtWidgets.QMainWindow):
+    def __init__(self, scriptJob=None):
+        self.scriptJob=scriptJob
+        for entry in QtWidgets.QApplication.allWidgets():
+            try:
+                if entry.objectName() == SM_Version:
+                    entry.close()
+            except AttributeError:
+                pass
+        parent = getMayaMainWindow()
+        super(MainUI, self).__init__(parent=parent)
+        # super(MainUI, self).__init__(parent=None)
+        self.manager = MayaManager()
+        problem, msg = self.manager._checkRequirements()
+        if problem:
+            q = QtWidgets.QMessageBox()
+            q.setIcon(QtWidgets.QMessageBox.Information)
+            q.setText(msg[0])
+            q.setInformativeText(msg[1])
+            q.setWindowTitle(msg[2])
+            q.setStandardButtons(QtWidgets.QMessageBox.Ok)
+
+            ret = q.exec_()
+            if ret == QtWidgets.QMessageBox.Ok:
+                self.close()
+                self.deleteLater()
+
+        self.setObjectName((SM_Version))
+        self.resize(680, 600)
+        self.setMaximumSize(QtCore.QSize(680, 600))
+        self.setWindowTitle((SM_Version))
+        self.centralwidget = QtWidgets.QWidget(self)
+        self.centralwidget.setObjectName(("centralwidget"))
+        self.buildUI()
+
+        # create scripJobs
+        # scriptJob = "tik_sceneManager"
+        if scriptJob:
+            self.job_1 = pm.scriptJob(e=["workspaceChanged", "%s.refresh()" % scriptJob], parent=SM_Version)
+
+        # self.statusBar().showMessage("System Status | Normal")
+
 
 
 

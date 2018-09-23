@@ -10,6 +10,7 @@ from glob import glob
 import json
 import filecmp
 import re
+import ctypes
 
 logging.basicConfig()
 logger = logging.getLogger('smRoot')
@@ -790,6 +791,27 @@ class RootManager(object):
         else:
             logger.info("CODE YELLOW: File does not have a reference copy")
             return 0 # code yellow
+
+    def _checkRequirements(self):
+        """
+        Checks the requirements for platform and administrator rights. Returns [None, None] if passes both
+        Returns: (List) [ErrorCode, ErrorMessage]
+
+        """
+        ## check platform
+        currentOs = platform.system()
+        if currentOs != "Linux" and currentOs != "Windows":
+            return -1, ["OS Error", "Operating System is not supported",
+                        "Scene Manager only supports Windows and Linux Operating Systems"]
+        ## check admin rights
+        try:
+            is_admin = os.getuid() == 0
+        except AttributeError:
+            is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
+        if not is_admin:
+            return -1, ["Admin Rights", "Maya does not have the administrator rights",
+                        "You need to run Maya as administrator to work with Scene Manager"]
+        return None, None
 
     def _folderCheck(self, folder):
         if not os.path.isdir(os.path.normpath(folder)):

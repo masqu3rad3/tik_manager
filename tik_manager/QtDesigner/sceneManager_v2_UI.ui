@@ -1,0 +1,983 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>sceneManager_MainWindow</class>
+ <widget class="QMainWindow" name="sceneManager_MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>975</width>
+    <height>861</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Scene Manager</string>
+  </property>
+  <property name="toolTip">
+   <string notr="true"/>
+  </property>
+  <property name="statusTip">
+   <string notr="true"/>
+  </property>
+  <property name="whatsThis">
+   <string notr="true"/>
+  </property>
+  <property name="accessibleName">
+   <string notr="true"/>
+  </property>
+  <property name="accessibleDescription">
+   <string notr="true"/>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout_3">
+    <item row="4" column="0">
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0,0,0">
+      <property name="spacing">
+       <number>6</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QPushButton" name="setProject_pushButton_3">
+        <property name="minimumSize">
+         <size>
+          <width>150</width>
+          <height>45</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>150</width>
+          <height>45</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string notr="true"/>
+        </property>
+        <property name="statusTip">
+         <string notr="true"/>
+        </property>
+        <property name="whatsThis">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleName">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleDescription">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string notr="true">Save As Version</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="setProject_pushButton_2">
+        <property name="minimumSize">
+         <size>
+          <width>150</width>
+          <height>45</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>150</width>
+          <height>45</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string notr="true"/>
+        </property>
+        <property name="statusTip">
+         <string notr="true"/>
+        </property>
+        <property name="whatsThis">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleName">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleDescription">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string notr="true">Save Base Scene</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="setProject_pushButton_4">
+        <property name="minimumSize">
+         <size>
+          <width>150</width>
+          <height>45</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>150</width>
+          <height>45</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string notr="true"/>
+        </property>
+        <property name="statusTip">
+         <string notr="true"/>
+        </property>
+        <property name="whatsThis">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleName">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleDescription">
+         <string notr="true"/>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="text">
+         <string notr="true">Load Scene</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="1" column="0">
+     <layout class="QGridLayout" name="gridLayout_2" columnstretch="0,1,0,0,0,0,0">
+      <item row="0" column="0">
+       <widget class="QRadioButton" name="load_radioButton">
+        <property name="toolTip">
+         <string notr="true"/>
+        </property>
+        <property name="statusTip">
+         <string notr="true"/>
+        </property>
+        <property name="whatsThis">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleName">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleDescription">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string notr="true">Load Mode</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QLabel" name="subProject_label">
+        <property name="toolTip">
+         <string notr="true"/>
+        </property>
+        <property name="statusTip">
+         <string notr="true"/>
+        </property>
+        <property name="whatsThis">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleName">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleDescription">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string notr="true">Sub-Project:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QComboBox" name="subProject_comboBox">
+        <property name="minimumSize">
+         <size>
+          <width>150</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string notr="true"/>
+        </property>
+        <property name="statusTip">
+         <string notr="true"/>
+        </property>
+        <property name="whatsThis">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleName">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleDescription">
+         <string notr="true"/>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QRadioButton" name="reference_radioButton">
+        <property name="toolTip">
+         <string notr="true"/>
+        </property>
+        <property name="statusTip">
+         <string notr="true"/>
+        </property>
+        <property name="whatsThis">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleName">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleDescription">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string notr="true">Reference Mode</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="4">
+       <widget class="QPushButton" name="addSubProject_pushButton">
+        <property name="minimumSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>30</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string notr="true"/>
+        </property>
+        <property name="statusTip">
+         <string notr="true"/>
+        </property>
+        <property name="whatsThis">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleName">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleDescription">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string notr="true">+</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="5">
+       <widget class="QLabel" name="user_label">
+        <property name="toolTip">
+         <string notr="true"/>
+        </property>
+        <property name="statusTip">
+         <string notr="true"/>
+        </property>
+        <property name="whatsThis">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleName">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleDescription">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string notr="true">User:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="6">
+       <widget class="QComboBox" name="user_comboBox">
+        <property name="minimumSize">
+         <size>
+          <width>130</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string notr="true"/>
+        </property>
+        <property name="statusTip">
+         <string notr="true"/>
+        </property>
+        <property name="whatsThis">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleName">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleDescription">
+         <string notr="true"/>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="0" column="0">
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="baseScene_label">
+        <property name="toolTip">
+         <string notr="true"/>
+        </property>
+        <property name="statusTip">
+         <string notr="true"/>
+        </property>
+        <property name="whatsThis">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleName">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleDescription">
+         <string notr="true"/>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="text">
+         <string notr="true">Base Scene:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="baseScene_lineEdit">
+        <property name="toolTip">
+         <string notr="true"/>
+        </property>
+        <property name="statusTip">
+         <string notr="true"/>
+        </property>
+        <property name="whatsThis">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleName">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleDescription">
+         <string notr="true"/>
+        </property>
+        <property name="inputMask">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string notr="true"/>
+        </property>
+        <property name="placeholderText">
+         <string notr="true"/>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="project_label">
+        <property name="toolTip">
+         <string notr="true"/>
+        </property>
+        <property name="statusTip">
+         <string notr="true"/>
+        </property>
+        <property name="whatsThis">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleName">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleDescription">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string notr="true">Project:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="project_lineEdit">
+        <property name="toolTip">
+         <string notr="true"/>
+        </property>
+        <property name="statusTip">
+         <string notr="true"/>
+        </property>
+        <property name="whatsThis">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleName">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleDescription">
+         <string notr="true"/>
+        </property>
+        <property name="inputMask">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string notr="true"/>
+        </property>
+        <property name="placeholderText">
+         <string notr="true"/>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QPushButton" name="setProject_pushButton">
+        <property name="toolTip">
+         <string notr="true"/>
+        </property>
+        <property name="statusTip">
+         <string notr="true"/>
+        </property>
+        <property name="whatsThis">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleName">
+         <string notr="true"/>
+        </property>
+        <property name="accessibleDescription">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string notr="true">SET</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="2" column="0">
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>22</height>
+       </size>
+      </property>
+      <property name="toolTip">
+       <string notr="true"/>
+      </property>
+      <property name="statusTip">
+       <string notr="true"/>
+      </property>
+      <property name="whatsThis">
+       <string notr="true"/>
+      </property>
+      <property name="accessibleName">
+       <string notr="true"/>
+      </property>
+      <property name="accessibleDescription">
+       <string notr="true"/>
+      </property>
+      <property name="tabPosition">
+       <enum>QTabWidget::North</enum>
+      </property>
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <property name="elideMode">
+       <enum>Qt::ElideNone</enum>
+      </property>
+      <property name="usesScrollButtons">
+       <bool>false</bool>
+      </property>
+      <widget class="QWidget" name="tab">
+       <attribute name="title">
+        <string>Tab 1</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_4" rowstretch="0,0" columnminimumwidth="0">
+        <property name="leftMargin">
+         <number>9</number>
+        </property>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_2">
+       <attribute name="title">
+        <string>Tab 2</string>
+       </attribute>
+      </widget>
+     </widget>
+    </item>
+    <item row="3" column="0">
+     <widget class="QSplitter" name="splitter">
+      <property name="toolTip">
+       <string notr="true"/>
+      </property>
+      <property name="statusTip">
+       <string notr="true"/>
+      </property>
+      <property name="whatsThis">
+       <string notr="true"/>
+      </property>
+      <property name="accessibleName">
+       <string notr="true"/>
+      </property>
+      <property name="accessibleDescription">
+       <string notr="true"/>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="QListWidget" name="listWidget"/>
+      <widget class="QFrame" name="frame">
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_6">
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item row="3" column="0">
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="QLabel" name="version_label_2">
+            <property name="toolTip">
+             <string notr="true"/>
+            </property>
+            <property name="statusTip">
+             <string notr="true"/>
+            </property>
+            <property name="whatsThis">
+             <string notr="true"/>
+            </property>
+            <property name="accessibleName">
+             <string notr="true"/>
+            </property>
+            <property name="accessibleDescription">
+             <string notr="true"/>
+            </property>
+            <property name="layoutDirection">
+             <enum>Qt::LeftToRight</enum>
+            </property>
+            <property name="text">
+             <string notr="true">Version Notes:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QTextEdit" name="textEdit"/>
+          </item>
+          <item>
+           <widget class="QLabel" name="label">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>221</width>
+              <height>124</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>884</width>
+              <height>496</height>
+             </size>
+            </property>
+            <property name="sizeIncrement">
+             <size>
+              <width>1</width>
+              <height>1</height>
+             </size>
+            </property>
+            <property name="baseSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string notr="true"/>
+            </property>
+            <property name="statusTip">
+             <string notr="true"/>
+            </property>
+            <property name="whatsThis">
+             <string notr="true"/>
+            </property>
+            <property name="accessibleName">
+             <string notr="true"/>
+            </property>
+            <property name="accessibleDescription">
+             <string notr="true"/>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::Box</enum>
+            </property>
+            <property name="text">
+             <string>TextLabel</string>
+            </property>
+            <property name="scaledContents">
+             <bool>false</bool>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+            <property name="margin">
+             <number>0</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="0" column="0">
+         <layout class="QGridLayout" name="gridLayout_7" rowminimumheight="0,0" columnminimumwidth="0,0,0,0">
+          <property name="rightMargin">
+           <number>10</number>
+          </property>
+          <property name="bottomMargin">
+           <number>10</number>
+          </property>
+          <item row="0" column="3">
+           <widget class="QPushButton" name="setProject_pushButton_5">
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>150</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string notr="true"/>
+            </property>
+            <property name="statusTip">
+             <string notr="true"/>
+            </property>
+            <property name="whatsThis">
+             <string notr="true"/>
+            </property>
+            <property name="accessibleName">
+             <string notr="true"/>
+            </property>
+            <property name="accessibleDescription">
+             <string notr="true"/>
+            </property>
+            <property name="text">
+             <string notr="true">Show Preview</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <property name="spacing">
+             <number>1</number>
+            </property>
+            <property name="margin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="version_label">
+              <property name="minimumSize">
+               <size>
+                <width>60</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>60</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string notr="true"/>
+              </property>
+              <property name="statusTip">
+               <string notr="true"/>
+              </property>
+              <property name="whatsThis">
+               <string notr="true"/>
+              </property>
+              <property name="accessibleName">
+               <string notr="true"/>
+              </property>
+              <property name="accessibleDescription">
+               <string notr="true"/>
+              </property>
+              <property name="frameShape">
+               <enum>QFrame::Box</enum>
+              </property>
+              <property name="text">
+               <string notr="true">Version:</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="version_comboBox">
+              <property name="minimumSize">
+               <size>
+                <width>60</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>100</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string notr="true"/>
+              </property>
+              <property name="statusTip">
+               <string notr="true"/>
+              </property>
+              <property name="whatsThis">
+               <string notr="true"/>
+              </property>
+              <property name="accessibleName">
+               <string notr="true"/>
+              </property>
+              <property name="accessibleDescription">
+               <string notr="true"/>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="0">
+           <widget class="QPushButton" name="setProject_pushButton_6">
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>300</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string notr="true"/>
+            </property>
+            <property name="statusTip">
+             <string notr="true"/>
+            </property>
+            <property name="whatsThis">
+             <string notr="true"/>
+            </property>
+            <property name="accessibleName">
+             <string notr="true"/>
+            </property>
+            <property name="accessibleDescription">
+             <string notr="true"/>
+            </property>
+            <property name="text">
+             <string notr="true">Make Reference</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3">
+           <widget class="QPushButton" name="setProject_pushButton_7">
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>150</width>
+              <height>30</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string notr="true"/>
+            </property>
+            <property name="statusTip">
+             <string notr="true"/>
+            </property>
+            <property name="whatsThis">
+             <string notr="true"/>
+            </property>
+            <property name="accessibleName">
+             <string notr="true"/>
+            </property>
+            <property name="accessibleDescription">
+             <string notr="true"/>
+            </property>
+            <property name="text">
+             <string notr="true">Add Note</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>975</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionCreate_Project"/>
+    <addaction name="actionSave_Version"/>
+    <addaction name="actionSave_Base_Scene"/>
+    <addaction name="separator"/>
+    <addaction name="actionLoad_Reference_Scene"/>
+    <addaction name="separator"/>
+    <addaction name="actionAdd_Remove_Users"/>
+    <addaction name="actionPreview_Settings"/>
+    <addaction name="separator"/>
+    <addaction name="actionDelete_Selected_Base_Scene"/>
+    <addaction name="actionDelete_Reference_of_Selected_Scene"/>
+    <addaction name="separator"/>
+    <addaction name="actionProject_Report"/>
+    <addaction name="actionCheck_References"/>
+   </widget>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="actionImage_Manager"/>
+    <addaction name="actionSequence_Viewer"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuTools"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionCreate_Project">
+   <property name="text">
+    <string>Create Project</string>
+   </property>
+  </action>
+  <action name="actionSave_Version">
+   <property name="text">
+    <string>Save Version</string>
+   </property>
+  </action>
+  <action name="actionSave_Base_Scene">
+   <property name="text">
+    <string>Save Base Scene</string>
+   </property>
+  </action>
+  <action name="actionLoad_Reference_Scene">
+   <property name="text">
+    <string>Load/Reference Scene</string>
+   </property>
+  </action>
+  <action name="actionAdd_Remove_Users">
+   <property name="text">
+    <string>Add/Remove Users</string>
+   </property>
+  </action>
+  <action name="actionPreview_Settings">
+   <property name="text">
+    <string>Preview Settings</string>
+   </property>
+  </action>
+  <action name="actionDelete_Selected_Base_Scene">
+   <property name="text">
+    <string>Delete Selected Base Scene</string>
+   </property>
+  </action>
+  <action name="actionDelete_Reference_of_Selected_Scene">
+   <property name="text">
+    <string>Delete Reference of Selected Scene</string>
+   </property>
+  </action>
+  <action name="actionProject_Report">
+   <property name="text">
+    <string>Project Report</string>
+   </property>
+  </action>
+  <action name="actionCheck_References">
+   <property name="text">
+    <string>Check References</string>
+   </property>
+  </action>
+  <action name="actionImage_Manager">
+   <property name="text">
+    <string>Image Manager</string>
+   </property>
+  </action>
+  <action name="actionSequence_Viewer">
+   <property name="text">
+    <string>Sequence Viewer</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
