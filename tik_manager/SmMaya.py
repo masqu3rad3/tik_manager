@@ -1024,6 +1024,8 @@ class MainUI(QtWidgets.QMainWindow):
     def onMakeReference(self):
         self.manager.makeReference()
         self.onVersionChange()
+        self.statusBar().showMessage(
+            "Status | Version {1} is the new reference of {0}".format(self.manager.currentBaseSceneName, self.manager.currentVersionIndex))
 
 
     def onPreviewChange(self):
@@ -1031,7 +1033,7 @@ class MainUI(QtWidgets.QMainWindow):
         pass
 
     def onVersionChange(self):
-        logger.debug("onVersionChange%s" %self.manager.getThumbnail())
+        logger.debug("onVersionChange%s" %self.version_comboBox.currentIndex())
 
         self.manager.currentVersionIndex = self.version_comboBox.currentIndex() + 1
         # print self.manager.getThumbnail()
@@ -1047,12 +1049,11 @@ class MainUI(QtWidgets.QMainWindow):
         self.tPixmap = QtGui.QPixmap(self.manager.getThumbnail())
         self.thumbnail_label.setPixmap(self.tPixmap)
 
-        if self.manager.currentVersionIndex != len(self.manager.getVersions()):
+        if self.manager.currentVersionIndex != len(self.manager.getVersions()) or not -1:
             self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: yellow")
+
         else:
             self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
-
-
 
     def onBaseSceneChange(self):
         #clear version_combobox
@@ -1160,6 +1161,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.showPreview_pushButton.setEnabled(state)
         self.makeReference_pushButton.setEnabled(state)
         self.addNote_pushButton.setEnabled(state)
+
         self.version_label.setEnabled(state)
 
 
