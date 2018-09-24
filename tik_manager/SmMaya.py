@@ -772,6 +772,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.project_lineEdit.setText((""))
         self.project_lineEdit.setPlaceholderText((""))
         self.project_lineEdit.setObjectName(("project_lineEdit"))
+        self.project_lineEdit.setReadOnly(True)
         self.r1_gridLayout.addWidget(self.project_lineEdit, 1, 1, 1, 1)
 
         self.setProject_pushButton = QtWidgets.QPushButton(self.centralwidget)
@@ -828,8 +829,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.notes_textEdit.setObjectName(("textEdit"))
         self.verticalLayout.addWidget(self.notes_textEdit)
 
-        testFile = os.path.normpath("C:\\a.JPG")
-        self.tPixmap = QtGui.QPixmap((testFile))
+
+        self.tPixmap = QtGui.QPixmap("")
         self.thumbnail_label = ImageWidget(self.frame)
         self.thumbnail_label.setPixmap(self.tPixmap)
 
@@ -1013,6 +1014,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.makeReference_pushButton.clicked.connect(self.onMakeReference)
 
+        self.subProject_comboBox.activated.connect(self.onSubProjectChange)
+
 
     def onContextMenu_scenes(self, point):
         # show context menu
@@ -1020,6 +1023,8 @@ class MainUI(QtWidgets.QMainWindow):
     def onContextMenu_thumbnail(self, point):
         # show context menu
         self.popMenu_thumbnail.exec_(self.thumbnail_label.mapToGlobal(point))
+
+
 
     def onMakeReference(self):
         self.manager.makeReference()
@@ -1030,6 +1035,9 @@ class MainUI(QtWidgets.QMainWindow):
 
     def onPreviewChange(self):
         #get/set Previews
+        pass
+
+    def onSubProjectChange(self):
         pass
 
     def onVersionChange(self):
@@ -1081,6 +1089,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.onVersionChange()
 
     def onSubProjectChange(self):
+        self.manager.currentSubIndex = self.subProject_comboBox.currentIndex()
         self.onCategoryChange()
 
     def onProjectChange(self):
@@ -1102,10 +1111,11 @@ class MainUI(QtWidgets.QMainWindow):
         state = self.load_radioButton.isChecked()
         logger.debug("onModeChanged_%s" %state)
         # logger.warning(state)
-        self.version_label.setEnabled(state)
-        self.notes_label.setEnabled(state)
-        self.notes_textEdit.setEnabled(state)
-        self.showPreview_pushButton.setEnabled(state)
+        self._vEnableDisable(state)
+        # self.version_label.setEnabled(state)
+        # self.notes_label.setEnabled(state)
+        # self.notes_textEdit.setEnabled(state)
+        # self.showPreview_pushButton.setEnabled(state)
         if state:
             self.loadScene_pushButton.setText("Load Scene")
             self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: grey;")
@@ -1114,7 +1124,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: cyan;")
 
         self.manager.currentMode = state
-        self.populate_baseScenes()
+        self.populateBaseScenes()
 
     def populateBaseScenes(self):
         self.scenes_listWidget.clear()
@@ -1145,12 +1155,16 @@ class MainUI(QtWidgets.QMainWindow):
         logger.debug("initMainUI")
         # #remember mode
         #
+
+        self.subProject_comboBox.addItems(self.manager.getSubProjects())
+        self.subProject_comboBox.setCurrentIndex(self.manager.currentSubIndex)
         # #remember category
         # logger.warning(self.manager.currentTabIndex)
         # self.category_tabWidget.setCurrentIndex(self.manager.currentTabIndex)
-
+        self.project_lineEdit.setText(self.manager.projectDir)
         self.populateBaseScenes()
 
+        self.user_comboBox.addItems(self.manager.getUsers())
         # disable the version related stuff
         self._vEnableDisable(False)
 
