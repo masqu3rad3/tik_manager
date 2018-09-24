@@ -71,6 +71,16 @@ class RootManager(object):
                     jsonFiles = [y for x in os.walk(categoryDBpath) for y in glob(os.path.join(x[0], '*.json'))]
                     for file in jsonFiles:
                         fileData = self._loadJson(file)
+                        # figure out the subproject
+                        path = fileData["Path"]
+                        name = fileData["Name"]
+                        cate = fileData["Category"]
+                        parts = path.split("\\")
+                        diff = list(set(parts) - set([name, cate, "scenes"]))
+                        if diff:
+                            fileData["SubProject"] = diff[0]
+                        else:
+                            fileData["SubProject"] = "None"
                         for vers in fileData["Versions"]:
 
                             #if there is no thumbnail column, skip
@@ -293,6 +303,17 @@ class RootManager(object):
         # self._currentPreviewIndex = 0
 
     @property
+    def currentBaseScenePath(self):
+        """Returns absolute path of Base Scene at cursor position"""
+        return os.path.join(self.projectDir, self._currentSceneInfo["Path"])
+
+    @property
+    def currentPreviewPath(self):
+        """Returns absolute path of preview folder of the Base scene at cursor position"""
+        # TODO // CONTINUE
+        # return self._
+
+    @property
     def currentVersionIndex(self):
         """Returns current Version index at cursor position"""
         return self._currentVersionIndex
@@ -368,7 +389,56 @@ class RootManager(object):
             self._currentThumbFile
             ))
 
+    def getOpenSceneInfo(self):
+        """
+        Collects the necessary scene info by resolving the scene name and current project
+        Returns: Dictionary{jsonFile, projectPath, subProject, category, shotName} or None
+        """
+        self._pathsDict["sceneFile"] = self.getSceneFile()
+        if not self._pathsDict["sceneFile"]:
+            return None
 
+        # get name of the upper directory to find out base name
+        sceneDir = os.path.abspath(os.path.join(self._pathsDict["sceneFile"], os.pardir))
+        baseSceneName = os.path.basename(sceneDir)
+
+        upperSceneDir = os.path.abspath(os.path.join(sceneDir, os.pardir))
+        upperSceneDirName = os.path.basename(upperSceneDir)
+
+        if upperSceneDirName in self._subProjectsList:
+            subProjectDir = upperSceneDir
+            subProject = upperSceneDirName
+            categoryDir = os.path.abspath(os.path.join(subProjectDir, os.pardir))
+            category = os.path.basename(categoryDir)
+
+            dbCategoryPath = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], category))
+            dbPath = os.path.normpath(os.path.join(dbCategoryPath, subProject))
+
+            pbCategoryPath = os.path.normpath(os.path.join(self._pathsDict["previewsDir"], category))
+            pbSubPath = os.path.normpath(os.path.join(pbCategoryPath, subProject))
+            pbPath = os.path.normpath(os.path.join(pbSubPath, baseSceneName))
+
+        else:
+            subProject = self._subProjectsList[0]
+            categoryDir = upperSceneDir
+            category = upperSceneDirName
+            dbPath = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], category))
+            pbCategoryPath = os.path.normpath(os.path.join(self._pathsDict["previewsDir"], category))
+            pbPath = os.path.normpath(os.path.join(pbCategoryPath, baseSceneName))
+
+        jsonFile = os.path.join(dbPath, "{}.json".format(baseSceneName))
+        if os.path.isfile(jsonFile):
+            version = (self._niceName(self._pathsDict["sceneFile"])[-4:])
+            return {"jsonFile":jsonFile,
+                    "projectPath":self._pathsDict["projectDir"],
+                    "subProject":subProject,
+                    "category":category,
+                    "shotName":baseSceneName,
+                    "version":version,
+                    "previewPath":pbPath
+                    }
+        else:
+            return None
 
     def getCategories(self):
         """Returns All Valid Categories"""
@@ -769,8 +839,6 @@ class RootManager(object):
 
     def makeReference(self):
         """Creates a Reference copy from the base scene version at cursor position"""
-        logger.debug("anan %s" % self._currentVersionIndex)
-
         if self._currentVersionIndex == -1:
             logger.warning("Cursor is not on a Base Scene Version. Cancelling")
             return

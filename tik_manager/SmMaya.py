@@ -52,7 +52,7 @@ class MayaManager(RootManager):
         super(MayaManager, self).__init__()
 
         self.init_paths()
-        # self.backwardcompatibility()  # DO NOT RUN UNTIL RELEASE
+        self.backwardcompatibility()  # DO NOT RUN UNTIL RELEASE
         self.init_database()
 
 
@@ -92,62 +92,62 @@ class MayaManager(RootManager):
         # self.projectDir = cmds.workspace(q=1, rd=1)
         self.projectDir = self.getProjectDir()
 
-    def getSceneInfo(self):
-        """
-        Collects the necessary scene info by resolving the scene name and current project
-        Returns: Dictionary{jsonFile, projectPath, subProject, category, shotName} or None
-        """
-        self._pathsDict["sceneFile"] = self.getSceneFile()
-        if not self._pathsDict["sceneFile"]:
-            return None
-
-        # get name of the upper directory to find out base name
-        sceneDir = os.path.abspath(os.path.join(self._pathsDict["sceneFile"], os.pardir))
-        baseSceneName = os.path.basename(sceneDir)
-
-        upperSceneDir = os.path.abspath(os.path.join(sceneDir, os.pardir))
-        upperSceneDirName = os.path.basename(upperSceneDir)
-
-        if upperSceneDirName in self._subProjectsList:
-            subProjectDir = upperSceneDir
-            subProject = upperSceneDirName
-            categoryDir = os.path.abspath(os.path.join(subProjectDir, os.pardir))
-            category = os.path.basename(categoryDir)
-
-            dbCategoryPath = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], category))
-            dbPath = os.path.normpath(os.path.join(dbCategoryPath, subProject))
-
-            pbCategoryPath = os.path.normpath(os.path.join(self._pathsDict["previewsDir"], category))
-            pbSubPath = os.path.normpath(os.path.join(pbCategoryPath, subProject))
-            pbPath = os.path.normpath(os.path.join(pbSubPath, baseSceneName))
-
-        else:
-            subProject = self._subProjectsList[0]
-            categoryDir = upperSceneDir
-            category = upperSceneDirName
-            dbPath = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], category))
-            pbCategoryPath = os.path.normpath(os.path.join(self._pathsDict["previewsDir"], category))
-            pbPath = os.path.normpath(os.path.join(pbCategoryPath, baseSceneName))
-
-        jsonFile = os.path.join(dbPath, "{}.json".format(baseSceneName))
-        if os.path.isfile(jsonFile):
-            version = (self._niceName(self._pathsDict["sceneFile"])[-4:])
-            return {"jsonFile":jsonFile,
-                    "projectPath":self._pathsDict["projectDir"],
-                    "subProject":subProject,
-                    "category":category,
-                    "shotName":baseSceneName,
-                    "version":version,
-                    "previewPath":pbPath
-                    }
-        else:
-            return None
+    # def getSceneInfo(self):
+    #     """
+    #     Collects the necessary scene info by resolving the scene name and current project
+    #     Returns: Dictionary{jsonFile, projectPath, subProject, category, shotName} or None
+    #     """
+    #     self._pathsDict["sceneFile"] = self.getSceneFile()
+    #     if not self._pathsDict["sceneFile"]:
+    #         return None
+    #
+    #     # get name of the upper directory to find out base name
+    #     sceneDir = os.path.abspath(os.path.join(self._pathsDict["sceneFile"], os.pardir))
+    #     baseSceneName = os.path.basename(sceneDir)
+    #
+    #     upperSceneDir = os.path.abspath(os.path.join(sceneDir, os.pardir))
+    #     upperSceneDirName = os.path.basename(upperSceneDir)
+    #
+    #     if upperSceneDirName in self._subProjectsList:
+    #         subProjectDir = upperSceneDir
+    #         subProject = upperSceneDirName
+    #         categoryDir = os.path.abspath(os.path.join(subProjectDir, os.pardir))
+    #         category = os.path.basename(categoryDir)
+    #
+    #         dbCategoryPath = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], category))
+    #         dbPath = os.path.normpath(os.path.join(dbCategoryPath, subProject))
+    #
+    #         pbCategoryPath = os.path.normpath(os.path.join(self._pathsDict["previewsDir"], category))
+    #         pbSubPath = os.path.normpath(os.path.join(pbCategoryPath, subProject))
+    #         pbPath = os.path.normpath(os.path.join(pbSubPath, baseSceneName))
+    #
+    #     else:
+    #         subProject = self._subProjectsList[0]
+    #         categoryDir = upperSceneDir
+    #         category = upperSceneDirName
+    #         dbPath = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], category))
+    #         pbCategoryPath = os.path.normpath(os.path.join(self._pathsDict["previewsDir"], category))
+    #         pbPath = os.path.normpath(os.path.join(pbCategoryPath, baseSceneName))
+    #
+    #     jsonFile = os.path.join(dbPath, "{}.json".format(baseSceneName))
+    #     if os.path.isfile(jsonFile):
+    #         version = (self._niceName(self._pathsDict["sceneFile"])[-4:])
+    #         return {"jsonFile":jsonFile,
+    #                 "projectPath":self._pathsDict["projectDir"],
+    #                 "subProject":subProject,
+    #                 "category":category,
+    #                 "shotName":baseSceneName,
+    #                 "version":version,
+    #                 "previewPath":pbPath
+    #                 }
+    #     else:
+    #         return None
 
     def saveCallback(self):
         """Callback function to update reference files when files saved regularly"""
         ## TODO // TEST IT
         self._pathsDict["sceneFile"] = self.getSceneFile()
-        openSceneInfo = self.getSceneInfo()
+        openSceneInfo = self.getOpenSceneInfo()
         if openSceneInfo["jsonFile"]:
             jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
             if jsonInfo["ReferenceFile"]:
@@ -255,6 +255,7 @@ class MayaManager(RootManager):
         jsonInfo["CreatorHost"] = (socket.gethostname())
         jsonInfo["Versions"] = [ # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
             [relSceneFile, completeNote,  self._usersDict[self.currentUser], socket.gethostname(), {}, thumbPath]]
+        jsonInfo["SubProject"] = self._subProjectsList[subProjectIndex]
         self._dumpJson(jsonInfo, jsonFile)
         return relSceneFile
 
@@ -282,7 +283,7 @@ class MayaManager(RootManager):
             cmds.warning(msg)
             return -1, msg
 
-        sceneInfo = self.getSceneInfo()
+        sceneInfo = self.getOpenSceneInfo()
 
         if sceneInfo: ## getCurrentJson returns None if the resolved json path is missing
             jsonFile = sceneInfo["jsonFile"]
@@ -345,7 +346,7 @@ class MayaManager(RootManager):
             cmds.playbackOptions(maxTime=maxTime + 1)
             cmds.playbackOptions(animationEndTime=endTime + 1)
 
-        openSceneInfo = self.getSceneInfo()
+        openSceneInfo = self.getOpenSceneInfo()
         # sceneName = self.getSceneFile()
         if not openSceneInfo:
             msg = "This is not a base scene. Scene must be saved as a base scene before playblasting."
@@ -561,7 +562,7 @@ class MayaManager(RootManager):
 
         else: # if keywords are not given
         # resolve the path of the currently open scene
-            openSceneInfo = self.getSceneInfo()
+            openSceneInfo = self.getOpenSceneInfo()
             if not openSceneInfo:
                 return None
             projectPath=openSceneInfo["projectPath"]
@@ -827,6 +828,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.notes_textEdit = QtWidgets.QTextEdit(self.frame)
         self.notes_textEdit.setObjectName(("textEdit"))
+        self.notes_textEdit.setReadOnly(True)
         self.verticalLayout.addWidget(self.notes_textEdit)
 
 
@@ -969,19 +971,24 @@ class MainUI(QtWidgets.QMainWindow):
 
         scenes_rcAction_0 = QtWidgets.QAction('Import Scene', self)
         self.popMenu_scenes.addAction(scenes_rcAction_0)
+        scenes_rcAction_0.triggered.connect(lambda: self.scenes_rcAction("importScene"))
 
         scenes_rcAction_1 = QtWidgets.QAction('Show Maya Folder in Explorer', self)
         self.popMenu_scenes.addAction(scenes_rcAction_1)
+        scenes_rcAction_1.triggered.connect(lambda: self.scenes_rcAction("showInExplorerMaya"))
 
         scenes_rcAction_2 = QtWidgets.QAction('Show Playblast Folder in Explorer', self)
         self.popMenu_scenes.addAction(scenes_rcAction_2)
+        scenes_rcAction_2.triggered.connect(lambda: self.scenes_rcAction("showInExplorerPB"))
 
         scenes_rcAction_3 = QtWidgets.QAction('Show Data Folder in Explorer', self)
         self.popMenu_scenes.addAction(scenes_rcAction_3)
+        scenes_rcAction_3.triggered.connect(lambda: self.scenes_rcAction("showInExplorerData"))
 
         self.popMenu_scenes.addSeparator()
         scenes_rcAction_4 = QtWidgets.QAction('Scene Info', self)
         self.popMenu_scenes.addAction(scenes_rcAction_4)
+        scenes_rcAction_3.triggered.connect(lambda: self.scenes_rcAction("showInExplorerData"))
 
         # Thumbnail Right Click Menu
         self.thumbnail_label.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -1016,6 +1023,51 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.subProject_comboBox.activated.connect(self.onSubProjectChange)
 
+    def scenes_rcAction(self, command):
+        if command == "importScene":
+            # TODO // add import function to root class
+            print "Import Scene at cursor position"
+        if command == "showInExplorerMaya":
+            row = self.scenes_listWidget.currentRow()
+            if not row == -1:
+                if self.manager.currentPlatform == "Windows":
+                    os.startfile(self.manager.currentBaseScenePath)
+                if self.manager.currentPlatform == "Linux":
+                    os.system('nautilus %s' % self.manager.currentBaseScenePath)
+
+        # if command == "showInExplorerPB":
+        #     row = self.scenes_listWidget.currentRow()
+        #     if not row == -1:
+        #         sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
+        #         # takethefirstjson as example for rootpath
+        #         jPath = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
+        #
+        #         # sceneData = loadJson(os.path.join(jPath, sceneName))
+        #         sceneData = self.manager.database.loadJson(jPath)
+        #
+        #         path = os.path.join(os.path.normpath(self.manager.scenePaths["projectPath"]), os.path.normpath(sceneData["Path"]))
+        #         path = path.replace("scenes", "Playblasts")
+        #         if os.path.isdir(path):
+        #             if self.manager.currentPlatform == "Windows":
+        #                 os.startfile(path)
+        #             if self.manager.currentPlatform == "Linux":
+        #                 os.system('nautilus %s' % path)
+        #         else:
+        #             self.infoPop(textTitle="", textHeader="Scene does not have a playblast",
+        #                          textInfo="There is no playblast folder created for this scene yet")
+        #
+        # if command == "showInExplorerData":
+        #     row = self.scenes_listWidget.currentRow()
+        #     if not row == -1:
+        #         try:
+        #             path = pathOps(self.scenesInCategory[row], "path")
+        #         except:
+        #             path = pathOps(self.scenesInCategory[0], "path")
+        #         if self.manager.currentPlatform == "Windows":
+        #             os.startfile(path)
+        #         if self.manager.currentPlatform == "Linux":
+        #             os.system('nautilus %s' % path)
+
 
     def onContextMenu_scenes(self, point):
         # show context menu
@@ -1024,14 +1076,11 @@ class MainUI(QtWidgets.QMainWindow):
         # show context menu
         self.popMenu_thumbnail.exec_(self.thumbnail_label.mapToGlobal(point))
 
-
-
     def onMakeReference(self):
         self.manager.makeReference()
         self.onVersionChange()
         self.statusBar().showMessage(
             "Status | Version {1} is the new reference of {0}".format(self.manager.currentBaseSceneName, self.manager.currentVersionIndex))
-
 
     def onPreviewChange(self):
         #get/set Previews
@@ -1043,7 +1092,8 @@ class MainUI(QtWidgets.QMainWindow):
     def onVersionChange(self):
         logger.debug("onVersionChange%s" %self.version_comboBox.currentIndex())
 
-        self.manager.currentVersionIndex = self.version_comboBox.currentIndex() + 1
+        if self.version_comboBox.currentIndex() is not -1:
+            self.manager.currentVersionIndex = self.version_comboBox.currentIndex() + 1
         # print self.manager.getThumbnail()
         # clear Notes and verison combobox
 
@@ -1057,9 +1107,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.tPixmap = QtGui.QPixmap(self.manager.getThumbnail())
         self.thumbnail_label.setPixmap(self.tPixmap)
 
-        if self.manager.currentVersionIndex != len(self.manager.getVersions()) or not -1:
+        # logger.debug("currentVersionIndex: %s --- getVersions: %s" %(self.manager.currentVersionIndex, len(self.manager.getVersions())))
+        if self.manager.currentVersionIndex != len(self.manager.getVersions()) and self.manager.currentVersionIndex != -1:
             self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: yellow")
-
         else:
             self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
 
@@ -1106,7 +1156,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.populateBaseScenes()
         self.onBaseSceneChange()
 
-
     def onModeChanged(self):
         state = self.load_radioButton.isChecked()
         logger.debug("onModeChanged_%s" %state)
@@ -1147,14 +1196,18 @@ class MainUI(QtWidgets.QMainWindow):
                 listItem.setForeground(color)
                 self.scenes_listWidget.addItem(listItem)
 
-
-    def populateSubProjects(self):
-        pass
-
     def initMainUI(self):
         logger.debug("initMainUI")
         # #remember mode
         #
+        openSceneInfo = self.manager.getOpenSceneInfo()
+        if openSceneInfo: ## getSceneInfo returns None if there is no json database fil
+            self.baseScene_lineEdit.setText("%s ==> %s ==> %s" % (openSceneInfo["subProject"], openSceneInfo["category"], openSceneInfo["shotName"]))
+            self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: cyan")
+        else:
+            self.baseScene_lineEdit.setText("Current Scene is not a Base Scene")
+            self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: yellow")
+
 
         self.subProject_comboBox.addItems(self.manager.getSubProjects())
         self.subProject_comboBox.setCurrentIndex(self.manager.currentSubIndex)
@@ -1167,6 +1220,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.user_comboBox.addItems(self.manager.getUsers())
         # disable the version related stuff
         self._vEnableDisable(False)
+
+
 
 
 
