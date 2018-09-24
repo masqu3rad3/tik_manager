@@ -14,7 +14,7 @@ import ctypes
 
 logging.basicConfig()
 logger = logging.getLogger('smRoot')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 
 
 
@@ -203,7 +203,7 @@ class RootManager(object):
             return
         self._setCurrents("currentTabIndex", indexData)
         self.scanBaseScenes()
-        self.CurrentBaseSceneName = ""
+        self.currentBaseSceneName = ""
         self._currentVersionIndex = -1
         self._currentPreviewCamera = ""
         self.cursorInfo()
@@ -251,17 +251,17 @@ class RootManager(object):
         return self._currentsDict["currentMode"]
 
     @currentMode.setter
-    def currentMode(self, bool):
+    def currentMode(self, state):
         """Sets the current access mode 0 == Load, 1 == Reference"""
-        if not type(bool) is 'bool':
+        if not type(state) is bool:
             if bool is 0:
-                bool = False
+                state = False
             elif bool is 1:
-                bool = True
+                state = True
             else:
-                logger.error("only boolean or 0-1 accepted, entered %s" %bool)
+                logger.error("only boolean or 0-1 accepted, entered %s" %state)
                 return
-        self._setCurrents("currentMode", bool)
+        self._setCurrents("currentMode", state)
 
     @property
     def currentBaseSceneName(self):
@@ -272,18 +272,23 @@ class RootManager(object):
     def currentBaseSceneName(self, sceneName):
         """Moves the cursor to the given base scene name"""
         if sceneName not in self._baseScenesInCategory.keys():
-            logger.error("There is no scene called %s in current category" %sceneName)
+            # self._currentVersionIndex = -1
+            # self._currentThumbFile = ""
+            # self._currentNotes = ""
+            self.currentVersionIndex = -1
+            logger.debug("There is no scene called %s in current category" %sceneName)
             return
 
         self._currentBaseSceneName = sceneName
         self._currentSceneInfo = self._loadSceneInfo()
-        if not sceneName:
-            self._currentVersionIndex = -1
+        # if not sceneName:
+        #     self._currentVersionIndex = -1
 
         if self._currentSceneInfo["ReferencedVersion"]:
             self.currentVersionIndex = self._currentSceneInfo["ReferencedVersion"]
         else:
             self.currentVersionIndex = len(self._currentSceneInfo["Versions"])
+
         self.cursorInfo()
         # self._currentPreviewIndex = 0
 
@@ -295,17 +300,24 @@ class RootManager(object):
     @currentVersionIndex.setter
     def currentVersionIndex(self, indexData):
         """Moves the cursor to given Version index"""
-        if not self._currentSceneInfo:
-            logger.warning(("BaseScene not Selected"))
+        logger.warning(indexData)
+        if indexData <= 0:
+            self._currentVersionIndex = -1
+            self._currentThumbFile = ""
+            self._currentNotes = ""
+            self._currentPreviewCamera = ""
             return
-        if not 0 < indexData <= len(self._currentSceneInfo["Versions"]):
-            logger.error(("out of range!"))
+        if not self._currentSceneInfo:
+            # logger.warning(("BaseScene not Selected"))
+            return
+        if not 1 <= indexData <= len(self._currentSceneInfo["Versions"]):
+            logger.error(("out of range! %s" %indexData))
             return
         # if self._currentVersionIndex == indexData:
         #     logger.warning("Cursor is already at %s" % indexData)
         #     return
         self._currentVersionIndex = indexData
-        self._currentNotes = self._currentSceneInfo["Versions"][self._currentVersionIndex-1][3]
+        self._currentNotes = self._currentSceneInfo["Versions"][self._currentVersionIndex-1][1]
         self._currentPreviewsDict = self._currentSceneInfo["Versions"][self._currentVersionIndex-1][4]
         if not self._currentPreviewsDict.keys():
             self._currentPreviewCamera = ""
@@ -369,12 +381,17 @@ class RootManager(object):
     def getUsers(self):
         """Returns nice names of all users"""
         return sorted(self._usersDict.keys())
-
+    #
     def getBaseScenesInCategory(self):
         """Returns list of nice base scene names under the category at cursor position"""
         self.scanBaseScenes()
-        return sorted(self._baseScenesInCategory.keys())
+        # return sorted(self._baseScenesInCategory.keys())
+        return self._baseScenesInCategory
 
+    # def getBaseScenesInCategory(self):
+    #     """Returns list of nice base scene names under the category at cursor position"""
+    #     self.scanBaseScenes()
+    #     return self._baseScenesInCategory
 
     def getVersions(self):
         """Returns Versions List of base scene at cursor position"""
@@ -392,8 +409,8 @@ class RootManager(object):
         return sorted(self._currentPreviewsDict.keys())
 
     def getThumbnail(self):
-        """returns (String) thumbnail path of version on cursor position"""
-        return self._currentThumbFile
+        """returns (String) absolute thumbnail path of version on cursor position"""
+        return os.path.join(self.projectDir, self._currentThumbFile)
 
 
 
@@ -592,9 +609,16 @@ class RootManager(object):
             searchDir = categoryDBpath
 
         self._baseScenesInCategory = {self._niceName(file):file for file in glob(os.path.join(searchDir, '*.json'))}
+        # self._baseScenesInCategory = {self._niceName(file): self.filterReferenced(file) for file in glob(os.path.join(searchDir, '*.json'))}
         # self._currentBaseScenes = [os.path.join(searchDir, file) for file in os.listdir(searchDir) if file.endswith('.json')]
         return self._baseScenesInCategory # dictionary of json files
 
+    def filterReferenced(self, jsonFile):
+        jInfo = self._loadJson(jsonFile)
+        if jInfo["ReferenceFile"]:
+            return [jsonFile, True]
+        else:
+            return [jsonFile, False]
 
     # def getProjectReport(self):
     #     # TODO This function should be re-written considering all possible softwares
@@ -668,7 +692,6 @@ class RootManager(object):
         self._currentNotes = "%s\n[%s] on %s\n%s\n" % (self._currentNotes, self.currentUser, now, note)
         self._currentSceneInfo["Versions"][self._currentVersionIndex-1][1] = self._currentNotes
         self._dumpJson(self._currentSceneInfo, self._baseScenesInCategory[self._currentBaseSceneName])
-
 
     def playPreview(self):
         """Runs the playblast at cursor position"""
@@ -746,6 +769,8 @@ class RootManager(object):
 
     def makeReference(self):
         """Creates a Reference copy from the base scene version at cursor position"""
+        logger.debug("anan %s" % self._currentVersionIndex)
+
         if self._currentVersionIndex == -1:
             logger.warning("Cursor is not on a Base Scene Version. Cancelling")
             return
@@ -764,14 +789,41 @@ class RootManager(object):
         self._dumpJson(self._currentSceneInfo, self._baseScenesInCategory[self.currentBaseSceneName])
 
 
-    def checkReference(self, deepCheck=False):
-        if not self._currentBaseSceneName:
-            logger.warning("Cursor is not on a Base Scene. Cancelling")
-            return
-        if self._currentSceneInfo["ReferenceFile"]:
-            relVersionFile = self._currentSceneInfo["Versions"][self._currentSceneInfo["ReferencedVersion"] - 1][0]
+    # def checkCurrentReference(self, deepCheck=False):
+    #     if not self._currentBaseSceneName:
+    #         logger.warning("Cursor is not on a Base Scene. Cancelling")
+    #         return
+    #     if self._currentSceneInfo["ReferenceFile"]:
+    #         relVersionFile = self._currentSceneInfo["Versions"][self._currentSceneInfo["ReferencedVersion"] - 1][0]
+    #         absVersionFile = os.path.join(self.projectDir, relVersionFile)
+    #         relRefFile = self._currentSceneInfo["ReferenceFile"]
+    #         absRefFile = os.path.join(self.projectDir, relRefFile)
+    #
+    #         if not os.path.isfile(absRefFile):
+    #             logger.warning("CODE RED: Reference File does not exist")
+    #             return -1 # code red
+    #         else:
+    #             if deepCheck:
+    #                 if filecmp.cmp(absVersionFile, absRefFile):
+    #                     logger.info("CODE GREEN: Everything is OK")
+    #                     return 1 # code Green
+    #                 else:
+    #                     logger.warning("CODE RED: Checksum mismatch with reference file")
+    #                     return -1 # code red
+    #             else:
+    #                 logger.info("CODE GREEN: Everything is OK")
+    #                 return 1 # code Green
+    #     else:
+    #         logger.info("CODE YELLOW: File does not have a reference copy")
+    #         return 0 # code yellow
+
+    def checkReference(self, jsonFile, deepCheck=False):
+        sceneInfo = self._loadJson(jsonFile)
+
+        if sceneInfo["ReferenceFile"]:
+            relVersionFile = sceneInfo["Versions"][sceneInfo["ReferencedVersion"] - 1][0]
             absVersionFile = os.path.join(self.projectDir, relVersionFile)
-            relRefFile = self._currentSceneInfo["ReferenceFile"]
+            relRefFile = sceneInfo["ReferenceFile"]
             absRefFile = os.path.join(self.projectDir, relRefFile)
 
             if not os.path.isfile(absRefFile):
