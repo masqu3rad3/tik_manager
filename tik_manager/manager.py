@@ -2817,7 +2817,7 @@ class MainUI(QtWidgets.QMainWindow):
 
             # mel.eval('setProject \"' + os.path.normpath(self.newProjectPath) + '\"')
             # self.manager.currentProject = pm.workspace(q=1, rd=1)
-            self.manager.setProject()
+            self.manager.setProject(self.manager.scenePaths["projectPath"])
             self.projectPath_lineEdit.setText(self.manager.scenePaths["projectPath"])
             # self.onSubProjectChanged()
             self.manager.subProjectList = self.manager.scanSubProjects()

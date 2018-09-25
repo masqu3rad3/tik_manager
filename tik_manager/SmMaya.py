@@ -9,6 +9,7 @@ import maya.mel as mel
 import pymel.core as pm
 import datetime
 import socket
+import pprint
 import logging
 
 import Qt
@@ -299,7 +300,7 @@ class MayaManager(RootManager):
             # killTurtle()
             # TODO // cmds?
             pm.saveAs(sceneFile)
-            thumbPath = self.createThumbnail(jsonPath=jsonFile, version=currentVersion)
+            thumbPath = self.createThumbnail(databaseDir=jsonFile, version=currentVersion)
 
             jsonInfo["Versions"].append(
                 # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
@@ -359,10 +360,9 @@ class MayaManager(RootManager):
 
         currentCam = cmds.modelPanel(cmds.getPanel(wf=True), q=True, cam=True)
 
-        validName = "_"
-        if not self._nameCheck(currentCam) == -1:
-            validName = self._nameCheck(currentCam)
-        else:
+        validName = currentCam.replace("|", "__").replace(" ", "_")
+
+        if not self._nameCheck(validName):
             msg = "A scene view must be highlighted"
             cmds.warning(msg)
             return -1, msg
@@ -969,26 +969,26 @@ class MainUI(QtWidgets.QMainWindow):
         self.scenes_listWidget.customContextMenuRequested.connect(self.onContextMenu_scenes)
         self.popMenu_scenes = QtWidgets.QMenu()
 
-        scenes_rcAction_0 = QtWidgets.QAction('Import Scene', self)
-        self.popMenu_scenes.addAction(scenes_rcAction_0)
-        scenes_rcAction_0.triggered.connect(lambda: self.scenes_rcAction("importScene"))
+        self.scenes_rcAction_0 = QtWidgets.QAction('Import Scene', self)
+        self.popMenu_scenes.addAction(self.scenes_rcAction_0)
+        self.scenes_rcAction_0.triggered.connect(lambda: self.scenes_rcAction("importScene"))
 
-        scenes_rcAction_1 = QtWidgets.QAction('Show Maya Folder in Explorer', self)
-        self.popMenu_scenes.addAction(scenes_rcAction_1)
-        scenes_rcAction_1.triggered.connect(lambda: self.scenes_rcAction("showInExplorerMaya"))
+        self.scenes_rcAction_1 = QtWidgets.QAction('Show Maya Folder in Explorer', self)
+        self.popMenu_scenes.addAction(self.scenes_rcAction_1)
+        self.scenes_rcAction_1.triggered.connect(lambda: self.scenes_rcAction("showInExplorerMaya"))
 
-        scenes_rcAction_2 = QtWidgets.QAction('Show Playblast Folder in Explorer', self)
-        self.popMenu_scenes.addAction(scenes_rcAction_2)
-        scenes_rcAction_2.triggered.connect(lambda: self.scenes_rcAction("showInExplorerPB"))
+        self.scenes_rcAction_2 = QtWidgets.QAction('Show Playblast Folder in Explorer', self)
+        self.popMenu_scenes.addAction(self.scenes_rcAction_2)
+        self.scenes_rcAction_2.triggered.connect(lambda: self.scenes_rcAction("showInExplorerPB"))
 
-        scenes_rcAction_3 = QtWidgets.QAction('Show Data Folder in Explorer', self)
-        self.popMenu_scenes.addAction(scenes_rcAction_3)
-        scenes_rcAction_3.triggered.connect(lambda: self.scenes_rcAction("showInExplorerData"))
+        self.scenes_rcAction_3 = QtWidgets.QAction('Show Data Folder in Explorer', self)
+        self.popMenu_scenes.addAction(self.scenes_rcAction_3)
+        self.scenes_rcAction_3.triggered.connect(lambda: self.scenes_rcAction("showInExplorerData"))
 
         self.popMenu_scenes.addSeparator()
-        scenes_rcAction_4 = QtWidgets.QAction('Scene Info', self)
-        self.popMenu_scenes.addAction(scenes_rcAction_4)
-        scenes_rcAction_3.triggered.connect(lambda: self.scenes_rcAction("showInExplorerData"))
+        self.scenes_rcAction_4 = QtWidgets.QAction('Scene Info', self)
+        self.popMenu_scenes.addAction(self.scenes_rcAction_4)
+        self.scenes_rcAction_4.triggered.connect(lambda: self.scenes_rcAction("showSceneInfo"))
 
         # Thumbnail Right Click Menu
         self.thumbnail_label.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -1008,10 +1008,12 @@ class MainUI(QtWidgets.QMainWindow):
         # SIGNAL CONNECTIONS
         # ------------------
 
+        createProject_fm.triggered.connect(self.createProjectUI)
+
         self.statusBar().showMessage("Status | Idle")
 
-        self.load_radioButton.clicked.connect(self.onModeChanged)
-        self.reference_radioButton.clicked.connect(self.onModeChanged)
+        self.load_radioButton.clicked.connect(self.onModeChange)
+        self.reference_radioButton.clicked.connect(self.onModeChange)
 
         self.category_tabWidget.currentChanged.connect(self.onCategoryChange)
 
@@ -1023,53 +1025,681 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.subProject_comboBox.activated.connect(self.onSubProjectChange)
 
+        self.user_comboBox.activated.connect(self.onUserChange)
+
+        self.showPreview_pushButton.clicked.connect(self.onShowPreview)
+
+        self.addSubProject_pushButton.clicked.connect(self.createSubProjectUI)
+
+        self.setProject_pushButton.clicked.connect(self.setProjectUI)
+
+        self.saveBaseScene_pushButton.clicked.connect(self.saveBaseSceneDialog)
+        saveBaseScene_fm.triggered.connect(self.saveBaseSceneDialog)
+
+        self.saveVersion_pushButton.clicked.connect(self.saveAsVersionDialog)
+        saveVersion_fm.triggered.connect(self.saveAsVersionDialog)
+
+
+    def createSubProjectUI(self):
+
+        newSub, ok = QtWidgets.QInputDialog.getText(self, "Create New Sub-Project", "Enter an unique Sub-Project name:")
+        if ok:
+            if self.manager._nameCheck(newSub):
+                self.subProject_comboBox.clear()
+                self.subProject_comboBox.addItems(self.manager.createSubproject(newSub))
+                self.subProject_comboBox.setCurrentIndex(self.manager.currentSubIndex)
+                self.populateBaseScenes()
+                # self.onSubProjectChange()
+            else:
+                self.infoPop(textTitle="Naming Error", textHeader="Naming Error",
+                             textInfo="Choose an unique name with latin characters without spaces", type="C")
+
+    def createProjectUI(self):
+
+        self.createproject_Dialog = QtWidgets.QDialog(parent=self)
+        self.createproject_Dialog.setObjectName(("createproject_Dialog"))
+        self.createproject_Dialog.resize(419, 249)
+        self.createproject_Dialog.setWindowTitle(("Create New Project"))
+
+        self.projectroot_label = QtWidgets.QLabel(self.createproject_Dialog)
+        self.projectroot_label.setGeometry(QtCore.QRect(20, 30, 71, 20))
+        self.projectroot_label.setText(("Project Path:"))
+        self.projectroot_label.setObjectName(("projectpath_label"))
+
+        currentProjects = os.path.abspath(os.path.join(self.manager.projectDir, os.pardir))
+        self.projectroot_lineEdit = QtWidgets.QLineEdit(self.createproject_Dialog)
+        self.projectroot_lineEdit.setGeometry(QtCore.QRect(90, 30, 241, 21))
+        self.projectroot_lineEdit.setText((currentProjects))
+        self.projectroot_lineEdit.setObjectName(("projectpath_lineEdit"))
+
+        self.browse_pushButton = QtWidgets.QPushButton(self.createproject_Dialog)
+        self.browse_pushButton.setText(("Browse"))
+        self.browse_pushButton.setGeometry(QtCore.QRect(340, 30, 61, 21))
+        self.browse_pushButton.setObjectName(("browse_pushButton"))
+
+        self.resolvedpath_label = QtWidgets.QLabel(self.createproject_Dialog)
+        self.resolvedpath_label.setGeometry(QtCore.QRect(20, 70, 381, 21))
+        self.resolvedpath_label.setObjectName(("resolvedpath_label"))
+
+        self.brandname_label = QtWidgets.QLabel(self.createproject_Dialog)
+        self.brandname_label.setGeometry(QtCore.QRect(20, 110, 111, 20))
+        self.brandname_label.setFrameShape(QtWidgets.QFrame.Box)
+        self.brandname_label.setText(("Brand Name"))
+        self.brandname_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.brandname_label.setObjectName(("brandname_label"))
+
+        self.projectname_label = QtWidgets.QLabel(self.createproject_Dialog)
+        self.projectname_label.setGeometry(QtCore.QRect(140, 110, 131, 20))
+        self.projectname_label.setFrameShape(QtWidgets.QFrame.Box)
+        self.projectname_label.setText(("Project Name"))
+        self.projectname_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.projectname_label.setObjectName(("projectname_label"))
+
+        self.client_label = QtWidgets.QLabel(self.createproject_Dialog)
+        self.client_label.setGeometry(QtCore.QRect(280, 110, 121, 20))
+        self.client_label.setFrameShape(QtWidgets.QFrame.Box)
+        self.client_label.setText(("Client"))
+        self.client_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.client_label.setObjectName(("client_label"))
+
+        self.brandname_lineEdit = QtWidgets.QLineEdit(self.createproject_Dialog)
+        self.brandname_lineEdit.setGeometry(QtCore.QRect(20, 140, 111, 21))
+        self.brandname_lineEdit.setPlaceholderText(("(optional)"))
+        self.brandname_lineEdit.setObjectName(("brandname_lineEdit"))
+
+        self.projectname_lineEdit = QtWidgets.QLineEdit(self.createproject_Dialog)
+        self.projectname_lineEdit.setGeometry(QtCore.QRect(140, 140, 131, 21))
+        self.projectname_lineEdit.setPlaceholderText(("Mandatory Field"))
+        self.projectname_lineEdit.setObjectName(("projectname_lineEdit"))
+
+        self.client_lineEdit = QtWidgets.QLineEdit(self.createproject_Dialog)
+        self.client_lineEdit.setGeometry(QtCore.QRect(280, 140, 121, 21))
+        self.client_lineEdit.setPlaceholderText(("Mandatory Field"))
+        self.client_lineEdit.setObjectName(("client_lineEdit"))
+
+        self.createproject_buttonBox = QtWidgets.QDialogButtonBox(self.createproject_Dialog)
+        self.createproject_buttonBox.setGeometry(QtCore.QRect(30, 190, 371, 32))
+        self.createproject_buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        self.createproject_buttonBox.setStandardButtons(
+            QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
+        self.createproject_buttonBox.setObjectName(("buttonBox"))
+
+        self.cp_button = self.createproject_buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
+        self.cp_button.setText('Create Project')
+
+        def browseProjectRoot():
+            dlg = QtWidgets.QFileDialog()
+            dlg.setFileMode(QtWidgets.QFileDialog.Directory)
+
+            if dlg.exec_():
+                selectedroot = os.path.normpath(dlg.selectedFiles()[0])
+                self.projectroot_lineEdit.setText(selectedroot)
+                resolve()
+
+        def onCreateNewProject():
+            root = self.projectroot_lineEdit.text()
+            pName = self.projectname_lineEdit.text()
+            bName = self.brandname_lineEdit.text()
+            cName = self.client_lineEdit.text()
+            pPath = self.manager.createNewProject(root, pName, bName, cName)
+            self.manager.setProject(pPath)
+            self.onProjectChange()
+            self.createproject_Dialog.close()
+
+        def resolve():
+            if self.projectname_lineEdit.text() == "" or self.client_lineEdit.text() == "" or self.projectroot_lineEdit.text() == "":
+                self.resolvedpath_label.setText("Fill the mandatory fields")
+                self.newProjectPath = None
+                return
+            resolvedPath = self.manager._resolveProjectPath(self.projectroot_lineEdit.text(),
+                                             self.projectname_lineEdit.text(),
+                                             self.brandname_lineEdit.text(),
+                                             self.client_lineEdit.text())
+            self.resolvedpath_label.setText(resolvedPath)
+
+        resolve()
+        self.browse_pushButton.clicked.connect(browseProjectRoot)
+
+        self.brandname_lineEdit.textEdited.connect(lambda: resolve())
+        self.projectname_lineEdit.textEdited.connect(lambda: resolve())
+        self.client_lineEdit.textEdited.connect(lambda: resolve())
+
+        self.createproject_buttonBox.accepted.connect(onCreateNewProject)
+        self.createproject_buttonBox.rejected.connect(self.createproject_Dialog.reject)
+
+        self.brandname_lineEdit.textChanged.connect(
+            lambda: self._checkValidity(self.brandname_lineEdit.text(), self.cp_button,
+                                  self.brandname_lineEdit))
+        self.projectname_lineEdit.textChanged.connect(
+            lambda: self._checkValidity(self.projectname_lineEdit.text(), self.cp_button,
+                                  self.projectname_lineEdit))
+        self.client_lineEdit.textChanged.connect(
+            lambda: self._checkValidity(self.client_lineEdit.text(), self.cp_button, self.client_lineEdit))
+
+        self.createproject_Dialog.show()
+
+    def setProjectUI(self):
+
+        iconFont = QtGui.QFont()
+        iconFont.setPointSize(12)
+        iconFont.setBold(True)
+        iconFont.setWeight(75)
+
+        self.setProject_Dialog = QtWidgets.QDialog(parent=self)
+        self.setProject_Dialog.setObjectName(("setProject_Dialog"))
+        self.setProject_Dialog.resize(982, 450)
+        self.setProject_Dialog.setWindowTitle(("Set Project"))
+
+        gridLayout = QtWidgets.QGridLayout(self.setProject_Dialog)
+        gridLayout.setObjectName(("gridLayout"))
+
+        M1_horizontalLayout = QtWidgets.QHBoxLayout()
+        M1_horizontalLayout.setObjectName(("M1_horizontalLayout"))
+
+        lookIn_label = QtWidgets.QLabel(self.setProject_Dialog)
+        lookIn_label.setText(("Look in:"))
+        lookIn_label.setObjectName(("lookIn_label"))
+
+        M1_horizontalLayout.addWidget(lookIn_label)
+
+        self.lookIn_lineEdit = QtWidgets.QLineEdit(self.setProject_Dialog)
+        self.lookIn_lineEdit.setText((""))
+        self.lookIn_lineEdit.setPlaceholderText((""))
+        self.lookIn_lineEdit.setObjectName(("lookIn_lineEdit"))
+
+        M1_horizontalLayout.addWidget(self.lookIn_lineEdit)
+
+        browse_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(browse_pushButton.sizePolicy().hasHeightForWidth())
+        browse_pushButton.setSizePolicy(sizePolicy)
+        browse_pushButton.setMaximumSize(QtCore.QSize(50, 16777215))
+        browse_pushButton.setText("Browse")
+        browse_pushButton.setObjectName(("browse_pushButton"))
+
+        M1_horizontalLayout.addWidget(browse_pushButton)
+
+        self.back_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.back_pushButton.sizePolicy().hasHeightForWidth())
+        self.back_pushButton.setSizePolicy(sizePolicy)
+        self.back_pushButton.setMaximumSize(QtCore.QSize(30, 16777215))
+        self.back_pushButton.setFont(iconFont)
+        self.back_pushButton.setText(("<"))
+        self.back_pushButton.setShortcut((""))
+        self.back_pushButton.setObjectName(("back_pushButton"))
+
+        M1_horizontalLayout.addWidget(self.back_pushButton)
+
+        self.forward_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
+        self.forward_pushButton.setMaximumSize(QtCore.QSize(30, 16777215))
+        self.forward_pushButton.setFont(iconFont)
+        self.forward_pushButton.setText((">"))
+        self.forward_pushButton.setShortcut((""))
+        self.forward_pushButton.setObjectName(("forward_pushButton"))
+
+        M1_horizontalLayout.addWidget(self.forward_pushButton)
+
+        up_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
+        up_pushButton.setMaximumSize(QtCore.QSize(30, 16777215))
+        up_pushButton.setText(("Up"))
+        up_pushButton.setShortcut((""))
+        up_pushButton.setObjectName(("up_pushButton"))
+
+        M1_horizontalLayout.addWidget(up_pushButton)
+
+        gridLayout.addLayout(M1_horizontalLayout, 0, 0, 1, 1)
+
+        M2_horizontalLayout = QtWidgets.QHBoxLayout()
+        M2_horizontalLayout.setObjectName(("M2_horizontalLayout"))
+
+        M2_splitter = QtWidgets.QSplitter(self.setProject_Dialog)
+        M2_splitter.setHandleWidth(10)
+        M2_splitter.setObjectName(("M2_splitter"))
+
+
+        # self.folders_tableView = QtWidgets.QTableView(self.M2_splitter)
+        self.folders_tableView = QtWidgets.QTreeView(M2_splitter)
+        self.folders_tableView.setMinimumSize(QtCore.QSize(0, 0))
+        self.folders_tableView.setDragEnabled(True)
+        self.folders_tableView.setDragDropMode(QtWidgets.QAbstractItemView.DragOnly)
+        self.folders_tableView.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.folders_tableView.setObjectName(("folders_tableView"))
+
+        self.folders_tableView.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.folders_tableView.setItemsExpandable(False)
+        self.folders_tableView.setRootIsDecorated(False)
+        self.folders_tableView.setSortingEnabled(True)
+        self.folders_tableView.sortByColumn(0, QtCore.Qt.SortOrder.AscendingOrder)
+
+
+        verticalLayoutWidget = QtWidgets.QWidget(M2_splitter)
+        verticalLayoutWidget.setObjectName(("verticalLayoutWidget"))
+
+        M2_S2_verticalLayout = QtWidgets.QVBoxLayout(verticalLayoutWidget)
+        M2_S2_verticalLayout.setContentsMargins(0, 10, 0, 10)
+        M2_S2_verticalLayout.setSpacing(6)
+        M2_S2_verticalLayout.setObjectName(("M2_S2_verticalLayout"))
+
+        favorites_label = QtWidgets.QLabel(verticalLayoutWidget)
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        font.setBold(True)
+        font.setWeight(75)
+        favorites_label.setFont(font)
+        favorites_label.setText(("Bookmarks:"))
+        favorites_label.setObjectName(("favorites_label"))
+
+        M2_S2_verticalLayout.addWidget(favorites_label)
+
+        self.favorites_listWidget = DropListWidget(verticalLayoutWidget)
+        self.favorites_listWidget.setAlternatingRowColors(True)
+        self.favorites_listWidget.setObjectName(("favorites_listWidget"))
+
+        M2_S2_verticalLayout.addWidget(self.favorites_listWidget)
+        M2_S2_horizontalLayout = QtWidgets.QHBoxLayout()
+        M2_S2_horizontalLayout.setObjectName(("M2_S2_horizontalLayout"))
+
+        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+
+        M2_S2_horizontalLayout.addItem(spacerItem)
+
+        remove_pushButton = QtWidgets.QPushButton(verticalLayoutWidget)
+        remove_pushButton.setMaximumSize(QtCore.QSize(35, 35))
+        remove_pushButton.setFont(iconFont)
+        remove_pushButton.setText(("-"))
+        remove_pushButton.setObjectName(("remove_pushButton"))
+
+        M2_S2_horizontalLayout.addWidget(remove_pushButton)
+
+        add_pushButton = QtWidgets.QPushButton(verticalLayoutWidget)
+        add_pushButton.setMaximumSize(QtCore.QSize(35, 35))
+        add_pushButton.setFont(iconFont)
+        add_pushButton.setText(("+"))
+        add_pushButton.setObjectName(("add_pushButton"))
+
+        M2_S2_horizontalLayout.addWidget(add_pushButton)
+
+        M2_S2_verticalLayout.addLayout(M2_S2_horizontalLayout)
+
+        M2_horizontalLayout.addWidget(M2_splitter)
+
+        gridLayout.addLayout(M2_horizontalLayout, 1, 0, 1, 1)
+
+        M3_horizontalLayout = QtWidgets.QHBoxLayout()
+
+        M3_horizontalLayout.setContentsMargins(0, 20, -1, -1)
+
+        M3_horizontalLayout.setObjectName(("M3_horizontalLayout"))
+
+        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+
+        M3_horizontalLayout.addItem(spacerItem1)
+
+        cancel_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
+        cancel_pushButton.setMaximumSize(QtCore.QSize(70, 16777215))
+        cancel_pushButton.setText("Cancel")
+        cancel_pushButton.setObjectName(("cancel_pushButton"))
+
+        M3_horizontalLayout.addWidget(cancel_pushButton, QtCore.Qt.AlignRight)
+
+        set_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
+        set_pushButton.setMaximumSize(QtCore.QSize(70, 16777215))
+        set_pushButton.setText("Set")
+        set_pushButton.setObjectName(("set_pushButton"))
+
+        M3_horizontalLayout.addWidget(set_pushButton, QtCore.Qt.AlignRight)
+
+        gridLayout.addLayout(M3_horizontalLayout, 2, 0, 1, 1)
+
+        verticalLayoutWidget.raise_()
+
+        M2_splitter.setStretchFactor(0,1)
+
+        ## Initial Stuff
+        self.projectsRoot = os.path.abspath(os.path.join(self.manager.projectDir, os.pardir))
+        self.browser = Browse()
+        self.spActiveProjectPath = None
+        self.__flagView = True
+
+        self.setPmodel = QtWidgets.QFileSystemModel()
+        self.setPmodel.setRootPath(self.projectsRoot)
+        self.setPmodel.setFilter(QtCore.QDir.AllDirs | QtCore.QDir.NoDotAndDotDot | QtCore.QDir.Time)
+
+        self.folders_tableView.setModel(self.setPmodel)
+        self.folders_tableView.setRootIndex(self.setPmodel.index(self.projectsRoot))
+        self.folders_tableView.hideColumn(1)
+        self.folders_tableView.hideColumn(2)
+        self.folders_tableView.setColumnWidth(0,400)
+
+        self.favList = self.manager._loadFavorites()
+        self.favorites_listWidget.addItems([x[0] for x in self.favList])
+
+        self.lookIn_lineEdit.setText(self.projectsRoot)
+
+        def navigate(command, index=None):
+            if command == "init":
+                # feed the initial data
+                self.browser.addData(self.projectsRoot)
+
+            if command == "up":
+                self.projectsRoot = os.path.abspath(os.path.join(self.projectsRoot, os.pardir))
+                self.browser.addData(self.projectsRoot)
+
+            if command == "back":
+                self.browser.backward()
+
+            if command == "forward":
+                self.browser.forward()
+
+            if command == "browse":
+                dir = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory"))
+                if dir:
+                    self.projectsRoot = dir
+                    self.browser.addData(self.projectsRoot)
+                else:
+                    return
+
+            if command == "folder":
+                index = self.folders_tableView.currentIndex()
+                self.projectsRoot = os.path.normpath((self.setPmodel.filePath(index)))
+                self.browser.addData(self.projectsRoot)
+
+            if command == "lineEnter":
+                dir = self.lookIn_lineEdit.text()
+                if os.path.isdir(dir):
+                    self.projectsRoot = dir
+                    self.browser.addData(self.projectsRoot)
+                else:
+                    self.lookIn_lineEdit.setText(self.projectsRoot)
+
+            self.forward_pushButton.setDisabled(self.browser.isForwardLocked())
+            self.back_pushButton.setDisabled(self.browser.isBackwardLocked())
+            self.folders_tableView.setRootIndex(self.setPmodel.index(self.browser.getData()))
+            self.lookIn_lineEdit.setText(self.browser.getData())
+
+        def onRemoveFavs():
+
+            row = self.favorites_listWidget.currentRow()
+            print row
+            if row == -1:
+                return
+            # item = self.favList[row]
+            self.favList = self.manager._removeFromFavorites(row)
+            # block the signal to prevent unwanted cycle
+
+            self.favorites_listWidget.blockSignals(True)
+            self.favorites_listWidget.takeItem(row)
+            self.favorites_listWidget.blockSignals(False)
+
+        def onAddFavs():
+            index = self.folders_tableView.currentIndex()
+            if index.row() == -1:  # no row selected, abort
+                return
+            fullPath = self.setPmodel.filePath(index)
+            onDragAndDrop(fullPath)
+
+        def onDragAndDrop(path):
+            normPath = os.path.normpath(path)
+
+            path, fName = os.path.split(normPath)
+            if [fName, normPath] in self.favList:
+                return
+            self.favorites_listWidget.addItem(fName)
+            self.favList = self.manager._addToFavorites(fName, normPath)
+
+        def favoritesActivated():
+            # block the signal to prevent unwanted cycle
+            self.folders_tableView.selectionModel().blockSignals(True)
+            row = self.favorites_listWidget.currentRow()
+            self.spActiveProjectPath = self.favList[row][1]
+
+            # clear the selection in folders view
+            self.folders_tableView.setCurrentIndex(self.setPmodel.index(self.projectsRoot))
+            self.folders_tableView.selectionModel().blockSignals(False)
+
+        def foldersViewActivated():
+            # block the signal to prevent unwanted cycle
+            self.favorites_listWidget.blockSignals(True)
+            index = self.folders_tableView.currentIndex()
+            self.spActiveProjectPath = os.path.normpath((self.setPmodel.filePath(index)))
+
+
+            # clear the selection in favorites view
+            self.favorites_listWidget.setCurrentRow(-1)
+            self.favorites_listWidget.blockSignals(False)
+
+        def setProject():
+            self.manager.setProject(self.spActiveProjectPath)
+            self.onProjectChange()
+            self.setProject_Dialog.close()
+
+        navigate("init")
+
+        ## SIGNALS & SLOTS
+        self.favorites_listWidget.dropped.connect(lambda path: onDragAndDrop(path))
+        remove_pushButton.clicked.connect(onRemoveFavs)
+        add_pushButton.clicked.connect(onAddFavs)
+
+        self.favorites_listWidget.doubleClicked.connect(setProject)
+
+        up_pushButton.clicked.connect(lambda: navigate("up"))
+        self.back_pushButton.clicked.connect(lambda: navigate("back"))
+        self.forward_pushButton.clicked.connect(lambda: navigate("forward"))
+        browse_pushButton.clicked.connect(lambda: navigate("browse"))
+        self.lookIn_lineEdit.returnPressed.connect(lambda: navigate("lineEnter"))
+        self.folders_tableView.doubleClicked.connect(lambda index: navigate("folder", index=index))
+
+        self.favorites_listWidget.currentItemChanged.connect(favoritesActivated)
+        self.folders_tableView.selectionModel().currentRowChanged.connect(foldersViewActivated)
+
+        self.favorites_listWidget.doubleClicked.connect(setProject)
+
+        cancel_pushButton.clicked.connect(self.setProject_Dialog.close)
+        set_pushButton.clicked.connect(setProject)
+        # set_pushButton.clicked.connect(self.setProject_Dialog.close)
+
+        self.setProject_Dialog.show()
+
+    def saveBaseSceneDialog(self):
+        self.save_Dialog = QtWidgets.QDialog(parent=self)
+        self.save_Dialog.setModal(True)
+        self.save_Dialog.setObjectName(("save_Dialog"))
+        self.save_Dialog.resize(500, 240)
+        self.save_Dialog.setMinimumSize(QtCore.QSize(500, 240))
+        self.save_Dialog.setMaximumSize(QtCore.QSize(500, 240))
+        self.save_Dialog.setWindowTitle(("Save New Base Scene"))
+
+        self.sdNotes_label = QtWidgets.QLabel(self.save_Dialog)
+        self.sdNotes_label.setGeometry(QtCore.QRect(260, 15, 61, 20))
+        self.sdNotes_label.setText(("Notes"))
+        self.sdNotes_label.setObjectName(("sdNotes_label"))
+
+        self.sdNotes_textEdit = QtWidgets.QTextEdit(self.save_Dialog)
+        self.sdNotes_textEdit.setGeometry(QtCore.QRect(260, 40, 215, 180))
+        self.sdNotes_textEdit.setObjectName(("sdNotes_textEdit"))
+
+        self.sdSubP_label = QtWidgets.QLabel(self.save_Dialog)
+        self.sdSubP_label.setGeometry(QtCore.QRect(20, 30, 61, 20))
+        self.sdSubP_label.setFrameShape(QtWidgets.QFrame.Box)
+        self.sdSubP_label.setText(("Sub-Project"))
+        self.sdSubP_label.setObjectName(("sdSubP_label"))
+
+        self.sdSubP_comboBox = QtWidgets.QComboBox(self.save_Dialog)
+        self.sdSubP_comboBox.setFocus()
+        self.sdSubP_comboBox.setGeometry(QtCore.QRect(90, 30, 151, 22))
+        self.sdSubP_comboBox.setObjectName(("sdCategory_comboBox"))
+        self.sdSubP_comboBox.addItems((self.manager._subProjectsList))
+        self.sdSubP_comboBox.setCurrentIndex(self.subProject_comboBox.currentIndex())
+
+        self.sdName_label = QtWidgets.QLabel(self.save_Dialog)
+        self.sdName_label.setGeometry(QtCore.QRect(20, 70, 61, 20))
+        self.sdName_label.setFrameShape(QtWidgets.QFrame.Box)
+        self.sdName_label.setText(("Name"))
+        self.sdName_label.setObjectName(("sdName_label"))
+
+        self.sdName_lineEdit = QtWidgets.QLineEdit(self.save_Dialog)
+        self.sdName_lineEdit.setGeometry(QtCore.QRect(90, 70, 151, 20))
+        self.sdName_lineEdit.setCursorPosition(0)
+        self.sdName_lineEdit.setPlaceholderText(("Choose an unique name"))
+        self.sdName_lineEdit.setObjectName(("sdName_lineEdit"))
+
+        self.sdCategory_label = QtWidgets.QLabel(self.save_Dialog)
+        self.sdCategory_label.setGeometry(QtCore.QRect(20, 110, 61, 20))
+        self.sdCategory_label.setFrameShape(QtWidgets.QFrame.Box)
+        self.sdCategory_label.setText(("Category"))
+        self.sdCategory_label.setObjectName(("sdCategory_label"))
+
+        self.sdCategory_comboBox = QtWidgets.QComboBox(self.save_Dialog)
+        self.sdCategory_comboBox.setFocus()
+        self.sdCategory_comboBox.setGeometry(QtCore.QRect(90, 110, 151, 22))
+        self.sdCategory_comboBox.setObjectName(("sdCategory_comboBox"))
+        for i in range(len(self.manager._categories)):
+            self.sdCategory_comboBox.addItem((self.manager._categories[i]))
+            self.sdCategory_comboBox.setItemText(i, (self.manager._categories[i]))
+        self.sdCategory_comboBox.setCurrentIndex(self.category_tabWidget.currentIndex())
+
+        self.sdMakeReference_checkbox = QtWidgets.QCheckBox("Make it Reference", self.save_Dialog)
+        self.sdMakeReference_checkbox.setGeometry(QtCore.QRect(130, 150, 151, 22))
+
+        self.sd_buttonBox = QtWidgets.QDialogButtonBox(self.save_Dialog)
+        self.sd_buttonBox.setGeometry(QtCore.QRect(20, 190, 220, 32))
+        self.sd_buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        self.sd_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        self.sd_buttonBox.setObjectName(("sd_buttonBox"))
+
+        def saveCommand():
+            category = self.sdCategory_comboBox.currentText()
+            name = self.sdName_lineEdit.text()
+            subIndex = self.sdSubP_comboBox.currentIndex()
+            makeReference = self.sdMakeReference_checkbox.checkState()
+            notes = self.sdNotes_textEdit.toPlainText()
+            sceneFormat = "mb"
+            self.manager.saveBaseScene(category, name, subIndex, makeReference, notes, sceneFormat)
+            self.populateBaseScenes()
+
+        # SIGNALS
+        # -------
+        self.sdName_lineEdit.textChanged.connect(
+            lambda: self._checkValidity(self.sdName_lineEdit.text(), self.sd_buttonBox, self.sdName_lineEdit))
+
+        self.sd_buttonBox.accepted.connect(saveCommand)
+
+
+        self.sd_buttonBox.accepted.connect(self.save_Dialog.accept)
+        self.sd_buttonBox.rejected.connect(self.save_Dialog.reject)
+        QtCore.QMetaObject.connectSlotsByName(self.save_Dialog)
+
+        self.save_Dialog.show()
+
+    def saveAsVersionDialog(self):
+        saveV_Dialog = QtWidgets.QDialog(parent=self)
+        saveV_Dialog.setModal(True)
+        saveV_Dialog.setObjectName(("saveV_Dialog"))
+        saveV_Dialog.resize(255, 290)
+        saveV_Dialog.setMinimumSize(QtCore.QSize(255, 290))
+        saveV_Dialog.setMaximumSize(QtCore.QSize(255, 290))
+        saveV_Dialog.setWindowTitle(("Save As Version"))
+
+        svNotes_label = QtWidgets.QLabel(saveV_Dialog)
+        svNotes_label.setGeometry(QtCore.QRect(15, 15, 61, 20))
+        svNotes_label.setText(("Version Notes"))
+        svNotes_label.setObjectName(("sdNotes_label"))
+
+        self.svNotes_textEdit = QtWidgets.QTextEdit(saveV_Dialog)
+        self.svNotes_textEdit.setGeometry(QtCore.QRect(15, 40, 215, 170))
+        self.svNotes_textEdit.setObjectName(("sdNotes_textEdit"))
+
+        self.svMakeReference_checkbox = QtWidgets.QCheckBox("Make it Reference", saveV_Dialog)
+        self.svMakeReference_checkbox.setGeometry(QtCore.QRect(130, 215, 151, 22))
+        self.svMakeReference_checkbox.setChecked(False)
+
+        sv_buttonBox = QtWidgets.QDialogButtonBox(saveV_Dialog)
+        sv_buttonBox.setGeometry(QtCore.QRect(20, 250, 220, 32))
+        sv_buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        sv_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Save | QtWidgets.QDialogButtonBox.Cancel)
+
+        buttonS = sv_buttonBox.button(QtWidgets.QDialogButtonBox.Save)
+        buttonS.setText('Save As Version')
+        buttonC = sv_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel)
+        buttonC.setText('Cancel')
+
+        sv_buttonBox.setObjectName(("sd_buttonBox"))
+
+        def saveAsVersionCommand():
+            sceneFile = self.manager.saveVersion(makeReference=self.svMakeReference_checkbox.checkState(),
+                                     versionNotes=self.svNotes_textEdit.toPlainText())
+
+            if not sceneFile == -1:
+                self.statusBar().showMessage("Status | Version Saved => %s" % sceneFile)
+            self.manager.currentVersionIndex = self.manager._currentVersionIndex
+            # TODO // NEEDS TO BE FIXED
+            self.onVersionChange()
+
+
+
+        # SIGNALS
+        # -------
+        sv_buttonBox.accepted.connect(saveAsVersionCommand)
+        sv_buttonBox.accepted.connect(saveV_Dialog.accept)
+        sv_buttonBox.rejected.connect(saveV_Dialog.reject)
+        QtCore.QMetaObject.connectSlotsByName(saveV_Dialog)
+
+        sceneInfo = self.manager.getOpenSceneInfo()
+        if sceneInfo:
+            saveV_Dialog.show()
+        else:
+            self.infoPop(textInfo="Version Saving not possible",
+                         textHeader="Current Scene is not a Base Scene. Only versions of Base Scenes can be saved", textTitle="Not a Base File", type="C")
+
+
+
     def scenes_rcAction(self, command):
         if command == "importScene":
             # TODO // add import function to root class
             print "Import Scene at cursor position"
         if command == "showInExplorerMaya":
-            row = self.scenes_listWidget.currentRow()
-            if not row == -1:
-                if self.manager.currentPlatform == "Windows":
-                    os.startfile(self.manager.currentBaseScenePath)
-                if self.manager.currentPlatform == "Linux":
-                    os.system('nautilus %s' % self.manager.currentBaseScenePath)
+            self.manager.showInExplorer(self.manager.currentBaseScenePath)
 
-        # if command == "showInExplorerPB":
-        #     row = self.scenes_listWidget.currentRow()
-        #     if not row == -1:
-        #         sceneName = "%s.json" % self.scenes_listWidget.currentItem().text()
-        #         # takethefirstjson as example for rootpath
-        #         jPath = os.path.join(pathOps(self.scenesInCategory[0], "path"), sceneName)
-        #
-        #         # sceneData = loadJson(os.path.join(jPath, sceneName))
-        #         sceneData = self.manager.database.loadJson(jPath)
-        #
-        #         path = os.path.join(os.path.normpath(self.manager.scenePaths["projectPath"]), os.path.normpath(sceneData["Path"]))
-        #         path = path.replace("scenes", "Playblasts")
-        #         if os.path.isdir(path):
-        #             if self.manager.currentPlatform == "Windows":
-        #                 os.startfile(path)
-        #             if self.manager.currentPlatform == "Linux":
-        #                 os.system('nautilus %s' % path)
-        #         else:
-        #             self.infoPop(textTitle="", textHeader="Scene does not have a playblast",
-        #                          textInfo="There is no playblast folder created for this scene yet")
-        #
-        # if command == "showInExplorerData":
-        #     row = self.scenes_listWidget.currentRow()
-        #     if not row == -1:
-        #         try:
-        #             path = pathOps(self.scenesInCategory[row], "path")
-        #         except:
-        #             path = pathOps(self.scenesInCategory[0], "path")
-        #         if self.manager.currentPlatform == "Windows":
-        #             os.startfile(path)
-        #         if self.manager.currentPlatform == "Linux":
-        #             os.system('nautilus %s' % path)
+        if command == "showInExplorerPB":
+            self.manager.showInExplorer(self.manager.currentPreviewPath)
 
+        if command == "showInExplorerData":
+            filePath = self.manager._baseScenesInCategory[self.manager.currentBaseSceneName]
+            dirPath = os.path.dirname(filePath)
+            self.manager.showInExplorer(dirPath)
+
+        if command == "showSceneInfo":
+            textInfo = pprint.pformat(self.manager._currentSceneInfo)
+            print self.manager._currentSceneInfo
+            self.messageDialog = QtWidgets.QDialog()
+            self.messageDialog.setWindowTitle("Scene Info")
+            self.messageDialog.resize(800, 700)
+            self.messageDialog.show()
+            messageLayout = QtWidgets.QVBoxLayout(self.messageDialog)
+            messageLayout.setContentsMargins(0, 0, 0, 0)
+            helpText = QtWidgets.QTextEdit()
+            helpText.setReadOnly(True)
+            helpText.setStyleSheet("background-color: rgb(255, 255, 255);")
+            helpText.setStyleSheet(""
+                                   "border: 20px solid black;"
+                                   "background-color: black;"
+                                   "font-size: 16px"
+                                   "")
+            helpText.setText(textInfo)
+            messageLayout.addWidget(helpText)
 
     def onContextMenu_scenes(self, point):
+        row = self.scenes_listWidget.currentRow()
+        if row == -1:
+            return
+        # check paths
+        self.scenes_rcAction_1.setEnabled(os.path.isdir(self.manager.currentBaseScenePath))
+        self.scenes_rcAction_2.setEnabled(os.path.isdir(self.manager.currentPreviewPath))
         # show context menu
         self.popMenu_scenes.exec_(self.scenes_listWidget.mapToGlobal(point))
     def onContextMenu_thumbnail(self, point):
@@ -1081,24 +1711,41 @@ class MainUI(QtWidgets.QMainWindow):
         self.onVersionChange()
         self.statusBar().showMessage(
             "Status | Version {1} is the new reference of {0}".format(self.manager.currentBaseSceneName, self.manager.currentVersionIndex))
+        currentRow = self.scenes_listWidget.currentRow()
+        self.populateBaseScenes()
+        self.scenes_listWidget.setCurrentRow(currentRow)
 
-    def onPreviewChange(self):
-        #get/set Previews
-        pass
+    def onUserChange(self):
+        self.manager.currentUser = self.user_comboBox.currentText()
+        print self.manager.currentUser
 
-    def onSubProjectChange(self):
-        pass
+    def onShowPreview(self):
+        # TODO // TEST IT
+        row = self.scenes_listWidget.currentRow()
+        if row == -1:
+            return
+        cameraList = self.manager.getPreviews()
+        if len(self.manager.getPreviews()) == 1:
+            self.manager.playPreview(cameraList[0])
+        else:
+            zortMenu = QtWidgets.QMenu()
+
+            for z in cameraList:
+                tempAction = QtWidgets.QAction(z, self)
+                zortMenu.addAction(tempAction)
+                # tempAction.triggered.connect(lambda item=cameraList[z]: self.onPlayPb(item))  ## Take note about the usage of lambda "item=pbDict[z]" makes it possible using the loop
+                tempAction.triggered.connect(lambda item=cameraList[z]: self.manager.playPreview(item)) ## Take note about the usage of lambda "item=pbDict[z]" makes it possible using the loop
+
+            zortMenu.exec_((QtGui.QCursor.pos()))
 
     def onVersionChange(self):
-        logger.debug("onVersionChange%s" %self.version_comboBox.currentIndex())
+        # logger.debug("onVersionChange%s" %self.version_comboBox.currentIndex())
 
         if self.version_comboBox.currentIndex() is not -1:
             self.manager.currentVersionIndex = self.version_comboBox.currentIndex() + 1
-        # print self.manager.getThumbnail()
+
         # clear Notes and verison combobox
-
         self.notes_textEdit.clear()
-
 
         # update notes
         self.notes_textEdit.setPlainText(self.manager.getNotes())
@@ -1117,7 +1764,7 @@ class MainUI(QtWidgets.QMainWindow):
         #clear version_combobox
         self.version_comboBox.clear()
 
-        logger.debug("onBaseSceneChange")
+        # logger.debug("onBaseSceneChange")
         row = self.scenes_listWidget.currentRow()
         if row == -1:
             self.manager.currentBaseSceneName = ""
@@ -1129,13 +1776,7 @@ class MainUI(QtWidgets.QMainWindow):
         versionData = self.manager.getVersions()
         for num in range(len(versionData)):
             self.version_comboBox.addItem("v{0}".format(str(num + 1).zfill(3)))
-        logger.debug("curIn %s" %self.manager.currentVersionIndex)
         self.version_comboBox.setCurrentIndex(self.manager.currentVersionIndex-1)
-        # if self.manager.currentVersionIndex != len(versionData):
-        #     self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: yellow")
-        # else:
-        #     self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
-
         self.onVersionChange()
 
     def onSubProjectChange(self):
@@ -1143,28 +1784,24 @@ class MainUI(QtWidgets.QMainWindow):
         self.onCategoryChange()
 
     def onProjectChange(self):
-        self.onSubProjectChange()
-        self.onCategoryChange()
-        self.onBaseSceneChange()
-        self.onVersionChange()
-        self.onPreviewChange()
-
+        self.initMainUI()
+        # self.onSubProjectChange()
+        # self.onCategoryChange()
+        # self.onBaseSceneChange()
+        # self.onVersionChange()
+        # self.onPreviewChange()
 
     def onCategoryChange(self):
-        logger.debug("onCategoryChange %s" %self.category_tabWidget.currentIndex())
+        # logger.debug("onCategoryChange %s" %self.category_tabWidget.currentIndex())
         self.manager.currentTabIndex = self.category_tabWidget.currentIndex()
         self.populateBaseScenes()
         self.onBaseSceneChange()
 
-    def onModeChanged(self):
+    def onModeChange(self):
         state = self.load_radioButton.isChecked()
-        logger.debug("onModeChanged_%s" %state)
-        # logger.warning(state)
+
         self._vEnableDisable(state)
-        # self.version_label.setEnabled(state)
-        # self.notes_label.setEnabled(state)
-        # self.notes_textEdit.setEnabled(state)
-        # self.showPreview_pushButton.setEnabled(state)
+
         if state:
             self.loadScene_pushButton.setText("Load Scene")
             self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: grey;")
@@ -1177,7 +1814,7 @@ class MainUI(QtWidgets.QMainWindow):
 
     def populateBaseScenes(self):
         self.scenes_listWidget.clear()
-        logger.debug("populateBaseScenes")
+        # logger.debug("populateBaseScenes")
         baseScenesDict = self.manager.getBaseScenesInCategory()
         if self.reference_radioButton.isChecked():
             for key in baseScenesDict:
@@ -1188,7 +1825,7 @@ class MainUI(QtWidgets.QMainWindow):
             codeDict = {-1: QtGui.QColor(255, 0, 0, 255), 1: QtGui.QColor(0, 255, 0, 255),
                         0: QtGui.QColor(255, 255, 0, 255)}  # dictionary for color codes red, green, yellow
 
-            for key in baseScenesDict:
+            for key in sorted(baseScenesDict):
                 retCode = self.manager.checkReference(baseScenesDict[key]) # returns -1, 0 or 1 for color ref
                 color = codeDict[retCode]
                 listItem = QtWidgets.QListWidgetItem()
@@ -1197,9 +1834,7 @@ class MainUI(QtWidgets.QMainWindow):
                 self.scenes_listWidget.addItem(listItem)
 
     def initMainUI(self):
-        logger.debug("initMainUI")
-        # #remember mode
-        #
+        # logger.debug("initMainUI")
         openSceneInfo = self.manager.getOpenSceneInfo()
         if openSceneInfo: ## getSceneInfo returns None if there is no json database fil
             self.baseScene_lineEdit.setText("%s ==> %s ==> %s" % (openSceneInfo["subProject"], openSceneInfo["category"], openSceneInfo["shotName"]))
@@ -1208,46 +1843,61 @@ class MainUI(QtWidgets.QMainWindow):
             self.baseScene_lineEdit.setText("Current Scene is not a Base Scene")
             self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: yellow")
 
+        # init project
+        self.project_lineEdit.setText(self.manager.projectDir)
 
+        # init subproject
+        self.subProject_comboBox.clear()
         self.subProject_comboBox.addItems(self.manager.getSubProjects())
         self.subProject_comboBox.setCurrentIndex(self.manager.currentSubIndex)
-        # #remember category
-        # logger.warning(self.manager.currentTabIndex)
-        # self.category_tabWidget.setCurrentIndex(self.manager.currentTabIndex)
-        self.project_lineEdit.setText(self.manager.projectDir)
+
+        # init base scenes
         self.populateBaseScenes()
 
+        # init users
+        self.user_comboBox.clear()
         self.user_comboBox.addItems(self.manager.getUsers())
+        index = self.user_comboBox.findText(self.manager.currentUser, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+            self.user_comboBox.setCurrentIndex(index)
+
         # disable the version related stuff
+        self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
         self._vEnableDisable(False)
 
-
-
-
+    def _checkValidity(self, text, button, lineEdit):
+        if self.manager._nameCheck(text):
+            lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: white")
+            button.setEnabled(True)
+        else:
+            lineEdit.setStyleSheet("background-color: red; color: black")
+            button.setEnabled(False)
 
     def _vEnableDisable(self, state):
         self.version_comboBox.setEnabled(state)
-        self.showPreview_pushButton.setEnabled(state)
+        if state == True and self.manager.getPreviews():
+            self.showPreview_pushButton.setEnabled(True)
+        else:
+            self.showPreview_pushButton.setEnabled(False)
         self.makeReference_pushButton.setEnabled(state)
         self.addNote_pushButton.setEnabled(state)
 
         self.version_label.setEnabled(state)
 
+    def infoPop(self, textTitle="info", textHeader="", textInfo="", type="I"):
+        self.msg = QtWidgets.QMessageBox(parent=self)
+        if type == "I":
+            self.msg.setIcon(QtWidgets.QMessageBox.Information)
+        if type == "C":
+            self.msg.setIcon(QtWidgets.QMessageBox.Critical)
 
-    # def onModeChanged(self):
-    #     state = self.load_radioButton.isChecked()
-    #     self.version_label.setEnabled(state)
-    #     self.makeReference_pushButton.setEnabled(state)
-    #     self.notes_label.setEnabled(state)
-    #     self.notes_textEdit.setEnabled(state)
-    #     self.showPreview_pushButton.setEnabled(state)
-    #     if state:
-    #         self.loadScene_pushButton.setText("Load Scene")
-    #         self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: grey;")
-    #     else:
-    #         self.loadScene_pushButton.setText("Reference Scene")
-    #         self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: cyan;")
-    #     self.populateBaseScenes()
+        self.msg.setText(textHeader)
+        self.msg.setInformativeText(textInfo)
+        self.msg.setWindowTitle(textTitle)
+        self.msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        self.msg.show()
+
+
 
 class ImageWidget(QtWidgets.QLabel):
     def __init__(self, parent=None):
@@ -1262,5 +1912,71 @@ class ImageWidget(QtWidgets.QLabel):
         self.setMinimumHeight(h/self.aspectRatio)
         self.setMaximumHeight(h/self.aspectRatio)
 
+class DropListWidget(QtWidgets.QListWidget):
+    dropped = Qt.QtCore.Signal(str)
+    def __init__(self, type, parent=None):
+        super(DropListWidget, self).__init__(parent)
+        self.setAcceptDrops(True)
 
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasFormat('text/uri-list'):
+            event.accept()
+        else:
+            event.ignore()
+
+    def dragMoveEvent(self, event):
+        if event.mimeData().hasFormat('text/uri-list'):
+            event.setDropAction(QtCore.Qt.CopyAction)
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        rawPath = event.mimeData().data('text/uri-list').__str__()
+        path = rawPath.replace("file:///", "").splitlines()[0]
+        self.dropped.emit(path)
+
+class Browse(object):
+    def __init__(self):
+        super(Browse, self).__init__()
+        self.history = []
+        self.index = 0
+        self.undoCount = 10
+    def forward(self):
+        if not self.isForwardLocked():
+            self.index += 1
+        else:
+            pass
+    def backward(self):
+        if not self.isBackwardLocked():
+            self.index -= 1
+        else:
+            pass
+    def addData(self, data):
+        # if the incoming data is identical with the current, do nothing
+        try:
+            currentData = self.history[self.index]
+            if data == currentData:
+                return
+        except IndexError:
+            pass
+        # delete history after index
+        del self.history[self.index+1:]
+        self.history.append(data)
+        if len(self.history) > self.undoCount:
+            self.history.pop(0)
+        self.index = len(self.history)-1
+        # the new data writes the history, so there is no future
+        self.forwardLimit = True
+        # but there is past
+        self.backwardLimit = False
+    def getData(self, index=None):
+        if index:
+            return self.history[index]
+        else:
+            return self.history[self.index]
+    def isBackwardLocked(self):
+        return self.index == 0
+    def isForwardLocked(self):
+        return self.index == (len(self.history)-1)
 

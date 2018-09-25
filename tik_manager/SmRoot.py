@@ -185,6 +185,12 @@ class RootManager(object):
         """Returns Current Project Directory"""
         return self._pathsDict["projectDir"]
 
+    @projectDir.setter
+    def projectDir(self, path):
+        self._pathsDict["projectDir"] = path
+        self.init_paths()
+        self.init_database()
+
     @property
     def subProject(self):
         """Returns the name of the current sub-project"""
@@ -311,7 +317,17 @@ class RootManager(object):
     def currentPreviewPath(self):
         """Returns absolute path of preview folder of the Base scene at cursor position"""
         # TODO // CONTINUE
-        # return self._
+        if self._currentSceneInfo["SubProject"] is not "None":
+            path = os.path.join(self._pathsDict["previewsDir"], self._currentSceneInfo["Category"],
+                                self._currentSceneInfo["SubProject"], self._currentSceneInfo["Name"])
+        else:
+            path = os.path.join(self._pathsDict["previewsDir"], self._currentSceneInfo["Category"],
+                                self._currentSceneInfo["SubProject"], self._currentSceneInfo["Name"])
+        return path
+        # if os.path.isdir(path):
+        #     return path
+        # else:
+        #     return ""
 
     @property
     def currentVersionIndex(self):
@@ -321,7 +337,6 @@ class RootManager(object):
     @currentVersionIndex.setter
     def currentVersionIndex(self, indexData):
         """Moves the cursor to given Version index"""
-        logger.warning(indexData)
         if indexData <= 0:
             self._currentVersionIndex = -1
             self._currentThumbFile = ""
@@ -482,7 +497,10 @@ class RootManager(object):
         """returns (String) absolute thumbnail path of version on cursor position"""
         return os.path.join(self.projectDir, self._currentThumbFile)
 
-
+    def getFavorites(self):
+        """returns List of favorite projects"""
+        self._bookmarksList = self.loadFavorites(self.bookmarksFile)  # not immediate
+        return self._bookmarksList
 
 
 
@@ -618,8 +636,9 @@ class RootManager(object):
         file.write('workspace -fr "IGES_DCE" "";\n')
         file.write('workspace -fr "shaders" "renderData/shaders";\n')
         file.write('workspace -fr "UG_DCE" "";\n')
-
         file.close()
+
+        return resolvedPath
 
     def createSubproject(self, nameOfSubProject):
         if nameOfSubProject in self._subProjectsList:
@@ -629,15 +648,14 @@ class RootManager(object):
         self._saveSubprojects(self._subProjectsList)
         self.currentSubIndex = len(self._subProjectsList)-1
         return self._subProjectsList
-        ## What we need:
-        # PATH(abs) software database (jsonPath)
-        # PATH(s)(abs, list) sub-projects
+
 
     def showInExplorer(self, path):
         """Opens the path in Windows Explorer(Windows) or Nautilus(Linux)"""
-        if not os.path.isdir(path):
-            logger.error("path is not a directory path or does not exist")
-            return
+
+        # if not path or not os.path.isdir(path):
+        #     logger.error("path is not a directory path or does not exist")
+        #     return
         if self.currentPlatform == "Windows":
             os.startfile(path)
         elif self.currentPlatform == "Linux":
@@ -750,6 +768,7 @@ class RootManager(object):
 
 
 
+
     def addNote(self, note):
         """Adds a note to the version at current position"""
         if not self._currentBaseSceneName:
@@ -763,9 +782,10 @@ class RootManager(object):
         self._currentSceneInfo["Versions"][self._currentVersionIndex-1][1] = self._currentNotes
         self._dumpJson(self._currentSceneInfo, self._baseScenesInCategory[self._currentBaseSceneName])
 
-    def playPreview(self):
+    def playPreview(self, camera):
         """Runs the playblast at cursor position"""
-        absPath = os.path.join(self.projectDir, self._currentPreviewsDict[self._currentPreviewCamera])
+        # absPath = os.path.join(self.projectDir, self._currentPreviewsDict[self._currentPreviewCamera])
+        absPath = os.path.join(self.projectDir, self._currentPreviewsDict[camera])
         if self.currentPlatform == "Windows":
             try:
                 os.startfile(absPath)
@@ -937,17 +957,25 @@ class RootManager(object):
         if not os.path.isdir(os.path.normpath(folder)):
             os.makedirs(os.path.normpath(folder))
 
+    # def _nameCheck(self, text):
+    #     """Checks the text for illegal characters, Returns:  corrected Text or -1 for Error """
+    #     text = text.replace("|", "__")
+    #     if re.match("^[A-Za-z0-9_-]*$", text):
+    #         if text == "":
+    #             return -1
+    #         text = text.replace(" ", "_")
+    #         # text = text.replace("|", "__")
+    #         return text
+    #     else:
+    #         return -1
+
     def _nameCheck(self, text):
         """Checks the text for illegal characters, Returns:  corrected Text or -1 for Error """
-        text = text.replace("|", "__")
         if re.match("^[A-Za-z0-9_-]*$", text):
-            if text == "":
-                return -1
-            text = text.replace(" ", "_")
-            # text = text.replace("|", "__")
-            return text
+            return True
         else:
-            return -1
+            return False
+
 
     def _niceName(self, path):
         """Gets the base name of the given filename"""
@@ -955,6 +983,7 @@ class RootManager(object):
         return os.path.splitext(basename)[0]
 
     def _resolveProjectPath(self, projectRoot, projectName, brandName, client):
+        print projectRoot, projectName, brandName, client
         if projectName == "" or client == "" or projectRoot == "":
             msg = ("Fill the mandatory fields")
             logger.warning(msg)
@@ -998,6 +1027,29 @@ class RootManager(object):
         else:
             userDB = self._loadJson(self._pathsDict["usersFile"])
             return userDB
+
+    def _loadFavorites(self):
+        """Loads Bookmarked projects"""
+        if os.path.isfile(self._pathsDict["bookmarksFile"]):
+            bookmarksData = self._loadJson(self._pathsDict["bookmarksFile"])
+        else:
+            bookmarksData = []
+            self._dumpJson(bookmarksData, self._pathsDict["bookmarksFile"])
+        return bookmarksData
+
+    def _addToFavorites(self, shortName, absPath):
+        # old Name userFavoritesAdd
+        bookmarksData = self._loadFavorites()
+        bookmarksData.append([shortName, absPath])
+        self._dumpJson(bookmarksData, self._pathsDict["bookmarksFile"])
+        return bookmarksData
+
+    def _removeFromFavorites(self, index):
+        # old Name userFavoritesRemove
+        bookmarksData = self._loadFavorites()
+        del bookmarksData[index]
+        self._dumpJson(bookmarksData, self._pathsDict["bookmarksFile"])
+        return bookmarksData
 
     def _loadCategories(self):
         """Load Categories from file"""
