@@ -384,6 +384,22 @@ class RootManager(object):
     # def baseScenesInCategory(self):
     #     return sorted(self._baseScenesInCategory.keys())
 
+    @property
+    def currentDatabasePath(self):
+        if not self._currentSceneInfo:
+            logger.warning(("no current info"))
+            return
+        if self._currentSceneInfo["SubProject"] == "None":
+            subP = ""
+        else:
+            subP = self._currentSceneInfo["SubProject"]
+
+        dbFile = os.path.join (self.projectDir,
+                      self._pathsDict["databaseDir"],
+                      self._currentSceneInfo["Category"],
+                      subP, "%s.json" %self._currentSceneInfo["Name"])
+        return dbFile
+
     def cursorInfo(self):
         """function to return cursor position info for debugging purposes"""
         logger.info("""
@@ -1138,6 +1154,12 @@ class RootManager(object):
         else:
             pbSettings = self._loadJson(self._pathsDict["pbSettingsFile"])
             return pbSettings
+
+    def _savePBSettings(self, pbSettings):
+        # old Name setPBsettings
+
+        self._dumpJson(pbSettings, self._pathsDict["pbSettingsFile"])
+        return
 
 
 

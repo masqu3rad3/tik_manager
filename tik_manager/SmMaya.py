@@ -93,57 +93,6 @@ class MayaManager(RootManager):
         # self.projectDir = cmds.workspace(q=1, rd=1)
         self.projectDir = self.getProjectDir()
 
-    # def getSceneInfo(self):
-    #     """
-    #     Collects the necessary scene info by resolving the scene name and current project
-    #     Returns: Dictionary{jsonFile, projectPath, subProject, category, shotName} or None
-    #     """
-    #     self._pathsDict["sceneFile"] = self.getSceneFile()
-    #     if not self._pathsDict["sceneFile"]:
-    #         return None
-    #
-    #     # get name of the upper directory to find out base name
-    #     sceneDir = os.path.abspath(os.path.join(self._pathsDict["sceneFile"], os.pardir))
-    #     baseSceneName = os.path.basename(sceneDir)
-    #
-    #     upperSceneDir = os.path.abspath(os.path.join(sceneDir, os.pardir))
-    #     upperSceneDirName = os.path.basename(upperSceneDir)
-    #
-    #     if upperSceneDirName in self._subProjectsList:
-    #         subProjectDir = upperSceneDir
-    #         subProject = upperSceneDirName
-    #         categoryDir = os.path.abspath(os.path.join(subProjectDir, os.pardir))
-    #         category = os.path.basename(categoryDir)
-    #
-    #         dbCategoryPath = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], category))
-    #         dbPath = os.path.normpath(os.path.join(dbCategoryPath, subProject))
-    #
-    #         pbCategoryPath = os.path.normpath(os.path.join(self._pathsDict["previewsDir"], category))
-    #         pbSubPath = os.path.normpath(os.path.join(pbCategoryPath, subProject))
-    #         pbPath = os.path.normpath(os.path.join(pbSubPath, baseSceneName))
-    #
-    #     else:
-    #         subProject = self._subProjectsList[0]
-    #         categoryDir = upperSceneDir
-    #         category = upperSceneDirName
-    #         dbPath = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], category))
-    #         pbCategoryPath = os.path.normpath(os.path.join(self._pathsDict["previewsDir"], category))
-    #         pbPath = os.path.normpath(os.path.join(pbCategoryPath, baseSceneName))
-    #
-    #     jsonFile = os.path.join(dbPath, "{}.json".format(baseSceneName))
-    #     if os.path.isfile(jsonFile):
-    #         version = (self._niceName(self._pathsDict["sceneFile"])[-4:])
-    #         return {"jsonFile":jsonFile,
-    #                 "projectPath":self._pathsDict["projectDir"],
-    #                 "subProject":subProject,
-    #                 "category":category,
-    #                 "shotName":baseSceneName,
-    #                 "version":version,
-    #                 "previewPath":pbPath
-    #                 }
-    #     else:
-    #         return None
-
     def saveCallback(self):
         """Callback function to update reference files when files saved regularly"""
         ## TODO // TEST IT
@@ -180,7 +129,7 @@ class MayaManager(RootManager):
             *args:
             **kwargs:
 
-        Returns: None
+        Returns: Scene DB Dictionary
 
         """
         # fullName = self.userList.keys()[self.userList.values().index(userName)]
@@ -230,7 +179,7 @@ class MayaManager(RootManager):
         # TODO // cmds may be used instead
         pm.saveAs(sceneFile)
 
-        thumbPath = self.createThumbnail(databaseDir=jsonFile, version=version)
+        thumbPath = self.createThumbnail(dbPath=jsonFile, version=version)
 
         jsonInfo = {}
 
@@ -258,7 +207,7 @@ class MayaManager(RootManager):
             [relSceneFile, completeNote,  self._usersDict[self.currentUser], socket.gethostname(), {}, thumbPath]]
         jsonInfo["SubProject"] = self._subProjectsList[subProjectIndex]
         self._dumpJson(jsonInfo, jsonFile)
-        return relSceneFile
+        return jsonInfo
 
     def saveVersion(self, makeReference=True, versionNotes="", sceneFormat="mb", *args, **kwargs):
         # TODO // TEST IT
@@ -271,7 +220,7 @@ class MayaManager(RootManager):
             *args:
             **kwargs:
 
-        Returns: None
+        Returns: Scene DB Dictionary
 
         """
 
@@ -300,7 +249,7 @@ class MayaManager(RootManager):
             # killTurtle()
             # TODO // cmds?
             pm.saveAs(sceneFile)
-            thumbPath = self.createThumbnail(databaseDir=jsonFile, version=currentVersion)
+            thumbPath = self.createThumbnail(dbPath=jsonFile, version=currentVersion)
 
             jsonInfo["Versions"].append(
                 # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
@@ -319,7 +268,7 @@ class MayaManager(RootManager):
             msg = "This is not a base scene (Json file cannot be found)"
             cmds.warning(msg)
             return -1, msg
-        return relSceneFile
+        return jsonInfo
 
 
     def createPreview(self, *args, **kwargs):
@@ -507,9 +456,9 @@ class MayaManager(RootManager):
         return 0, ""
 
 
-    def loadBasescene(self, force=False):
+    def loadBaseScene(self, force=False):
         # TODO // TEST IT
-        relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex][0]
+        relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1][0]
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
             cmds.file(absSceneFile, o=True, force=force)
@@ -519,18 +468,16 @@ class MayaManager(RootManager):
             cmds.error(msg)
             return -1, msg
 
-    def importBaseScene(self, force=False):
-        # TODO // TEST IT
-        relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex][0]
+    def importBaseScene(self):
+        relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1][0]
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
-            cmds.file(absSceneFile, i=True, force=force)
+            cmds.file(absSceneFile, i=True)
             return 0
         else:
             msg = "File in Scene Manager database doesnt exist"
             cmds.error(msg)
             return -1, msg
-        pass
 
     def loadReference(self):
         # TODO // TEST IT
@@ -551,24 +498,36 @@ class MayaManager(RootManager):
             cmds.warning("There is no reference set for this scene. Nothing changed")
 
 
-    def createThumbnail(self, databaseDir=None, version=None):
+    def createThumbnail(self, useCursorPosition=False, dbPath = None, version = None):
+        """
+        Creates the thumbnail file.
+        :param databaseDir: (String) If defined, this folder will be used to store the created database.
+        :param version: (integer) if defined this version number will be used instead currently open scene version.
+        :return:
+        """
+        projectPath = self.projectDir
+        databaseDir = self._pathsDict["databaseDir"]
 
-        ## TODO // TEST IT
+        if useCursorPosition:
+            shotName = self.currentBaseSceneName
+            version = self.currentVersionIndex
 
-        if databaseDir and version:
-            version= "v%s" %(str(version).zfill(3))
-            shotName=self._niceName(databaseDir)
-            projectPath = self.projectDir
+        else:
+            if not dbPath or not version:
+                cmds.warning("Both dbPath and version must be defined if useCursorPosition=False")
+                return
+            shotName = self._niceName(databaseDir)
+            version = "v%s" % (str(version).zfill(3))
 
-        else: # if keywords are not given
-        # resolve the path of the currently open scene
-            openSceneInfo = self.getOpenSceneInfo()
-            if not openSceneInfo:
-                return None
-            projectPath=openSceneInfo["projectPath"]
-            databaseDir=openSceneInfo["jsonFile"]
-            shotName=openSceneInfo["shotName"]
-            version=openSceneInfo["version"]
+        # else: # if keywords are not given
+        # # resolve the path of the currently open scene
+        #     openSceneInfo = self.getOpenSceneInfo()
+        #     if not openSceneInfo:
+        #         return ""
+        #     projectPath=openSceneInfo["projectPath"]
+        #     databaseDir=openSceneInfo["jsonFile"]
+        #     shotName=openSceneInfo["shotName"]
+        #     version=openSceneInfo["version"]
 
         dbDir = os.path.split(databaseDir)[0]
         thumbPath = "{0}_{1}_thumb.jpg".format(os.path.join(dbDir, shotName), version)
@@ -585,29 +544,104 @@ class MayaManager(RootManager):
             pm.setAttr("defaultRenderGlobals.imageFormat", store) #take it back
         else:
             pm.warning("something went wrong with thumbnail. Skipping thumbnail")
-            return None
+            return ""
         # return thumbPath
         return relThumbPath
 
 
-    def replaceThumbnail(self, mode="file", databaseDir=None, version=None, filePath=None ):
-        jsonInfo = self._loadJson(databaseDir)
-        if mode == "file":
-            if not filePath:
-                cmds.warning("filePath flag cannot be None in mode='file'")
-                return
-            ## do the replacement
-            pass
-
-        if mode == "currentView":
-            ## do the replacement
-            filePath = self.createThumbnail(databaseDir=databaseDir, version=version)
+    def replaceThumbnail(self, filePath=None ):
+        if not filePath:
+            filePath = self.createThumbnail(useCursorPosition=True)
 
         try:
-            jsonInfo["Versions"][version][5]=filePath
+            self._currentSceneInfo["Versions"][self.currentVersionIndex-1][5]=filePath
         except IndexError: # if this is an older file without thumbnail
-            jsonInfo["Versions"][version].append(filePath)
-            self._dumpJson(jsonInfo, databaseDir)
+            self._currentSceneInfo["Versions"][self.currentVersionIndex-1].append(filePath)
+
+        self._dumpJson(self._currentSceneInfo, self.currentDatabasePath)
+
+    def compareVersions(self):
+        if not self._currentSceneInfo["MayaVersion"]:
+            cmds.warning("Cursor is not on a base scene")
+            return
+        versionDict = {200800: "v2008",
+                       200806: "v2008_EXT2",
+                       200806: "v2008_SP1",
+                       200900: "v2009",
+                       200904: "v2009_EXT1",
+                       200906: "v2009_SP1A",
+                       201000: "v2010",
+                       201100: "v2011",
+                       201101: "v2011_HOTFIX1",
+                       201102: "v2011_HOTFIX2",
+                       201103: "v2011_HOTFIX3",
+                       201104: "v2011_SP1",
+                       201200: "v2012",
+                       201201: "v2012_HOTFIX1",
+                       201202: "v2012_HOTFIX2",
+                       201203: "v2012_HOTFIX3",
+                       201204: "v2012_HOTFIX4",
+                       201209: "v2012_SAP1",
+                       201217: "v2012_SAP1SP1",
+                       201209: "v2012_SP1",
+                       201217: "v2012_SP2",
+                       201300: "v2013",
+                       201400: "v2014",
+                       201450: "v2014_EXT1",
+                       201451: "v2014_EXT1SP1",
+                       201459: "v2014_EXT1SP2",
+                       201402: "v2014_SP1",
+                       201404: "v2014_SP2",
+                       201406: "v2014_SP3",
+                       201500: "v2015",
+                       201506: "v2015_EXT1",
+                       201507: "v2015_EXT1SP5",
+                       201501: "v2015_SP1",
+                       201502: "v2015_SP2",
+                       201505: "v2015_SP3",
+                       201506: "v2015_SP4",
+                       201507: "v2015_SP5",
+                       201600: "v2016",
+                       201650: "v20165",
+                       201651: "v20165_SP1",
+                       201653: "v20165_SP2",
+                       201605: "v2016_EXT1",
+                       201607: "v2016_EXT1SP4",
+                       201650: "v2016_EXT2",
+                       201651: "v2016_EXT2SP1",
+                       201653: "v2016_EXT2SP2",
+                       201605: "v2016_SP3",
+                       201607: "v2016_SP4",
+                       201700: "v2017",
+                       201701: "v2017U1",
+                       201720: "v2017U2",
+                       201740: "v2017U3",
+                       20180000: "v2018"}
+
+        currentVersion = pm.versions.current()
+        try:
+            niceVName=versionDict[self._currentSceneInfo["MayaVersion"]]
+        except KeyError:
+            niceVName = self._currentSceneInfo["MayaVersion"]
+        message = ""
+        if self._currentSceneInfo["MayaVersion"] == currentVersion:
+            return 0, message
+        elif pm.versions.current() > self._currentSceneInfo["MayaVersion"]:
+            message = "Base Scene is created with a LOWER Maya version ({0}). Are you sure you want to continue?".format(
+                niceVName)
+            return -1, message
+        elif pm.versions.current() < self._currentSceneInfo["MayaVersion"]:
+            message = "Base Scene is created with a HIGHER Maya version ({0}). Are you sure you want to continue?".format(
+                niceVName)
+            return -1, message
+
+    def isSceneModified(self):
+        """Checks the currently open scene saved or not"""
+        return cmds.file(q=True, modified=True)
+
+    def saveSimple(self):
+        # TODO // cmds?
+        pm.saveFile()
 
 class MainUI(QtWidgets.QMainWindow):
     def __init__(self, scriptJob=None):
@@ -969,37 +1003,41 @@ class MainUI(QtWidgets.QMainWindow):
         self.scenes_listWidget.customContextMenuRequested.connect(self.onContextMenu_scenes)
         self.popMenu_scenes = QtWidgets.QMenu()
 
-        self.scenes_rcAction_0 = QtWidgets.QAction('Import Scene', self)
-        self.popMenu_scenes.addAction(self.scenes_rcAction_0)
-        self.scenes_rcAction_0.triggered.connect(lambda: self.scenes_rcAction("importScene"))
+        self.scenes_rcItem_0 = QtWidgets.QAction('Import Scene', self)
+        self.popMenu_scenes.addAction(self.scenes_rcItem_0)
+        self.scenes_rcItem_0.triggered.connect(lambda: self.rcAction_scenes("importScene"))
 
-        self.scenes_rcAction_1 = QtWidgets.QAction('Show Maya Folder in Explorer', self)
-        self.popMenu_scenes.addAction(self.scenes_rcAction_1)
-        self.scenes_rcAction_1.triggered.connect(lambda: self.scenes_rcAction("showInExplorerMaya"))
+        self.scenes_rcItem_1 = QtWidgets.QAction('Show Maya Folder in Explorer', self)
+        self.popMenu_scenes.addAction(self.scenes_rcItem_1)
+        self.scenes_rcItem_1.triggered.connect(lambda: self.rcAction_scenes("showInExplorerMaya"))
 
-        self.scenes_rcAction_2 = QtWidgets.QAction('Show Playblast Folder in Explorer', self)
-        self.popMenu_scenes.addAction(self.scenes_rcAction_2)
-        self.scenes_rcAction_2.triggered.connect(lambda: self.scenes_rcAction("showInExplorerPB"))
+        self.scenes_rcItem_2 = QtWidgets.QAction('Show Playblast Folder in Explorer', self)
+        self.popMenu_scenes.addAction(self.scenes_rcItem_2)
+        self.scenes_rcItem_2.triggered.connect(lambda: self.rcAction_scenes("showInExplorerPB"))
 
-        self.scenes_rcAction_3 = QtWidgets.QAction('Show Data Folder in Explorer', self)
-        self.popMenu_scenes.addAction(self.scenes_rcAction_3)
-        self.scenes_rcAction_3.triggered.connect(lambda: self.scenes_rcAction("showInExplorerData"))
+        self.scenes_rcItem_3 = QtWidgets.QAction('Show Data Folder in Explorer', self)
+        self.popMenu_scenes.addAction(self.scenes_rcItem_3)
+        self.scenes_rcItem_3.triggered.connect(lambda: self.rcAction_scenes("showInExplorerData"))
 
         self.popMenu_scenes.addSeparator()
-        self.scenes_rcAction_4 = QtWidgets.QAction('Scene Info', self)
-        self.popMenu_scenes.addAction(self.scenes_rcAction_4)
-        self.scenes_rcAction_4.triggered.connect(lambda: self.scenes_rcAction("showSceneInfo"))
+        self.scenes_rcItem_4 = QtWidgets.QAction('Scene Info', self)
+        self.popMenu_scenes.addAction(self.scenes_rcItem_4)
+        self.scenes_rcItem_4.triggered.connect(lambda: self.rcAction_scenes("showSceneInfo"))
 
         # Thumbnail Right Click Menu
         self.thumbnail_label.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.thumbnail_label.customContextMenuRequested.connect(self.onContextMenu_thumbnail)
         self.popMenu_thumbnail = QtWidgets.QMenu()
 
-        thumb_rcAction_0 = QtWidgets.QAction('Replace with current view', self)
-        self.popMenu_thumbnail.addAction(thumb_rcAction_0)
+        rcAction_thumb_0 = QtWidgets.QAction('Replace with current view', self)
+        self.popMenu_thumbnail.addAction(rcAction_thumb_0)
+        rcAction_thumb_0.triggered.connect(lambda: self.rcAction_thumb("currentView"))
 
-        thumb_rcAction_1 = QtWidgets.QAction('Replace with external file', self)
-        self.popMenu_thumbnail.addAction(thumb_rcAction_1)
+
+        rcAction_thumb_1 = QtWidgets.QAction('Replace with external file', self)
+        self.popMenu_thumbnail.addAction(rcAction_thumb_1)
+        rcAction_thumb_1.triggered.connect(lambda: self.rcAction_thumb("file"))
+
 
         # SHORTCUTS
         # ---------
@@ -1009,6 +1047,12 @@ class MainUI(QtWidgets.QMainWindow):
         # ------------------
 
         createProject_fm.triggered.connect(self.createProjectUI)
+
+        pb_settings_fm.triggered.connect(self.pbSettingsUI)
+
+        createPB.triggered.connect(self.manager.createPreview)
+
+
 
         self.statusBar().showMessage("Status | Idle")
 
@@ -1038,6 +1082,9 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.saveVersion_pushButton.clicked.connect(self.saveAsVersionDialog)
         saveVersion_fm.triggered.connect(self.saveAsVersionDialog)
+
+        self.scenes_listWidget.doubleClicked.connect(self.onloadScene)
+        self.loadScene_pushButton.clicked.connect(self.onloadScene)
 
 
     def createSubProjectUI(self):
@@ -1505,6 +1552,261 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.setProject_Dialog.show()
 
+    def pbSettingsUI(self):
+
+        admin_pswd = "682"
+        passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query", "Enter Admin Password:",
+                                                   QtWidgets.QLineEdit.Password)
+        if ok:
+            if passw == admin_pswd:
+                pass
+            else:
+                self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
+                return
+        else:
+            return
+
+        def updateCodecs():
+            codecs = pm.mel.eval(
+                'playblast -format "{0}" -q -compression;'.format(self.fileformat_comboBox.currentText()))
+            self.codec_comboBox.clear()
+            self.codec_comboBox.addItems(codecs)
+
+        def onPbSettingsAccept():
+            newPbSettings = {"Resolution": (self.resolutionx_spinBox.value(), self.resolutiony_spinBox.value()),
+                             "Format": self.fileformat_comboBox.currentText(),
+                             "Codec": self.codec_comboBox.currentText(),
+                             "Percent": 100,  ## this one never changes
+                             "Quality": self.quality_spinBox.value(),
+                             "ShowFrameNumber": self.showframenumber_checkBox.isChecked(),
+                             "ShowSceneName": self.showscenename_checkBox.isChecked(),
+                             "ShowCategory": self.showcategory_checkBox.isChecked(),
+                             "ShowFPS": self.showfps_checkBox.isChecked(),
+                             "ShowFrameRange": self.showframerange_checkBox.isChecked(),
+                             "PolygonOnly": self.polygononly_checkBox.isChecked(),
+                             "ShowGrid": self.showgrid_checkBox.isChecked(),
+                             "ClearSelection": self.clearselection_checkBox.isChecked(),
+                             "DisplayTextures": self.displaytextures_checkBox.isChecked(),
+                             "WireOnShaded": self.wireonshaded_checkBox.isChecked(),
+                             "UseDefaultMaterial": self.usedefaultmaterial_checkBox.isChecked()
+                             }
+            self.manager._savePBSettings(newPbSettings)
+            self.statusBar().showMessage("Status | Playblast Settings Saved")
+            self.pbSettings_dialog.accept()
+
+        currentSettings = self.manager._loadPBSettings()
+
+        self.pbSettings_dialog = QtWidgets.QDialog(parent=self)
+        self.pbSettings_dialog.setModal(True)
+        self.pbSettings_dialog.setObjectName(("Playblast_Dialog"))
+        self.pbSettings_dialog.resize(380, 483)
+        self.pbSettings_dialog.setMinimumSize(QtCore.QSize(380, 550))
+        self.pbSettings_dialog.setMaximumSize(QtCore.QSize(380, 550))
+        self.pbSettings_dialog.setWindowTitle(("Set Playblast Settings"))
+
+        self.pbsettings_buttonBox = QtWidgets.QDialogButtonBox(self.pbSettings_dialog)
+        self.pbsettings_buttonBox.setGeometry(QtCore.QRect(20, 500, 341, 30))
+        self.pbsettings_buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        self.pbsettings_buttonBox.setStandardButtons(
+            QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Save)
+        self.pbsettings_buttonBox.setObjectName(("pbsettings_buttonBox"))
+
+        self.videoproperties_groupBox = QtWidgets.QGroupBox(self.pbSettings_dialog)
+        self.videoproperties_groupBox.setGeometry(QtCore.QRect(10, 20, 361, 191))
+        self.videoproperties_groupBox.setTitle(("Video Properties"))
+        self.videoproperties_groupBox.setObjectName(("videoproperties_groupBox"))
+
+        self.fileformat_label = QtWidgets.QLabel(self.videoproperties_groupBox)
+        self.fileformat_label.setGeometry(QtCore.QRect(20, 30, 71, 20))
+        self.fileformat_label.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.fileformat_label.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.fileformat_label.setText(("Format"))
+        self.fileformat_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.fileformat_label.setObjectName(("fileformat_label"))
+
+        self.fileformat_comboBox = QtWidgets.QComboBox(self.videoproperties_groupBox)
+        self.fileformat_comboBox.setGeometry(QtCore.QRect(100, 30, 111, 22))
+        self.fileformat_comboBox.setObjectName(("fileformat_comboBox"))
+        formats = pm.playblast(query=True, format=True)
+        self.fileformat_comboBox.addItems(formats)
+
+        # get the index number from the name in the settings file and make that index active
+        ffindex = self.fileformat_comboBox.findText(currentSettings["Format"], QtCore.Qt.MatchFixedString)
+        if ffindex >= 0:
+            self.fileformat_comboBox.setCurrentIndex(ffindex)
+
+        self.codec_label = QtWidgets.QLabel(self.videoproperties_groupBox)
+        self.codec_label.setGeometry(QtCore.QRect(30, 70, 61, 20))
+        self.codec_label.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.codec_label.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.codec_label.setText(("Codec"))
+        self.codec_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.codec_label.setObjectName(("codec_label"))
+
+        self.codec_comboBox = QtWidgets.QComboBox(self.videoproperties_groupBox)
+        self.codec_comboBox.setGeometry(QtCore.QRect(100, 70, 111, 22))
+        self.codec_comboBox.setObjectName(("codec_comboBox"))
+        updateCodecs()
+
+        self.fileformat_comboBox.currentIndexChanged.connect(updateCodecs)
+
+        # get the index number from the name in the settings file and make that index active
+        cindex = self.codec_comboBox.findText(currentSettings["Codec"], QtCore.Qt.MatchFixedString)
+        if cindex >= 0:
+            self.codec_comboBox.setCurrentIndex(cindex)
+
+        self.quality_label = QtWidgets.QLabel(self.videoproperties_groupBox)
+        self.quality_label.setGeometry(QtCore.QRect(30, 110, 61, 20))
+        self.quality_label.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.quality_label.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.quality_label.setText(("Quality"))
+        self.quality_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.quality_label.setObjectName(("quality_label"))
+
+        self.quality_spinBox = QtWidgets.QSpinBox(self.videoproperties_groupBox)
+        self.quality_spinBox.setGeometry(QtCore.QRect(100, 110, 41, 21))
+        self.quality_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        self.quality_spinBox.setMinimum(1)
+        self.quality_spinBox.setMaximum(100)
+        self.quality_spinBox.setProperty("value", currentSettings["Quality"])
+        self.quality_spinBox.setObjectName(("quality_spinBox"))
+
+        self.quality_horizontalSlider = QtWidgets.QSlider(self.videoproperties_groupBox)
+        self.quality_horizontalSlider.setGeometry(QtCore.QRect(150, 110, 191, 21))
+        self.quality_horizontalSlider.setMinimum(1)
+        self.quality_horizontalSlider.setMaximum(100)
+        self.quality_horizontalSlider.setProperty("value", currentSettings["Quality"])
+        self.quality_horizontalSlider.setOrientation(QtCore.Qt.Horizontal)
+        self.quality_horizontalSlider.setTickInterval(0)
+        self.quality_horizontalSlider.setObjectName(("quality_horizontalSlider"))
+
+        self.resolution_label = QtWidgets.QLabel(self.videoproperties_groupBox)
+        self.resolution_label.setGeometry(QtCore.QRect(30, 150, 61, 20))
+        self.resolution_label.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.resolution_label.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.resolution_label.setText(("Resolution"))
+        self.resolution_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.resolution_label.setObjectName(("resolution_label"))
+
+        self.resolutionx_spinBox = QtWidgets.QSpinBox(self.videoproperties_groupBox)
+        self.resolutionx_spinBox.setGeometry(QtCore.QRect(100, 150, 61, 21))
+        self.resolutionx_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        self.resolutionx_spinBox.setMinimum(0)
+        self.resolutionx_spinBox.setMaximum(4096)
+        self.resolutionx_spinBox.setProperty("value", currentSettings["Resolution"][0])
+        self.resolutionx_spinBox.setObjectName(("resolutionx_spinBox"))
+
+        self.resolutiony_spinBox = QtWidgets.QSpinBox(self.videoproperties_groupBox)
+        self.resolutiony_spinBox.setGeometry(QtCore.QRect(170, 150, 61, 21))
+        self.resolutiony_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        self.resolutiony_spinBox.setMinimum(1)
+        self.resolutiony_spinBox.setMaximum(4096)
+        self.resolutiony_spinBox.setProperty("value", currentSettings["Resolution"][1])
+        self.resolutiony_spinBox.setObjectName(("resolutiony_spinBox"))
+
+        self.viewportoptions_groupBox = QtWidgets.QGroupBox(self.pbSettings_dialog)
+        self.viewportoptions_groupBox.setGeometry(QtCore.QRect(10, 230, 361, 120))
+        self.viewportoptions_groupBox.setTitle(("Viewport Options"))
+        self.viewportoptions_groupBox.setObjectName(("viewportoptions_groupBox"))
+
+        self.polygononly_checkBox = QtWidgets.QCheckBox(self.viewportoptions_groupBox)
+        self.polygononly_checkBox.setGeometry(QtCore.QRect(60, 30, 91, 20))
+        self.polygononly_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.polygononly_checkBox.setText(("Polygon Only"))
+        self.polygononly_checkBox.setChecked(currentSettings["PolygonOnly"])
+        self.polygononly_checkBox.setObjectName(("polygononly_checkBox"))
+
+        self.showgrid_checkBox = QtWidgets.QCheckBox(self.viewportoptions_groupBox)
+        self.showgrid_checkBox.setGeometry(QtCore.QRect(210, 30, 91, 20))
+        self.showgrid_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.showgrid_checkBox.setText(("Show Grid"))
+        self.showgrid_checkBox.setChecked(currentSettings["ShowGrid"])
+        self.showgrid_checkBox.setObjectName(("showgrid_checkBox"))
+
+        self.clearselection_checkBox = QtWidgets.QCheckBox(self.viewportoptions_groupBox)
+        self.clearselection_checkBox.setGeometry(QtCore.QRect(60, 60, 91, 20))
+        self.clearselection_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.clearselection_checkBox.setText(("Clear Selection"))
+        self.clearselection_checkBox.setChecked(currentSettings["ClearSelection"])
+        self.clearselection_checkBox.setObjectName(("clearselection_checkBox"))
+
+        self.wireonshaded_checkBox = QtWidgets.QCheckBox(self.viewportoptions_groupBox)
+        self.wireonshaded_checkBox.setGeometry(QtCore.QRect(51, 90, 100, 20))
+        self.wireonshaded_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.wireonshaded_checkBox.setText(("Wire On Shaded"))
+        try:
+            self.wireonshaded_checkBox.setChecked(currentSettings["WireOnShaded"])
+        except KeyError:
+            self.wireonshaded_checkBox.setChecked(False)
+        self.wireonshaded_checkBox.setObjectName(("wireonshaded_checkBox"))
+
+        self.usedefaultmaterial_checkBox = QtWidgets.QCheckBox(self.viewportoptions_groupBox)
+        self.usedefaultmaterial_checkBox.setGeometry(QtCore.QRect(180, 90, 120, 20))
+        self.usedefaultmaterial_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.usedefaultmaterial_checkBox.setText(("Use Default Material"))
+        try:
+            self.usedefaultmaterial_checkBox.setChecked(currentSettings["UseDefaultMaterial"])
+        except KeyError:
+            self.usedefaultmaterial_checkBox.setChecked(False)
+
+        self.displaytextures_checkBox = QtWidgets.QCheckBox(self.viewportoptions_groupBox)
+        self.displaytextures_checkBox.setGeometry(QtCore.QRect(190, 60, 111, 20))
+        self.displaytextures_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.displaytextures_checkBox.setText(("Display Textures"))
+        self.displaytextures_checkBox.setChecked(currentSettings["DisplayTextures"])
+        self.displaytextures_checkBox.setObjectName(("displaytextures_checkBox"))
+
+        self.hudoptions_groupBox = QtWidgets.QGroupBox(self.pbSettings_dialog)
+        self.hudoptions_groupBox.setGeometry(QtCore.QRect(10, 370, 361, 110))
+        self.hudoptions_groupBox.setTitle(("HUD Options"))
+        self.hudoptions_groupBox.setObjectName(("hudoptions_groupBox"))
+
+        self.showframenumber_checkBox = QtWidgets.QCheckBox(self.hudoptions_groupBox)
+        self.showframenumber_checkBox.setGeometry(QtCore.QRect(20, 20, 131, 20))
+        self.showframenumber_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.showframenumber_checkBox.setText(("Show Frame Number"))
+        self.showframenumber_checkBox.setChecked(currentSettings["ShowFrameNumber"])
+        self.showframenumber_checkBox.setObjectName(("showframenumber_checkBox"))
+
+        self.showscenename_checkBox = QtWidgets.QCheckBox(self.hudoptions_groupBox)
+        self.showscenename_checkBox.setGeometry(QtCore.QRect(20, 50, 131, 20))
+        self.showscenename_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.showscenename_checkBox.setText(("Show Scene Name"))
+        self.showscenename_checkBox.setChecked(currentSettings["ShowSceneName"])
+        self.showscenename_checkBox.setObjectName(("showscenename_checkBox"))
+
+        self.showcategory_checkBox = QtWidgets.QCheckBox(self.hudoptions_groupBox)
+        self.showcategory_checkBox.setGeometry(QtCore.QRect(200, 20, 101, 20))
+        self.showcategory_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.showcategory_checkBox.setText(("Show Category"))
+        self.showcategory_checkBox.setChecked(currentSettings["ShowCategory"])
+        self.showcategory_checkBox.setObjectName(("showcategory_checkBox"))
+
+        self.showfps_checkBox = QtWidgets.QCheckBox(self.hudoptions_groupBox)
+        self.showfps_checkBox.setGeometry(QtCore.QRect(200, 50, 101, 20))
+        self.showfps_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.showfps_checkBox.setText(("Show FPS"))
+        self.showfps_checkBox.setChecked(currentSettings["ShowFPS"])
+        self.showfps_checkBox.setObjectName(("showfps_checkBox"))
+
+        self.showframerange_checkBox = QtWidgets.QCheckBox(self.hudoptions_groupBox)
+        self.showframerange_checkBox.setGeometry(QtCore.QRect(20, 80, 131, 20))
+        self.showframerange_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.showframerange_checkBox.setText(("Show Frame Range"))
+        # v1.1 SPECIFIC
+        try:
+            self.showframerange_checkBox.setChecked(currentSettings["ShowFrameRange"])
+        except KeyError:
+            self.showframerange_checkBox.setChecked(True)
+        self.showframerange_checkBox.setObjectName(("showframerange_checkBox"))
+
+        self.pbsettings_buttonBox.accepted.connect(onPbSettingsAccept)
+        self.pbsettings_buttonBox.rejected.connect(self.pbSettings_dialog.reject)
+        self.quality_spinBox.valueChanged.connect(self.quality_horizontalSlider.setValue)
+        self.quality_horizontalSlider.valueChanged.connect(self.quality_spinBox.setValue)
+
+        self.pbSettings_dialog.show()
+
     def saveBaseSceneDialog(self):
         self.save_Dialog = QtWidgets.QDialog(parent=self)
         self.save_Dialog.setModal(True)
@@ -1631,14 +1933,18 @@ class MainUI(QtWidgets.QMainWindow):
         sv_buttonBox.setObjectName(("sd_buttonBox"))
 
         def saveAsVersionCommand():
-            sceneFile = self.manager.saveVersion(makeReference=self.svMakeReference_checkbox.checkState(),
+            sceneInfo = self.manager.saveVersion(makeReference=self.svMakeReference_checkbox.checkState(),
                                      versionNotes=self.svNotes_textEdit.toPlainText())
 
-            if not sceneFile == -1:
-                self.statusBar().showMessage("Status | Version Saved => %s" % sceneFile)
-            self.manager.currentVersionIndex = self.manager._currentVersionIndex
-            # TODO // NEEDS TO BE FIXED
-            self.onVersionChange()
+            if not sceneInfo == -1:
+                self.statusBar().showMessage("Status | Version Saved => %s" % len(sceneInfo["Versions"]))
+            self.manager.currentBaseSceneName = sceneInfo["Name"]
+            self.manager.currentVersionIndex = len(sceneInfo["Versions"])
+
+            currentRow = self.scenes_listWidget.currentRow()
+            self.onBaseSceneChange()
+            self.scenes_listWidget.setCurrentRow(currentRow)
+
 
 
 
@@ -1658,10 +1964,10 @@ class MainUI(QtWidgets.QMainWindow):
 
 
 
-    def scenes_rcAction(self, command):
+    def rcAction_scenes(self, command):
         if command == "importScene":
-            # TODO // add import function to root class
-            print "Import Scene at cursor position"
+            self.manager.importBaseScene()
+
         if command == "showInExplorerMaya":
             self.manager.showInExplorer(self.manager.currentBaseScenePath)
 
@@ -1693,18 +1999,71 @@ class MainUI(QtWidgets.QMainWindow):
             helpText.setText(textInfo)
             messageLayout.addWidget(helpText)
 
+    def rcAction_thumb(self, command):
+        # print "comm: ", command
+        if command == "file":
+            fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', self.manager.projectDir,"Image files (*.jpg *.gif)")[0]
+            if not fname: # if dialog is canceled
+                return
+
+        elif command == "currentView":
+            fname = ""
+
+        else:
+            return
+
+        self.manager.replaceThumbnail(filePath=fname)
+        self.onVersionChange()
+
     def onContextMenu_scenes(self, point):
         row = self.scenes_listWidget.currentRow()
         if row == -1:
             return
         # check paths
-        self.scenes_rcAction_1.setEnabled(os.path.isdir(self.manager.currentBaseScenePath))
-        self.scenes_rcAction_2.setEnabled(os.path.isdir(self.manager.currentPreviewPath))
+        self.scenes_rcItem_1.setEnabled(os.path.isdir(self.manager.currentBaseScenePath))
+        self.scenes_rcItem_2.setEnabled(os.path.isdir(self.manager.currentPreviewPath))
         # show context menu
         self.popMenu_scenes.exec_(self.scenes_listWidget.mapToGlobal(point))
     def onContextMenu_thumbnail(self, point):
+        row = self.scenes_listWidget.currentRow()
+        if row == -1:
+            return
         # show context menu
         self.popMenu_thumbnail.exec_(self.thumbnail_label.mapToGlobal(point))
+
+    def onLoadScene(self):
+        row = self.scenes_listWidget.currentRow()
+        if row == -1:
+            return
+
+        res, msg = self.manager.compareVersions()
+        if res == -1:
+            mismatch = self.queryPop(type="yesNo", textTitle="Version Mismatch", textHeader=msg)
+            if mismatch == "no":
+                return
+
+        if self.loadMode_radioButton.isChecked():
+            if self.manager.isSceneModified():
+                q = self.queryPop(type="yesNoCancel", textTitle="Save Changes", textInfo="Save Changes to",
+                                  textHeader=("Scene Modified"))
+                if q == "yes":
+                    self.manager.saveSimple()
+                    self.manager.loadBaseScene(force=True)
+                if q == "no":
+                    self.manager.loadBaseScene(force=True)
+                if q == "cancel":
+                    pass
+
+
+            else: # if current scene saved and secure
+                self.manager.loadBaseScene(force=True)
+        self.manager.getOpenSceneInfo()
+        # TODO // CONTINUE
+
+        self.statusBar().showMessage("Status | Scene Loaded => %s" % sceneName)
+
+
+
 
     def onMakeReference(self):
         self.manager.makeReference()
@@ -1729,12 +2088,11 @@ class MainUI(QtWidgets.QMainWindow):
             self.manager.playPreview(cameraList[0])
         else:
             zortMenu = QtWidgets.QMenu()
-
             for z in cameraList:
                 tempAction = QtWidgets.QAction(z, self)
                 zortMenu.addAction(tempAction)
                 # tempAction.triggered.connect(lambda item=cameraList[z]: self.onPlayPb(item))  ## Take note about the usage of lambda "item=pbDict[z]" makes it possible using the loop
-                tempAction.triggered.connect(lambda item=cameraList[z]: self.manager.playPreview(item)) ## Take note about the usage of lambda "item=pbDict[z]" makes it possible using the loop
+                tempAction.triggered.connect(lambda item=z: self.manager.playPreview(item)) ## Take note about the usage of lambda "item=pbDict[z]" makes it possible using the loop
 
             zortMenu.exec_((QtGui.QCursor.pos()))
 
@@ -1896,6 +2254,65 @@ class MainUI(QtWidgets.QMainWindow):
         self.msg.setWindowTitle(textTitle)
         self.msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
         self.msg.show()
+
+    def queryPop(self, type, textTitle="Question", textHeader="", textInfo="", password=""):
+        if type == "password":
+            if password != "":
+                passw, ok= QtWidgets.QInputDialog.getText(self, textTitle,
+                                                       textInfo, QtWidgets.QLineEdit.Password, parent=self)
+                if ok:
+                    if passw == password:
+                        return True
+                    else:
+                        self.infoPop(textTitle="Incorrect Passsword", textHeader="Incorrect Password", type="C")
+                        return False
+                else:
+                    return False
+            else:
+                return -1
+
+        if type == "yesNoCancel":
+
+            q = QtWidgets.QMessageBox(parent=self)
+            q.setIcon(QtWidgets.QMessageBox.Question)
+            q.setText(textHeader)
+            q.setInformativeText(textInfo)
+            q.setWindowTitle(textTitle)
+            q.setStandardButtons(
+                QtWidgets.QMessageBox.Save | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Cancel)
+            ret = q.exec_()
+            if ret == QtWidgets.QMessageBox.Save:
+                return "yes"
+            elif ret == QtWidgets.QMessageBox.No:
+                return "no"
+            elif ret == QtWidgets.QMessageBox.Cancel:
+                return "cancel"
+
+        if type == "okCancel":
+            q = QtWidgets.QMessageBox(parent=self)
+            q.setIcon(QtWidgets.QMessageBox.Question)
+            q.setText(textHeader)
+            q.setInformativeText(textInfo)
+            q.setWindowTitle(textTitle)
+            q.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
+            ret = q.exec_()
+            if ret == QtWidgets.QMessageBox.Ok:
+                return "ok"
+            elif ret == QtWidgets.QMessageBox.Cancel:
+                return "cancel"
+
+        if type == "yesNo":
+            q = QtWidgets.QMessageBox(parent=self)
+            q.setIcon(QtWidgets.QMessageBox.Question)
+            q.setText(textHeader)
+            q.setInformativeText(textInfo)
+            q.setWindowTitle(textTitle)
+            q.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+            ret = q.exec_()
+            if ret == QtWidgets.QMessageBox.Yes:
+                return "yes"
+            elif ret == QtWidgets.QMessageBox.No:
+                return "no"
 
 
 
