@@ -32,7 +32,8 @@ __maintainer__ = "Arda Kutlu"
 __email__ = "ardakutlu@gmail.com"
 __status__ = "Development"
 
-SM_Version = "Scene Manager v%s" %(__version__)
+# SM_Version = "Scene Manager v%s" %(__version__)
+SM_Version = "Scene Manager v"
 
 logging.basicConfig()
 logger = logging.getLogger('smMaya')
@@ -86,6 +87,7 @@ class MayaManager(RootManager):
         return norm_s_path
 
     def setProject(self, path):
+        """Sets the project"""
         # totally software specific or N/A
         melCompPath = path.replace("\\", "/") # mel is picky
         command = 'setProject "%s";' %melCompPath
@@ -114,8 +116,6 @@ class MayaManager(RootManager):
 
 
     def saveBaseScene(self, categoryName, baseName, subProjectIndex=0, makeReference=True, versionNotes="", sceneFormat="mb", *args, **kwargs):
-
-        # TODO // TEST IT
         """
         Saves the scene with formatted name and creates a json file for the scene
         Args:
@@ -210,7 +210,6 @@ class MayaManager(RootManager):
         return jsonInfo
 
     def saveVersion(self, makeReference=True, versionNotes="", sceneFormat="mb", *args, **kwargs):
-        # TODO // TEST IT
         """
         Saves a version for the predefined scene. The scene json file must be present at the /data/[Category] folder.
         Args:
@@ -272,7 +271,7 @@ class MayaManager(RootManager):
 
 
     def createPreview(self, *args, **kwargs):
-        # TODO // TEST IT
+        """Creates a Playblast preview from currently open scene"""
         pbSettings = self._loadPBSettings()
         validFormats = cmds.playblast(format=True, q=True)
         validCodecs = cmds.playblast(c=True, q=True)
@@ -457,7 +456,7 @@ class MayaManager(RootManager):
 
 
     def loadBaseScene(self, force=False):
-        # TODO // TEST IT
+        """Loads the scene at cursor position"""
         relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1][0]
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
@@ -469,6 +468,7 @@ class MayaManager(RootManager):
             return -1, msg
 
     def importBaseScene(self):
+        """Imports the scene at cursor position"""
         relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1][0]
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
@@ -479,16 +479,13 @@ class MayaManager(RootManager):
             cmds.error(msg)
             return -1, msg
 
-    def loadReference(self):
-        # TODO // TEST IT
+    def referenceBaseScene(self):
+        """Creates reference from the scene at cursor position"""
         projectPath = self.projectDir
         relReferenceFile = self._currentSceneInfo["ReferenceFile"]
 
-        # os.path.isfile(referenceFile)
         if relReferenceFile:
-            # referenceFile = "%s%s" % (projectPath, relReferenceFile)
             referenceFile = os.path.join(projectPath, relReferenceFile)
-            # pm.FileReference(referenceFile)
             refFileBasename = os.path.split(relReferenceFile)[1]
             namespace = os.path.splitext(refFileBasename)[0]
             cmds.file(os.path.normpath(referenceFile), reference=True, gl=True, mergeNamespacesOnClash=False,
@@ -503,7 +500,7 @@ class MayaManager(RootManager):
         Creates the thumbnail file.
         :param databaseDir: (String) If defined, this folder will be used to store the created database.
         :param version: (integer) if defined this version number will be used instead currently open scene version.
-        :return:
+        :return: (String) Relative path of the thumbnail file
         """
         projectPath = self.projectDir
         databaseDir = self._pathsDict["databaseDir"]
@@ -519,20 +516,11 @@ class MayaManager(RootManager):
             shotName = self._niceName(databaseDir)
             version = "v%s" % (str(version).zfill(3))
 
-        # else: # if keywords are not given
-        # # resolve the path of the currently open scene
-        #     openSceneInfo = self.getOpenSceneInfo()
-        #     if not openSceneInfo:
-        #         return ""
-        #     projectPath=openSceneInfo["projectPath"]
-        #     databaseDir=openSceneInfo["jsonFile"]
-        #     shotName=openSceneInfo["shotName"]
-        #     version=openSceneInfo["version"]
 
         dbDir = os.path.split(databaseDir)[0]
         thumbPath = "{0}_{1}_thumb.jpg".format(os.path.join(dbDir, shotName), version)
         relThumbPath = os.path.relpath(thumbPath, projectPath)
-        # print thumbPath
+
         # create a thumbnail using playblast
         thumbDir = os.path.split(thumbPath)[0]
         if os.path.exists(thumbDir):
@@ -550,6 +538,11 @@ class MayaManager(RootManager):
 
 
     def replaceThumbnail(self, filePath=None ):
+        """
+        Replaces the thumbnail with given file or current view
+        :param filePath: (String)  if a filePath is defined, this image (.jpg or .gif) will be used as thumbnail
+        :return: None
+        """
         if not filePath:
             filePath = self.createThumbnail(useCursorPosition=True)
 
@@ -561,6 +554,7 @@ class MayaManager(RootManager):
         self._dumpJson(self._currentSceneInfo, self.currentDatabasePath)
 
     def compareVersions(self):
+        """Compares the versions of current session and database version at cursor position"""
         if not self._currentSceneInfo["MayaVersion"]:
             cmds.warning("Cursor is not on a base scene")
             return
@@ -640,10 +634,19 @@ class MayaManager(RootManager):
         return cmds.file(q=True, modified=True)
 
     def saveSimple(self):
+        """Save the currently open file"""
         # TODO // cmds?
         pm.saveFile()
 
+    def getFormatsAndCodecs(self):
+        """Returns the codecs which can be used in current workstation"""
+        formatList = cmds.playblast(query=True, format=True)
+        codecsDictionary = dict(
+            (item, mel.eval('playblast -format "{0}" -q -compression;'.format(item))) for item in formatList)
+        return codecsDictionary
+
 class MainUI(QtWidgets.QMainWindow):
+    """Main UI Class for Tik Scene Manager"""
     def __init__(self, scriptJob=None):
         # self.scriptJob=scriptJob
         for entry in QtWidgets.QApplication.allWidgets():
@@ -673,26 +676,29 @@ class MainUI(QtWidgets.QMainWindow):
         self.setObjectName(SM_Version)
         self.resize(680, 600)
         self.setWindowTitle(SM_Version)
+        # self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self.centralwidget = QtWidgets.QWidget(self)
+
+
+
+
 
         self.buildUI()
         self.setCentralWidget(self.centralwidget)
 
+        dummyObj = cmds.helpLine(visible=False, width=100, parent=self.main_horizontalLayout)
+
+        if scriptJob:
+            self.job_1 = pm.scriptJob(e=["workspaceChanged", "%s.onProjectChange()" % scriptJob], parent=dummyObj)
+
         self.initMainUI()
         # create scripJobs
         # scriptJob = "tik_sceneManager"
-        # if scriptJob:
-        #     self.job_1 = pm.scriptJob(e=["workspaceChanged", "%s.refresh()" % scriptJob], parent=SM_Version)
+
 
         # self.statusBar().showMessage("System Status | Normal")
-
     # def buildUI(self, sceneManager_MainWindow):
     def buildUI(self):
-        # sceneManager_MainWindow.setObjectName(("sceneManager_MainWindow"))
-        # sceneManager_MainWindow.setCentralWidget(self.centralwidget)
-        #
-        # self.centralwidget = QtWidgets.QWidget(sceneManager_MainWindow)
-        # self.centralwidget.setObjectName(("centralwidget"))
 
         self.main_gridLayout = QtWidgets.QGridLayout(self.centralwidget)
         self.main_gridLayout.setObjectName(("main_gridLayout"))
@@ -865,12 +871,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.notes_textEdit.setReadOnly(True)
         self.verticalLayout.addWidget(self.notes_textEdit)
 
-
         self.tPixmap = QtGui.QPixmap("")
         self.thumbnail_label = ImageWidget(self.frame)
         self.thumbnail_label.setPixmap(self.tPixmap)
-
-
 
         self.thumbnail_label.setMinimumSize(QtCore.QSize(221, 124))
         self.thumbnail_label.setFrameShape(QtWidgets.QFrame.Box)
@@ -1052,7 +1055,11 @@ class MainUI(QtWidgets.QMainWindow):
 
         createPB.triggered.connect(self.manager.createPreview)
 
+        deleteFile_fm.triggered.connect(self.onDeleteBaseScene)
 
+        deleteReference_fm.triggered.connect(self.onDeleteReference)
+
+        checkReferences_fm.triggered.connect(lambda: self.populateBaseScenes(deepCheck=True))
 
         self.statusBar().showMessage("Status | Idle")
 
@@ -1083,8 +1090,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.saveVersion_pushButton.clicked.connect(self.saveAsVersionDialog)
         saveVersion_fm.triggered.connect(self.saveAsVersionDialog)
 
-        self.scenes_listWidget.doubleClicked.connect(self.onloadScene)
-        self.loadScene_pushButton.clicked.connect(self.onloadScene)
+        self.scenes_listWidget.doubleClicked.connect(self.onLoadScene)
+        self.loadScene_pushButton.clicked.connect(self.onLoadScene)
 
 
     def createSubProjectUI(self):
@@ -1566,11 +1573,13 @@ class MainUI(QtWidgets.QMainWindow):
         else:
             return
 
+        formatDict = self.manager.getFormatsAndCodecs()
+
         def updateCodecs():
-            codecs = pm.mel.eval(
-                'playblast -format "{0}" -q -compression;'.format(self.fileformat_comboBox.currentText()))
+            codecList = formatDict[self.fileformat_comboBox.currentText()]
             self.codec_comboBox.clear()
-            self.codec_comboBox.addItems(codecs)
+
+            self.codec_comboBox.addItems(codecList)
 
         def onPbSettingsAccept():
             newPbSettings = {"Resolution": (self.resolutionx_spinBox.value(), self.resolutiony_spinBox.value()),
@@ -1628,7 +1637,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.fileformat_comboBox.setGeometry(QtCore.QRect(100, 30, 111, 22))
         self.fileformat_comboBox.setObjectName(("fileformat_comboBox"))
         formats = pm.playblast(query=True, format=True)
-        self.fileformat_comboBox.addItems(formats)
+        self.fileformat_comboBox.addItems(formatDict.keys())
 
         # get the index number from the name in the settings file and make that index active
         ffindex = self.fileformat_comboBox.findText(currentSettings["Format"], QtCore.Qt.MatchFixedString)
@@ -1945,9 +1954,6 @@ class MainUI(QtWidgets.QMainWindow):
             self.onBaseSceneChange()
             self.scenes_listWidget.setCurrentRow(currentRow)
 
-
-
-
         # SIGNALS
         # -------
         sv_buttonBox.accepted.connect(saveAsVersionCommand)
@@ -1962,7 +1968,39 @@ class MainUI(QtWidgets.QMainWindow):
             self.infoPop(textInfo="Version Saving not possible",
                          textHeader="Current Scene is not a Base Scene. Only versions of Base Scenes can be saved", textTitle="Not a Base File", type="C")
 
+    def initMainUI(self):
+        self.manager.init_paths()
+        self.manager.init_database()
 
+        openSceneInfo = self.manager.getOpenSceneInfo()
+        if openSceneInfo: ## getSceneInfo returns None if there is no json database fil
+            self.baseScene_lineEdit.setText("%s ==> %s ==> %s" % (openSceneInfo["subProject"], openSceneInfo["category"], openSceneInfo["shotName"]))
+            self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: cyan")
+        else:
+            self.baseScene_lineEdit.setText("Current Scene is not a Base Scene")
+            self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: yellow")
+
+        # init project
+        self.project_lineEdit.setText(self.manager.projectDir)
+
+        # init subproject
+        self.subProject_comboBox.clear()
+        self.subProject_comboBox.addItems(self.manager.getSubProjects())
+        self.subProject_comboBox.setCurrentIndex(self.manager.currentSubIndex)
+
+        # init base scenes
+        self.populateBaseScenes()
+
+        # init users
+        self.user_comboBox.clear()
+        self.user_comboBox.addItems(self.manager.getUsers())
+        index = self.user_comboBox.findText(self.manager.currentUser, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+            self.user_comboBox.setCurrentIndex(index)
+
+        # disable the version related stuff
+        self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
+        self._vEnableDisable()
 
     def rcAction_scenes(self, command):
         if command == "importScene":
@@ -2031,6 +2069,102 @@ class MainUI(QtWidgets.QMainWindow):
         # show context menu
         self.popMenu_thumbnail.exec_(self.thumbnail_label.mapToGlobal(point))
 
+    def onProjectChange(self):
+        self.initMainUI()
+        # print "asjsjsjsjs"
+        # self.onSubProjectChange()
+        # self.onCategoryChange()
+        # self.onBaseSceneChange()
+        # self.onVersionChange()
+        # self.onPreviewChange()
+
+    def onSubProjectChange(self):
+        self.manager.currentSubIndex = self.subProject_comboBox.currentIndex()
+        self.onCategoryChange()
+
+    def onCategoryChange(self):
+        # logger.debug("onCategoryChange %s" %self.category_tabWidget.currentIndex())
+        self.manager.currentTabIndex = self.category_tabWidget.currentIndex()
+        self.populateBaseScenes()
+        self.onBaseSceneChange()
+
+    def onUserChange(self):
+        self.manager.currentUser = self.user_comboBox.currentText()
+        print self.manager.currentUser
+
+    def onModeChange(self):
+
+        self._vEnableDisable()
+
+        if self.load_radioButton.isChecked():
+            self.loadScene_pushButton.setText("Load Scene")
+            self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: grey;")
+        else:
+            self.loadScene_pushButton.setText("Reference Scene")
+            self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: cyan;")
+
+        self.manager.currentMode = self.load_radioButton.isChecked()
+        self.populateBaseScenes()
+
+    def onBaseSceneChange(self):
+        #clear version_combobox
+        self.version_comboBox.clear()
+
+        row = self.scenes_listWidget.currentRow()
+        if row == -1:
+            self.manager.currentBaseSceneName = ""
+
+        else:
+            self.manager.currentBaseSceneName = self.scenes_listWidget.currentItem().text()
+
+        self._vEnableDisable()
+        #get versions and add it to the combobox
+        versionData = self.manager.getVersions()
+        for num in range(len(versionData)):
+            self.version_comboBox.addItem("v{0}".format(str(num + 1).zfill(3)))
+        self.version_comboBox.setCurrentIndex(self.manager.currentVersionIndex-1)
+        self.onVersionChange()
+
+    def onVersionChange(self):
+        if self.version_comboBox.currentIndex() is not -1:
+            self.manager.currentVersionIndex = self.version_comboBox.currentIndex() + 1
+
+        # clear Notes and verison combobox
+        self.notes_textEdit.clear()
+
+        # update notes
+        self.notes_textEdit.setPlainText(self.manager.getNotes())
+
+        # update thumb
+        self.tPixmap = QtGui.QPixmap(self.manager.getThumbnail())
+        self.thumbnail_label.setPixmap(self.tPixmap)
+
+        if self.manager.currentVersionIndex != len(self.manager.getVersions()) and self.manager.currentVersionIndex != -1:
+            self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: yellow")
+        else:
+            self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
+
+    def populateBaseScenes(self, deepCheck=False):
+        self.scenes_listWidget.clear()
+        # logger.debug("populateBaseScenes")
+        baseScenesDict = self.manager.getBaseScenesInCategory()
+        if self.reference_radioButton.isChecked():
+            for key in baseScenesDict:
+                if self.manager.checkReference(baseScenesDict[key]) == 1:
+                    self.scenes_listWidget.addItem(key)
+
+        else:
+            codeDict = {-1: QtGui.QColor(255, 0, 0, 255), 1: QtGui.QColor(0, 255, 0, 255),
+                        0: QtGui.QColor(255, 255, 0, 255)}  # dictionary for color codes red, green, yellow
+
+            for key in sorted(baseScenesDict):
+                retCode = self.manager.checkReference(baseScenesDict[key], deepCheck=deepCheck) # returns -1, 0 or 1 for color ref
+                color = codeDict[retCode]
+                listItem = QtWidgets.QListWidgetItem()
+                listItem.setText(key)
+                listItem.setForeground(color)
+                self.scenes_listWidget.addItem(listItem)
+
     def onLoadScene(self):
         row = self.scenes_listWidget.currentRow()
         if row == -1:
@@ -2042,7 +2176,7 @@ class MainUI(QtWidgets.QMainWindow):
             if mismatch == "no":
                 return
 
-        if self.loadMode_radioButton.isChecked():
+        if self.load_radioButton.isChecked():
             if self.manager.isSceneModified():
                 q = self.queryPop(type="yesNoCancel", textTitle="Save Changes", textInfo="Save Changes to",
                                   textHeader=("Scene Modified"))
@@ -2057,13 +2191,13 @@ class MainUI(QtWidgets.QMainWindow):
 
             else: # if current scene saved and secure
                 self.manager.loadBaseScene(force=True)
-        self.manager.getOpenSceneInfo()
-        # TODO // CONTINUE
 
-        self.statusBar().showMessage("Status | Scene Loaded => %s" % sceneName)
+            self.statusBar().showMessage("Status | Scene Loaded => %s" % self.manager.currentBaseSceneName)
 
-
-
+        if self.reference_radioButton.isChecked():
+            self.manager.referenceBaseScene()
+            # self.populateScenes()
+            self.statusBar().showMessage("Status | Scene Referenced => %s" % self.manager.currentBaseSceneName)
 
     def onMakeReference(self):
         self.manager.makeReference()
@@ -2073,10 +2207,6 @@ class MainUI(QtWidgets.QMainWindow):
         currentRow = self.scenes_listWidget.currentRow()
         self.populateBaseScenes()
         self.scenes_listWidget.setCurrentRow(currentRow)
-
-    def onUserChange(self):
-        self.manager.currentUser = self.user_comboBox.currentText()
-        print self.manager.currentUser
 
     def onShowPreview(self):
         # TODO // TEST IT
@@ -2091,137 +2221,31 @@ class MainUI(QtWidgets.QMainWindow):
             for z in cameraList:
                 tempAction = QtWidgets.QAction(z, self)
                 zortMenu.addAction(tempAction)
-                # tempAction.triggered.connect(lambda item=cameraList[z]: self.onPlayPb(item))  ## Take note about the usage of lambda "item=pbDict[z]" makes it possible using the loop
                 tempAction.triggered.connect(lambda item=z: self.manager.playPreview(item)) ## Take note about the usage of lambda "item=pbDict[z]" makes it possible using the loop
 
             zortMenu.exec_((QtGui.QCursor.pos()))
 
-    def onVersionChange(self):
-        # logger.debug("onVersionChange%s" %self.version_comboBox.currentIndex())
-
-        if self.version_comboBox.currentIndex() is not -1:
-            self.manager.currentVersionIndex = self.version_comboBox.currentIndex() + 1
-
-        # clear Notes and verison combobox
-        self.notes_textEdit.clear()
-
-        # update notes
-        self.notes_textEdit.setPlainText(self.manager.getNotes())
-
-        # update thumb
-        self.tPixmap = QtGui.QPixmap(self.manager.getThumbnail())
-        self.thumbnail_label.setPixmap(self.tPixmap)
-
-        # logger.debug("currentVersionIndex: %s --- getVersions: %s" %(self.manager.currentVersionIndex, len(self.manager.getVersions())))
-        if self.manager.currentVersionIndex != len(self.manager.getVersions()) and self.manager.currentVersionIndex != -1:
-            self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: yellow")
-        else:
-            self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
-
-    def onBaseSceneChange(self):
-        #clear version_combobox
-        self.version_comboBox.clear()
-
-        # logger.debug("onBaseSceneChange")
-        row = self.scenes_listWidget.currentRow()
-        if row == -1:
-            self.manager.currentBaseSceneName = ""
-            self._vEnableDisable(False)
-        else:
-            self.manager.currentBaseSceneName = self.scenes_listWidget.currentItem().text()
-            self._vEnableDisable(True)
-        #get versions and add it to the combobox
-        versionData = self.manager.getVersions()
-        for num in range(len(versionData)):
-            self.version_comboBox.addItem("v{0}".format(str(num + 1).zfill(3)))
-        self.version_comboBox.setCurrentIndex(self.manager.currentVersionIndex-1)
-        self.onVersionChange()
-
-    def onSubProjectChange(self):
-        self.manager.currentSubIndex = self.subProject_comboBox.currentIndex()
-        self.onCategoryChange()
-
-    def onProjectChange(self):
-        self.initMainUI()
-        # self.onSubProjectChange()
-        # self.onCategoryChange()
-        # self.onBaseSceneChange()
-        # self.onVersionChange()
-        # self.onPreviewChange()
-
-    def onCategoryChange(self):
-        # logger.debug("onCategoryChange %s" %self.category_tabWidget.currentIndex())
-        self.manager.currentTabIndex = self.category_tabWidget.currentIndex()
-        self.populateBaseScenes()
-        self.onBaseSceneChange()
-
-    def onModeChange(self):
-        state = self.load_radioButton.isChecked()
-
-        self._vEnableDisable(state)
-
+    def onDeleteBaseScene(self):
+        name = self.manager.currentBaseSceneName
+        state = self.queryPop("password", textTitle="DELETE BASE SCENE", textInfo="!!!DELETING BASE SCENE!!! %s\n\nAre you absolutely sure?" %name, password="682")
         if state:
-            self.loadScene_pushButton.setText("Load Scene")
-            self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: grey;")
-        else:
-            self.loadScene_pushButton.setText("Reference Scene")
-            self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: cyan;")
+            row = self.scenes_listWidget.currentRow()
+            if not row == -1:
+                self.manager.deleteBasescene(self.manager.currentDatabasePath)
+                self.populateBaseScenes()
+                self.statusBar().showMessage("Status | Scene Deleted => %s" % name)
 
-        self.manager.currentMode = state
-        self.populateBaseScenes()
 
-    def populateBaseScenes(self):
-        self.scenes_listWidget.clear()
-        # logger.debug("populateBaseScenes")
-        baseScenesDict = self.manager.getBaseScenesInCategory()
-        if self.reference_radioButton.isChecked():
-            for key in baseScenesDict:
-                if self.manager.checkReference(baseScenesDict[key]) == 1:
-                    self.scenes_listWidget.addItem(key)
+    def onDeleteReference(self):
+        name = self.manager.currentBaseSceneName
+        state = self.queryPop("password", textTitle="DELETE REFERENCE FILE", textInfo="DELETING Reference File of %s\n\nAre you sure?" %name, password="682")
+        if state:
+            row = self.scenes_listWidget.currentRow()
+            if not row == -1:
+                self.manager.deleteReference(self.manager.currentDatabasePath)
+                self.populateBaseScenes()
+                self.statusBar().showMessage("Status | Reference of %s is deleted" % name)
 
-        else:
-            codeDict = {-1: QtGui.QColor(255, 0, 0, 255), 1: QtGui.QColor(0, 255, 0, 255),
-                        0: QtGui.QColor(255, 255, 0, 255)}  # dictionary for color codes red, green, yellow
-
-            for key in sorted(baseScenesDict):
-                retCode = self.manager.checkReference(baseScenesDict[key]) # returns -1, 0 or 1 for color ref
-                color = codeDict[retCode]
-                listItem = QtWidgets.QListWidgetItem()
-                listItem.setText(key)
-                listItem.setForeground(color)
-                self.scenes_listWidget.addItem(listItem)
-
-    def initMainUI(self):
-        # logger.debug("initMainUI")
-        openSceneInfo = self.manager.getOpenSceneInfo()
-        if openSceneInfo: ## getSceneInfo returns None if there is no json database fil
-            self.baseScene_lineEdit.setText("%s ==> %s ==> %s" % (openSceneInfo["subProject"], openSceneInfo["category"], openSceneInfo["shotName"]))
-            self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: cyan")
-        else:
-            self.baseScene_lineEdit.setText("Current Scene is not a Base Scene")
-            self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: yellow")
-
-        # init project
-        self.project_lineEdit.setText(self.manager.projectDir)
-
-        # init subproject
-        self.subProject_comboBox.clear()
-        self.subProject_comboBox.addItems(self.manager.getSubProjects())
-        self.subProject_comboBox.setCurrentIndex(self.manager.currentSubIndex)
-
-        # init base scenes
-        self.populateBaseScenes()
-
-        # init users
-        self.user_comboBox.clear()
-        self.user_comboBox.addItems(self.manager.getUsers())
-        index = self.user_comboBox.findText(self.manager.currentUser, QtCore.Qt.MatchFixedString)
-        if index >= 0:
-            self.user_comboBox.setCurrentIndex(index)
-
-        # disable the version related stuff
-        self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
-        self._vEnableDisable(False)
 
     def _checkValidity(self, text, button, lineEdit):
         if self.manager._nameCheck(text):
@@ -2231,16 +2255,24 @@ class MainUI(QtWidgets.QMainWindow):
             lineEdit.setStyleSheet("background-color: red; color: black")
             button.setEnabled(False)
 
-    def _vEnableDisable(self, state):
-        self.version_comboBox.setEnabled(state)
-        if state == True and self.manager.getPreviews():
-            self.showPreview_pushButton.setEnabled(True)
-        else:
-            self.showPreview_pushButton.setEnabled(False)
-        self.makeReference_pushButton.setEnabled(state)
-        self.addNote_pushButton.setEnabled(state)
+    def _vEnableDisable(self):
+        if self.load_radioButton.isChecked() and self.manager.currentBaseSceneName:
+            self.version_comboBox.setEnabled(True)
+            if self.manager.getPreviews():
+                self.showPreview_pushButton.setEnabled(True)
+            else:
+                self.showPreview_pushButton.setEnabled(False)
+            self.makeReference_pushButton.setEnabled(True)
+            self.addNote_pushButton.setEnabled(True)
+            self.version_label.setEnabled(True)
 
-        self.version_label.setEnabled(state)
+        else:
+            self.version_comboBox.setEnabled(False)
+            self.showPreview_pushButton.setEnabled(False)
+            self.makeReference_pushButton.setEnabled(False)
+            self.addNote_pushButton.setEnabled(False)
+            self.version_label.setEnabled(False)
+
 
     def infoPop(self, textTitle="info", textHeader="", textInfo="", type="I"):
         self.msg = QtWidgets.QMessageBox(parent=self)
@@ -2317,6 +2349,7 @@ class MainUI(QtWidgets.QMainWindow):
 
 
 class ImageWidget(QtWidgets.QLabel):
+    """Custom class for thumbnail section. Keeps the aspect ratio when resized."""
     def __init__(self, parent=None):
         super(ImageWidget, self).__init__()
         self.aspectRatio = 1.78
@@ -2330,6 +2363,7 @@ class ImageWidget(QtWidgets.QLabel):
         self.setMaximumHeight(h/self.aspectRatio)
 
 class DropListWidget(QtWidgets.QListWidget):
+    """Custom List Widget which accepts drops"""
     dropped = Qt.QtCore.Signal(str)
     def __init__(self, type, parent=None):
         super(DropListWidget, self).__init__(parent)
@@ -2354,6 +2388,7 @@ class DropListWidget(QtWidgets.QListWidget):
         self.dropped.emit(path)
 
 class Browse(object):
+    """Browsing class with history"""
     def __init__(self):
         super(Browse, self).__init__()
         self.history = []

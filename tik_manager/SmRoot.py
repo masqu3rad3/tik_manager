@@ -518,19 +518,6 @@ class RootManager(object):
         self._bookmarksList = self.loadFavorites(self.bookmarksFile)  # not immediate
         return self._bookmarksList
 
-
-
-    def projectChanged(self):
-        pass
-        # update Project
-        # update SubProject
-        # update Category
-        # get scenes in category
-        # set scene index to -1
-
-
-
-
     def createNewProject(self, projectRoot, projectName, brandName, client):
         """
         Creates New Project Structure
@@ -824,7 +811,6 @@ class RootManager(object):
                         """.format(previewName, previewFile))
 
     def deleteBasescene(self, databaseFile):
-        # TODO TEST IT
         #ADMIN ACCESS
         jsonInfo = self._loadJson(databaseFile)
         # delete all version files
@@ -859,7 +845,6 @@ class RootManager(object):
         logger.debug("all database entries and version files of %s deleted" %databaseFile)
 
     def deleteReference(self, databaseFile):
-        # TODO // TEST IT
         #ADMIN ACCESS
         jsonInfo = self._loadJson(databaseFile)
 
@@ -892,34 +877,6 @@ class RootManager(object):
 
         self._dumpJson(self._currentSceneInfo, self._baseScenesInCategory[self.currentBaseSceneName])
 
-
-    # def checkCurrentReference(self, deepCheck=False):
-    #     if not self._currentBaseSceneName:
-    #         logger.warning("Cursor is not on a Base Scene. Cancelling")
-    #         return
-    #     if self._currentSceneInfo["ReferenceFile"]:
-    #         relVersionFile = self._currentSceneInfo["Versions"][self._currentSceneInfo["ReferencedVersion"] - 1][0]
-    #         absVersionFile = os.path.join(self.projectDir, relVersionFile)
-    #         relRefFile = self._currentSceneInfo["ReferenceFile"]
-    #         absRefFile = os.path.join(self.projectDir, relRefFile)
-    #
-    #         if not os.path.isfile(absRefFile):
-    #             logger.warning("CODE RED: Reference File does not exist")
-    #             return -1 # code red
-    #         else:
-    #             if deepCheck:
-    #                 if filecmp.cmp(absVersionFile, absRefFile):
-    #                     logger.info("CODE GREEN: Everything is OK")
-    #                     return 1 # code Green
-    #                 else:
-    #                     logger.warning("CODE RED: Checksum mismatch with reference file")
-    #                     return -1 # code red
-    #             else:
-    #                 logger.info("CODE GREEN: Everything is OK")
-    #                 return 1 # code Green
-    #     else:
-    #         logger.info("CODE YELLOW: File does not have a reference copy")
-    #         return 0 # code yellow
 
     def checkReference(self, jsonFile, deepCheck=False):
         sceneInfo = self._loadJson(jsonFile)
