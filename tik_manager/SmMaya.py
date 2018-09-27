@@ -46,7 +46,8 @@ def getMayaMainWindow():
         (long) Memory Adress
     """
     win = omui.MQtUtil_mainWindow()
-    ptr = wrapInstance(long(win), QtWidgets.QMainWindow)
+    # ptr = wrapInstance(long(win), QtWidgets.QMainWindow)
+    ptr = wrapInstance(long(win), QtWidgets.QWidget)
     return ptr
 
 class MayaManager(RootManager):
@@ -676,28 +677,25 @@ class MainUI(QtWidgets.QMainWindow):
         self.setObjectName(SM_Version)
         self.resize(680, 600)
         self.setWindowTitle(SM_Version)
-        # self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+
         self.centralwidget = QtWidgets.QWidget(self)
-
-
 
 
 
         self.buildUI()
         self.setCentralWidget(self.centralwidget)
 
-        dummyObj = cmds.helpLine(visible=False, width=100, parent=self.main_horizontalLayout)
-
         if scriptJob:
-            self.job_1 = pm.scriptJob(e=["workspaceChanged", "%s.onProjectChange()" % scriptJob], parent=dummyObj)
+            self.job_1 = cmds.scriptJob(e=["workspaceChanged", "%s.initMainUI()" % scriptJob], replacePrevious=True, parent=SM_Version)
 
         self.initMainUI()
-        # create scripJobs
-        # scriptJob = "tik_sceneManager"
 
+    def closeEvent(self, event):
+        if cmds.scriptJob(ex=self.job_1):
+            cmds.scriptJob(kill=self.job_1)
 
-        # self.statusBar().showMessage("System Status | Normal")
-    # def buildUI(self, sceneManager_MainWindow):
+        # super(MainUI, self).closeEvent(event)
+
     def buildUI(self):
 
         self.main_gridLayout = QtWidgets.QGridLayout(self.centralwidget)
