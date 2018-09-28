@@ -20,6 +20,6 @@ from tik_manager import imageManager
 reload(imageManager)
 tik_imageManager = imageManager.MainUI(scriptJob="tik_imageManager")
 
-from tik_manager import imageViewer
-reload(imageViewer)
-tik_imageViewer = imageViewer.MainUI().show()
+from tik_manager import IvMaya
+reload(IvMaya)
+tik_imageViewer = IvMaya.MainUI().show()

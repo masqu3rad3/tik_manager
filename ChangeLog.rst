@@ -1,6 +1,12 @@
 =============================
 Scene Manager Version History
 =============================
+
+2.0
+-----
+* **New.0:** manager module seperated into SmRoot and SmMaya modules and re-written
+* **Update.0:** UI improvements.
+
 1.93
 ----
 * **Update.0:** database operations moved to a seperate module

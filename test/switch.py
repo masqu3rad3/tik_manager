@@ -7,6 +7,7 @@ import maya.cmds as cmds
 
 shareDir = 'M:\\Projects\\__database\\scripts'
 devDir = 'C:\\Users\\User\\Documents\\maya\\scripts\\dev\\tik_manager'
+delModules = ["tik_manager"]
 
 
 

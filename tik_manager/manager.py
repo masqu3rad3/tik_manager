@@ -2900,7 +2900,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.imageManagerINS = iman.MainUI(scriptJob=scriptJob)
 
     def onIviewer(self):
-        import imageViewer as iview
+        import IvMaya as iview
         iview.MainUI().show()
 
     def saveBaseSceneDialog(self):

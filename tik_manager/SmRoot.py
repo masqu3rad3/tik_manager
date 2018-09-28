@@ -513,10 +513,10 @@ class RootManager(object):
         """returns (String) absolute thumbnail path of version on cursor position"""
         return os.path.join(self.projectDir, self._currentThumbFile)
 
-    def getFavorites(self):
-        """returns List of favorite projects"""
-        self._bookmarksList = self.loadFavorites(self.bookmarksFile)  # not immediate
-        return self._bookmarksList
+    # def getFavorites(self):
+    #     """returns List of favorite projects"""
+    #     self._bookmarksList = self.loadFavorites(self.bookmarksFile)  # not immediate
+    #     return self._bookmarksList
 
     def createNewProject(self, projectRoot, projectName, brandName, client):
         """

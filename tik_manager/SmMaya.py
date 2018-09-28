@@ -3,6 +3,7 @@ import SmRoot
 reload(SmRoot)
 from SmRoot import RootManager
 
+import _version
 import shutil
 import maya.cmds as cmds
 import maya.mel as mel
@@ -11,6 +12,9 @@ import datetime
 import socket
 import pprint
 import logging
+
+import IvMaya
+import ImMaya
 
 import Qt
 from Qt import QtWidgets, QtCore, QtGui
@@ -26,14 +30,13 @@ else:
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Scene Manager for Maya Project"
 __credits__ = []
-__version__ = "V2.0.0"
+__version__ = "2.0.0"
 __license__ = "GPL"
 __maintainer__ = "Arda Kutlu"
 __email__ = "ardakutlu@gmail.com"
 __status__ = "Development"
 
-# SM_Version = "Scene Manager v%s" %(__version__)
-SM_Version = "Scene Manager v"
+SM_Version = "Scene Manager v%s" %_version.__version__
 
 logging.basicConfig()
 logger = logging.getLogger('smMaya')
@@ -46,8 +49,7 @@ def getMayaMainWindow():
         (long) Memory Adress
     """
     win = omui.MQtUtil_mainWindow()
-    # ptr = wrapInstance(long(win), QtWidgets.QMainWindow)
-    ptr = wrapInstance(long(win), QtWidgets.QWidget)
+    ptr = wrapInstance(long(win), QtWidgets.QMainWindow)
     return ptr
 
 class MayaManager(RootManager):
@@ -646,10 +648,21 @@ class MayaManager(RootManager):
             (item, mel.eval('playblast -format "{0}" -q -compression;'.format(item))) for item in formatList)
         return codecsDictionary
 
+    def _createCallbacks(self, handler):
+        callbackIDList=[]
+        callbackIDList.append(cmds.scriptJob(e=["workspaceChanged", "%s.initMainUI()" % handler], replacePrevious=True, parent=SM_Version))
+        return callbackIDList
+
+    def _killCallbacks(self, callbackIDList):
+        for x in callbackIDList:
+            if cmds.scriptJob(ex=x):
+                cmds.scriptJob(kill=x)
+
+
 class MainUI(QtWidgets.QMainWindow):
     """Main UI Class for Tik Scene Manager"""
-    def __init__(self, scriptJob=None):
-        # self.scriptJob=scriptJob
+    def __init__(self, callback=None):
+        self.isCallback = callback
         for entry in QtWidgets.QApplication.allWidgets():
             try:
                 if entry.objectName() == SM_Version:
@@ -679,20 +692,21 @@ class MainUI(QtWidgets.QMainWindow):
         self.setWindowTitle(SM_Version)
 
         self.centralwidget = QtWidgets.QWidget(self)
+        self.centralwidget.setObjectName("centralwidget")
 
-
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
         self.buildUI()
         self.setCentralWidget(self.centralwidget)
 
-        if scriptJob:
-            self.job_1 = cmds.scriptJob(e=["workspaceChanged", "%s.initMainUI()" % scriptJob], replacePrevious=True, parent=SM_Version)
+        self.callbackIDList=[]
+        if self.isCallback:
+            self.callbackIDList = self.manager._createCallbacks(self.isCallback)
 
         self.initMainUI()
 
     def closeEvent(self, event):
-        if cmds.scriptJob(ex=self.job_1):
-            cmds.scriptJob(kill=self.job_1)
+        self.manager._killCallbacks(self.callbackIDList)
 
         # super(MainUI, self).closeEvent(event)
 
@@ -1051,13 +1065,18 @@ class MainUI(QtWidgets.QMainWindow):
 
         pb_settings_fm.triggered.connect(self.pbSettingsUI)
 
-        createPB.triggered.connect(self.manager.createPreview)
+
 
         deleteFile_fm.triggered.connect(self.onDeleteBaseScene)
 
         deleteReference_fm.triggered.connect(self.onDeleteReference)
 
         checkReferences_fm.triggered.connect(lambda: self.populateBaseScenes(deepCheck=True))
+
+        imanager.triggered.connect(self.onImanager)
+        iviewer.triggered.connect(self.onIviewer)
+        createPB.triggered.connect(self.manager.createPreview)
+
 
         self.statusBar().showMessage("Status | Idle")
 
@@ -1634,7 +1653,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.fileformat_comboBox = QtWidgets.QComboBox(self.videoproperties_groupBox)
         self.fileformat_comboBox.setGeometry(QtCore.QRect(100, 30, 111, 22))
         self.fileformat_comboBox.setObjectName(("fileformat_comboBox"))
-        formats = pm.playblast(query=True, format=True)
         self.fileformat_comboBox.addItems(formatDict.keys())
 
         # get the index number from the name in the settings file and make that index active
@@ -2243,6 +2261,18 @@ class MainUI(QtWidgets.QMainWindow):
                 self.manager.deleteReference(self.manager.currentDatabasePath)
                 self.populateBaseScenes()
                 self.statusBar().showMessage("Status | Reference of %s is deleted" % name)
+
+    def onImanager(self):
+        # if self.isCallback:
+        #     callback = "%s.imageManagerINS" %(self.isCallback)
+        # else:
+        #     callback = None
+        #
+        # self.imageManagerINS = ImMaya.MainUI(callback=callback)
+        e = ImMaya.MainUI()
+
+    def onIviewer(self):
+        IvMaya.MainUI().show()
 
 
     def _checkValidity(self, text, button, lineEdit):
