@@ -1,16 +1,45 @@
-"""Creates a tree structure for image sequences
-
-Image sequences can be listed recursively if the checkbox is checked.
-Meaning all the sequence under the selected folder will be listed
-recursively.
-Double clicking on the seguence will execute the file on the defined application
-"""
-
+import os
+import SmRoot
+from SmRoot import RootManager
 from PyQt4 import QtCore, QtGui, Qt
 
-import sys, os
+import _version
 
-windowName = "test"
+import sys, os
+import logging
+
+__author__ = "Arda Kutlu"
+__copyright__ = "Copyright 2018, Scene Manager for Maya Project"
+__credits__ = []
+__version__ = "2.0.0"
+__license__ = "GPL"
+__maintainer__ = "Arda Kutlu"
+__email__ = "ardakutlu@gmail.com"
+__status__ = "Development"
+
+SM_Version = "Scene Manager Standalone v%s" %_version.__version__
+
+logging.basicConfig()
+logger = logging.getLogger('smStandalone')
+logger.setLevel(logging.DEBUG)
+
+class StandaloneManager(RootManager)
+    def __init__(self):
+        super(StandaloneManager, self).__init__()
+
+    def getProjectDir(self):
+        """Overriden function"""
+
+    def initSoftwares(self):
+
+    def getSoftwarePaths(self):
+        """Overriden function"""
+        # To tell the base class maya specific path names
+        return {"databaseDir": "mayaDB",
+                "scenesDir": "scenes",
+                "pbSettingsFile": "pbSettings"}
+
+
 
 class MainUI(QtGui.QMainWindow):
     def __init__(self):
@@ -19,9 +48,9 @@ class MainUI(QtGui.QMainWindow):
 
         self.tempCategories = ["Model", "Rig", "Shading", "Layout", "Animation", "Render", "Other"]
 
-        self.setObjectName(windowName)
+        self.setObjectName(SM_Version)
         self.resize(680, 600)
-        self.setWindowTitle(windowName)
+        self.setWindowTitle(SM_Version)
         self.centralwidget = QtGui.QWidget(self)
 
         self.setupUi(self)
@@ -44,19 +73,19 @@ class MainUI(QtGui.QMainWindow):
         self.main_horizontalLayout.setObjectName(("horizontalLayout"))
         self.main_horizontalLayout.setStretch(0, 1)
 
-        self.saveVersion_pushButton = QtGui.QPushButton(self.centralwidget)
-        self.saveVersion_pushButton.setMinimumSize(QtCore.QSize(150, 45))
-        self.saveVersion_pushButton.setMaximumSize(QtCore.QSize(150, 45))
-        self.saveVersion_pushButton.setText(("Save As Version"))
-        self.saveVersion_pushButton.setObjectName(("saveVersion_pushButton"))
-        self.main_horizontalLayout.addWidget(self.saveVersion_pushButton)
-
-        self.saveBaseScene_pushButton = QtGui.QPushButton(self.centralwidget)
-        self.saveBaseScene_pushButton.setMinimumSize(QtCore.QSize(150, 45))
-        self.saveBaseScene_pushButton.setMaximumSize(QtCore.QSize(150, 45))
-        self.saveBaseScene_pushButton.setText(("Save Base Scene"))
-        self.saveBaseScene_pushButton.setObjectName(("saveBaseScene_pushButton"))
-        self.main_horizontalLayout.addWidget(self.saveBaseScene_pushButton)
+        # self.saveVersion_pushButton = QtGui.QPushButton(self.centralwidget)
+        # self.saveVersion_pushButton.setMinimumSize(QtCore.QSize(150, 45))
+        # self.saveVersion_pushButton.setMaximumSize(QtCore.QSize(150, 45))
+        # self.saveVersion_pushButton.setText(("Save As Version"))
+        # self.saveVersion_pushButton.setObjectName(("saveVersion_pushButton"))
+        # self.main_horizontalLayout.addWidget(self.saveVersion_pushButton)
+        #
+        # self.saveBaseScene_pushButton = QtGui.QPushButton(self.centralwidget)
+        # self.saveBaseScene_pushButton.setMinimumSize(QtCore.QSize(150, 45))
+        # self.saveBaseScene_pushButton.setMaximumSize(QtCore.QSize(150, 45))
+        # self.saveBaseScene_pushButton.setText(("Save Base Scene"))
+        # self.saveBaseScene_pushButton.setObjectName(("saveBaseScene_pushButton"))
+        # self.main_horizontalLayout.addWidget(self.saveBaseScene_pushButton)
 
         spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.main_horizontalLayout.addItem(spacerItem)
@@ -75,11 +104,11 @@ class MainUI(QtGui.QMainWindow):
         self.r2_gridLayout.setObjectName(("r2_gridLayout"))
         self.r2_gridLayout.setColumnStretch(1, 1)
 
-        self.load_radioButton = QtGui.QRadioButton(self.centralwidget)
-        self.load_radioButton.setText(("Load Mode"))
-        self.load_radioButton.setChecked(False)
-        self.load_radioButton.setObjectName(("load_radioButton"))
-        self.r2_gridLayout.addWidget(self.load_radioButton, 0, 0, 1, 1)
+        # self.load_radioButton = QtGui.QRadioButton(self.centralwidget)
+        # self.load_radioButton.setText(("Load Mode"))
+        # self.load_radioButton.setChecked(False)
+        # self.load_radioButton.setObjectName(("load_radioButton"))
+        # self.r2_gridLayout.addWidget(self.load_radioButton, 0, 0, 1, 1)
 
         self.subProject_label = QtGui.QLabel(self.centralwidget)
         self.subProject_label.setText(("Sub-Project:"))
@@ -93,11 +122,11 @@ class MainUI(QtGui.QMainWindow):
         self.subProject_comboBox.setObjectName(("subProject_comboBox"))
         self.r2_gridLayout.addWidget(self.subProject_comboBox, 0, 3, 1, 1)
 
-        self.reference_radioButton = QtGui.QRadioButton(self.centralwidget)
-        self.reference_radioButton.setText(("Reference Mode"))
-        self.reference_radioButton.setChecked(True)
-        self.reference_radioButton.setObjectName(("reference_radioButton"))
-        self.r2_gridLayout.addWidget(self.reference_radioButton, 0, 1, 1, 1)
+        # self.reference_radioButton = QtGui.QRadioButton(self.centralwidget)
+        # self.reference_radioButton.setText(("Reference Mode"))
+        # self.reference_radioButton.setChecked(True)
+        # self.reference_radioButton.setObjectName(("reference_radioButton"))
+        # self.r2_gridLayout.addWidget(self.reference_radioButton, 0, 1, 1, 1)
 
         self.addSubProject_pushButton = QtGui.QPushButton(self.centralwidget)
         self.addSubProject_pushButton.setMinimumSize(QtCore.QSize(30, 30))
