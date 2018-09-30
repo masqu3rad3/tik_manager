@@ -557,6 +557,10 @@ class MayaManager(RootManager):
         self._dumpJson(self._currentSceneInfo, self.currentDatabasePath)
 
     def compareVersions(self):
+
+        # // TODO : Find a BETTER way to compare versions.
+        # // TODO : You may question each individual scen file for version insteas of base scene database
+
         """Compares the versions of current session and database version at cursor position"""
         if not self._currentSceneInfo["MayaVersion"]:
             cmds.warning("Cursor is not on a base scene")

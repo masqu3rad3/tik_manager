@@ -922,8 +922,8 @@ class RootManager(object):
         except AttributeError:
             is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
         if not is_admin:
-            return -1, ["Admin Rights", "Maya does not have the administrator rights",
-                        "You need to run Maya as administrator to work with Scene Manager"]
+            return -1, ["Admin Rights", "You dont have the administrator rights",
+                        "You need to run the Software as administrator to work with Scene Manager"]
         return None, None
 
     def _folderCheck(self, folder):
