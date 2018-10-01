@@ -20,7 +20,8 @@ import MaxPlus
 
 from MaxPlus import FileManager as fManager
 from MaxPlus import PathManager as pManager
-from MaxPlus import Core as core
+# from MaxPlus import Core as core
+import pymxs
 
 
 # MaxPlus.FileManager.CheckForSave()
@@ -107,7 +108,7 @@ class MaxManager(RootManager):
         # To tell the base class maya specific path names
         return {"databaseDir": "maxDB",
                 "scenesDir": "scenes_3dsMax",
-                "pbSettingsFile": "pbSettings_3dsMax"}
+                "pbSettingsFile": "pbSettings_3dsMax.json"}
 
     def getProjectDir(self):
         """Overriden function"""
@@ -321,193 +322,139 @@ class MaxManager(RootManager):
 
     def createPreview(self, *args, **kwargs):
         """Creates a Playblast preview from currently open scene"""
+        rt = pymxs.runtime
+
+        openSceneInfo = self.getOpenSceneInfo()
+        # sceneName = self.getSceneFile()
+        if not openSceneInfo:
+            msg = "This is not a base scene. Scene must be saved as a base scene before playblasting."
+            logger.warning(msg)
+            return -1, msg
+
+        # get view info
+        viewportType = rt.viewport.getType()
+        print "CVP", viewportType
+        if str(viewportType) == "view_camera":
+            currentCam = str(rt.getActiveCamera().name)
+        else:
+            currentCam = str(viewportType)
+
+        validName = currentCam.replace("|", "__").replace(" ", "_")
+        extension = "avi"
+
+        # versionName = rt.getFilenameFile(rt.maxFileName) #
+        versionName = rt.maxFilePath + rt.maxFileName # abs path of the filename with extension
+        print "versionName", versionName
+        relVersionName = os.path.relpath(versionName, start=openSceneInfo["projectPath"]) # relative path of filename with ext
+
+        if not os.path.isdir(os.path.normpath(openSceneInfo["previewPath"])):
+            os.makedirs(os.path.normpath(openSceneInfo["previewPath"]))
+        playBlastFile = os.path.join(openSceneInfo["previewPath"], "{0}_{1}_PB.{2}".format(self._niceName(versionName), validName, extension))
+        relPlayBlastFile = os.path.relpath(playBlastFile, start=openSceneInfo["projectPath"])
+
+        if os.path.isfile(playBlastFile):
+            try:
+                os.remove(playBlastFile)
+            except WindowsError:
+                msg = "The file is open somewhere else"
+                logger.warning(msg)
+                return -1, msg
+
+        jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
 
         # returns 0,"" if everything is ok, -1,msg if error
-        # TODO / write 3ds max preview from scratch
-        pass
+
+        pbSettings = self._loadPBSettings()
+        originalValues = {"width": rt.renderWidth,
+                        "height": rt.renderHeight
+                        }
+
+        originalSelection = rt.execute("selection as array")
 
 
-        # pbSettings = self._loadPBSettings()
-        # validFormats = cmds.playblast(format=True, q=True)
-        # validCodecs = cmds.playblast(c=True, q=True)
-        #
-        # if not pbSettings["Format"] in validFormats:
-        #     msg = ("Format specified in project settings is not supported. Install {0}".format(pbSettings["Format"]))
-        #     cmds.warning(msg)
-        #     return -1, msg
-        #
-        # if not pbSettings["Codec"] in validCodecs:
-        #     msg = ("Codec specified in project settings is not supported. Install {0}".format(pbSettings["Codec"]))
-        #     cmds.warning(msg)
-        #     return -1, msg
-        #
-        # extension = "mov" if pbSettings["Format"] == "qt" else "avi"
-        #
-        # # Quicktime format is missing the final frame all the time. Add an extra frame to compansate
-        # if pbSettings["Format"] == 'qt':
-        #     maxTime = cmds.playbackOptions(q=True, maxTime=True)
-        #     endTime = cmds.playbackOptions(q=True, animationEndTime=True)
-        #     cmds.playbackOptions(maxTime=maxTime + 1)
-        #     cmds.playbackOptions(animationEndTime=endTime + 1)
-        #
-        # openSceneInfo = self.getOpenSceneInfo()
-        # # sceneName = self.getSceneFile()
-        # if not openSceneInfo:
-        #     msg = "This is not a base scene. Scene must be saved as a base scene before playblasting."
-        #     pm.warning(msg)
-        #     return -1, msg
-        #
-        # selection = cmds.ls(sl=True)
-        # cmds.select(d=pbSettings["ClearSelection"])
-        # jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
-        #
-        # currentCam = cmds.modelPanel(cmds.getPanel(wf=True), q=True, cam=True)
-        #
-        # validName = currentCam.replace("|", "__").replace(" ", "_")
-        #
-        # if not self._nameCheck(validName):
-        #     msg = "A scene view must be highlighted"
-        #     cmds.warning(msg)
-        #     return -1, msg
-        #
-        # versionName = self.getSceneFile()
-        # relVersionName = os.path.relpath(versionName, start=openSceneInfo["projectPath"])
-        # playBlastFile = os.path.join(openSceneInfo["previewPath"], "{0}_{1}_PB.{2}".format(self._niceName(versionName), validName, extension))
-        # relPlayBlastFile = os.path.relpath(playBlastFile, start=openSceneInfo["projectPath"])
-        #
-        # if os.path.isfile(playBlastFile):
-        #     try:
-        #         os.remove(playBlastFile)
-        #     except WindowsError:
-        #         msg = "The file is open somewhere else"
-        #         cmds.warning(msg)
-        #         return -1, msg
-        #
-        # ## CREATE A CUSTOM PANEL WITH DESIRED SETTINGS
-        #
-        # tempWindow = cmds.window(title="SM_Playblast",
-        #                        widthHeight=(pbSettings["Resolution"][0] * 1.1, pbSettings["Resolution"][1] * 1.1),
-        #                        tlc=(0, 0))
-        # # panel = pm.getPanel(wf=True)
-        #
-        # cmds.paneLayout()
-        #
-        # pbPanel = cmds.modelPanel(camera=currentCam)
-        # cmds.showWindow(tempWindow)
-        # cmds.setFocus(pbPanel)
-        #
-        # cmds.modelEditor(pbPanel, e=1,
-        #                allObjects=not pbSettings["PolygonOnly"],
-        #                da="smoothShaded",
-        #                displayTextures=pbSettings["DisplayTextures"],
-        #                wireframeOnShaded=pbSettings["WireOnShaded"],
-        #                grid=pbSettings["ShowGrid"],
-        #                useDefaultMaterial=pbSettings["UseDefaultMaterial"],
-        #                polymeshes=True,
-        #                imagePlane=True,
-        #                hud=True
-        #                )
-        #
-        # cmds.camera(currentCam, e=True, overscan=True, displayFilmGate=False, displayResolution=False)
-        #
-        # ## get previous HUD States and turn them all off
-        # hudPreStates = {}
-        # HUDS = cmds.headsUpDisplay(lh=True)
-        # for hud in HUDS:
-        #     hudPreStates[hud] = cmds.headsUpDisplay(hud, q=True, vis=True)
-        #     cmds.headsUpDisplay(hud, e=True, vis=False)
-        #
-        # ## clear the custom HUDS
-        # customHuds = ['SMFrame', 'SMScene', 'SMCategory', 'SMFPS', 'SMCameraName', 'SMFrange']
-        # for hud in customHuds:
-        #     if cmds.headsUpDisplay(hud, ex=True):
-        #         cmds.headsUpDisplay(hud, rem=True)
-        #
-        # if pbSettings["ShowFrameNumber"]:
-        #     freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-        #     cmds.headsUpDisplay('SMFrame', s=5, b=freeBl, label="Frame", preset="currentFrame", dfs="large",
-        #                       lfs="large")
-        # if pbSettings["ShowSceneName"]:
-        #     freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-        #     cmds.headsUpDisplay('SMScene', s=5, b=freeBl, label="Scene: %s" % (self._niceName(versionName)),
-        #                       lfs="large")
-        # if pbSettings["ShowCategory"]:
-        #     freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-        #     cmds.headsUpDisplay('SMCategory', s=5, b=freeBl, label="Category: %s" % (jsonInfo["Category"]),
-        #                       lfs="large")
-        # if pbSettings["ShowFPS"]:
-        #     freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-        #     cmds.headsUpDisplay('SMFPS', s=5, b=freeBl, label="Time Unit: %s" % (cmds.currentUnit(q=True, time=True)),
-        #                       lfs="large")
-        #
-        # # v1.1 SPECIFIC
-        # try:
-        #     if pbSettings["ShowFrameRange"]:
-        #         freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-        #         cmds.headsUpDisplay('SMFrange', s=5, b=freeBl,
-        #                           label="Frame Range: {} - {}".format(int(cmds.playbackOptions(q=True, minTime=True)),
-        #                                                               int(cmds.playbackOptions(q=True,
-        #                                                                                      maxTime=True))),
-        #                           lfs="large")
-        # except KeyError:
-        #     pass
-        #
-        # freeBl = cmds.headsUpDisplay(nfb=2)
-        # cmds.headsUpDisplay('SMCameraName', s=2, b=freeBl, ba='center', dw=50, pre='cameraNames')
-        #
-        # ## Get the active sound
-        #
-        # aPlayBackSliderPython = mel.eval('$tmpVar=$gPlayBackSlider')
-        # activeSound = cmds.timeControl(aPlayBackSliderPython, q=True, sound=True)
-        #
-        # ## Check here: http://download.autodesk.com/us/maya/2011help/pymel/generated/functions/pymel.core.windows/pymel.core.windows.headsUpDisplay.html
-        # # print "playBlastFile", playBlastFile
-        # normPB = os.path.normpath(playBlastFile)
-        # # print "normPath", normPB
-        # cmds.playblast(format=pbSettings["Format"],
-        #              filename=playBlastFile,
-        #              widthHeight=pbSettings["Resolution"],
-        #              percent=pbSettings["Percent"],
-        #              quality=pbSettings["Quality"],
-        #              compression=pbSettings["Codec"],
-        #              sound=activeSound,
-        #              uts=True)
-        # ## remove window when pb is donw
-        # cmds.deleteUI(tempWindow)
-        #
-        # # Get back to the original frame range if the codec is Quick Time
-        # if pbSettings["Format"] == 'qt':
-        #     cmds.playbackOptions(maxTime=maxTime)
-        #     cmds.playbackOptions(animationEndTime=endTime)
-        #
-        # ## remove the custom HUdS
-        # if pbSettings["ShowFrameNumber"]:
-        #     cmds.headsUpDisplay('SMFrame', rem=True)
-        # if pbSettings["ShowSceneName"]:
-        #     cmds.headsUpDisplay('SMScene', rem=True)
-        # if pbSettings["ShowCategory"]:
-        #     cmds.headsUpDisplay('SMCategory', rem=True)
-        # if pbSettings["ShowFPS"]:
-        #     cmds.headsUpDisplay('SMFPS', rem=True)
-        # try:
-        #     if pbSettings["ShowFrameRange"]:
-        #         cmds.headsUpDisplay('SMFrange', rem=True)
-        # except KeyError:
-        #     pass
-        #
-        #     cmds.headsUpDisplay('SMCameraName', rem=True)
-        #
-        # ## get back the previous state of HUDS
-        # for hud in hudPreStates.keys():
-        #     cmds.headsUpDisplay(hud, e=True, vis=hudPreStates[hud])
-        # pm.select(selection)
-        # ## find this version in the json data
-        # for i in jsonInfo["Versions"]:
-        #     if relVersionName == i[0]:
-        #         i[4][currentCam] = relPlayBlastFile
-        #
-        # self._dumpJson(jsonInfo, openSceneInfo["jsonFile"])
-        # return 0, ""
+
+        # change the render settings temporarily
+        rt.renderWidth = pbSettings["Resolution"][0]
+        rt.renderHeight = pbSettings["Resolution"][1]
+
+        if pbSettings["PolygonOnly"]:
+            dspGeometry = True
+            dspShapes = False
+            dspLights = False
+            dspCameras = False
+            dspHelpers = False
+            dspParticles = False
+            dspBones = False
+        else:
+            dspGeometry = True
+            dspShapes = True
+            dspLights = True
+            dspCameras = True
+            dspHelpers = True
+            dspParticles = True
+            dspBones = True
+
+        dspGrid = pbSettings["ShowGrid"]
+        dspFrameNums = pbSettings["ShowFrameNumber"]
+        percentSize = pbSettings["Percent"]
+
+        if pbSettings["WireOnShaded"]:
+            rndLevel = rt.execute("#litwireframe")
+        else:
+            rndLevel = rt.execute("#smoothhighlights")
+
+        if pbSettings["ClearSelection"]:
+            rt.clearSelection()
+
+
+        # find the path of where the avi file be created
+        # if rt.maxFilePath:
+        #     previewname = rt.getFilenameFile(rt.maxFileName)
+        # else:
+        #     previewname = "Untitled"
+
+        sourceClip = rt.GetDir(rt.execute("#preview")) + "\_scene.avi "
+
+        # destination = os.path.join(rt.maxFilePath, previewname)
+
+        print "sourceClip is: %s" % sourceClip
+
+        print "test: %s" %os.path.isfile(sourceClip)
+
+        if os.path.isfile(sourceClip):
+            try:
+                os.remove(sourceClip)
+            except WindowsError:
+                msg = "Cannot continue creating preview.\n Close '%s' and try again" %sourceClip
+                logger.error(msg)
+                return -1, msg
+
+        rt.createPreview(percentSize=percentSize, dspGeometry=dspGeometry,
+                         dspShapes=dspShapes, dspLights=dspLights,
+                         dspCameras=dspCameras, dspHelpers=dspHelpers,
+                         dspParticles=dspParticles, dspBones=dspBones,
+                         dspGrid=dspGrid, dspFrameNums=dspFrameNums,
+                         rndLevel=rndLevel)
+
+
+        # return the render width and height to original:
+        rt.renderWidth = originalValues["width"]
+        rt.renderHeight = originalValues["height"]
+
+        rt.select(originalSelection)
+
+        shutil.copy(sourceClip, playBlastFile)
+
+        ## find this version in the json data
+        print "relVersionName", relVersionName
+        print "jInfo", jsonInfo
+
+        for i in jsonInfo["Versions"]:
+            if relVersionName == i[0]:
+                i[4][currentCam] = relPlayBlastFile
+
+        self._dumpJson(jsonInfo, openSceneInfo["jsonFile"])
+        return 0, ""
 
 
     def loadBaseScene(self, force=False):
@@ -1669,31 +1616,35 @@ class MainUI(QtGui.QMainWindow):
         else:
             return
 
-        formatDict = self.manager.getFormatsAndCodecs()
 
-        def updateCodecs():
-            codecList = formatDict[self.fileformat_comboBox.currentText()]
-            self.codec_comboBox.clear()
 
-            self.codec_comboBox.addItems(codecList)
+
+
+        # formatDict = self.manager.getFormatsAndCodecs()
+
+        # def updateCodecs():
+        #     codecList = formatDict[self.fileformat_comboBox.currentText()]
+        #     self.codec_comboBox.clear()
+        #
+        #     self.codec_comboBox.addItems(codecList)
 
         def onPbSettingsAccept():
             newPbSettings = {"Resolution": (self.resolutionx_spinBox.value(), self.resolutiony_spinBox.value()),
-                             "Format": self.fileformat_comboBox.currentText(),
-                             "Codec": self.codec_comboBox.currentText(),
+                             "Format": "avi",
+                             "Codec": "N/A",
                              "Percent": 100,  ## this one never changes
-                             "Quality": self.quality_spinBox.value(),
+                             "Quality": "N/A",
                              "ShowFrameNumber": self.showframenumber_checkBox.isChecked(),
-                             "ShowSceneName": self.showscenename_checkBox.isChecked(),
-                             "ShowCategory": self.showcategory_checkBox.isChecked(),
-                             "ShowFPS": self.showfps_checkBox.isChecked(),
-                             "ShowFrameRange": self.showframerange_checkBox.isChecked(),
+                             "ShowSceneName": "N/A",
+                             "ShowCategory": "N/A",
+                             "ShowFPS": "N/A",
+                             "ShowFrameRange": "N/A",
                              "PolygonOnly": self.polygononly_checkBox.isChecked(),
                              "ShowGrid": self.showgrid_checkBox.isChecked(),
                              "ClearSelection": self.clearselection_checkBox.isChecked(),
-                             "DisplayTextures": self.displaytextures_checkBox.isChecked(),
+                             "DisplayTextures": "N/A",
                              "WireOnShaded": self.wireonshaded_checkBox.isChecked(),
-                             "UseDefaultMaterial": self.usedefaultmaterial_checkBox.isChecked()
+                             "UseDefaultMaterial": "N/A"
                              }
             self.manager._savePBSettings(newPbSettings)
             self.statusBar().showMessage("Status | Playblast Settings Saved")
@@ -1705,87 +1656,86 @@ class MainUI(QtGui.QMainWindow):
         self.pbSettings_dialog.setModal(True)
         self.pbSettings_dialog.setObjectName(("Playblast_Dialog"))
         self.pbSettings_dialog.resize(380, 483)
-        self.pbSettings_dialog.setMinimumSize(QtCore.QSize(380, 550))
-        self.pbSettings_dialog.setMaximumSize(QtCore.QSize(380, 550))
+        self.pbSettings_dialog.setMaximumSize(QtCore.QSize(380, 400))
         self.pbSettings_dialog.setWindowTitle(("Set Playblast Settings"))
 
         self.pbsettings_buttonBox = QtGui.QDialogButtonBox(self.pbSettings_dialog)
-        self.pbsettings_buttonBox.setGeometry(QtCore.QRect(20, 500, 341, 30))
+        self.pbsettings_buttonBox.setGeometry(QtCore.QRect(20, 345, 341, 30))
         self.pbsettings_buttonBox.setOrientation(QtCore.Qt.Horizontal)
         self.pbsettings_buttonBox.setStandardButtons(
             QtGui.QDialogButtonBox.Cancel | QtGui.QDialogButtonBox.Save)
         self.pbsettings_buttonBox.setObjectName(("pbsettings_buttonBox"))
 
         self.videoproperties_groupBox = QtGui.QGroupBox(self.pbSettings_dialog)
-        self.videoproperties_groupBox.setGeometry(QtCore.QRect(10, 20, 361, 191))
+        self.videoproperties_groupBox.setGeometry(QtCore.QRect(10, 20, 361, 80))
         self.videoproperties_groupBox.setTitle(("Video Properties"))
         self.videoproperties_groupBox.setObjectName(("videoproperties_groupBox"))
 
-        self.fileformat_label = QtGui.QLabel(self.videoproperties_groupBox)
-        self.fileformat_label.setGeometry(QtCore.QRect(20, 30, 71, 20))
-        self.fileformat_label.setFrameShape(QtGui.QFrame.NoFrame)
-        self.fileformat_label.setFrameShadow(QtGui.QFrame.Plain)
-        self.fileformat_label.setText(("Format"))
-        self.fileformat_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        self.fileformat_label.setObjectName(("fileformat_label"))
+        # self.fileformat_label = QtGui.QLabel(self.videoproperties_groupBox)
+        # self.fileformat_label.setGeometry(QtCore.QRect(20, 30, 71, 20))
+        # self.fileformat_label.setFrameShape(QtGui.QFrame.NoFrame)
+        # self.fileformat_label.setFrameShadow(QtGui.QFrame.Plain)
+        # self.fileformat_label.setText(("Format"))
+        # self.fileformat_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        # self.fileformat_label.setObjectName(("fileformat_label"))
 
-        self.fileformat_comboBox = QtGui.QComboBox(self.videoproperties_groupBox)
-        self.fileformat_comboBox.setGeometry(QtCore.QRect(100, 30, 111, 22))
-        self.fileformat_comboBox.setObjectName(("fileformat_comboBox"))
-        self.fileformat_comboBox.addItems(formatDict.keys())
-
-        # get the index number from the name in the settings file and make that index active
-        ffindex = self.fileformat_comboBox.findText(currentSettings["Format"], QtCore.Qt.MatchFixedString)
-        if ffindex >= 0:
-            self.fileformat_comboBox.setCurrentIndex(ffindex)
-
-        self.codec_label = QtGui.QLabel(self.videoproperties_groupBox)
-        self.codec_label.setGeometry(QtCore.QRect(30, 70, 61, 20))
-        self.codec_label.setFrameShape(QtGui.QFrame.NoFrame)
-        self.codec_label.setFrameShadow(QtGui.QFrame.Plain)
-        self.codec_label.setText(("Codec"))
-        self.codec_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        self.codec_label.setObjectName(("codec_label"))
-
-        self.codec_comboBox = QtGui.QComboBox(self.videoproperties_groupBox)
-        self.codec_comboBox.setGeometry(QtCore.QRect(100, 70, 111, 22))
-        self.codec_comboBox.setObjectName(("codec_comboBox"))
-        updateCodecs()
-
-        self.fileformat_comboBox.currentIndexChanged.connect(updateCodecs)
+        # self.fileformat_comboBox = QtGui.QComboBox(self.videoproperties_groupBox)
+        # self.fileformat_comboBox.setGeometry(QtCore.QRect(100, 30, 111, 22))
+        # self.fileformat_comboBox.setObjectName(("fileformat_comboBox"))
+        # self.fileformat_comboBox.addItems(formatDict.keys())
 
         # get the index number from the name in the settings file and make that index active
-        cindex = self.codec_comboBox.findText(currentSettings["Codec"], QtCore.Qt.MatchFixedString)
-        if cindex >= 0:
-            self.codec_comboBox.setCurrentIndex(cindex)
+        # ffindex = self.fileformat_comboBox.findText(currentSettings["Format"], QtCore.Qt.MatchFixedString)
+        # if ffindex >= 0:
+        #     self.fileformat_comboBox.setCurrentIndex(ffindex)
 
-        self.quality_label = QtGui.QLabel(self.videoproperties_groupBox)
-        self.quality_label.setGeometry(QtCore.QRect(30, 110, 61, 20))
-        self.quality_label.setFrameShape(QtGui.QFrame.NoFrame)
-        self.quality_label.setFrameShadow(QtGui.QFrame.Plain)
-        self.quality_label.setText(("Quality"))
-        self.quality_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        self.quality_label.setObjectName(("quality_label"))
+        # self.codec_label = QtGui.QLabel(self.videoproperties_groupBox)
+        # self.codec_label.setGeometry(QtCore.QRect(30, 70, 61, 20))
+        # self.codec_label.setFrameShape(QtGui.QFrame.NoFrame)
+        # self.codec_label.setFrameShadow(QtGui.QFrame.Plain)
+        # self.codec_label.setText(("Codec"))
+        # self.codec_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        # self.codec_label.setObjectName(("codec_label"))
 
-        self.quality_spinBox = QtGui.QSpinBox(self.videoproperties_groupBox)
-        self.quality_spinBox.setGeometry(QtCore.QRect(100, 110, 41, 21))
-        self.quality_spinBox.setButtonSymbols(QtGui.QAbstractSpinBox.NoButtons)
-        self.quality_spinBox.setMinimum(1)
-        self.quality_spinBox.setMaximum(100)
-        self.quality_spinBox.setProperty("value", currentSettings["Quality"])
-        self.quality_spinBox.setObjectName(("quality_spinBox"))
+        # self.codec_comboBox = QtGui.QComboBox(self.videoproperties_groupBox)
+        # self.codec_comboBox.setGeometry(QtCore.QRect(100, 70, 111, 22))
+        # self.codec_comboBox.setObjectName(("codec_comboBox"))
+        # updateCodecs()
 
-        self.quality_horizontalSlider = QtGui.QSlider(self.videoproperties_groupBox)
-        self.quality_horizontalSlider.setGeometry(QtCore.QRect(150, 110, 191, 21))
-        self.quality_horizontalSlider.setMinimum(1)
-        self.quality_horizontalSlider.setMaximum(100)
-        self.quality_horizontalSlider.setProperty("value", currentSettings["Quality"])
-        self.quality_horizontalSlider.setOrientation(QtCore.Qt.Horizontal)
-        self.quality_horizontalSlider.setTickInterval(0)
-        self.quality_horizontalSlider.setObjectName(("quality_horizontalSlider"))
+        # self.fileformat_comboBox.currentIndexChanged.connect(updateCodecs)
+
+        # get the index number from the name in the settings file and make that index active
+        # cindex = self.codec_comboBox.findText(currentSettings["Codec"], QtCore.Qt.MatchFixedString)
+        # if cindex >= 0:
+        #     self.codec_comboBox.setCurrentIndex(cindex)
+
+        # self.quality_label = QtGui.QLabel(self.videoproperties_groupBox)
+        # self.quality_label.setGeometry(QtCore.QRect(30, 110, 61, 20))
+        # self.quality_label.setFrameShape(QtGui.QFrame.NoFrame)
+        # self.quality_label.setFrameShadow(QtGui.QFrame.Plain)
+        # self.quality_label.setText(("Quality"))
+        # self.quality_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        # self.quality_label.setObjectName(("quality_label"))
+
+        # self.quality_spinBox = QtGui.QSpinBox(self.videoproperties_groupBox)
+        # self.quality_spinBox.setGeometry(QtCore.QRect(100, 110, 41, 21))
+        # self.quality_spinBox.setButtonSymbols(QtGui.QAbstractSpinBox.NoButtons)
+        # self.quality_spinBox.setMinimum(1)
+        # self.quality_spinBox.setMaximum(100)
+        # self.quality_spinBox.setProperty("value", currentSettings["Quality"])
+        # self.quality_spinBox.setObjectName(("quality_spinBox"))
+
+        # self.quality_horizontalSlider = QtGui.QSlider(self.videoproperties_groupBox)
+        # self.quality_horizontalSlider.setGeometry(QtCore.QRect(150, 110, 191, 21))
+        # self.quality_horizontalSlider.setMinimum(1)
+        # self.quality_horizontalSlider.setMaximum(100)
+        # self.quality_horizontalSlider.setProperty("value", currentSettings["Quality"])
+        # self.quality_horizontalSlider.setOrientation(QtCore.Qt.Horizontal)
+        # self.quality_horizontalSlider.setTickInterval(0)
+        # self.quality_horizontalSlider.setObjectName(("quality_horizontalSlider"))
 
         self.resolution_label = QtGui.QLabel(self.videoproperties_groupBox)
-        self.resolution_label.setGeometry(QtCore.QRect(30, 150, 61, 20))
+        self.resolution_label.setGeometry(QtCore.QRect(30, 30, 61, 20))
         self.resolution_label.setFrameShape(QtGui.QFrame.NoFrame)
         self.resolution_label.setFrameShadow(QtGui.QFrame.Plain)
         self.resolution_label.setText(("Resolution"))
@@ -1793,7 +1743,7 @@ class MainUI(QtGui.QMainWindow):
         self.resolution_label.setObjectName(("resolution_label"))
 
         self.resolutionx_spinBox = QtGui.QSpinBox(self.videoproperties_groupBox)
-        self.resolutionx_spinBox.setGeometry(QtCore.QRect(100, 150, 61, 21))
+        self.resolutionx_spinBox.setGeometry(QtCore.QRect(100, 30, 61, 21))
         self.resolutionx_spinBox.setButtonSymbols(QtGui.QAbstractSpinBox.NoButtons)
         self.resolutionx_spinBox.setMinimum(0)
         self.resolutionx_spinBox.setMaximum(4096)
@@ -1801,7 +1751,7 @@ class MainUI(QtGui.QMainWindow):
         self.resolutionx_spinBox.setObjectName(("resolutionx_spinBox"))
 
         self.resolutiony_spinBox = QtGui.QSpinBox(self.videoproperties_groupBox)
-        self.resolutiony_spinBox.setGeometry(QtCore.QRect(170, 150, 61, 21))
+        self.resolutiony_spinBox.setGeometry(QtCore.QRect(170, 30, 61, 21))
         self.resolutiony_spinBox.setButtonSymbols(QtGui.QAbstractSpinBox.NoButtons)
         self.resolutiony_spinBox.setMinimum(1)
         self.resolutiony_spinBox.setMaximum(4096)
@@ -1809,7 +1759,7 @@ class MainUI(QtGui.QMainWindow):
         self.resolutiony_spinBox.setObjectName(("resolutiony_spinBox"))
 
         self.viewportoptions_groupBox = QtGui.QGroupBox(self.pbSettings_dialog)
-        self.viewportoptions_groupBox.setGeometry(QtCore.QRect(10, 230, 361, 120))
+        self.viewportoptions_groupBox.setGeometry(QtCore.QRect(10, 120, 361, 95))
         self.viewportoptions_groupBox.setTitle(("Viewport Options"))
         self.viewportoptions_groupBox.setObjectName(("viewportoptions_groupBox"))
 
@@ -1835,7 +1785,7 @@ class MainUI(QtGui.QMainWindow):
         self.clearselection_checkBox.setObjectName(("clearselection_checkBox"))
 
         self.wireonshaded_checkBox = QtGui.QCheckBox(self.viewportoptions_groupBox)
-        self.wireonshaded_checkBox.setGeometry(QtCore.QRect(51, 90, 100, 20))
+        self.wireonshaded_checkBox.setGeometry(QtCore.QRect(201, 60, 100, 20))
         self.wireonshaded_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
         self.wireonshaded_checkBox.setText(("Wire On Shaded"))
         try:
@@ -1844,24 +1794,24 @@ class MainUI(QtGui.QMainWindow):
             self.wireonshaded_checkBox.setChecked(False)
         self.wireonshaded_checkBox.setObjectName(("wireonshaded_checkBox"))
 
-        self.usedefaultmaterial_checkBox = QtGui.QCheckBox(self.viewportoptions_groupBox)
-        self.usedefaultmaterial_checkBox.setGeometry(QtCore.QRect(180, 90, 120, 20))
-        self.usedefaultmaterial_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
-        self.usedefaultmaterial_checkBox.setText(("Use Default Material"))
-        try:
-            self.usedefaultmaterial_checkBox.setChecked(currentSettings["UseDefaultMaterial"])
-        except KeyError:
-            self.usedefaultmaterial_checkBox.setChecked(False)
+        # self.usedefaultmaterial_checkBox = QtGui.QCheckBox(self.viewportoptions_groupBox)
+        # self.usedefaultmaterial_checkBox.setGeometry(QtCore.QRect(180, 90, 120, 20))
+        # self.usedefaultmaterial_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        # self.usedefaultmaterial_checkBox.setText(("Use Default Material"))
+        # try:
+        #     self.usedefaultmaterial_checkBox.setChecked(currentSettings["UseDefaultMaterial"])
+        # except KeyError:
+        #     self.usedefaultmaterial_checkBox.setChecked(False)
 
-        self.displaytextures_checkBox = QtGui.QCheckBox(self.viewportoptions_groupBox)
-        self.displaytextures_checkBox.setGeometry(QtCore.QRect(190, 60, 111, 20))
-        self.displaytextures_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
-        self.displaytextures_checkBox.setText(("Display Textures"))
-        self.displaytextures_checkBox.setChecked(currentSettings["DisplayTextures"])
-        self.displaytextures_checkBox.setObjectName(("displaytextures_checkBox"))
+        # self.displaytextures_checkBox = QtGui.QCheckBox(self.viewportoptions_groupBox)
+        # self.displaytextures_checkBox.setGeometry(QtCore.QRect(190, 60, 111, 20))
+        # self.displaytextures_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        # self.displaytextures_checkBox.setText(("Display Textures"))
+        # self.displaytextures_checkBox.setChecked(currentSettings["DisplayTextures"])
+        # self.displaytextures_checkBox.setObjectName(("displaytextures_checkBox"))
 
         self.hudoptions_groupBox = QtGui.QGroupBox(self.pbSettings_dialog)
-        self.hudoptions_groupBox.setGeometry(QtCore.QRect(10, 370, 361, 110))
+        self.hudoptions_groupBox.setGeometry(QtCore.QRect(10, 240, 361, 80))
         self.hudoptions_groupBox.setTitle(("HUD Options"))
         self.hudoptions_groupBox.setObjectName(("hudoptions_groupBox"))
 
@@ -1872,42 +1822,42 @@ class MainUI(QtGui.QMainWindow):
         self.showframenumber_checkBox.setChecked(currentSettings["ShowFrameNumber"])
         self.showframenumber_checkBox.setObjectName(("showframenumber_checkBox"))
 
-        self.showscenename_checkBox = QtGui.QCheckBox(self.hudoptions_groupBox)
-        self.showscenename_checkBox.setGeometry(QtCore.QRect(20, 50, 131, 20))
-        self.showscenename_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
-        self.showscenename_checkBox.setText(("Show Scene Name"))
-        self.showscenename_checkBox.setChecked(currentSettings["ShowSceneName"])
-        self.showscenename_checkBox.setObjectName(("showscenename_checkBox"))
+        # self.showscenename_checkBox = QtGui.QCheckBox(self.hudoptions_groupBox)
+        # self.showscenename_checkBox.setGeometry(QtCore.QRect(20, 50, 131, 20))
+        # self.showscenename_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        # self.showscenename_checkBox.setText(("Show Scene Name"))
+        # self.showscenename_checkBox.setChecked(currentSettings["ShowSceneName"])
+        # self.showscenename_checkBox.setObjectName(("showscenename_checkBox"))
 
-        self.showcategory_checkBox = QtGui.QCheckBox(self.hudoptions_groupBox)
-        self.showcategory_checkBox.setGeometry(QtCore.QRect(200, 20, 101, 20))
-        self.showcategory_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
-        self.showcategory_checkBox.setText(("Show Category"))
-        self.showcategory_checkBox.setChecked(currentSettings["ShowCategory"])
-        self.showcategory_checkBox.setObjectName(("showcategory_checkBox"))
+        # self.showcategory_checkBox = QtGui.QCheckBox(self.hudoptions_groupBox)
+        # self.showcategory_checkBox.setGeometry(QtCore.QRect(200, 20, 101, 20))
+        # self.showcategory_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        # self.showcategory_checkBox.setText(("Show Category"))
+        # self.showcategory_checkBox.setChecked(currentSettings["ShowCategory"])
+        # self.showcategory_checkBox.setObjectName(("showcategory_checkBox"))
 
-        self.showfps_checkBox = QtGui.QCheckBox(self.hudoptions_groupBox)
-        self.showfps_checkBox.setGeometry(QtCore.QRect(200, 50, 101, 20))
-        self.showfps_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
-        self.showfps_checkBox.setText(("Show FPS"))
-        self.showfps_checkBox.setChecked(currentSettings["ShowFPS"])
-        self.showfps_checkBox.setObjectName(("showfps_checkBox"))
+        # self.showfps_checkBox = QtGui.QCheckBox(self.hudoptions_groupBox)
+        # self.showfps_checkBox.setGeometry(QtCore.QRect(200, 50, 101, 20))
+        # self.showfps_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        # self.showfps_checkBox.setText(("Show FPS"))
+        # self.showfps_checkBox.setChecked(currentSettings["ShowFPS"])
+        # self.showfps_checkBox.setObjectName(("showfps_checkBox"))
 
-        self.showframerange_checkBox = QtGui.QCheckBox(self.hudoptions_groupBox)
-        self.showframerange_checkBox.setGeometry(QtCore.QRect(20, 80, 131, 20))
-        self.showframerange_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
-        self.showframerange_checkBox.setText(("Show Frame Range"))
+        # self.showframerange_checkBox = QtGui.QCheckBox(self.hudoptions_groupBox)
+        # self.showframerange_checkBox.setGeometry(QtCore.QRect(20, 80, 131, 20))
+        # self.showframerange_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
+        # self.showframerange_checkBox.setText(("Show Frame Range"))
         # v1.1 SPECIFIC
-        try:
-            self.showframerange_checkBox.setChecked(currentSettings["ShowFrameRange"])
-        except KeyError:
-            self.showframerange_checkBox.setChecked(True)
-        self.showframerange_checkBox.setObjectName(("showframerange_checkBox"))
+        # try:
+        #     self.showframerange_checkBox.setChecked(currentSettings["ShowFrameRange"])
+        # except KeyError:
+        #     self.showframerange_checkBox.setChecked(True)
+        # self.showframerange_checkBox.setObjectName(("showframerange_checkBox"))
 
         self.pbsettings_buttonBox.accepted.connect(onPbSettingsAccept)
         self.pbsettings_buttonBox.rejected.connect(self.pbSettings_dialog.reject)
-        self.quality_spinBox.valueChanged.connect(self.quality_horizontalSlider.setValue)
-        self.quality_horizontalSlider.valueChanged.connect(self.quality_spinBox.setValue)
+        # self.quality_spinBox.valueChanged.connect(self.quality_horizontalSlider.setValue)
+        # self.quality_horizontalSlider.valueChanged.connect(self.quality_spinBox.setValue)
 
         self.pbSettings_dialog.show()
 

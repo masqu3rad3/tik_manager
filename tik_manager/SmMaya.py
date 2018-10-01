@@ -66,7 +66,7 @@ class MayaManager(RootManager):
         # To tell the base class maya specific path names
         return {"databaseDir": "mayaDB",
                 "scenesDir": "scenes",
-                "pbSettingsFile": "pbSettings"}
+                "pbSettingsFile": "pbSettings.json"}
 
     def getProjectDir(self):
         """Overriden function"""
