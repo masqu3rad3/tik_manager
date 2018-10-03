@@ -36,7 +36,7 @@ __maintainer__ = "Arda Kutlu"
 __email__ = "ardakutlu@gmail.com"
 __status__ = "Development"
 
-SM_Version = "Scene Manager v%s" %_version.__version__
+SM_Version = "Scene Manager Maya v%s" %_version.__version__
 
 logging.basicConfig()
 logger = logging.getLogger('smMaya')
@@ -165,6 +165,7 @@ class MayaManager(RootManager):
             jsonCategorySubPath = os.path.normpath(os.path.join(jsonCategoryPath, self._subProjectsList[subProjectIndex]))
             self._folderCheck(jsonCategorySubPath)
             jsonFile = os.path.join(jsonCategorySubPath, "{}.json".format(baseName))
+
         else:
             shotPath = os.path.normpath(os.path.join(categoryPath, baseName))
             self._folderCheck(shotPath)
@@ -172,6 +173,7 @@ class MayaManager(RootManager):
             jsonCategoryPath = os.path.normpath(os.path.join(databaseDir, categoryName))
             self._folderCheck(jsonCategoryPath)
             jsonFile = os.path.join(jsonCategoryPath, "{}.json".format(baseName))
+
 
         version = 1
         sceneName = "{0}_{1}_{2}_v{3}".format(baseName, categoryName, self._usersDict[self.currentUser], str(version).zfill(3))
@@ -505,6 +507,8 @@ class MayaManager(RootManager):
         :param version: (integer) if defined this version number will be used instead currently open scene version.
         :return: (String) Relative path of the thumbnail file
         """
+
+        # TODO : RE-WRITE ASAP
         projectPath = self.projectDir
         databaseDir = self._pathsDict["databaseDir"]
 
@@ -516,8 +520,8 @@ class MayaManager(RootManager):
             if not dbPath or not version:
                 cmds.warning("Both dbPath and version must be defined if useCursorPosition=False")
                 return
-            shotName = self._niceName(databaseDir)
             version = "v%s" % (str(version).zfill(3))
+            shotName = self._niceName(dbPath)
 
 
         dbDir = os.path.split(databaseDir)[0]
@@ -1971,6 +1975,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.manager.currentVersionIndex = len(sceneInfo["Versions"])
 
             currentRow = self.scenes_listWidget.currentRow()
+            self.populateBaseScenes()
             self.onBaseSceneChange()
             self.scenes_listWidget.setCurrentRow(currentRow)
 

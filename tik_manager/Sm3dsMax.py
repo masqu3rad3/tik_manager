@@ -87,7 +87,7 @@ __maintainer__ = "Arda Kutlu"
 __email__ = "ardakutlu@gmail.com"
 __status__ = "Development"
 
-SM_Version = "Scene Manager v%s" %_version.__version__
+SM_Version = "Scene Manager 3ds Max v%s" %_version.__version__
 
 logging.basicConfig()
 logger = logging.getLogger('sm3dsMax')
@@ -117,9 +117,9 @@ class MaxManager(RootManager):
         projectsDict = self._loadProjects()
 
         if not projectsDict:
-            projectsDict = {"MayaProject": norm_p_path}
+            projectsDict = {"3dsMaxProject": norm_p_path}
         else:
-            projectsDict["MayaProject"] = norm_p_path
+            projectsDict["3dsMaxProject"] = norm_p_path
         self._saveProjects(projectsDict)
         return norm_p_path
 
@@ -195,6 +195,7 @@ class MaxManager(RootManager):
                 logger.warning(msg)
                 return -1, msg
 
+
         projectPath = self.projectDir
         databaseDir = self._pathsDict["databaseDir"]
         scenesPath = self._pathsDict["scenesDir"]
@@ -208,21 +209,27 @@ class MaxManager(RootManager):
             shotPath = os.path.normpath(os.path.join(subProjectPath, baseName))
             self._folderCheck(shotPath)
 
+
             jsonCategoryPath = os.path.normpath(os.path.join(databaseDir, categoryName))
             self._folderCheck(jsonCategoryPath)
             jsonCategorySubPath = os.path.normpath(os.path.join(jsonCategoryPath, self._subProjectsList[subProjectIndex]))
             self._folderCheck(jsonCategorySubPath)
             jsonFile = os.path.join(jsonCategorySubPath, "{}.json".format(baseName))
+
+
         else:
             shotPath = os.path.normpath(os.path.join(categoryPath, baseName))
             self._folderCheck(shotPath)
+
 
             jsonCategoryPath = os.path.normpath(os.path.join(databaseDir, categoryName))
             self._folderCheck(jsonCategoryPath)
             jsonFile = os.path.join(jsonCategoryPath, "{}.json".format(baseName))
 
+
         version = 1
         sceneName = "{0}_{1}_{2}_v{3}".format(baseName, categoryName, self._usersDict[self.currentUser], str(version).zfill(3))
+
         sceneFile = os.path.join(shotPath, "{0}.{1}".format(sceneName, sceneFormat))
         ## relativity update
         relSceneFile = os.path.relpath(sceneFile, start=projectPath)
@@ -510,26 +517,33 @@ class MaxManager(RootManager):
         :param version: (integer) if defined this version number will be used instead currently open scene version.
         :return: (String) Relative path of the thumbnail file
         """
-        # TODO // Write Create Thumbnail Function for 3ds max
+        # TODO : RE-WRITE ASAP
+        rt = pymxs.runtime
 
-        # projectPath = self.projectDir
-        # databaseDir = self._pathsDict["databaseDir"]
+        projectPath = self.projectDir
+        databaseDir = self._pathsDict["databaseDir"]
         #
-        # if useCursorPosition:
-        #     shotName = self.currentBaseSceneName
-        #     version = self.currentVersionIndex
+        if useCursorPosition:
+            shotName = self.currentBaseSceneName
+            version = self.currentVersionIndex
         #
-        # else:
-        #     if not dbPath or not version:
-        #         cmds.warning("Both dbPath and version must be defined if useCursorPosition=False")
-        #         return
-        #     shotName = self._niceName(databaseDir)
-        #     version = "v%s" % (str(version).zfill(3))
-        #
-        #
-        # dbDir = os.path.split(databaseDir)[0]
-        # thumbPath = "{0}_{1}_thumb.jpg".format(os.path.join(dbDir, shotName), version)
-        # relThumbPath = os.path.relpath(thumbPath, projectPath)
+        else:
+            if not dbPath or not version:
+                logger.warning("Both dbPath and version must be defined if useCursorPosition=False")
+                return
+
+            shotName = self._niceName(dbPath)
+            version = "v%s" % (str(version).zfill(3))
+
+
+        dbDir = os.path.split(databaseDir)[0]
+        thumbPath = "{0}_{1}_thumb.jpg".format(os.path.join(dbDir, shotName), version)
+        relThumbPath = os.path.relpath(thumbPath, projectPath)
+
+        img = rt.gw.getViewportDib()
+        img.fileName = thumbPath
+        rt.save(img)
+        rt.close(img)
         #
         # # create a thumbnail using playblast
         # thumbDir = os.path.split(thumbPath)[0]
@@ -544,7 +558,7 @@ class MaxManager(RootManager):
         #     pm.warning("something went wrong with thumbnail. Skipping thumbnail")
         #     return ""
         # # return thumbPath
-        # return relThumbPath
+        return relThumbPath
 
 
     def replaceThumbnail(self, filePath=None ):
@@ -726,8 +740,8 @@ class MainUI(QtGui.QMainWindow):
 
         self.initMainUI()
 
-    def closeEvent(self, event):
-        self.manager._killCallbacks(self.callbackIDList)
+    # def closeEvent(self, event):
+    #     self.manager._killCallbacks(self.callbackIDList)
 
         # super(MainUI, self).closeEvent(event)
 
@@ -742,19 +756,19 @@ class MainUI(QtGui.QMainWindow):
         self.main_horizontalLayout.setObjectName(("horizontalLayout"))
         self.main_horizontalLayout.setStretch(0, 1)
 
-        self.saveVersion_pushButton = QtGui.QPushButton(self.centralwidget)
-        self.saveVersion_pushButton.setMinimumSize(QtCore.QSize(150, 45))
-        self.saveVersion_pushButton.setMaximumSize(QtCore.QSize(150, 45))
-        self.saveVersion_pushButton.setText(("Save As Version"))
-        self.saveVersion_pushButton.setObjectName(("saveVersion_pushButton"))
-        self.main_horizontalLayout.addWidget(self.saveVersion_pushButton)
-
         self.saveBaseScene_pushButton = QtGui.QPushButton(self.centralwidget)
         self.saveBaseScene_pushButton.setMinimumSize(QtCore.QSize(150, 45))
         self.saveBaseScene_pushButton.setMaximumSize(QtCore.QSize(150, 45))
         self.saveBaseScene_pushButton.setText(("Save Base Scene"))
         self.saveBaseScene_pushButton.setObjectName(("saveBaseScene_pushButton"))
         self.main_horizontalLayout.addWidget(self.saveBaseScene_pushButton)
+
+        self.saveVersion_pushButton = QtGui.QPushButton(self.centralwidget)
+        self.saveVersion_pushButton.setMinimumSize(QtCore.QSize(150, 45))
+        self.saveVersion_pushButton.setMaximumSize(QtCore.QSize(150, 45))
+        self.saveVersion_pushButton.setText(("Save As Version"))
+        self.saveVersion_pushButton.setObjectName(("saveVersion_pushButton"))
+        self.main_horizontalLayout.addWidget(self.saveVersion_pushButton)
 
         spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.main_horizontalLayout.addItem(spacerItem)
@@ -1996,8 +2010,10 @@ class MainUI(QtGui.QMainWindow):
             self.manager.currentVersionIndex = len(sceneInfo["Versions"])
 
             currentRow = self.scenes_listWidget.currentRow()
+            self.populateBaseScenes()
             self.onBaseSceneChange()
             self.scenes_listWidget.setCurrentRow(currentRow)
+            # self.populateBaseScenes()
 
         # SIGNALS
         # -------
