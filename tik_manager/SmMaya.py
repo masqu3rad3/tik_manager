@@ -57,7 +57,7 @@ class MayaManager(RootManager):
         super(MayaManager, self).__init__()
 
         self.init_paths()
-        self.backwardcompatibility()  # DO NOT RUN UNTIL RELEASE
+        # self.backwardcompatibility()  # DO NOT RUN UNTIL RELEASE
         self.init_database()
 
 
@@ -184,7 +184,7 @@ class MayaManager(RootManager):
         # TODO // cmds may be used instead
         pm.saveAs(sceneFile)
 
-        thumbPath = self.createThumbnail(dbPath=jsonFile, version=version)
+        thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=version)
 
         jsonInfo = {}
 
@@ -253,7 +253,7 @@ class MayaManager(RootManager):
             # killTurtle()
             # TODO // cmds?
             pm.saveAs(sceneFile)
-            thumbPath = self.createThumbnail(dbPath=jsonFile, version=currentVersion)
+            thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=currentVersion)
 
             jsonInfo["Versions"].append(
                 # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
@@ -500,7 +500,7 @@ class MayaManager(RootManager):
             cmds.warning("There is no reference set for this scene. Nothing changed")
 
 
-    def createThumbnail(self, useCursorPosition=False, dbPath = None, version = None):
+    def createThumbnail(self, useCursorPosition=False, dbPath = None, versionInt = None):
         """
         Creates the thumbnail file.
         :param databaseDir: (String) If defined, this folder will be used to store the created database.
@@ -508,24 +508,19 @@ class MayaManager(RootManager):
         :return: (String) Relative path of the thumbnail file
         """
 
-        # TODO : RE-WRITE ASAP
         projectPath = self.projectDir
-        databaseDir = self._pathsDict["databaseDir"]
-
         if useCursorPosition:
-            shotName = self.currentBaseSceneName
-            version = self.currentVersionIndex
-
+            versionInt = self.currentVersionIndex
+            dbPath = self.currentDatabasePath
         else:
-            if not dbPath or not version:
-                cmds.warning("Both dbPath and version must be defined if useCursorPosition=False")
-                return
-            version = "v%s" % (str(version).zfill(3))
-            shotName = self._niceName(dbPath)
+            if not dbPath or not versionInt:
+                cmds.warning (("Both dbPath and version must be defined if useCursorPosition=False"))
 
+        versionStr = "v%s" % (str(versionInt).zfill(3))
+        dbDir, shotNameWithExt = os.path.split(dbPath)
+        shotName = os.path.splitext(shotNameWithExt)[0]
 
-        dbDir = os.path.split(databaseDir)[0]
-        thumbPath = "{0}_{1}_thumb.jpg".format(os.path.join(dbDir, shotName), version)
+        thumbPath = "{0}_{1}_thumb.jpg".format(os.path.join(dbDir, shotName), versionStr)
         relThumbPath = os.path.relpath(thumbPath, projectPath)
 
         # create a thumbnail using playblast

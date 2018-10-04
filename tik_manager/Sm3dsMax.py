@@ -236,7 +236,7 @@ class MaxManager(RootManager):
 
         fManager.Save(sceneFile)
 
-        thumbPath = self.createThumbnail(dbPath=jsonFile, version=version)
+        thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=version)
 
         jsonInfo = {}
 
@@ -305,7 +305,7 @@ class MaxManager(RootManager):
             # TODO // cmds?
             fManager.Save(sceneFile)
 
-            thumbPath = self.createThumbnail(dbPath=jsonFile, version=currentVersion)
+            thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=currentVersion)
 
             jsonInfo["Versions"].append(
                 # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
@@ -510,54 +510,35 @@ class MaxManager(RootManager):
         #     cmds.warning("There is no reference set for this scene. Nothing changed")
 
 
-    def createThumbnail(self, useCursorPosition=False, dbPath = None, version = None):
+    def createThumbnail(self, useCursorPosition=False, dbPath = None, versionInt = None):
         """
         Creates the thumbnail file.
         :param databaseDir: (String) If defined, this folder will be used to store the created database.
         :param version: (integer) if defined this version number will be used instead currently open scene version.
         :return: (String) Relative path of the thumbnail file
         """
-        # TODO : RE-WRITE ASAP
-        rt = pymxs.runtime
-
         projectPath = self.projectDir
-        databaseDir = self._pathsDict["databaseDir"]
-        #
         if useCursorPosition:
-            shotName = self.currentBaseSceneName
-            version = self.currentVersionIndex
-        #
+            versionInt = self.currentVersionIndex
+            dbPath = self.currentDatabasePath
         else:
-            if not dbPath or not version:
-                logger.warning("Both dbPath and version must be defined if useCursorPosition=False")
-                return
+            if not dbPath or not versionInt:
+                logger.warning (("Both dbPath and version must be defined if useCursorPosition=False"))
 
-            shotName = self._niceName(dbPath)
-            version = "v%s" % (str(version).zfill(3))
+        versionStr = "v%s" % (str(versionInt).zfill(3))
+        dbDir, shotNameWithExt = os.path.split(dbPath)
+        shotName = os.path.splitext(shotNameWithExt)[0]
 
-
-        dbDir = os.path.split(databaseDir)[0]
-        thumbPath = "{0}_{1}_thumb.jpg".format(os.path.join(dbDir, shotName), version)
+        thumbPath = "{0}_{1}_thumb.jpg".format(os.path.join(dbDir, shotName), versionStr)
         relThumbPath = os.path.relpath(thumbPath, projectPath)
 
+        ## Software specific section
+        rt = pymxs.runtime
         img = rt.gw.getViewportDib()
         img.fileName = thumbPath
         rt.save(img)
         rt.close(img)
-        #
-        # # create a thumbnail using playblast
-        # thumbDir = os.path.split(thumbPath)[0]
-        # if os.path.exists(thumbDir):
-        #     frame = pm.currentTime(query=True)
-        #     store = pm.getAttr("defaultRenderGlobals.imageFormat")
-        #     pm.setAttr("defaultRenderGlobals.imageFormat", 8)  # This is the value for jpeg
-        #     pm.playblast(completeFilename=thumbPath, forceOverwrite=True, format='image', width=221, height=124,
-        #                  showOrnaments=False, frame=[frame], viewer=False, percent=100)
-        #     pm.setAttr("defaultRenderGlobals.imageFormat", store) #take it back
-        # else:
-        #     pm.warning("something went wrong with thumbnail. Skipping thumbnail")
-        #     return ""
-        # # return thumbPath
+
         return relThumbPath
 
 
