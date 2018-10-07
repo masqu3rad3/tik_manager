@@ -533,6 +533,38 @@ class MaxManager(RootManager):
         relThumbPath = os.path.relpath(thumbPath, projectPath)
 
         ## Software specific section
+
+        """
+        grab = gw.getViewportDib()
+
+        ratio = (grab.width as float/grab.height as float) 
+        
+        if ratio <= 1.782 then
+            (
+            new_width =124 * ratio
+            new_height = 124 
+            )
+        else
+            (
+            new_width = 221 
+            new_height = 221/ ratio
+            )
+            
+        resizeFrame = bitmap new_width new_height color:black
+            
+        copy grab resizeFrame
+        
+        
+        bmFrame = bitmap 221 124 color:black
+        
+        xOffset = (221 - resizeFrame.width) /2
+        yOffset = (124 - resizeFrame.height) /2
+        
+        pasteBitmap resizeFrame bmFrame [0,0]  [xOffset,yOffset] 
+        
+        display bmFrame
+        """
+
         rt = pymxs.runtime
         img = rt.gw.getViewportDib()
         img.fileName = thumbPath
