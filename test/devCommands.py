@@ -24,6 +24,11 @@ from tik_manager import IvMaya
 reload(IvMaya)
 tik_imageViewer = IvMaya.MainUI().show()
 
+# V2 COMMANDS:
+# ------------
+
+from tik_manager import SmMaya as tm
+reload(tm)
 
 
 

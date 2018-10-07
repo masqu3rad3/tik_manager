@@ -21,8 +21,9 @@ import MaxPlus
 from MaxPlus import FileManager as fManager
 from MaxPlus import PathManager as pManager
 # from MaxPlus import Core as core
-import pymxs
+# import pymxs
 
+from pymxs import runtime as rt
 
 # MaxPlus.FileManager.CheckForSave()
 # propts to save the file
@@ -112,15 +113,15 @@ class MaxManager(RootManager):
 
     def getProjectDir(self):
         """Overriden function"""
-        p_path = pManager.GetProjectFolderDir()
-        norm_p_path = os.path.normpath(p_path)
+        # p_path = pManager.GetProjectFolderDir()
+        # norm_p_path = os.path.normpath(p_path)
         projectsDict = self._loadProjects()
 
         if not projectsDict:
-            projectsDict = {"3dsMaxProject": norm_p_path}
+            projectsDict = {"3dsMaxProject": pManager.GetProjectFolderDir()}
+            self._saveProjects(projectsDict)
         else:
-            projectsDict["3dsMaxProject"] = norm_p_path
-        self._saveProjects(projectsDict)
+            norm_p_path = projectsDict["3dsMaxProject"]
         return norm_p_path
 
     def getSceneFile(self):
@@ -132,8 +133,16 @@ class MaxManager(RootManager):
 
     def setProject(self, path):
         """Sets the project"""
-        pManager.SetProjectFolderDir(path)
-        self.projectDir = self.getProjectDir()
+        projectsDict = self._loadProjects()
+        if not projectsDict:
+            projectsDict = {"3dsMaxProject": path}
+        else:
+            projectsDict["3dsMaxProject"] = path
+        self._saveProjects(projectsDict)
+        self.projectDir = path
+
+        # pManager.SetProjectFolderDir(path)
+        # self.projectDir = self.getProjectDir()
 
 
         # projectsDict = self._loadProjects()
@@ -329,7 +338,7 @@ class MaxManager(RootManager):
 
     def createPreview(self, *args, **kwargs):
         """Creates a Playblast preview from currently open scene"""
-        rt = pymxs.runtime
+        # rt = pymxs.runtime
 
         openSceneInfo = self.getOpenSceneInfo()
         # sceneName = self.getSceneFile()
@@ -496,18 +505,18 @@ class MaxManager(RootManager):
         # TODO / Write reference function for 3ds max
         pass
 
-        # projectPath = self.projectDir
-        # relReferenceFile = self._currentSceneInfo["ReferenceFile"]
-        #
-        # if relReferenceFile:
-        #     referenceFile = os.path.join(projectPath, relReferenceFile)
-        #     refFileBasename = os.path.split(relReferenceFile)[1]
-        #     namespace = os.path.splitext(refFileBasename)[0]
-        #     cmds.file(os.path.normpath(referenceFile), reference=True, gl=True, mergeNamespacesOnClash=False,
-        #               namespace=namespace)
-        #
-        # else:
-        #     cmds.warning("There is no reference set for this scene. Nothing changed")
+        projectPath = self.projectDir
+        relReferenceFile = self._currentSceneInfo["ReferenceFile"]
+
+        if relReferenceFile:
+            referenceFile = os.path.join(projectPath, relReferenceFile)
+
+            # software specific
+            Xrefobjs = rt.getMAXFileObjectNames(referenceFile)
+            rt.xrefs.addNewXRefObject(referenceFile, Xrefobjs)
+
+        else:
+            logger.warning("There is no reference set for this scene. Nothing changed")
 
 
     def createThumbnail(self, useCursorPosition=False, dbPath = None, versionInt = None):
@@ -533,43 +542,41 @@ class MaxManager(RootManager):
         relThumbPath = os.path.relpath(thumbPath, projectPath)
 
         ## Software specific section
+        # rt = pymxs.runtime
+        oWidth = 221
+        oHeight = 124
 
-        """
-        grab = gw.getViewportDib()
+        grab = rt.gw.getViewportDib()
 
-        ratio = (grab.width as float/grab.height as float) 
-        
-        if ratio <= 1.782 then
-            (
-            new_width =124 * ratio
-            new_height = 124 
-            )
-        else
-            (
-            new_width = 221 
-            new_height = 221/ ratio
-            )
-            
-        resizeFrame = bitmap new_width new_height color:black
-            
-        copy grab resizeFrame
-        
-        
-        bmFrame = bitmap 221 124 color:black
-        
-        xOffset = (221 - resizeFrame.width) /2
-        yOffset = (124 - resizeFrame.height) /2
-        
-        pasteBitmap resizeFrame bmFrame [0,0]  [xOffset,yOffset] 
-        
-        display bmFrame
-        """
+        ratio = float(grab.width)/float(grab.height)
 
-        rt = pymxs.runtime
-        img = rt.gw.getViewportDib()
-        img.fileName = thumbPath
-        rt.save(img)
-        rt.close(img)
+        if ratio <= 1.782:
+            new_width = oHeight * ratio
+            new_height = oHeight
+        else:
+            new_width = oWidth
+            new_height = oWidth / ratio
+
+        resizeFrame = rt.bitmap(new_width, new_height, color = rt.color(0,0,0))
+        rt.copy(grab, resizeFrame)
+        thumbFrame = rt.bitmap(oWidth, oHeight, color = rt.color(0,0,0))
+        xOffset = (oWidth - resizeFrame.width) /2
+        yOffset = (oHeight - resizeFrame.height) /2
+
+        rt.pasteBitmap(resizeFrame, thumbFrame, rt.point2(0, 0), rt.point2(xOffset, yOffset))
+
+        rt.display(thumbFrame)
+
+        thumbFrame.filename = thumbPath
+        rt.save(thumbFrame)
+        rt.close(thumbFrame)
+
+
+
+        # img = rt.gw.getViewportDib()
+        # img.fileName = thumbPath
+        # rt.save(img)
+        # rt.close(img)
 
         return relThumbPath
 
