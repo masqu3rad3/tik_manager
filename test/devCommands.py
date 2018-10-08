@@ -36,6 +36,7 @@ reload(tm)
 # -------------
 import sys
 sys.path.append("C:\\Users\\kutlu\\Documents\\maya\\scripts\\tik_manager")
+sys.path.append("C:\\Users\\Arda\\Documents\\maya\\scripts\\tik_manager")
 sys.path.append("C:\\Users\\user\\Documents\\maya\\scripts\\dev\\tik_manager")
 from tik_manager import Sm3dsMax as man
 reload(man)

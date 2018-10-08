@@ -110,7 +110,7 @@ class RootManager(object):
         self._pathsDict["projectsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smProjects.json"))
 
         self._pathsDict["projectDir"] = self.getProjectDir()
-        self._pathsDict["sceneFile"] = self.getSceneFile()
+        self._pathsDict["sceneFile"] = ""
         _softwarePathsDict = self.getSoftwarePaths()
         if self._pathsDict["projectDir"] == -1 or self._pathsDict["sceneFile"] == -1 or _softwarePathsDict == -1:
             logger.error("The following functions must be overridden in inherited class:\n'getSoftware'\n'getProjectDir'\n'getSceneFile'")
@@ -169,6 +169,8 @@ class RootManager(object):
         self._currentPreviewCamera = ""
         self._currentNotes = ""
         self._currentThumbFile = ""
+
+        self._openSceneInfo = ""
 
         self.scanBaseScenes()
 
@@ -457,7 +459,8 @@ class RootManager(object):
         jsonFile = os.path.join(dbPath, "{}.json".format(baseSceneName))
         if os.path.isfile(jsonFile):
             version = (self._niceName(self._pathsDict["sceneFile"])[-4:])
-            return {"jsonFile":jsonFile,
+            self._openSceneInfo = {
+                    "jsonFile":jsonFile,
                     "projectPath":self._pathsDict["projectDir"],
                     "subProject":subProject,
                     "category":category,
@@ -465,6 +468,7 @@ class RootManager(object):
                     "version":version,
                     "previewPath":pbPath
                     }
+            return self._openSceneInfo
         else:
             return None
 

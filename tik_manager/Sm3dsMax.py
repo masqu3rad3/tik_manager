@@ -1971,6 +1971,8 @@ class MainUI(QtGui.QMainWindow):
             sceneFormat = "max"
             self.manager.saveBaseScene(category, name, subIndex, makeReference, notes, sceneFormat)
             self.populateBaseScenes()
+            # TODO : cross ref
+            self.manager.getOpenSceneInfo()
             self._initOpenScene()
             self.save_Dialog.accept()
 
@@ -2053,9 +2055,16 @@ class MainUI(QtGui.QMainWindow):
                          textHeader="Current Scene is not a Base Scene. Only versions of Base Scenes can be saved", textTitle="Not a Base File", type="C")
 
     def initMainUI(self):
+
+        # TODO : cross ref
         self.manager.init_paths()
+        print "sp"
         self.manager.init_database()
+        self.manager.getOpenSceneInfo()
+
+        print "hede", self.manager._openSceneInfo
         self._initOpenScene()
+
 
 
         # openSceneInfo = self.manager.getOpenSceneInfo()
@@ -2344,7 +2353,11 @@ class MainUI(QtGui.QMainWindow):
         # IvMaya.MainUI().show()
 
     def _initOpenScene(self):
-        openSceneInfo = self.manager.getOpenSceneInfo()
+        # TODO : cross ref
+        openSceneInfo = self.manager._openSceneInfo
+        logger.debug(openSceneInfo)
+        # if not openSceneInfo:
+        #     openSceneInfo = self.manager.getOpenSceneInfo()
         if openSceneInfo: ## getSceneInfo returns None if there is no json database fil
             self.baseScene_lineEdit.setText("%s ==> %s ==> %s" % (openSceneInfo["subProject"], openSceneInfo["category"], openSceneInfo["shotName"]))
             self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: cyan")
