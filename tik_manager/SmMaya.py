@@ -653,7 +653,7 @@ class MayaManager(RootManager):
 
     def _createCallbacks(self, handler):
         callbackIDList=[]
-        callbackIDList.append(cmds.scriptJob(e=["workspaceChanged", "%s.initMainUI()" % handler], replacePrevious=True, parent=SM_Version))
+        callbackIDList.append(cmds.scriptJob(e=["workspaceChanged", "%s.callbackRefresh()" % handler], replacePrevious=True, parent=SM_Version))
         return callbackIDList
 
     def _killCallbacks(self, callbackIDList):
@@ -1911,6 +1911,9 @@ class MainUI(QtWidgets.QMainWindow):
             sceneFormat = "mb"
             self.manager.saveBaseScene(category, name, subIndex, makeReference, notes, sceneFormat)
             self.populateBaseScenes()
+            self._initOpenScene()
+            self.save_Dialog.accept()
+
 
         # SIGNALS
         # -------
@@ -1920,9 +1923,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.sd_buttonBox.accepted.connect(saveCommand)
 
 
-        self.sd_buttonBox.accepted.connect(self.save_Dialog.accept)
+        # self.sd_buttonBox.accepted.connect(self.save_Dialog.accept)
         self.sd_buttonBox.rejected.connect(self.save_Dialog.reject)
-        QtCore.QMetaObject.connectSlotsByName(self.save_Dialog)
+        # QtCore.QMetaObject.connectSlotsByName(self.save_Dialog)
 
         self.save_Dialog.show()
 
@@ -1972,14 +1975,16 @@ class MainUI(QtWidgets.QMainWindow):
             currentRow = self.scenes_listWidget.currentRow()
             self.populateBaseScenes()
             self.onBaseSceneChange()
+            logger.debug("row %s" %currentRow)
             self.scenes_listWidget.setCurrentRow(currentRow)
+            saveV_Dialog.accept()
 
         # SIGNALS
         # -------
         sv_buttonBox.accepted.connect(saveAsVersionCommand)
-        sv_buttonBox.accepted.connect(saveV_Dialog.accept)
+        # sv_buttonBox.accepted.connect(saveV_Dialog.accept)
         sv_buttonBox.rejected.connect(saveV_Dialog.reject)
-        QtCore.QMetaObject.connectSlotsByName(saveV_Dialog)
+        # QtCore.QMetaObject.connectSlotsByName(saveV_Dialog)
 
         sceneInfo = self.manager.getOpenSceneInfo()
         if sceneInfo:
@@ -1988,17 +1993,35 @@ class MainUI(QtWidgets.QMainWindow):
             self.infoPop(textInfo="Version Saving not possible",
                          textHeader="Current Scene is not a Base Scene. Only versions of Base Scenes can be saved", textTitle="Not a Base File", type="C")
 
+    def callbackRefresh(self):
+        """
+        Buffer script for workspace change scriptjob
+        when a scene saved it also triggers "workspaceChanged" scriptjob event.
+        To prevent unnecessary initialization, this functions acts as a buffer
+        """
+
+        # logger.debug("callbackRefresh called")
+        oldProject = self.manager.projectDir
+        newProject = self.manager.getProjectDir()
+        if not oldProject == newProject:
+            # logger.debug("callbackRefresh - project changed")
+            self.initMainUI()
+        else:
+            # logger.debug("callbackRefresh - project same")
+            return
+
     def initMainUI(self):
         self.manager.init_paths()
         self.manager.init_database()
 
-        openSceneInfo = self.manager.getOpenSceneInfo()
-        if openSceneInfo: ## getSceneInfo returns None if there is no json database fil
-            self.baseScene_lineEdit.setText("%s ==> %s ==> %s" % (openSceneInfo["subProject"], openSceneInfo["category"], openSceneInfo["shotName"]))
-            self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: cyan")
-        else:
-            self.baseScene_lineEdit.setText("Current Scene is not a Base Scene")
-            self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: yellow")
+        self._initOpenScene()
+        # openSceneInfo = self.manager.getOpenSceneInfo()
+        # if openSceneInfo: ## getSceneInfo returns None if there is no json database fil
+        #     self.baseScene_lineEdit.setText("%s ==> %s ==> %s" % (openSceneInfo["subProject"], openSceneInfo["category"], openSceneInfo["shotName"]))
+        #     self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: cyan")
+        # else:
+        #     self.baseScene_lineEdit.setText("Current Scene is not a Base Scene")
+        #     self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: yellow")
 
         # init project
         self.project_lineEdit.setText(self.manager.projectDir)
@@ -2277,6 +2300,15 @@ class MainUI(QtWidgets.QMainWindow):
 
     def onIviewer(self):
         IvMaya.MainUI().show()
+
+    def _initOpenScene(self):
+        openSceneInfo = self.manager.getOpenSceneInfo()
+        if openSceneInfo: ## getSceneInfo returns None if there is no json database fil
+            self.baseScene_lineEdit.setText("%s ==> %s ==> %s" % (openSceneInfo["subProject"], openSceneInfo["category"], openSceneInfo["shotName"]))
+            self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: cyan")
+        else:
+            self.baseScene_lineEdit.setText("Current Scene is not a Base Scene")
+            self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: yellow")
 
 
     def _checkValidity(self, text, button, lineEdit):

@@ -14,7 +14,7 @@ import ctypes
 
 logging.basicConfig()
 logger = logging.getLogger('smRoot')
-logger.setLevel(logging.WARNING)
+logger.setLevel(logging.DEBUG)
 
 
 
@@ -101,7 +101,6 @@ class RootManager(object):
 
 
     def init_paths(self):
-        # This function should be overridden for each software
         # all paths in here must be absolute paths
         self._pathsDict["userSettingsDir"] = os.path.join(os.path.expanduser("~"), "SceneManager")
         self._folderCheck(self._pathsDict["userSettingsDir"])
@@ -158,8 +157,6 @@ class RootManager(object):
         self._usersDict = self._loadUsers()
         self._currentsDict = self._loadUserPrefs()
         self._subProjectsList = self._loadSubprojects()
-        # self._pbSettingsDict = self.loadPBSettings(self.pbSettingsFile) # not immediate
-        # self._bookmarksList = self.loadFavorites(self.bookmarksFile) # not immediate
 
         # unsaved DB
         self._baseScenesInCategory = []

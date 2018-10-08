@@ -100,7 +100,7 @@ class MaxManager(RootManager):
         super(MaxManager, self).__init__()
 
         self.init_paths()
-        self.backwardcompatibility()  # DO NOT RUN UNTIL RELEASE
+        # self.backwardcompatibility()  # DO NOT RUN UNTIL RELEASE
         self.init_database()
 
 
@@ -127,6 +127,7 @@ class MaxManager(RootManager):
     def getSceneFile(self):
         """Overriden function"""
         # Gets the current scene path ("" if untitled)
+        logger.debug("GETSCENEFILE")
         s_path = fManager.GetFileNameAndPath()
         norm_s_path = os.path.normpath(s_path)
         return norm_s_path
@@ -341,7 +342,6 @@ class MaxManager(RootManager):
         # rt = pymxs.runtime
 
         openSceneInfo = self.getOpenSceneInfo()
-        # sceneName = self.getSceneFile()
         if not openSceneInfo:
             msg = "This is not a base scene. Scene must be saved as a base scene before playblasting."
             logger.warning(msg)
@@ -565,7 +565,7 @@ class MaxManager(RootManager):
 
         rt.pasteBitmap(resizeFrame, thumbFrame, rt.point2(0, 0), rt.point2(xOffset, yOffset))
 
-        rt.display(thumbFrame)
+        # rt.display(thumbFrame)
 
         thumbFrame.filename = thumbPath
         rt.save(thumbFrame)
@@ -1971,6 +1971,8 @@ class MainUI(QtGui.QMainWindow):
             sceneFormat = "max"
             self.manager.saveBaseScene(category, name, subIndex, makeReference, notes, sceneFormat)
             self.populateBaseScenes()
+            self._initOpenScene()
+            self.save_Dialog.accept()
 
         # SIGNALS
         # -------
@@ -1980,9 +1982,9 @@ class MainUI(QtGui.QMainWindow):
         self.sd_buttonBox.accepted.connect(saveCommand)
 
 
-        self.sd_buttonBox.accepted.connect(self.save_Dialog.accept)
+        # self.sd_buttonBox.accepted.connect(self.save_Dialog.accept)
         self.sd_buttonBox.rejected.connect(self.save_Dialog.reject)
-        QtCore.QMetaObject.connectSlotsByName(self.save_Dialog)
+        # QtCore.QMetaObject.connectSlotsByName(self.save_Dialog)
 
         self.save_Dialog.show()
 
@@ -2034,13 +2036,14 @@ class MainUI(QtGui.QMainWindow):
             self.onBaseSceneChange()
             self.scenes_listWidget.setCurrentRow(currentRow)
             # self.populateBaseScenes()
+            saveV_Dialog.accept()
 
         # SIGNALS
         # -------
         sv_buttonBox.accepted.connect(saveAsVersionCommand)
-        sv_buttonBox.accepted.connect(saveV_Dialog.accept)
+        # sv_buttonBox.accepted.connect(saveV_Dialog.accept)
         sv_buttonBox.rejected.connect(saveV_Dialog.reject)
-        QtCore.QMetaObject.connectSlotsByName(saveV_Dialog)
+        # QtCore.QMetaObject.connectSlotsByName(saveV_Dialog)
 
         sceneInfo = self.manager.getOpenSceneInfo()
         if sceneInfo:
@@ -2052,14 +2055,16 @@ class MainUI(QtGui.QMainWindow):
     def initMainUI(self):
         self.manager.init_paths()
         self.manager.init_database()
+        self._initOpenScene()
 
-        openSceneInfo = self.manager.getOpenSceneInfo()
-        if openSceneInfo: ## getSceneInfo returns None if there is no json database fil
-            self.baseScene_lineEdit.setText("%s ==> %s ==> %s" % (openSceneInfo["subProject"], openSceneInfo["category"], openSceneInfo["shotName"]))
-            self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: cyan")
-        else:
-            self.baseScene_lineEdit.setText("Current Scene is not a Base Scene")
-            self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: yellow")
+
+        # openSceneInfo = self.manager.getOpenSceneInfo()
+        # if openSceneInfo: ## getSceneInfo returns None if there is no json database fil
+        #     self.baseScene_lineEdit.setText("%s ==> %s ==> %s" % (openSceneInfo["subProject"], openSceneInfo["category"], openSceneInfo["shotName"]))
+        #     self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: cyan")
+        # else:
+        #     self.baseScene_lineEdit.setText("Current Scene is not a Base Scene")
+        #     self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: yellow")
 
         # init project
         self.project_lineEdit.setText(self.manager.projectDir)
@@ -2152,7 +2157,6 @@ class MainUI(QtGui.QMainWindow):
 
     def onProjectChange(self):
         self.initMainUI()
-        # print "asjsjsjsjs"
         # self.onSubProjectChange()
         # self.onCategoryChange()
         # self.onBaseSceneChange()
@@ -2164,7 +2168,6 @@ class MainUI(QtGui.QMainWindow):
         self.onCategoryChange()
 
     def onCategoryChange(self):
-        # logger.debug("onCategoryChange %s" %self.category_tabWidget.currentIndex())
         self.manager.currentTabIndex = self.category_tabWidget.currentIndex()
         self.populateBaseScenes()
         self.onBaseSceneChange()
@@ -2227,7 +2230,6 @@ class MainUI(QtGui.QMainWindow):
 
     def populateBaseScenes(self, deepCheck=False):
         self.scenes_listWidget.clear()
-        # logger.debug("populateBaseScenes")
         baseScenesDict = self.manager.getBaseScenesInCategory()
         if self.reference_radioButton.isChecked():
             for key in baseScenesDict:
@@ -2341,6 +2343,14 @@ class MainUI(QtGui.QMainWindow):
         logger.warning("Image Viewer N/A")
         # IvMaya.MainUI().show()
 
+    def _initOpenScene(self):
+        openSceneInfo = self.manager.getOpenSceneInfo()
+        if openSceneInfo: ## getSceneInfo returns None if there is no json database fil
+            self.baseScene_lineEdit.setText("%s ==> %s ==> %s" % (openSceneInfo["subProject"], openSceneInfo["category"], openSceneInfo["shotName"]))
+            self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: cyan")
+        else:
+            self.baseScene_lineEdit.setText("Current Scene is not a Base Scene")
+            self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: yellow")
 
     def _checkValidity(self, text, button, lineEdit):
         if self.manager._nameCheck(text):
