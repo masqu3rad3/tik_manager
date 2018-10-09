@@ -109,7 +109,8 @@ class MaxManager(RootManager):
         # To tell the base class maya specific path names
         return {"databaseDir": "maxDB",
                 "scenesDir": "scenes_3dsMax",
-                "pbSettingsFile": "pbSettings_3dsMax.json"}
+                "pbSettingsFile": "pbSettings_3dsMax.json",
+                "userSettingsDir": "Documents\\SceneManager"} # this is just for 3ds max. expanduser"~" returns different in max
 
     def getProjectDir(self):
         """Overriden function"""
@@ -117,11 +118,19 @@ class MaxManager(RootManager):
         # norm_p_path = os.path.normpath(p_path)
         projectsDict = self._loadProjects()
 
+
         if not projectsDict:
-            projectsDict = {"3dsMaxProject": pManager.GetProjectFolderDir()}
+            norm_p_path = os.path.normpath(pManager.GetProjectFolderDir())
+            projectsDict = {"3dsMaxProject": norm_p_path}
             self._saveProjects(projectsDict)
         else:
-            norm_p_path = projectsDict["3dsMaxProject"]
+            try:
+                norm_p_path = projectsDict["3dsMaxProject"]
+            except KeyError:
+                norm_p_path = os.path.normpath(pManager.GetProjectFolderDir())
+                projectsDict = {"3dsMaxProject": norm_p_path}
+                self._saveProjects(projectsDict)
+
         return norm_p_path
 
     def getSceneFile(self):
@@ -159,10 +168,14 @@ class MaxManager(RootManager):
     def saveCallback(self):
         """Callback function to update reference files when files saved regularly"""
         ## TODO // TEST IT
-        self._pathsDict["sceneFile"] = self.getSceneFile()
+        # self._pathsDict["sceneFile"] = self.getSceneFile() # unnecessary
         openSceneInfo = self.getOpenSceneInfo()
         if openSceneInfo["jsonFile"]:
             jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
+            if jsonInfo == -1:
+                msg = "Database file is corrupted"
+                print msg
+                return
             if jsonInfo["ReferenceFile"]:
                 absRefFile = os.path.join(self._pathsDict["projectDir"], jsonInfo["ReferenceFile"])
                 absBaseSceneVersion = os.path.join(self._pathsDict["projectDir"], jsonInfo["Versions"][int(jsonInfo["ReferencedVersion"]) - 1][0])
@@ -262,8 +275,14 @@ class MaxManager(RootManager):
             jsonInfo["ReferenceFile"] = None
             jsonInfo["ReferencedVersion"] = None
 
+        # version serialization:
+        logger.debug("HERE")
+        version, api, sdk = rt.maxversion()
+        vInfo = [version, api, sdk]
+
         jsonInfo["ID"] = "SceneManagerV02_sceneFile"
-        jsonInfo["3dsMaxVersion"] = os.path.basename(os.path.split(pManager.GetMaxSysRootDir())[0])
+        # jsonInfo["3dsMaxVersion"] = os.path.basename(os.path.split(pManager.GetMaxSysRootDir())[0])
+        jsonInfo["3dsMaxVersion"] = vInfo
         jsonInfo["Name"] = baseName
         jsonInfo["Path"] = os.path.relpath(shotPath, start=projectPath)
         jsonInfo["Category"] = categoryName
@@ -303,6 +322,9 @@ class MaxManager(RootManager):
         if sceneInfo: ## getCurrentJson returns None if the resolved json path is missing
             jsonFile = sceneInfo["jsonFile"]
             jsonInfo = self._loadJson(jsonFile)
+            if jsonInfo == -1:
+                msg = "Database file is corrupted"
+                return -1, msg
 
             currentVersion = len(jsonInfo["Versions"]) + 1
             sceneName = "{0}_{1}_{2}_v{3}".format(jsonInfo["Name"], jsonInfo["Category"], self._usersDict[self.currentUser],
@@ -377,7 +399,9 @@ class MaxManager(RootManager):
                 return -1, msg
 
         jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
-
+        if jsonInfo == -1:
+            msg = "Database file is corrupted"
+            return -1, msg
         # returns 0,"" if everything is ok, -1,msg if error
 
         pbSettings = self._loadPBSettings()
@@ -502,8 +526,6 @@ class MaxManager(RootManager):
 
     def referenceBaseScene(self):
         """Creates reference from the scene at cursor position"""
-        # TODO / Write reference function for 3ds max
-        pass
 
         projectPath = self.projectDir
         relReferenceFile = self._currentSceneInfo["ReferenceFile"]
@@ -600,65 +622,58 @@ class MaxManager(RootManager):
     def compareVersions(self):
         """Compares the versions of current session and database version at cursor position"""
         # TODO : Write compare function for 3ds max
-        return 0, ""
-        # if not self._currentSceneInfo["MayaVersion"]:
-        #     logger.warning("Cursor is not on a base scene")
-        #     return
-        # versionDict = {200800: "v2008",
-        #                200806: "v2008_EXT2",
-        #                200806: "v2008_SP1",
-        #                200900: "v2009",
-        #                200904: "v2009_EXT1",
-        #                200906: "v2009_SP1A",
-        #                201000: "v2010",
-        #                201100: "v2011",
-        #                201101: "v2011_HOTFIX1",
-        #                201102: "v2011_HOTFIX2",
-        #                201103: "v2011_HOTFIX3",
-        #                201104: "v2011_SP1",
-        #                201200: "v2012",
-        #                201201: "v2012_HOTFIX1",
-        #                201202: "v2012_HOTFIX2",
-        #                201203: "v2012_HOTFIX3",
-        #                201204: "v2012_HOTFIX4",
-        #                201209: "v2012_SAP1",
-        #                201217: "v2012_SAP1SP1",
-        #                201209: "v2012_SP1",
-        #                201217: "v2012_SP2",
-        #                201300: "v2013",
-        #                201400: "v2014",
-        #                201450: "v2014_EXT1",
-        #                201451: "v2014_EXT1SP1",
-        #                201459: "v2014_EXT1SP2",
-        #                201402: "v2014_SP1",
-        #                201404: "v2014_SP2",
-        #                201406: "v2014_SP3",
-        #                201500: "v2015",
-        #                201506: "v2015_EXT1",
-        #                201507: "v2015_EXT1SP5",
-        #                201501: "v2015_SP1",
-        #                201502: "v2015_SP2",
-        #                201505: "v2015_SP3",
-        #                201506: "v2015_SP4",
-        #                201507: "v2015_SP5",
-        #                201600: "v2016",
-        #                201650: "v20165",
-        #                201651: "v20165_SP1",
-        #                201653: "v20165_SP2",
-        #                201605: "v2016_EXT1",
-        #                201607: "v2016_EXT1SP4",
-        #                201650: "v2016_EXT2",
-        #                201651: "v2016_EXT2SP1",
-        #                201653: "v2016_EXT2SP2",
-        #                201605: "v2016_SP3",
-        #                201607: "v2016_SP4",
-        #                201700: "v2017",
-        #                201701: "v2017U1",
-        #                201720: "v2017U2",
-        #                201740: "v2017U3",
-        #                20180000: "v2018"}
-        #
-        # currentVersion = pm.versions.current()
+        # return 0, ""
+        if not self._currentSceneInfo["3dsMaxVersion"]:
+            logger.warning("Cursor is not on a base scene")
+            return
+        versionDict = {11000: "v2009",
+                       12000: "v2010",
+                       13000: "v2011",
+                       14000: "v2012",
+                       15000: "v2013",
+                       16000: "v2014",
+                       17000: "v2015",
+                       18000: "v2016",
+                       19000: "v2017",
+                       20000: "v2018"
+                       }
+
+        #version serialization:
+        version, api, sdk = rt.maxversion()
+        currentVersion = [version, api, sdk]
+        logger.debug("currentversion %s" %currentVersion)
+        baseSceneVersion = self._currentSceneInfo["3dsMaxVersion"]
+        logger.debug("baseVersion %s" % baseSceneVersion)
+
+        try:
+            niceVName = versionDict[currentVersion[0]]
+        except KeyError:
+            niceVName = str(currentVersion[0])
+
+        if currentVersion == baseSceneVersion:
+            msg = ""
+            return 0, msg
+
+        if currentVersion[0] < baseSceneVersion[0]: # max version compare
+            message = "Base Scene is created with a LOWER 3ds Max version ({0}). Are you sure you want to continue?".format(niceVName)
+            return -1, message
+
+        if currentVersion[0] > baseSceneVersion[0]:
+            message = "Base Scene is created with a HIGHER 3ds Max version ({0}). Are you sure you want to continue?".format(niceVName)
+            return -1, message
+
+        if currentVersion[1] > baseSceneVersion[1]: # max Api
+            message = "Base Scene is created with a LOWER Build ({0}). Are you sure you want to continue?".format(niceVName)
+            return -1, message
+
+        if currentVersion[1] > baseSceneVersion[1]:
+            message = "Base Scene is created with a HIGHER Build ({0}). Are you sure you want to continue?".format(niceVName)
+            return -1, message
+
+        # old or corrupted database
+        return 0, ""  # skip
+
+
         # try:
         #     niceVName=versionDict[self._currentSceneInfo["MayaVersion"]]
         # except KeyError:
@@ -1164,6 +1179,11 @@ class MainUI(QtGui.QMainWindow):
 
         self.scenes_listWidget.doubleClicked.connect(self.onLoadScene)
         self.loadScene_pushButton.clicked.connect(self.onLoadScene)
+
+        self.addNote_pushButton.clicked.connect(self.addNoteDialog)
+
+
+
 
 
     def createSubProjectUI(self):
@@ -1971,7 +1991,6 @@ class MainUI(QtGui.QMainWindow):
             sceneFormat = "max"
             self.manager.saveBaseScene(category, name, subIndex, makeReference, notes, sceneFormat)
             self.populateBaseScenes()
-            # TODO : cross ref
             self.manager.getOpenSceneInfo()
             self._initOpenScene()
             self.save_Dialog.accept()
@@ -2054,15 +2073,54 @@ class MainUI(QtGui.QMainWindow):
             self.infoPop(textInfo="Version Saving not possible",
                          textHeader="Current Scene is not a Base Scene. Only versions of Base Scenes can be saved", textTitle="Not a Base File", type="C")
 
+    def addNoteDialog(self):
+        row = self.scenes_listWidget.currentRow()
+        if row == -1:
+            return
+
+        addNotes_Dialog = QtGui.QDialog(parent=self)
+        addNotes_Dialog.setModal(True)
+        addNotes_Dialog.setObjectName(("addNotes_Dialog"))
+        addNotes_Dialog.resize(255, 290)
+        addNotes_Dialog.setMinimumSize(QtCore.QSize(255, 290))
+        addNotes_Dialog.setMaximumSize(QtCore.QSize(255, 290))
+        addNotes_Dialog.setWindowTitle(("Add Notes"))
+
+        addNotes_label = QtGui.QLabel(addNotes_Dialog)
+        addNotes_label.setGeometry(QtCore.QRect(15, 15, 100, 20))
+        addNotes_label.setText(("Additional Notes"))
+        addNotes_label.setObjectName(("addNotes_label"))
+
+        addNotes_textEdit = QtGui.QTextEdit(addNotes_Dialog)
+        addNotes_textEdit.setGeometry(QtCore.QRect(15, 40, 215, 170))
+        addNotes_textEdit.setObjectName(("addNotes_textEdit"))
+
+        addNotes_buttonBox = QtGui.QDialogButtonBox(addNotes_Dialog)
+        addNotes_buttonBox.setGeometry(QtCore.QRect(20, 250, 220, 32))
+        addNotes_buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        addNotes_buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Save | QtGui.QDialogButtonBox.Cancel)
+
+        buttonS = addNotes_buttonBox.button(QtGui.QDialogButtonBox.Save)
+        buttonS.setText('Add Notes')
+        buttonC = addNotes_buttonBox.button(QtGui.QDialogButtonBox.Cancel)
+        buttonC.setText('Cancel')
+
+        addNotes_buttonBox.setObjectName(("addNotes_buttonBox"))
+        addNotes_buttonBox.accepted.connect(lambda: self.manager.addNote(addNotes_textEdit.toPlainText()))
+        addNotes_buttonBox.accepted.connect(self.onVersionChange)
+        addNotes_buttonBox.accepted.connect(addNotes_Dialog.accept)
+
+        addNotes_buttonBox.rejected.connect(addNotes_Dialog.reject)
+        QtCore.QMetaObject.connectSlotsByName(addNotes_Dialog)
+
+        addNotes_Dialog.show()
+
     def initMainUI(self):
 
-        # TODO : cross ref
         self.manager.init_paths()
-        print "sp"
         self.manager.init_database()
         self.manager.getOpenSceneInfo()
 
-        print "hede", self.manager._openSceneInfo
         self._initOpenScene()
 
 
@@ -2247,10 +2305,11 @@ class MainUI(QtGui.QMainWindow):
 
         else:
             codeDict = {-1: QtGui.QColor(255, 0, 0, 255), 1: QtGui.QColor(0, 255, 0, 255),
-                        0: QtGui.QColor(255, 255, 0, 255)}  # dictionary for color codes red, green, yellow
-
+                        0: QtGui.QColor(255, 255, 0, 255), -2: QtGui.QColor(20, 20, 20, 255)}  # dictionary for color codes red, green, yellow
+                        # gray for the corrupted database file
+        # TODO : ref
             for key in sorted(baseScenesDict):
-                retCode = self.manager.checkReference(baseScenesDict[key], deepCheck=deepCheck) # returns -1, 0 or 1 for color ref
+                retCode = self.manager.checkReference(baseScenesDict[key], deepCheck=deepCheck) # returns -1, 0, 1 or -2 for color ref
                 color = codeDict[retCode]
                 listItem = QtGui.QListWidgetItem()
                 listItem.setText(key)
@@ -2283,6 +2342,8 @@ class MainUI(QtGui.QMainWindow):
 
             else: # if current scene saved and secure
                 self.manager.loadBaseScene(force=True)
+                self.manager.getOpenSceneInfo()
+                self._initOpenScene()
 
             self.statusBar().showMessage("Status | Scene Loaded => %s" % self.manager.currentBaseSceneName)
 
@@ -2353,7 +2414,6 @@ class MainUI(QtGui.QMainWindow):
         # IvMaya.MainUI().show()
 
     def _initOpenScene(self):
-        # TODO : cross ref
         openSceneInfo = self.manager._openSceneInfo
         logger.debug(openSceneInfo)
         # if not openSceneInfo:

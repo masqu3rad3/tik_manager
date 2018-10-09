@@ -66,7 +66,8 @@ class MayaManager(RootManager):
         # To tell the base class maya specific path names
         return {"databaseDir": "mayaDB",
                 "scenesDir": "scenes",
-                "pbSettingsFile": "pbSettings.json"}
+                "pbSettingsFile": "pbSettings.json",
+                "userSettingsDir": "SceneManager"}
 
     def getProjectDir(self):
         """Overriden function"""
@@ -78,7 +79,10 @@ class MayaManager(RootManager):
         if not projectsDict:
             projectsDict = {"MayaProject": norm_p_path}
         else:
-            projectsDict["MayaProject"] = norm_p_path
+            try:
+                projectsDict["MayaProject"] = norm_p_path
+            except KeyError:
+                projectsDict = {"MayaProject": norm_p_path}
         self._saveProjects(projectsDict)
         return norm_p_path
 
@@ -1113,6 +1117,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.scenes_listWidget.doubleClicked.connect(self.onLoadScene)
         self.loadScene_pushButton.clicked.connect(self.onLoadScene)
 
+        self.addNote_pushButton.clicked.connect(self.addNoteDialog)
+
+
 
     def createSubProjectUI(self):
 
@@ -1911,6 +1918,7 @@ class MainUI(QtWidgets.QMainWindow):
             sceneFormat = "mb"
             self.manager.saveBaseScene(category, name, subIndex, makeReference, notes, sceneFormat)
             self.populateBaseScenes()
+            self.manager.getOpenSceneInfo()
             self._initOpenScene()
             self.save_Dialog.accept()
 
@@ -1993,6 +2001,49 @@ class MainUI(QtWidgets.QMainWindow):
             self.infoPop(textInfo="Version Saving not possible",
                          textHeader="Current Scene is not a Base Scene. Only versions of Base Scenes can be saved", textTitle="Not a Base File", type="C")
 
+    def addNoteDialog(self):
+        row = self.scenes_listWidget.currentRow()
+        if row == -1:
+            return
+
+        addNotes_Dialog = QtWidgets.QDialog(parent=self)
+        addNotes_Dialog.setModal(True)
+        addNotes_Dialog.setObjectName(("addNotes_Dialog"))
+        addNotes_Dialog.resize(255, 290)
+        addNotes_Dialog.setMinimumSize(QtCore.QSize(255, 290))
+        addNotes_Dialog.setMaximumSize(QtCore.QSize(255, 290))
+        addNotes_Dialog.setWindowTitle(("Add Notes"))
+
+        addNotes_label = QtWidgets.QLabel(addNotes_Dialog)
+        addNotes_label.setGeometry(QtCore.QRect(15, 15, 100, 20))
+        addNotes_label.setText(("Additional Notes"))
+        addNotes_label.setObjectName(("addNotes_label"))
+
+        addNotes_textEdit = QtWidgets.QTextEdit(addNotes_Dialog)
+        addNotes_textEdit.setGeometry(QtCore.QRect(15, 40, 215, 170))
+        addNotes_textEdit.setObjectName(("addNotes_textEdit"))
+
+        addNotes_buttonBox = QtWidgets.QDialogButtonBox(addNotes_Dialog)
+        addNotes_buttonBox.setGeometry(QtCore.QRect(20, 250, 220, 32))
+        addNotes_buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        addNotes_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Save | QtWidgets.QDialogButtonBox.Cancel)
+
+        buttonS = addNotes_buttonBox.button(QtWidgets.QDialogButtonBox.Save)
+        buttonS.setText('Add Notes')
+        buttonC = addNotes_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel)
+        buttonC.setText('Cancel')
+
+        addNotes_buttonBox.setObjectName(("addNotes_buttonBox"))
+        addNotes_buttonBox.accepted.connect(lambda: self.manager.addNote(addNotes_textEdit.toPlainText()))
+        addNotes_buttonBox.accepted.connect(self.onVersionChange)
+        addNotes_buttonBox.accepted.connect(addNotes_Dialog.accept)
+
+        addNotes_buttonBox.rejected.connect(addNotes_Dialog.reject)
+        QtCore.QMetaObject.connectSlotsByName(addNotes_Dialog)
+
+        addNotes_Dialog.show()
+
+
     def callbackRefresh(self):
         """
         Buffer script for workspace change scriptjob
@@ -2013,6 +2064,7 @@ class MainUI(QtWidgets.QMainWindow):
     def initMainUI(self):
         self.manager.init_paths()
         self.manager.init_database()
+        self.manager.getOpenSceneInfo()
 
         self._initOpenScene()
         # openSceneInfo = self.manager.getOpenSceneInfo()
@@ -2198,7 +2250,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         else:
             codeDict = {-1: QtGui.QColor(255, 0, 0, 255), 1: QtGui.QColor(0, 255, 0, 255),
-                        0: QtGui.QColor(255, 255, 0, 255)}  # dictionary for color codes red, green, yellow
+                        0: QtGui.QColor(255, 255, 0, 255), -2: QtGui.QColor(20, 20, 20, 255)}  # dictionary for color codes red, green, yellow
 
             for key in sorted(baseScenesDict):
                 retCode = self.manager.checkReference(baseScenesDict[key], deepCheck=deepCheck) # returns -1, 0 or 1 for color ref
@@ -2234,6 +2286,8 @@ class MainUI(QtWidgets.QMainWindow):
 
             else: # if current scene saved and secure
                 self.manager.loadBaseScene(force=True)
+                self.manager.getOpenSceneInfo()
+                self._initOpenScene()
 
             self.statusBar().showMessage("Status | Scene Loaded => %s" % self.manager.currentBaseSceneName)
 
@@ -2302,7 +2356,7 @@ class MainUI(QtWidgets.QMainWindow):
         IvMaya.MainUI().show()
 
     def _initOpenScene(self):
-        openSceneInfo = self.manager.getOpenSceneInfo()
+        openSceneInfo = self.manager._openSceneInfo
         if openSceneInfo: ## getSceneInfo returns None if there is no json database fil
             self.baseScene_lineEdit.setText("%s ==> %s ==> %s" % (openSceneInfo["subProject"], openSceneInfo["category"], openSceneInfo["shotName"]))
             self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: cyan")

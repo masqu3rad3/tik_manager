@@ -102,7 +102,9 @@ class RootManager(object):
 
     def init_paths(self):
         # all paths in here must be absolute paths
-        self._pathsDict["userSettingsDir"] = os.path.join(os.path.expanduser("~"), "SceneManager")
+        _softwarePathsDict = self.getSoftwarePaths()
+
+        self._pathsDict["userSettingsDir"] = os.path.join(os.path.expanduser("~"), _softwarePathsDict["userSettingsDir"])
         self._folderCheck(self._pathsDict["userSettingsDir"])
 
         self._pathsDict["bookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smBookmarks.json"))
@@ -111,7 +113,7 @@ class RootManager(object):
 
         self._pathsDict["projectDir"] = self.getProjectDir()
         self._pathsDict["sceneFile"] = ""
-        _softwarePathsDict = self.getSoftwarePaths()
+        # _softwarePathsDict = self.getSoftwarePaths()
         if self._pathsDict["projectDir"] == -1 or self._pathsDict["sceneFile"] == -1 or _softwarePathsDict == -1:
             logger.error("The following functions must be overridden in inherited class:\n'getSoftware'\n'getProjectDir'\n'getSceneFile'")
             raise Exception()
@@ -296,8 +298,12 @@ class RootManager(object):
 
         self._currentBaseSceneName = sceneName
         self._currentSceneInfo = self._loadSceneInfo()
-        # if not sceneName:
-        #     self._currentVersionIndex = -1
+        if self._currentSceneInfo == -2: # corrupted db file
+            self._currentSceneInfo == {}
+            self._currentBaseSceneName = ""
+            self.currentVersionIndex = -1
+            return
+
 
         if self._currentSceneInfo["ReferencedVersion"]:
             self.currentVersionIndex = self._currentSceneInfo["ReferencedVersion"]
@@ -315,7 +321,6 @@ class RootManager(object):
     @property
     def currentPreviewPath(self):
         """Returns absolute path of preview folder of the Base scene at cursor position"""
-        # TODO // CONTINUE
         if self._currentSceneInfo["SubProject"] is not "None":
             path = os.path.join(self._pathsDict["previewsDir"], self._currentSceneInfo["Category"],
                                 self._currentSceneInfo["SubProject"], self._currentSceneInfo["Name"])
@@ -499,7 +504,7 @@ class RootManager(object):
         """Returns Versions List of base scene at cursor position"""
         try:
             return self._currentSceneInfo["Versions"]
-        except KeyError:
+        except:
             return []
 
     def getNotes(self):
@@ -705,12 +710,12 @@ class RootManager(object):
         # self._currentBaseScenes = [os.path.join(searchDir, file) for file in os.listdir(searchDir) if file.endswith('.json')]
         return self._baseScenesInCategory # dictionary of json files
 
-    def filterReferenced(self, jsonFile):
-        jInfo = self._loadJson(jsonFile)
-        if jInfo["ReferenceFile"]:
-            return [jsonFile, True]
-        else:
-            return [jsonFile, False]
+    # def filterReferenced(self, jsonFile):
+    #     jInfo = self._loadJson(jsonFile)
+    #     if jInfo["ReferenceFile"]:
+    #         return [jsonFile, True]
+    #     else:
+    #         return [jsonFile, False]
 
     # def getProjectReport(self):
     #     # TODO This function should be re-written considering all possible softwares
@@ -814,6 +819,8 @@ class RootManager(object):
     def deleteBasescene(self, databaseFile):
         #ADMIN ACCESS
         jsonInfo = self._loadJson(databaseFile)
+        if jsonInfo == -2:
+            return -2
         # delete all version files
         for s in jsonInfo["Versions"]:
             try:
@@ -848,6 +855,8 @@ class RootManager(object):
     def deleteReference(self, databaseFile):
         #ADMIN ACCESS
         jsonInfo = self._loadJson(databaseFile)
+        if jsonInfo == -2:
+            return -2
 
         if jsonInfo["ReferenceFile"]:
             try:
@@ -881,6 +890,8 @@ class RootManager(object):
 
     def checkReference(self, jsonFile, deepCheck=False):
         sceneInfo = self._loadJson(jsonFile)
+        if sceneInfo == -2:
+            return -2 # Corrupted database file
 
         if sceneInfo["ReferenceFile"]:
             relVersionFile = sceneInfo["Versions"][sceneInfo["ReferencedVersion"] - 1][0]
@@ -889,7 +900,7 @@ class RootManager(object):
             absRefFile = os.path.join(self.projectDir, relRefFile)
 
             if not os.path.isfile(absRefFile):
-                logger.warning("CODE RED: Reference File does not exist")
+                logger.info("CODE RED: Reference File does not exist")
                 return -1 # code red
             else:
                 if deepCheck:
@@ -897,7 +908,7 @@ class RootManager(object):
                         logger.info("CODE GREEN: Everything is OK")
                         return 1 # code Green
                     else:
-                        logger.warning("CODE RED: Checksum mismatch with reference file")
+                        logger.info("CODE RED: Checksum mismatch with reference file")
                         return -1 # code red
                 else:
                     logger.info("CODE GREEN: Everything is OK")
@@ -978,10 +989,14 @@ class RootManager(object):
     def _loadJson(self, file):
         """Loads the given json file"""
         if os.path.isfile(file):
-            with open(file, 'r') as f:
-                # The JSON module will read our file, and convert it to a python dictionary
-                data = json.load(f)
-                return data
+            try:
+                with open(file, 'r') as f:
+                    data = json.load(f)
+                    return data
+            except ValueError:
+                logger.error("Corrupted JSON file => %s" % file)
+                # raise
+                return -2 # code for corrupted json file
         else:
             return None
 
@@ -1000,12 +1015,16 @@ class RootManager(object):
             return userDB
         else:
             userDB = self._loadJson(self._pathsDict["usersFile"])
+            if userDB == -2:
+                return -2
             return userDB
 
     def _loadFavorites(self):
         """Loads Bookmarked projects"""
         if os.path.isfile(self._pathsDict["bookmarksFile"]):
             bookmarksData = self._loadJson(self._pathsDict["bookmarksFile"])
+            if bookmarksData == -2:
+                return -2
         else:
             bookmarksData = []
             self._dumpJson(bookmarksData, self._pathsDict["bookmarksFile"])
@@ -1029,6 +1048,8 @@ class RootManager(object):
         """Load Categories from file"""
         if os.path.isfile(self._pathsDict["categoriesFile"]):
             categoriesData = self._loadJson(self._pathsDict["categoriesFile"])
+            if categoriesData == -2:
+                return -2
         else:
             categoriesData = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
             self._dumpJson(categoriesData, self._pathsDict["categoriesFile"])
@@ -1037,12 +1058,16 @@ class RootManager(object):
     def _loadSceneInfo(self):
         """Returns scene info of base scene at cursor position"""
         sceneInfo = self._loadJson(self._baseScenesInCategory[self._currentBaseSceneName])
+        if sceneInfo == -2:
+            return -2
         return sceneInfo
 
     def _loadUserPrefs(self):
         """Load Last CategoryIndex, SubProject Index, User name and Access mode from file as dictionary"""
         if os.path.isfile(self._pathsDict["currentsFile"]):
             settingsData = self._loadJson(self._pathsDict["currentsFile"])
+            if settingsData == -2:
+                return -2
         else:
             settingsData = {"currentTabIndex": 0, "currentSubIndex": 0, "currentUser": self._usersDict.keys()[0],
                             "currentMode": False}
@@ -1066,6 +1091,8 @@ class RootManager(object):
             self._dumpJson(data, self._pathsDict["subprojectsFile"])
         else:
             data = self._loadJson(self._pathsDict["subprojectsFile"])
+            if data == -2:
+                return -2
         return data
 
     def _saveSubprojects(self, subprojectsList):
@@ -1078,6 +1105,8 @@ class RootManager(object):
             return
         else:
             projectsData = self._loadJson(self._pathsDict["projectsFile"])
+            if projectsData == -2:
+                return -2
         return projectsData
 
     def _saveProjects(self, data):
@@ -1111,6 +1140,8 @@ class RootManager(object):
             return defaultSettings
         else:
             pbSettings = self._loadJson(self._pathsDict["pbSettingsFile"])
+            if pbSettings == -2:
+                return -2
             return pbSettings
 
     def _savePBSettings(self, pbSettings):
