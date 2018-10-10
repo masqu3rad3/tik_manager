@@ -92,7 +92,7 @@ SM_Version = "Scene Manager 3ds Max v%s" %_version.__version__
 
 logging.basicConfig()
 logger = logging.getLogger('sm3dsMax')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 
 
 class MaxManager(RootManager):
@@ -773,12 +773,13 @@ class MainUI(QtGui.QMainWindow):
         if self.isCallback:
             self.callbackIDList = self.manager._createCallbacks(self.isCallback)
 
-        self.initMainUI()
+        self.initMainUI(newborn=True)
 
     # def closeEvent(self, event):
     #     self.manager._killCallbacks(self.callbackIDList)
 
         # super(MainUI, self).closeEvent(event)
+
 
     def buildUI(self):
 
@@ -1133,6 +1134,7 @@ class MainUI(QtGui.QMainWindow):
 
         createProject_fm.triggered.connect(self.createProjectUI)
 
+        add_remove_users_fm.triggered.connect(self.addRemoveUserUI)
         pb_settings_fm.triggered.connect(self.pbSettingsUI)
 
 
@@ -1915,6 +1917,127 @@ class MainUI(QtGui.QMainWindow):
 
         self.pbSettings_dialog.show()
 
+    def addRemoveUserUI(self):
+
+        # TODO : ref
+
+        admin_pswd = "682"
+        passw, ok = QtGui.QInputDialog.getText(self, "Password Query", "Enter Admin Password:",
+                                               QtGui.QLineEdit.Password)
+        if ok:
+            if passw == admin_pswd:
+                pass
+            else:
+                self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
+                return
+        else:
+            return
+
+        users_Dialog = QtGui.QDialog(parent=self)
+        users_Dialog.setModal(True)
+        users_Dialog.setObjectName(("users_Dialog"))
+        users_Dialog.resize(380, 483)
+        users_Dialog.setMinimumSize(QtCore.QSize(342, 177))
+        users_Dialog.setMaximumSize(QtCore.QSize(342, 177))
+        users_Dialog.setWindowTitle(("Add/Remove Users"))
+        users_Dialog.setFocus()
+
+        addnewuser_groupBox = QtGui.QGroupBox(users_Dialog)
+        addnewuser_groupBox.setGeometry(QtCore.QRect(10, 10, 321, 91))
+        addnewuser_groupBox.setTitle(("Add New User"))
+        addnewuser_groupBox.setObjectName(("addnewuser_groupBox"))
+
+        fullname_label = QtGui.QLabel(addnewuser_groupBox)
+        fullname_label.setGeometry(QtCore.QRect(0, 30, 81, 21))
+        fullname_label.setLayoutDirection(QtCore.Qt.LeftToRight)
+        fullname_label.setText(("Full Name:"))
+        fullname_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        fullname_label.setObjectName(("fullname_label"))
+
+        self.fullname_lineEdit = QtGui.QLineEdit(addnewuser_groupBox)
+        self.fullname_lineEdit.setGeometry(QtCore.QRect(90, 30, 151, 20))
+        self.fullname_lineEdit.setPlaceholderText(("e.g \"John Doe\""))
+        self.fullname_lineEdit.setObjectName(("fullname_lineEdit"))
+
+        initials_label = QtGui.QLabel(addnewuser_groupBox)
+        initials_label.setGeometry(QtCore.QRect(0, 60, 81, 21))
+        initials_label.setLayoutDirection(QtCore.Qt.LeftToRight)
+        initials_label.setText(("Initials:"))
+        initials_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        initials_label.setObjectName(("initials_label"))
+
+        self.initials_lineEdit = QtGui.QLineEdit(addnewuser_groupBox)
+        self.initials_lineEdit.setGeometry(QtCore.QRect(90, 60, 151, 20))
+        self.initials_lineEdit.setText((""))
+        self.initials_lineEdit.setPlaceholderText(("e.g \"jd\" (must be unique)"))
+        self.initials_lineEdit.setObjectName(("initials_lineEdit"))
+
+        addnewuser_pushButton = QtGui.QPushButton(addnewuser_groupBox)
+        addnewuser_pushButton.setGeometry(QtCore.QRect(250, 30, 61, 51))
+        addnewuser_pushButton.setText(("Add"))
+        addnewuser_pushButton.setObjectName(("addnewuser_pushButton"))
+
+        deleteuser_groupBox = QtGui.QGroupBox(users_Dialog)
+        deleteuser_groupBox.setGeometry(QtCore.QRect(10, 110, 321, 51))
+        deleteuser_groupBox.setTitle(("Delete User"))
+        deleteuser_groupBox.setObjectName(("deleteuser_groupBox"))
+
+        self.selectuser_comboBox = QtGui.QComboBox(deleteuser_groupBox)
+        self.selectuser_comboBox.setGeometry(QtCore.QRect(10, 20, 231, 22))
+        self.selectuser_comboBox.setObjectName(("selectuser_comboBox"))
+
+        userListSorted = sorted(self.manager._usersDict.keys())
+        for num in range(len(userListSorted)):
+            self.selectuser_comboBox.addItem((userListSorted[num]))
+            self.selectuser_comboBox.setItemText(num, (userListSorted[num]))
+
+        deleteuser_pushButton = QtGui.QPushButton(deleteuser_groupBox)
+        deleteuser_pushButton.setGeometry(QtCore.QRect(250, 20, 61, 21))
+        deleteuser_pushButton.setText(("Delete"))
+        deleteuser_pushButton.setObjectName(("deleteuser_pushButton"))
+
+
+        def onAddUser():
+            ret, msg = self.manager.addUser(self.fullname_lineEdit.text(), self.initials_lineEdit.text())
+            if ret == -1:
+                self.infoPop(textTitle="Cannot Add User", textHeader=msg)
+                return
+            self.manager.currentUser = self.fullname_lineEdit.text()
+            self._initUsers()
+            userListSorted = sorted(self.manager._usersDict.keys())
+            self.selectuser_comboBox.clear()
+            for num in range(len(userListSorted)):
+                self.selectuser_comboBox.addItem((userListSorted[num]))
+                self.selectuser_comboBox.setItemText(num, (userListSorted[num]))
+            self.statusBar().showMessage("Status | User Added => %s" % self.fullname_lineEdit.text())
+            self.fullname_lineEdit.setText("")
+            self.initials_lineEdit.setText("")
+
+            pass
+
+        def onRemoveUser():
+            self.manager.removeUser(self.selectuser_comboBox.currentText())
+            self.manager.currentUser = self.manager._usersDict.keys()[0]
+            self._initUsers()
+            userListSorted = sorted(self.manager._usersDict.keys())
+            self.selectuser_comboBox.clear()
+            for num in range(len(userListSorted)):
+                self.selectuser_comboBox.addItem((userListSorted[num]))
+                self.selectuser_comboBox.setItemText(num, (userListSorted[num]))
+            pass
+
+        addnewuser_pushButton.clicked.connect(onAddUser)
+        deleteuser_pushButton.clicked.connect(onRemoveUser)
+
+        self.fullname_lineEdit.textChanged.connect(
+            lambda: self._checkValidity(self.fullname_lineEdit.text(), addnewuser_pushButton,
+                                  self.fullname_lineEdit))
+        self.initials_lineEdit.textChanged.connect(
+            lambda: self._checkValidity(self.initials_lineEdit.text(), addnewuser_pushButton,
+                                  self.initials_lineEdit))
+
+        users_Dialog.show()
+
     def saveBaseSceneDialog(self):
         self.save_Dialog = QtGui.QDialog(parent=self)
         self.save_Dialog.setModal(True)
@@ -2115,10 +2238,12 @@ class MainUI(QtGui.QMainWindow):
 
         addNotes_Dialog.show()
 
-    def initMainUI(self):
+    def initMainUI(self, newborn=False):
 
-        self.manager.init_paths()
-        self.manager.init_database()
+        if newborn:
+            self.manager.init_paths()
+            self.manager.init_database()
+
         self.manager.getOpenSceneInfo()
 
         self._initOpenScene()
@@ -2145,11 +2270,7 @@ class MainUI(QtGui.QMainWindow):
         self.populateBaseScenes()
 
         # init users
-        self.user_comboBox.clear()
-        self.user_comboBox.addItems(self.manager.getUsers())
-        index = self.user_comboBox.findText(self.manager.currentUser, QtCore.Qt.MatchFixedString)
-        if index >= 0:
-            self.user_comboBox.setCurrentIndex(index)
+        self._initUsers()
 
         # disable the version related stuff
         self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
@@ -2412,6 +2533,14 @@ class MainUI(QtGui.QMainWindow):
     def onIviewer(self):
         logger.warning("Image Viewer N/A")
         # IvMaya.MainUI().show()
+
+    def _initUsers(self):
+        # init users
+        self.user_comboBox.clear()
+        self.user_comboBox.addItems(self.manager.getUsers())
+        index = self.user_comboBox.findText(self.manager.currentUser, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+            self.user_comboBox.setCurrentIndex(index)
 
     def _initOpenScene(self):
         openSceneInfo = self.manager._openSceneInfo

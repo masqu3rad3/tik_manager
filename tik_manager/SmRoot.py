@@ -14,13 +14,13 @@ import ctypes
 
 logging.basicConfig()
 logger = logging.getLogger('smRoot')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 
 
 
 class RootManager(object):
     def __init__(self):
-        super(RootManager, self).__init__()
+        # super(RootManager, self).__init__()
 
         # self.database = db.SmDatabase()
         # self.validCategories = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
@@ -35,7 +35,7 @@ class RootManager(object):
         This function checks for the old database structure and creates a copy with the new structure
         :return: None
         """
-
+        logger.debug("Func: backwardcompatibility")
         def recursive_overwrite(src, dest, ignore=None):
             if os.path.isdir(src):
                 if not os.path.isdir(dest):
@@ -101,6 +101,7 @@ class RootManager(object):
 
 
     def init_paths(self):
+        logger.debug("Func: init_paths")
         # all paths in here must be absolute paths
         _softwarePathsDict = self.getSoftwarePaths()
 
@@ -143,17 +144,22 @@ class RootManager(object):
         """This function must be overriden to return the software currently working on"""
         # This function should return a dictionary which includes string values for:
         # databaseDir, scenesDir, pbSettingsFile keys. Software specific paths will be resolved with these strings
+        logger.debug("Func: getSoftwarePaths")
         return -1
 
     def getProjectDir(self):
         """This function must be overriden to return the project directory of running software"""
+        logger.debug("Func: getProjectDir")
         return -1
 
     def getSceneFile(self):
         """This function must be overriden to return the full scene path ('' for unsaved) of current scene"""
+        logger.debug("Func: getSceneFile")
         return -1
 
     def init_database(self):
+        logger.debug("Func: init_database")
+
         # self.currentPlatform = platform.system()
         self._categories = self._loadCategories()
         self._usersDict = self._loadUsers()
@@ -178,23 +184,28 @@ class RootManager(object):
 
     def _setCurrents(self, att, newdata):
         """Sets the database stored cursor positions and saves them to the database file"""
+        logger.debug("Func: _setCurrents")
+
         self._currentsDict[att] = newdata
         self._saveUserPrefs(self._currentsDict)
 
     @property
     def projectDir(self):
         """Returns Current Project Directory"""
+        logger.debug("Func: projectDir/getter")
         return self._pathsDict["projectDir"]
 
     @projectDir.setter
     def projectDir(self, path):
+        logger.debug("Func: projectDir/setter")
         self._pathsDict["projectDir"] = path
-        self.init_paths()
-        self.init_database()
+        # self.init_paths()
+        # self.init_database()
 
     @property
     def subProject(self):
         """Returns the name of the current sub-project"""
+        logger.debug("Func: subProject/getter")
         return self._subProjectsList[self.currentSubIndex]
 
     # @property
@@ -206,11 +217,13 @@ class RootManager(object):
     @property
     def currentTabIndex(self):
         """Returns the Category index at cursor position"""
+        logger.debug("Func: currentTabIndex/getter")
         return self._currentsDict["currentTabIndex"]
 
     @currentTabIndex.setter
     def currentTabIndex(self, indexData):
         """Moves the cursor to the given category index"""
+        logger.debug("Func: currentTabIndex/setter")
         if not 0 <= indexData < len(self._categories):
             logger.error(("out of range!"))
             return
@@ -228,11 +241,13 @@ class RootManager(object):
     @property
     def currentSubIndex(self):
         """Returns the sub-project index at cursor position"""
+        logger.debug("Func: currentSubIndex/getter")
         return self._currentsDict["currentSubIndex"]
 
     @currentSubIndex.setter
     def currentSubIndex(self, indexData):
         """Moves the cursor to the given sub-project index"""
+        logger.debug("Func: currentSubIndex/setter")
         if not 0 <= indexData < len(self._subProjectsList):
             logger.error(("entered index is out of range!"))
             return
@@ -252,11 +267,15 @@ class RootManager(object):
     @property
     def currentUser(self):
         """Returns the current user"""
+        logger.debug("Func: currentUser/getter")
+
         return self._currentsDict["currentUser"]
 
     @currentUser.setter
     def currentUser(self, name):
         """Sets the current user"""
+        logger.debug("Func: currentUser/setter")
+
         if name not in self._usersDict.keys():
             logger.error(("%s is not a user!" %name))
             return
@@ -265,11 +284,15 @@ class RootManager(object):
     @property
     def currentMode(self):
         """Returns the current access mode (Load or Reference)"""
+        logger.debug("Func: currentMode/getter")
+
         return self._currentsDict["currentMode"]
 
     @currentMode.setter
     def currentMode(self, state):
         """Sets the current access mode 0 == Load, 1 == Reference"""
+        logger.debug("Func: currentMode/setter")
+
         if not type(state) is bool:
             if bool is 0:
                 state = False
@@ -283,11 +306,15 @@ class RootManager(object):
     @property
     def currentBaseSceneName(self):
         """Returns current Base Scene Name at cursor position"""
+        logger.debug("Func: currentBaseSceneName/getter")
+
         return self._currentBaseSceneName
 
     @currentBaseSceneName.setter
     def currentBaseSceneName(self, sceneName):
         """Moves the cursor to the given base scene name"""
+        logger.debug("Func: currentBaseSceneName/setter")
+
         if sceneName not in self._baseScenesInCategory.keys():
             # self._currentVersionIndex = -1
             # self._currentThumbFile = ""
@@ -316,11 +343,14 @@ class RootManager(object):
     @property
     def currentBaseScenePath(self):
         """Returns absolute path of Base Scene at cursor position"""
+        logger.debug("Func: currentBaseScenePath/getter")
+
         return os.path.join(self.projectDir, self._currentSceneInfo["Path"])
 
     @property
     def currentPreviewPath(self):
         """Returns absolute path of preview folder of the Base scene at cursor position"""
+        logger.debug("Func: currentPreviewPath/getter")
         if self._currentSceneInfo["SubProject"] is not "None":
             path = os.path.join(self._pathsDict["previewsDir"], self._currentSceneInfo["Category"],
                                 self._currentSceneInfo["SubProject"], self._currentSceneInfo["Name"])
@@ -335,12 +365,16 @@ class RootManager(object):
 
     @property
     def currentVersionIndex(self):
+        logger.debug("Func: currentVersionIndex/getter")
+
         """Returns current Version index at cursor position"""
         return self._currentVersionIndex
 
     @currentVersionIndex.setter
     def currentVersionIndex(self, indexData):
         """Moves the cursor to given Version index"""
+        logger.debug("Func: currentVersionIndex/setter")
+
         if indexData <= 0:
             self._currentVersionIndex = -1
             self._currentThumbFile = ""
@@ -367,22 +401,26 @@ class RootManager(object):
         self._currentThumbFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1][5]
         self.cursorInfo()
 
-    @property
-    def currentPreviewCamera(self):
-        """Returns current Previewed Camera name at cursor position"""
-        return self._currentPreviewCamera
-
-    @currentPreviewCamera.setter
-    def currentPreviewCamera(self, cameraName):
-        """Moves the cursor to the given Preview Camera Name"""
-        if not self._currentSceneInfo:
-            logger.warning(("BaseScene not Selected"))
-            return
-        if cameraName not in self._currentPreviewsDict.keys():
-            logger.error(("There is no preview for that camera"))
-            return
-        self._currentPreviewCamera = cameraName
-        self.cursorInfo()
+    # @property
+    # def currentPreviewCamera(self):
+    #     """Returns current Previewed Camera name at cursor position"""
+    #     logger.debug("Func: currentPreviewCamera/getter")
+    #
+    #     return self._currentPreviewCamera
+    #
+    # @currentPreviewCamera.setter
+    # def currentPreviewCamera(self, cameraName):
+    #     """Moves the cursor to the given Preview Camera Name"""
+    #     logger.debug("Func: currentPreviewCamera/setter")
+    #
+    #     if not self._currentSceneInfo:
+    #         logger.warning(("BaseScene not Selected"))
+    #         return
+    #     if cameraName not in self._currentPreviewsDict.keys():
+    #         logger.error(("There is no preview for that camera"))
+    #         return
+    #     self._currentPreviewCamera = cameraName
+    #     self.cursorInfo()
 
     # @property
     # def baseScenesInCategory(self):
@@ -390,6 +428,8 @@ class RootManager(object):
 
     @property
     def currentDatabasePath(self):
+        logger.debug("Func: currentDatabasePath/getter")
+
         if not self._currentSceneInfo:
             logger.warning(("no current info"))
             return
@@ -406,6 +446,7 @@ class RootManager(object):
 
     def cursorInfo(self):
         """function to return cursor position info for debugging purposes"""
+
         logger.info("""
         Category: {0}
         SubProject: {1}
@@ -429,6 +470,8 @@ class RootManager(object):
         Collects the necessary scene info by resolving the scene name and current project
         Returns: Dictionary{jsonFile, projectPath, subProject, category, shotName} or None
         """
+        logger.debug("Func: getOpenSceneInfo")
+
         self._pathsDict["sceneFile"] = self.getSceneFile()
         if not self._pathsDict["sceneFile"]:
             return None
@@ -479,18 +522,26 @@ class RootManager(object):
 
     def getCategories(self):
         """Returns All Valid Categories"""
+        logger.debug("Func: getCategories")
+
         return self._categories
 
     def getSubProjects(self):
         """Returns list of sub-projects"""
+        logger.debug("Func: getSubProjects")
+
         return self._subProjectsList
 
     def getUsers(self):
         """Returns nice names of all users"""
+        logger.debug("Func: getUsers")
+
         return sorted(self._usersDict.keys())
     #
     def getBaseScenesInCategory(self):
         """Returns list of nice base scene names under the category at cursor position"""
+        logger.debug("Func: getBaseScenesInCategory")
+
         self.scanBaseScenes()
         # return sorted(self._baseScenesInCategory.keys())
         return self._baseScenesInCategory
@@ -502,6 +553,8 @@ class RootManager(object):
 
     def getVersions(self):
         """Returns Versions List of base scene at cursor position"""
+        logger.debug("Func: getVersions")
+
         try:
             return self._currentSceneInfo["Versions"]
         except:
@@ -509,14 +562,20 @@ class RootManager(object):
 
     def getNotes(self):
         """returns (String) version notes on cursor position"""
+        logger.debug("Func: getNotes")
+
         return self._currentNotes
 
     def getPreviews(self):
         """returns (list) nice preview names of version on cursor position"""
+        logger.debug("Func: getPreviews")
+
         return sorted(self._currentPreviewsDict.keys())
 
     def getThumbnail(self):
         """returns (String) absolute thumbnail path of version on cursor position"""
+        logger.debug("Func: getThumbnail")
+
         return os.path.join(self.projectDir, self._currentThumbFile)
 
     # def getFavorites(self):
@@ -533,6 +592,8 @@ class RootManager(object):
         :param client: (String) Client Name
         :return: None
         """
+        logger.debug("Func: createNewProject")
+
         # resolve the project path
         resolvedPath = self._resolveProjectPath(projectRoot, projectName, brandName, client)
 
@@ -650,6 +711,8 @@ class RootManager(object):
         return resolvedPath
 
     def createSubproject(self, nameOfSubProject):
+        logger.debug("Func: createSubproject")
+
         if nameOfSubProject in self._subProjectsList:
             logger.warning("%s is already in sub-projects list" % nameOfSubProject)
             return self._subProjectsList
@@ -661,6 +724,8 @@ class RootManager(object):
 
     def showInExplorer(self, path):
         """Opens the path in Windows Explorer(Windows) or Nautilus(Linux)"""
+        logger.debug("Func: showInExplorer")
+
 
         # if not path or not os.path.isdir(path):
         #     logger.error("path is not a directory path or does not exist")
@@ -678,6 +743,8 @@ class RootManager(object):
 
     def scanBaseScenes(self, categoryAs=None, subProjectAs=None):
         """Returns the basescene database files in current category"""
+        logger.debug("Func: scanBaseScenes")
+
         if self.currentSubIndex >= len(self._subProjectsList):
             self.currentSubIndex = 0
 
@@ -780,6 +847,8 @@ class RootManager(object):
 
     def addNote(self, note):
         """Adds a note to the version at current position"""
+        logger.debug("Func: addNote")
+
         if not self._currentBaseSceneName:
             logger.warning("No Base Scene file selected")
             return
@@ -791,8 +860,36 @@ class RootManager(object):
         self._currentSceneInfo["Versions"][self._currentVersionIndex-1][1] = self._currentNotes
         self._dumpJson(self._currentSceneInfo, self._baseScenesInCategory[self._currentBaseSceneName])
 
+    def addUser(self, fullName, initials):
+        logger.debug("Func: addUser")
+
+        # old Name
+        currentDB = self._loadUsers()
+        # currentDB, dbFile = self.initUsers()
+        initialsList = currentDB.values()
+        if initials in initialsList:
+            msg="Initials are in use"
+            print msg
+            return -1, msg
+        currentDB[fullName] = initials
+        self._dumpJson(currentDB, self._pathsDict["usersFile"])
+        self._usersDict = currentDB
+        return None, None
+
+    def removeUser(self, fullName):
+        logger.debug("Func: removeUser")
+
+        # old Name removeUser
+        currentDB = self._loadUsers()
+        del currentDB[fullName]
+        self._dumpJson(currentDB, self._pathsDict["usersFile"])
+        self._usersDict = currentDB
+        return None, None
+
     def playPreview(self, camera):
         """Runs the playblast at cursor position"""
+        logger.debug("Func: playPreview")
+
         # absPath = os.path.join(self.projectDir, self._currentPreviewsDict[self._currentPreviewCamera])
         absPath = os.path.join(self.projectDir, self._currentPreviewsDict[camera])
         if self.currentPlatform == "Windows":
@@ -804,6 +901,8 @@ class RootManager(object):
         return
 
     def removePreview(self):
+        logger.debug("Func: removePreview")
+
         if self._currentPreviewCamera:
             previewName = self._currentPreviewCamera
             previewFile = self._currentPreviewsDict[self._currentPreviewCamera]
@@ -817,6 +916,8 @@ class RootManager(object):
                         """.format(previewName, previewFile))
 
     def deleteBasescene(self, databaseFile):
+        logger.debug("Func: deleteBasescene")
+
         #ADMIN ACCESS
         jsonInfo = self._loadJson(databaseFile)
         if jsonInfo == -2:
@@ -853,6 +954,8 @@ class RootManager(object):
         logger.debug("all database entries and version files of %s deleted" %databaseFile)
 
     def deleteReference(self, databaseFile):
+        logger.debug("Func: deleteReference")
+
         #ADMIN ACCESS
         jsonInfo = self._loadJson(databaseFile)
         if jsonInfo == -2:
@@ -870,6 +973,8 @@ class RootManager(object):
 
     def makeReference(self):
         """Creates a Reference copy from the base scene version at cursor position"""
+        logger.debug("Func: makeReference")
+
         if self._currentVersionIndex == -1:
             logger.warning("Cursor is not on a Base Scene Version. Cancelling")
             return
@@ -889,6 +994,8 @@ class RootManager(object):
 
 
     def checkReference(self, jsonFile, deepCheck=False):
+        logger.debug("Func: checkReference")
+
         sceneInfo = self._loadJson(jsonFile)
         if sceneInfo == -2:
             return -2 # Corrupted database file
@@ -923,6 +1030,8 @@ class RootManager(object):
         Returns: (List) [ErrorCode, ErrorMessage]
 
         """
+        logger.debug("Func: _checkRequirements")
+
         ## check platform
         currentOs = platform.system()
         if currentOs != "Linux" and currentOs != "Windows":
@@ -939,6 +1048,8 @@ class RootManager(object):
         return None, None
 
     def _folderCheck(self, folder):
+        logger.debug("Func: _folderCheck")
+
         if not os.path.isdir(os.path.normpath(folder)):
             os.makedirs(os.path.normpath(folder))
 
@@ -956,6 +1067,9 @@ class RootManager(object):
 
     def _nameCheck(self, text):
         """Checks the text for illegal characters, Returns:  corrected Text or -1 for Error """
+        logger.debug("Func: _nameCheck")
+
+
         if re.match("^[A-Za-z0-9_-]*$", text):
             return True
         else:
@@ -964,11 +1078,14 @@ class RootManager(object):
 
     def _niceName(self, path):
         """Gets the base name of the given filename"""
+        logger.debug("Func: _niceName")
+
         basename = os.path.split(path)[1]
         return os.path.splitext(basename)[0]
 
     def _resolveProjectPath(self, projectRoot, projectName, brandName, client):
-        print projectRoot, projectName, brandName, client
+        logger.debug("Func: _resolveProjectPath")
+
         if projectName == "" or client == "" or projectRoot == "":
             msg = ("Fill the mandatory fields")
             logger.warning(msg)
@@ -988,6 +1105,8 @@ class RootManager(object):
 
     def _loadJson(self, file):
         """Loads the given json file"""
+        logger.debug("Func: _loadJson")
+
         if os.path.isfile(file):
             try:
                 with open(file, 'r') as f:
@@ -1002,12 +1121,16 @@ class RootManager(object):
 
     def _dumpJson(self, data, file):
         """Saves the data to the json file"""
+        logger.debug("Func: _dumpJson %s %s" %(data, file))
+
 
         with open(file, "w") as f:
             json.dump(data, f, indent=4)
 
     def _loadUsers(self):
         """Load Users from file"""
+        logger.debug("Func: _loadUsers")
+
         # old Name
         if not os.path.isfile(self._pathsDict["usersFile"]):
             userDB = {"Generic": "gn"}
@@ -1021,6 +1144,8 @@ class RootManager(object):
 
     def _loadFavorites(self):
         """Loads Bookmarked projects"""
+        logger.debug("Func: _loadFavorites")
+
         if os.path.isfile(self._pathsDict["bookmarksFile"]):
             bookmarksData = self._loadJson(self._pathsDict["bookmarksFile"])
             if bookmarksData == -2:
@@ -1031,6 +1156,8 @@ class RootManager(object):
         return bookmarksData
 
     def _addToFavorites(self, shortName, absPath):
+        logger.debug("Func: _addToFavorites")
+
         # old Name userFavoritesAdd
         bookmarksData = self._loadFavorites()
         bookmarksData.append([shortName, absPath])
@@ -1038,6 +1165,8 @@ class RootManager(object):
         return bookmarksData
 
     def _removeFromFavorites(self, index):
+        logger.debug("Func: _removeFromFavorites")
+
         # old Name userFavoritesRemove
         bookmarksData = self._loadFavorites()
         del bookmarksData[index]
@@ -1046,6 +1175,8 @@ class RootManager(object):
 
     def _loadCategories(self):
         """Load Categories from file"""
+        logger.debug("Func: _loadCategories")
+
         if os.path.isfile(self._pathsDict["categoriesFile"]):
             categoriesData = self._loadJson(self._pathsDict["categoriesFile"])
             if categoriesData == -2:
@@ -1057,6 +1188,8 @@ class RootManager(object):
 
     def _loadSceneInfo(self):
         """Returns scene info of base scene at cursor position"""
+        logger.debug("Func: _loadSceneInfo")
+
         sceneInfo = self._loadJson(self._baseScenesInCategory[self._currentBaseSceneName])
         if sceneInfo == -2:
             return -2
@@ -1064,6 +1197,8 @@ class RootManager(object):
 
     def _loadUserPrefs(self):
         """Load Last CategoryIndex, SubProject Index, User name and Access mode from file as dictionary"""
+        logger.debug("Func: _loadUserPrefs")
+
         if os.path.isfile(self._pathsDict["currentsFile"]):
             settingsData = self._loadJson(self._pathsDict["currentsFile"])
             if settingsData == -2:
@@ -1076,6 +1211,8 @@ class RootManager(object):
 
     def _saveUserPrefs(self, settingsData):
         """Save Last CategoryIndex, SubProject Index, User name and Access mode to file as dictionary"""
+        logger.debug("Func: _saveUserPrefs")
+
         try:
             self._dumpJson(settingsData, self._pathsDict["currentsFile"])
             msg = ""
@@ -1086,6 +1223,8 @@ class RootManager(object):
 
     def _loadSubprojects(self):
         """Loads Subprojects of current project"""
+        logger.debug("Func: _loadSubprojects")
+
         if not os.path.isfile(self._pathsDict["subprojectsFile"]):
             data = ["None"]
             self._dumpJson(data, self._pathsDict["subprojectsFile"])
@@ -1097,10 +1236,14 @@ class RootManager(object):
 
     def _saveSubprojects(self, subprojectsList):
         """Save Subprojects to the file"""
+        logger.debug("Func: _saveSubprojects")
+
         self._dumpJson(subprojectsList, self._pathsDict["subprojectsFile"])
 
     def _loadProjects(self):
         """Loads Projects dictionary for each software"""
+        logger.debug("Func: _loadProjects")
+
         if not os.path.isfile(self._pathsDict["projectsFile"]):
             return
         else:
@@ -1111,9 +1254,13 @@ class RootManager(object):
 
     def _saveProjects(self, data):
         """Saves the current project data to the file"""
+        logger.debug("Func: _saveProjects %s")
+
         self._dumpJson(data, self._pathsDict["projectsFile"])
 
     def _loadPBSettings(self):
+        logger.debug("Func: _loadPBSettings")
+
         # old Name getPBsettings
 
         # pbSettingsFile = os.path.normpath(os.path.join(self.project_Path, "Playblasts", "PBsettings.json"))
@@ -1145,6 +1292,8 @@ class RootManager(object):
             return pbSettings
 
     def _savePBSettings(self, pbSettings):
+        logger.debug("Func: _savePBSettings")
+
         # old Name setPBsettings
 
         self._dumpJson(pbSettings, self._pathsDict["pbSettingsFile"])

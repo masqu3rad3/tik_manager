@@ -40,7 +40,7 @@ SM_Version = "Scene Manager Maya v%s" %_version.__version__
 
 logging.basicConfig()
 logger = logging.getLogger('smMaya')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 
 def getMayaMainWindow():
     """
@@ -63,31 +63,70 @@ class MayaManager(RootManager):
 
     def getSoftwarePaths(self):
         """Overriden function"""
+        logger.debug("Func: getSoftwarePaths")
+
         # To tell the base class maya specific path names
         return {"databaseDir": "mayaDB",
                 "scenesDir": "scenes",
                 "pbSettingsFile": "pbSettings.json",
                 "userSettingsDir": "SceneManager"}
 
+    # def getProjectDir(self):
+    #     """Overriden function"""
+    #     # This function gets the current maya project and informs the base class
+    #     # In addition it updates the projects file for (planned) interactivities with concurrent softwares
+    #     p_path = cmds.workspace(q=1, rd=1)
+    #     norm_p_path = os.path.normpath(p_path)
+    #     projectsDict = self._loadProjects()
+    #     if not projectsDict:
+    #         projectsDict = {"MayaProject": norm_p_path}
+    #     else:
+    #         try:
+    #             projectsDict["MayaProject"] = norm_p_path
+    #         except KeyError:
+    #             projectsDict = {"MayaProject": norm_p_path}
+    #     self._saveProjects(projectsDict)
+    #     return norm_p_path
+
     def getProjectDir(self):
         """Overriden function"""
+        logger.debug("Func: getProjectDir")
+
         # This function gets the current maya project and informs the base class
         # In addition it updates the projects file for (planned) interactivities with concurrent softwares
         p_path = cmds.workspace(q=1, rd=1)
         norm_p_path = os.path.normpath(p_path)
         projectsDict = self._loadProjects()
-        if not projectsDict:
+
+        if not projectsDict: # if there is no project database file at all
             projectsDict = {"MayaProject": norm_p_path}
+            self._saveProjects(projectsDict)
+            return norm_p_path
+
+        # get the project defined in the database file
+        try:
+            dbProject = projectsDict["MayaProject"]
+        except KeyError:
+            dbProject = None
+
+        if dbProject == norm_p_path:
+            # do nothing to the database if it is the same project
+            return norm_p_path
+
+        if dbProject:
+            projectsDict["MayaProject"] = norm_p_path
+            self._saveProjects(projectsDict)
+            return norm_p_path
         else:
-            try:
-                projectsDict["MayaProject"] = norm_p_path
-            except KeyError:
-                projectsDict = {"MayaProject": norm_p_path}
-        self._saveProjects(projectsDict)
-        return norm_p_path
+            projectsDict = {"MayaProject": norm_p_path}
+            self._saveProjects(projectsDict)
+            return norm_p_path
+
 
     def getSceneFile(self):
         """Overriden function"""
+        logger.debug("Func: getSceneFile")
+
         # Gets the current scene path ("" if untitled)
         s_path = cmds.file(q=True, sn=True)
         norm_s_path = os.path.normpath(s_path)
@@ -95,6 +134,8 @@ class MayaManager(RootManager):
 
     def setProject(self, path):
         """Sets the project"""
+        logger.debug("Func: setProject")
+
         # totally software specific or N/A
         melCompPath = path.replace("\\", "/") # mel is picky
         command = 'setProject "%s";' %melCompPath
@@ -104,6 +145,7 @@ class MayaManager(RootManager):
 
     def saveCallback(self):
         """Callback function to update reference files when files saved regularly"""
+
         ## TODO // TEST IT
         self._pathsDict["sceneFile"] = self.getSceneFile()
         openSceneInfo = self.getOpenSceneInfo()
@@ -139,6 +181,8 @@ class MayaManager(RootManager):
         Returns: Scene DB Dictionary
 
         """
+        logger.debug("Func: saveBaseScene")
+
         # fullName = self.userList.keys()[self.userList.values().index(userName)]
         now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
         completeNote = "[%s] on %s\n%s\n" % (self.currentUser, now, versionNotes)
@@ -231,6 +275,9 @@ class MayaManager(RootManager):
         Returns: Scene DB Dictionary
 
         """
+        logger.debug("Func: saveVersion")
+
+
 
         now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
         completeNote = "[%s] on %s\n%s\n" % (self.currentUser, now, versionNotes)
@@ -281,6 +328,8 @@ class MayaManager(RootManager):
 
     def createPreview(self, *args, **kwargs):
         """Creates a Playblast preview from currently open scene"""
+        logger.debug("Func: createPreview")
+
         pbSettings = self._loadPBSettings()
         validFormats = cmds.playblast(format=True, q=True)
         validCodecs = cmds.playblast(c=True, q=True)
@@ -466,6 +515,8 @@ class MayaManager(RootManager):
 
     def loadBaseScene(self, force=False):
         """Loads the scene at cursor position"""
+        logger.debug("Func: loadBaseScene")
+
         relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1][0]
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
@@ -478,6 +529,7 @@ class MayaManager(RootManager):
 
     def importBaseScene(self):
         """Imports the scene at cursor position"""
+        logger.debug("Func: importBaseScene")
         relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1][0]
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
@@ -490,6 +542,7 @@ class MayaManager(RootManager):
 
     def referenceBaseScene(self):
         """Creates reference from the scene at cursor position"""
+        logger.debug("Func: referenceBaseScene")
         projectPath = self.projectDir
         relReferenceFile = self._currentSceneInfo["ReferenceFile"]
 
@@ -511,7 +564,7 @@ class MayaManager(RootManager):
         :param version: (integer) if defined this version number will be used instead currently open scene version.
         :return: (String) Relative path of the thumbnail file
         """
-
+        logger.debug("Func: createThumbnail")
         projectPath = self.projectDir
         if useCursorPosition:
             versionInt = self.currentVersionIndex
@@ -549,6 +602,7 @@ class MayaManager(RootManager):
         :param filePath: (String)  if a filePath is defined, this image (.jpg or .gif) will be used as thumbnail
         :return: None
         """
+        logger.debug("Func: replaceThumbnail")
         if not filePath:
             filePath = self.createThumbnail(useCursorPosition=True)
 
@@ -565,6 +619,7 @@ class MayaManager(RootManager):
         # // TODO : You may question each individual scen file for version insteas of base scene database
 
         """Compares the versions of current session and database version at cursor position"""
+        logger.debug("Func: compareVersions")
         if not self._currentSceneInfo["MayaVersion"]:
             cmds.warning("Cursor is not on a base scene")
             return
@@ -641,26 +696,31 @@ class MayaManager(RootManager):
 
     def isSceneModified(self):
         """Checks the currently open scene saved or not"""
+        logger.debug("Func: isSceneModified")
         return cmds.file(q=True, modified=True)
 
     def saveSimple(self):
         """Save the currently open file"""
+        logger.debug("Func: saveSimple")
         # TODO // cmds?
         pm.saveFile()
 
     def getFormatsAndCodecs(self):
         """Returns the codecs which can be used in current workstation"""
+        logger.debug("Func: getFormatsAndCodecs")
         formatList = cmds.playblast(query=True, format=True)
         codecsDictionary = dict(
             (item, mel.eval('playblast -format "{0}" -q -compression;'.format(item))) for item in formatList)
         return codecsDictionary
 
     def _createCallbacks(self, handler):
+        logger.debug("Func: _createCallbacks")
         callbackIDList=[]
         callbackIDList.append(cmds.scriptJob(e=["workspaceChanged", "%s.callbackRefresh()" % handler], replacePrevious=True, parent=SM_Version))
         return callbackIDList
 
     def _killCallbacks(self, callbackIDList):
+        logger.debug("Func: _killCallbacks")
         for x in callbackIDList:
             if cmds.scriptJob(ex=x):
                 cmds.scriptJob(kill=x)
@@ -710,7 +770,7 @@ class MainUI(QtWidgets.QMainWindow):
         if self.isCallback:
             self.callbackIDList = self.manager._createCallbacks(self.isCallback)
 
-        self.initMainUI()
+        self.initMainUI(newborn=True)
 
     def closeEvent(self, event):
         self.manager._killCallbacks(self.callbackIDList)
@@ -1070,6 +1130,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         createProject_fm.triggered.connect(self.createProjectUI)
 
+        add_remove_users_fm.triggered.connect(self.addRemoveUserUI)
         pb_settings_fm.triggered.connect(self.pbSettingsUI)
 
 
@@ -1077,6 +1138,7 @@ class MainUI(QtWidgets.QMainWindow):
         deleteFile_fm.triggered.connect(self.onDeleteBaseScene)
 
         deleteReference_fm.triggered.connect(self.onDeleteReference)
+
 
         checkReferences_fm.triggered.connect(lambda: self.populateBaseScenes(deepCheck=True))
 
@@ -1842,6 +1904,127 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.pbSettings_dialog.show()
 
+    def addRemoveUserUI(self):
+
+        # TODO : ref
+
+        admin_pswd = "682"
+        passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query", "Enter Admin Password:",
+                                                   QtWidgets.QLineEdit.Password)
+        if ok:
+            if passw == admin_pswd:
+                pass
+            else:
+                self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
+                return
+        else:
+            return
+
+        users_Dialog = QtWidgets.QDialog(parent=self)
+        users_Dialog.setModal(True)
+        users_Dialog.setObjectName(("users_Dialog"))
+        users_Dialog.resize(380, 483)
+        users_Dialog.setMinimumSize(QtCore.QSize(342, 177))
+        users_Dialog.setMaximumSize(QtCore.QSize(342, 177))
+        users_Dialog.setWindowTitle(("Add/Remove Users"))
+        users_Dialog.setFocus()
+
+        addnewuser_groupBox = QtWidgets.QGroupBox(users_Dialog)
+        addnewuser_groupBox.setGeometry(QtCore.QRect(10, 10, 321, 91))
+        addnewuser_groupBox.setTitle(("Add New User"))
+        addnewuser_groupBox.setObjectName(("addnewuser_groupBox"))
+
+        fullname_label = QtWidgets.QLabel(addnewuser_groupBox)
+        fullname_label.setGeometry(QtCore.QRect(0, 30, 81, 21))
+        fullname_label.setLayoutDirection(QtCore.Qt.LeftToRight)
+        fullname_label.setText(("Full Name:"))
+        fullname_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        fullname_label.setObjectName(("fullname_label"))
+
+        self.fullname_lineEdit = QtWidgets.QLineEdit(addnewuser_groupBox)
+        self.fullname_lineEdit.setGeometry(QtCore.QRect(90, 30, 151, 20))
+        self.fullname_lineEdit.setPlaceholderText(("e.g \"John Doe\""))
+        self.fullname_lineEdit.setObjectName(("fullname_lineEdit"))
+
+        initials_label = QtWidgets.QLabel(addnewuser_groupBox)
+        initials_label.setGeometry(QtCore.QRect(0, 60, 81, 21))
+        initials_label.setLayoutDirection(QtCore.Qt.LeftToRight)
+        initials_label.setText(("Initials:"))
+        initials_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        initials_label.setObjectName(("initials_label"))
+
+        self.initials_lineEdit = QtWidgets.QLineEdit(addnewuser_groupBox)
+        self.initials_lineEdit.setGeometry(QtCore.QRect(90, 60, 151, 20))
+        self.initials_lineEdit.setText((""))
+        self.initials_lineEdit.setPlaceholderText(("e.g \"jd\" (must be unique)"))
+        self.initials_lineEdit.setObjectName(("initials_lineEdit"))
+
+        addnewuser_pushButton = QtWidgets.QPushButton(addnewuser_groupBox)
+        addnewuser_pushButton.setGeometry(QtCore.QRect(250, 30, 61, 51))
+        addnewuser_pushButton.setText(("Add"))
+        addnewuser_pushButton.setObjectName(("addnewuser_pushButton"))
+
+        deleteuser_groupBox = QtWidgets.QGroupBox(users_Dialog)
+        deleteuser_groupBox.setGeometry(QtCore.QRect(10, 110, 321, 51))
+        deleteuser_groupBox.setTitle(("Delete User"))
+        deleteuser_groupBox.setObjectName(("deleteuser_groupBox"))
+
+        self.selectuser_comboBox = QtWidgets.QComboBox(deleteuser_groupBox)
+        self.selectuser_comboBox.setGeometry(QtCore.QRect(10, 20, 231, 22))
+        self.selectuser_comboBox.setObjectName(("selectuser_comboBox"))
+
+        userListSorted = sorted(self.manager._usersDict.keys())
+        for num in range(len(userListSorted)):
+            self.selectuser_comboBox.addItem((userListSorted[num]))
+            self.selectuser_comboBox.setItemText(num, (userListSorted[num]))
+
+        deleteuser_pushButton = QtWidgets.QPushButton(deleteuser_groupBox)
+        deleteuser_pushButton.setGeometry(QtCore.QRect(250, 20, 61, 21))
+        deleteuser_pushButton.setText(("Delete"))
+        deleteuser_pushButton.setObjectName(("deleteuser_pushButton"))
+
+
+        def onAddUser():
+            ret, msg = self.manager.addUser(self.fullname_lineEdit.text(), self.initials_lineEdit.text())
+            if ret == -1:
+                self.infoPop(textTitle="Cannot Add User", textHeader=msg)
+                return
+            self.manager.currentUser = self.fullname_lineEdit.text()
+            self._initUsers()
+            userListSorted = sorted(self.manager._usersDict.keys())
+            self.selectuser_comboBox.clear()
+            for num in range(len(userListSorted)):
+                self.selectuser_comboBox.addItem((userListSorted[num]))
+                self.selectuser_comboBox.setItemText(num, (userListSorted[num]))
+            self.statusBar().showMessage("Status | User Added => %s" % self.fullname_lineEdit.text())
+            self.fullname_lineEdit.setText("")
+            self.initials_lineEdit.setText("")
+
+            pass
+
+        def onRemoveUser():
+            self.manager.removeUser(self.selectuser_comboBox.currentText())
+            self.manager.currentUser = self.manager._usersDict.keys()[0]
+            self._initUsers()
+            userListSorted = sorted(self.manager._usersDict.keys())
+            self.selectuser_comboBox.clear()
+            for num in range(len(userListSorted)):
+                self.selectuser_comboBox.addItem((userListSorted[num]))
+                self.selectuser_comboBox.setItemText(num, (userListSorted[num]))
+            pass
+
+        addnewuser_pushButton.clicked.connect(onAddUser)
+        deleteuser_pushButton.clicked.connect(onRemoveUser)
+
+        self.fullname_lineEdit.textChanged.connect(
+            lambda: self._checkValidity(self.fullname_lineEdit.text(), addnewuser_pushButton,
+                                  self.fullname_lineEdit))
+        self.initials_lineEdit.textChanged.connect(
+            lambda: self._checkValidity(self.initials_lineEdit.text(), addnewuser_pushButton,
+                                  self.initials_lineEdit))
+
+        users_Dialog.show()
+
     def saveBaseSceneDialog(self):
         self.save_Dialog = QtWidgets.QDialog(parent=self)
         self.save_Dialog.setModal(True)
@@ -2061,9 +2244,12 @@ class MainUI(QtWidgets.QMainWindow):
             # logger.debug("callbackRefresh - project same")
             return
 
-    def initMainUI(self):
-        self.manager.init_paths()
-        self.manager.init_database()
+    def initMainUI(self, newborn=False):
+
+        if not newborn:
+            self.manager.init_paths()
+            self.manager.init_database()
+
         self.manager.getOpenSceneInfo()
 
         self._initOpenScene()
@@ -2086,12 +2272,14 @@ class MainUI(QtWidgets.QMainWindow):
         # init base scenes
         self.populateBaseScenes()
 
-        # init users
-        self.user_comboBox.clear()
-        self.user_comboBox.addItems(self.manager.getUsers())
-        index = self.user_comboBox.findText(self.manager.currentUser, QtCore.Qt.MatchFixedString)
-        if index >= 0:
-            self.user_comboBox.setCurrentIndex(index)
+        # TODO : ref
+        self._initUsers()
+        # # init users
+        # self.user_comboBox.clear()
+        # self.user_comboBox.addItems(self.manager.getUsers())
+        # index = self.user_comboBox.findText(self.manager.currentUser, QtCore.Qt.MatchFixedString)
+        # if index >= 0:
+        #     self.user_comboBox.setCurrentIndex(index)
 
         # disable the version related stuff
         self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
@@ -2202,6 +2390,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.populateBaseScenes()
 
     def onBaseSceneChange(self):
+        logger.debug("Func: onBaseSceneChange")
+
         #clear version_combobox
         self.version_comboBox.clear()
 
@@ -2354,6 +2544,14 @@ class MainUI(QtWidgets.QMainWindow):
 
     def onIviewer(self):
         IvMaya.MainUI().show()
+
+    def _initUsers(self):
+        # init users
+        self.user_comboBox.clear()
+        self.user_comboBox.addItems(self.manager.getUsers())
+        index = self.user_comboBox.findText(self.manager.currentUser, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+            self.user_comboBox.setCurrentIndex(index)
 
     def _initOpenScene(self):
         openSceneInfo = self.manager._openSceneInfo
