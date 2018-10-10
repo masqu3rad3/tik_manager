@@ -886,6 +886,51 @@ class RootManager(object):
         self._usersDict = currentDB
         return None, None
 
+    def addCategory(self, categoryName):
+        # TODO // TEST IT
+        curCategories = self._loadCategories()
+        if categoryName in curCategories:
+            logger.warning("Duplicate Category names are not allowed")
+            return -1
+        curCategories.append(categoryName)
+        self._dumpJson(curCategories, self._pathsDict["categoriesFile"])
+        self._categories = curCategories
+        return
+
+
+    def removeCategory(self, categoryName):
+        # TODO // TEST IT
+        curCategories = self._loadCategories()
+
+        if categoryName in curCategories:
+            # Check if category about to be removed is empty
+            for subP in self._subProjectsList:
+                baseScenes = self.scanBaseScenes(categoryAs=categoryName, subProjectAs=subP)
+                if baseScenes:
+                    # if it in not empty abort
+                    logger.warning("Category is not empty. Aborting...")
+                    return -1
+
+            # remove the empty category
+            curCategories.remove(categoryName)
+            self._dumpJson(curCategories, self._pathsDict["categoriesFile"])
+            self._categories = curCategories
+            return
+
+        else:
+            logger.warning("Specified Category does not exist")
+            return -1
+
+        # try:
+        #     curCategories.remove(categoryName)
+        #     self._dumpJson(curCategories, self._pathsDict["categoriesFile"])
+        #     self._categories = curCategories
+        #     return
+        # except ValueError:
+        #     logger.warning("Specified Category does not exist")
+
+
+
     def playPreview(self, camera):
         """Runs the playblast at cursor position"""
         logger.debug("Func: playPreview")
