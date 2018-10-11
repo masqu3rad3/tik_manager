@@ -318,6 +318,8 @@ class RootManager(object):
         """Moves the cursor to the given base scene name"""
         logger.debug("Func: currentBaseSceneName/setter")
         if not sceneName:
+            self._currentBaseSceneName = ""
+            self.currentVersionIndex = -1
             return
         if sceneName not in self._baseScenesInCategory.keys():
             # self._currentVersionIndex = -1
@@ -333,7 +335,7 @@ class RootManager(object):
 
         # assert (self._currentSceneInfo == -2)
         if self._currentSceneInfo == -2: # corrupted db file
-            self._currentSceneInfo == {}
+            # self._currentSceneInfo == {}
             self._currentBaseSceneName = ""
             self.currentVersionIndex = -1
             raise Exception ([200, "Database file %s is corrupted\nDo you want to fix it manually?" %sceneName, self._baseScenesInCategory[sceneName]] )

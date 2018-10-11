@@ -1010,10 +1010,10 @@ class MainUI(QtWidgets.QMainWindow):
         self.category_tabWidget.setObjectName(("tabWidget"))
 
         # TODO : ref
-        for i in self.manager._categories:
-            self.preTab = QtWidgets.QWidget()
-            self.preTab.setObjectName((i))
-            self.category_tabWidget.addTab(self.preTab, (i))
+        # for i in self.manager._categories:
+        #     self.preTab = QtWidgets.QWidget()
+        #     self.preTab.setObjectName((i))
+        #     self.category_tabWidget.addTab(self.preTab, (i))
 
         self.category_tabWidget.setCurrentIndex(self.manager.currentTabIndex)
 
@@ -1407,9 +1407,9 @@ class MainUI(QtWidgets.QMainWindow):
                 self.newProjectPath = None
                 return
             resolvedPath = self.manager._resolveProjectPath(self.projectroot_lineEdit.text(),
-                                             self.projectname_lineEdit.text(),
-                                             self.brandname_lineEdit.text(),
-                                             self.client_lineEdit.text())
+                                                            self.projectname_lineEdit.text(),
+                                                            self.brandname_lineEdit.text(),
+                                                            self.client_lineEdit.text())
             self.resolvedpath_label.setText(resolvedPath)
 
         resolve()
@@ -1424,10 +1424,10 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.brandname_lineEdit.textChanged.connect(
             lambda: self._checkValidity(self.brandname_lineEdit.text(), self.cp_button,
-                                  self.brandname_lineEdit))
+                                        self.brandname_lineEdit))
         self.projectname_lineEdit.textChanged.connect(
             lambda: self._checkValidity(self.projectname_lineEdit.text(), self.cp_button,
-                                  self.projectname_lineEdit))
+                                        self.projectname_lineEdit))
         self.client_lineEdit.textChanged.connect(
             lambda: self._checkValidity(self.client_lineEdit.text(), self.cp_button, self.client_lineEdit))
 
@@ -2128,10 +2128,10 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.fullname_lineEdit.textChanged.connect(
             lambda: self._checkValidity(self.fullname_lineEdit.text(), addnewuser_pushButton,
-                                  self.fullname_lineEdit, allowSpaces=True))
+                                        self.fullname_lineEdit, allowSpaces=True))
         self.initials_lineEdit.textChanged.connect(
             lambda: self._checkValidity(self.initials_lineEdit.text(), addnewuser_pushButton,
-                                  self.initials_lineEdit))
+                                        self.initials_lineEdit))
 
         users_Dialog.show()
 
@@ -2209,17 +2209,35 @@ class MainUI(QtWidgets.QMainWindow):
             # self.manager.currentUser = self.fullname_lineEdit.text()
             # self._initUsers()
             # userListSorted = sorted(self.manager._usersDict.keys())
-            self.selectcategory_comboBox.clear()
-            self.selectcategory_comboBox.addItems(self.manager.getCategories())
-            self.initMainUI(newborn=False)
+
+            # self.selectcategory_comboBox.clear()
+            # self.selectcategory_comboBox.addItem(self.categoryName_lineEdit.text())
+            # self._initCategories()
+            # self.initMainUI(newborn=True)
+
+            # self.category_tabWidget.clear()
+
+            preTab = QtWidgets.QWidget()
+            preTab.setObjectName(self.categoryName_lineEdit.text())
+            self.category_tabWidget.addTab(preTab, self.categoryName_lineEdit.text())
+            self.selectcategory_comboBox.addItem(self.categoryName_lineEdit.text())
+            # self.category_tabWidget.setCurrentIndex(self.manager.currentTabIndex)
+
+
+            # self.initMainUI(newborn=False)
             # self.statusBar().showMessage("Status | User Added => %s" % self.fullname_lineEdit.text())
-            # self.fullname_lineEdit.setText("")
+            self.categoryName_lineEdit.setText("")
             # self.initials_lineEdit.setText("")
 
             # pass
 
         def onRemoveCategory():
             self.manager.removeCategory(self.selectcategory_comboBox.currentText())
+            self.selectcategory_comboBox.clear()
+            self.selectcategory_comboBox.addItems(self.manager.getCategories())
+
+            self._initCategories()
+
             # self.manager.removeUser(self.selectuser_comboBox.currentText())
             # self.manager.currentUser = self.manager._usersDict.keys()[0]
             # self._initUsers()
@@ -2235,7 +2253,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.categoryName_lineEdit.textChanged.connect(
             lambda: self._checkValidity(self.categoryName_lineEdit.text(), addnewcategory_pushButton,
-                                  self.categoryName_lineEdit))
+                                        self.categoryName_lineEdit))
 
 
         categories_dialog.show()
@@ -2371,7 +2389,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         def saveAsVersionCommand():
             sceneInfo = self.manager.saveVersion(makeReference=self.svMakeReference_checkbox.checkState(),
-                                     versionNotes=self.svNotes_textEdit.toPlainText())
+                                                 versionNotes=self.svNotes_textEdit.toPlainText())
 
             if not sceneInfo == -1:
                 self.statusBar().showMessage("Status | Version Saved => %s" % len(sceneInfo["Versions"]))
@@ -2460,14 +2478,20 @@ class MainUI(QtWidgets.QMainWindow):
             return
 
     def initMainUI(self, newborn=False):
-        # self._initCategories()
+        print "here1"
+        self._initCategories()
+        print "here2"
 
         if not newborn:
             self.manager.init_paths()
             self.manager.init_database()
+            # self._initCategories()
+
+        print "here3"
 
         self.manager.getOpenSceneInfo()
 
+        print "here4"
 
         self._initOpenScene()
         # openSceneInfo = self.manager.getOpenSceneInfo()
@@ -2477,20 +2501,24 @@ class MainUI(QtWidgets.QMainWindow):
         # else:
         #     self.baseScene_lineEdit.setText("Current Scene is not a Base Scene")
         #     self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: yellow")
+        print "here5"
 
         # init project
         self.project_lineEdit.setText(self.manager.projectDir)
 
+        print "here6"
         # init subproject
-        self.subProject_comboBox.clear()
-        self.subProject_comboBox.addItems(self.manager.getSubProjects())
-        self.subProject_comboBox.setCurrentIndex(self.manager.currentSubIndex)
+        # TODO : ref
+        self._initSubProjects()
 
+        print "here7"
         # init base scenes
         self.populateBaseScenes()
 
+        print "here8"
         # TODO : ref
         self._initUsers()
+        print "here9"
         # # init users
         # self.user_comboBox.clear()
         # self.user_comboBox.addItems(self.manager.getUsers())
@@ -2501,6 +2529,7 @@ class MainUI(QtWidgets.QMainWindow):
         # disable the version related stuff
         self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
         self._vEnableDisable()
+        print "here10"
 
     def rcAction_scenes(self, command):
         if command == "importScene":
@@ -2607,7 +2636,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.populateBaseScenes()
 
     def onBaseSceneChange(self):
-        logger.debug("Func: onBaseSceneChange")
+        # TODO : ref
+        self.version_comboBox.signalsBlocked(True)
 
         #clear version_combobox
         self.version_comboBox.clear()
@@ -2615,7 +2645,6 @@ class MainUI(QtWidgets.QMainWindow):
         row = self.scenes_listWidget.currentRow()
         if row == -1:
             self.manager.currentBaseSceneName = ""
-
         else:
             self.manager.currentBaseSceneName = self.scenes_listWidget.currentItem().text()
 
@@ -2627,7 +2656,14 @@ class MainUI(QtWidgets.QMainWindow):
         self.version_comboBox.setCurrentIndex(self.manager.currentVersionIndex-1)
         self.onVersionChange()
 
+        # TODO : ref
+        self.version_comboBox.signalsBlocked(False)
+
+
     def onVersionChange(self):
+        # TODO : ref
+        self.version_comboBox.signalsBlocked(True)
+
         if self.version_comboBox.currentIndex() is not -1:
             self.manager.currentVersionIndex = self.version_comboBox.currentIndex() + 1
 
@@ -2636,6 +2672,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         # update notes
         self.notes_textEdit.setPlainText(self.manager.getNotes())
+
 
         # update thumb
         self.tPixmap = QtGui.QPixmap(self.manager.getThumbnail())
@@ -2646,7 +2683,13 @@ class MainUI(QtWidgets.QMainWindow):
         else:
             self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
 
+        # TODO : ref
+        self.version_comboBox.signalsBlocked(False)
+
     def populateBaseScenes(self, deepCheck=False):
+        # TODO : ref
+        self.scenes_listWidget.blockSignals(True)
+
         self.scenes_listWidget.clear()
         # logger.debug("populateBaseScenes")
         baseScenesDict = self.manager.getBaseScenesInCategory()
@@ -2654,7 +2697,6 @@ class MainUI(QtWidgets.QMainWindow):
             for key in baseScenesDict:
                 if self.manager.checkReference(baseScenesDict[key]) == 1:
                     self.scenes_listWidget.addItem(key)
-
         else:
             codeDict = {-1: QtGui.QColor(255, 0, 0, 255), 1: QtGui.QColor(0, 255, 0, 255),
                         0: QtGui.QColor(255, 255, 0, 255), -2: QtGui.QColor(20, 20, 20, 255)}  # dictionary for color codes red, green, yellow
@@ -2666,6 +2708,8 @@ class MainUI(QtWidgets.QMainWindow):
                 listItem.setText(key)
                 listItem.setForeground(color)
                 self.scenes_listWidget.addItem(listItem)
+        self.scenes_listWidget.blockSignals(False)
+        # TODO : ref
 
     def onLoadScene(self):
         row = self.scenes_listWidget.currentRow()
@@ -2762,22 +2806,42 @@ class MainUI(QtWidgets.QMainWindow):
     def onIviewer(self):
         IvMaya.MainUI().show()
 
+    def _initSubProjects(self):
+        # TODO : ref
+        self.subProject_comboBox.blockSignals(True)
+
+        self.subProject_comboBox.clear()
+        self.subProject_comboBox.addItems(self.manager.getSubProjects())
+        self.subProject_comboBox.setCurrentIndex(self.manager.currentSubIndex)
+
+        # TODO : ref
+        self.subProject_comboBox.blockSignals(False)
+
     def _initCategories(self):
+        # TODO : ref
+        self.category_tabWidget.blockSignals(True)
         self.category_tabWidget.clear()
+
         for i in self.manager._categories:
             self.preTab = QtWidgets.QWidget()
             self.preTab.setObjectName((i))
             self.category_tabWidget.addTab(self.preTab, (i))
-        self.category_tabWidget.setCurrentIndex(self.manager.currentTabIndex)
 
+        self.category_tabWidget.setCurrentIndex(self.manager.currentTabIndex)
+        # TODO : ref
+        self.category_tabWidget.blockSignals(False)
 
     def _initUsers(self):
         # init users
+        # TODO : ref
+        self.user_comboBox.blockSignals(True)
         self.user_comboBox.clear()
         self.user_comboBox.addItems(self.manager.getUsers())
         index = self.user_comboBox.findText(self.manager.currentUser, QtCore.Qt.MatchFixedString)
         if index >= 0:
             self.user_comboBox.setCurrentIndex(index)
+        # TODO : ref
+        self.user_comboBox.blockSignals(False)
 
     def _initOpenScene(self):
         openSceneInfo = self.manager._openSceneInfo
@@ -2798,6 +2862,10 @@ class MainUI(QtWidgets.QMainWindow):
             button.setEnabled(False)
 
     def _vEnableDisable(self):
+        # TODO : ref
+        self.load_radioButton.blockSignals(True)
+        self.reference_radioButton.blockSignals(True)
+
         if self.load_radioButton.isChecked() and self.manager.currentBaseSceneName:
             self.version_comboBox.setEnabled(True)
             if self.manager.getPreviews():
@@ -2807,7 +2875,6 @@ class MainUI(QtWidgets.QMainWindow):
             self.makeReference_pushButton.setEnabled(True)
             self.addNote_pushButton.setEnabled(True)
             self.version_label.setEnabled(True)
-
         else:
             self.version_comboBox.setEnabled(False)
             self.showPreview_pushButton.setEnabled(False)
@@ -2815,6 +2882,9 @@ class MainUI(QtWidgets.QMainWindow):
             self.addNote_pushButton.setEnabled(False)
             self.version_label.setEnabled(False)
 
+        # TODO : ref
+        self.load_radioButton.blockSignals(False)
+        self.reference_radioButton.blockSignals(False)
 
     def infoPop(self, textTitle="info", textHeader="", textInfo="", type="I"):
         self.msg = QtWidgets.QMessageBox(parent=self)
@@ -2833,7 +2903,7 @@ class MainUI(QtWidgets.QMainWindow):
         if type == "password":
             if password != "":
                 passw, ok= QtWidgets.QInputDialog.getText(self, textTitle,
-                                                       textInfo, QtWidgets.QLineEdit.Password, parent=self)
+                                                          textInfo, QtWidgets.QLineEdit.Password, parent=self)
                 if ok:
                     if passw == password:
                         return True
