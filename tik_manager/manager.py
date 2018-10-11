@@ -3680,17 +3680,17 @@ class MainUI(QtWidgets.QMainWindow):
                                                                               version + 1))
 
     def infoPop(self, textTitle="info", textHeader="", textInfo="", type="I"):
-        self.msg = QtWidgets.QMessageBox(parent=self)
+        msgBox = QtWidgets.QMessageBox(parent=self)
         if type == "I":
-            self.msg.setIcon(QtWidgets.QMessageBox.Information)
+            msgBox.setIcon(QtWidgets.QMessageBox.Information)
         if type == "C":
-            self.msg.setIcon(QtWidgets.QMessageBox.Critical)
+            msgBox.setIcon(QtWidgets.QMessageBox.Critical)
 
-        self.msg.setText(textHeader)
-        self.msg.setInformativeText(textInfo)
-        self.msg.setWindowTitle(textTitle)
-        self.msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-        self.msg.show()
+        msgBox.setText(textHeader)
+        msgBox.setInformativeText(textInfo)
+        msgBox.setWindowTitle(textTitle)
+        msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        msgBox.show()
 
     def queryPop(self, type, textTitle="Question", textHeader="", textInfo="", password=""):
         if type == "password":

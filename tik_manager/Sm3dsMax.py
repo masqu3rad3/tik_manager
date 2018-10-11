@@ -1919,8 +1919,6 @@ class MainUI(QtGui.QMainWindow):
 
     def addRemoveUserUI(self):
 
-        # TODO : ref
-
         admin_pswd = "682"
         passw, ok = QtGui.QInputDialog.getText(self, "Password Query", "Enter Admin Password:",
                                                QtGui.QLineEdit.Password)
@@ -2031,7 +2029,7 @@ class MainUI(QtGui.QMainWindow):
 
         self.fullname_lineEdit.textChanged.connect(
             lambda: self._checkValidity(self.fullname_lineEdit.text(), addnewuser_pushButton,
-                                  self.fullname_lineEdit))
+                                  self.fullname_lineEdit, allowSpaces=True))
         self.initials_lineEdit.textChanged.connect(
             lambda: self._checkValidity(self.initials_lineEdit.text(), addnewuser_pushButton,
                                   self.initials_lineEdit))
@@ -2554,8 +2552,8 @@ class MainUI(QtGui.QMainWindow):
             self.baseScene_lineEdit.setText("Current Scene is not a Base Scene")
             self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: yellow")
 
-    def _checkValidity(self, text, button, lineEdit):
-        if self.manager._nameCheck(text):
+    def _checkValidity(self, text, button, lineEdit, allowSpaces=False):
+        if self.manager._nameCheck(text, allowSpaces=allowSpaces):
             lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: white")
             button.setEnabled(True)
         else:

@@ -14,7 +14,7 @@ import ctypes
 
 logging.basicConfig()
 logger = logging.getLogger('smRoot')
-logger.setLevel(logging.WARNING)
+logger.setLevel(logging.DEBUG)
 
 
 
@@ -116,8 +116,9 @@ class RootManager(object):
         self._pathsDict["sceneFile"] = ""
         # _softwarePathsDict = self.getSoftwarePaths()
         if self._pathsDict["projectDir"] == -1 or self._pathsDict["sceneFile"] == -1 or _softwarePathsDict == -1:
-            logger.error("The following functions must be overridden in inherited class:\n'getSoftware'\n'getProjectDir'\n'getSceneFile'")
-            raise Exception()
+            msg = "The following functions must be overridden in inherited class:\n'getSoftware'\n'getProjectDir'\n'getSceneFile'"
+            logger.error(msg)
+            raise Exception([102, msg])
 
         self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
         self._folderCheck(self._pathsDict["masterDir"])
@@ -225,10 +226,10 @@ class RootManager(object):
         """Moves the cursor to the given category index"""
         logger.debug("Func: currentTabIndex/setter")
         if not 0 <= indexData < len(self._categories):
-            logger.error(("out of range!"))
-            return
+            msg="Tab index is out of range!"
+            logger.error(msg)
+            raise Exception([101, msg])
         if indexData == self.currentTabIndex:
-            logger.info("Cursor is already at %s" %indexData)
             self.cursorInfo()
             return
         self._setCurrents("currentTabIndex", indexData)
@@ -249,10 +250,10 @@ class RootManager(object):
         """Moves the cursor to the given sub-project index"""
         logger.debug("Func: currentSubIndex/setter")
         if not 0 <= indexData < len(self._subProjectsList):
-            logger.error(("entered index is out of range!"))
-            return
+            msg="Sub Project index is out of range!"
+            logger.error(msg)
+            raise Exception([101, msg])
         if indexData == self.currentSubIndex:
-            logger.info("Cursor is already at %s" %indexData)
             self.cursorInfo()
             return
 
@@ -277,8 +278,9 @@ class RootManager(object):
         logger.debug("Func: currentUser/setter")
 
         if name not in self._usersDict.keys():
-            logger.error(("%s is not a user!" %name))
-            return
+            msg="%s is not in the user list" %name
+            logger.error(msg)
+            raise Exception([101, msg])
         self._setCurrents("currentUser", name)
 
     @property
@@ -299,8 +301,9 @@ class RootManager(object):
             elif bool is 1:
                 state = True
             else:
-                logger.error("only boolean or 0-1 accepted, entered %s" %state)
-                return
+                msg = ("only boolean or 0-1 accepted, entered %s" %state)
+                logger.error(msg)
+                raise Exception([101, msg])
         self._setCurrents("currentMode", state)
 
     @property
@@ -314,22 +317,27 @@ class RootManager(object):
     def currentBaseSceneName(self, sceneName):
         """Moves the cursor to the given base scene name"""
         logger.debug("Func: currentBaseSceneName/setter")
-
+        if not sceneName:
+            return
         if sceneName not in self._baseScenesInCategory.keys():
             # self._currentVersionIndex = -1
             # self._currentThumbFile = ""
             # self._currentNotes = ""
             self.currentVersionIndex = -1
-            logger.debug("There is no scene called %s in current category" %sceneName)
-            return
+            msg = "There is no scene called %s in current category" %sceneName
+            logger.error(msg)
+            raise Exception([101, msg])
 
         self._currentBaseSceneName = sceneName
         self._currentSceneInfo = self._loadSceneInfo()
+
+        # assert (self._currentSceneInfo == -2)
         if self._currentSceneInfo == -2: # corrupted db file
             self._currentSceneInfo == {}
             self._currentBaseSceneName = ""
             self.currentVersionIndex = -1
-            return
+            raise Exception ([200, "Database file %s is corrupted\nDo you want to fix it manually?" %sceneName, self._baseScenesInCategory[sceneName]] )
+        #     return
 
 
         if self._currentSceneInfo["ReferencedVersion"]:
@@ -385,8 +393,9 @@ class RootManager(object):
             # logger.warning(("BaseScene not Selected"))
             return
         if not 1 <= indexData <= len(self._currentSceneInfo["Versions"]):
-            logger.error(("out of range! %s" %indexData))
-            return
+            msg = "out of range! %s" %indexData
+            logger.error(msg)
+            raise Exception([101, msg])
         # if self._currentVersionIndex == indexData:
         #     logger.warning("Cursor is already at %s" % indexData)
         #     return
@@ -431,8 +440,9 @@ class RootManager(object):
         logger.debug("Func: currentDatabasePath/getter")
 
         if not self._currentSceneInfo:
-            logger.warning(("no current info"))
-            return
+            msg = "no current info"
+            logger.error(msg)
+            raise Exception([101, msg])
         if self._currentSceneInfo["SubProject"] == "None":
             subP = ""
         else:
@@ -601,8 +611,9 @@ class RootManager(object):
         if not os.path.isdir(os.path.normpath(resolvedPath)):
             os.makedirs(os.path.normpath(resolvedPath))
         else:
-            logger.warning("Project already exists")
-            return
+            msg = "Project already exists"
+            logger.warning(msg)
+            raise Exception ([340, msg])
 
         # create Directory structure:
         os.mkdir(os.path.join(resolvedPath, "_COMP"))
@@ -714,8 +725,9 @@ class RootManager(object):
         logger.debug("Func: createSubproject")
 
         if nameOfSubProject in self._subProjectsList:
-            logger.warning("%s is already in sub-projects list" % nameOfSubProject)
-            return self._subProjectsList
+            msg = "%s is already in sub-projects list" % nameOfSubProject
+            logger.warning(msg)
+            raise Exception([340, msg])
         self._subProjectsList.append(nameOfSubProject)
         self._saveSubprojects(self._subProjectsList)
         self.currentSubIndex = len(self._subProjectsList)-1
@@ -726,6 +738,8 @@ class RootManager(object):
         """Opens the path in Windows Explorer(Windows) or Nautilus(Linux)"""
         logger.debug("Func: showInExplorer")
 
+        # raise Exception (200, "cok fena exception")
+        # raise RuntimeError ((0,"cok fena RuntimeError"))
 
         # if not path or not os.path.isdir(path):
         #     logger.error("path is not a directory path or does not exist")
@@ -735,7 +749,9 @@ class RootManager(object):
         elif self.currentPlatform == "Linux":
             os.system('nautilus %s' % path)
         else:
-            logger.warning("OS is not supported")
+            msg = "%s is not supported" %self.currentPlatform
+            logger.warning(msg)
+            raise Exception([210, msg])
             return
 
     # def scanBaseScenes(self, categoryAs=None, subProjectAs=None):
@@ -849,12 +865,15 @@ class RootManager(object):
         """Adds a note to the version at current position"""
         logger.debug("Func: addNote")
 
-        if not self._currentBaseSceneName:
-            logger.warning("No Base Scene file selected")
-            return
-        if self._currentVersionIndex == -1:
-            logger.warning("No Version selected")
-            return
+        assert (not self._currentBaseSceneName), [101, "No Base Scene file selected"]
+        assert (self._currentVersionIndex == -1), [101, "No Version selected"]
+
+        # if not self._currentBaseSceneName:
+        #     logger.warning("No Base Scene file selected")
+        #     return
+        # if self._currentVersionIndex == -1:
+        #     logger.warning("No Version selected")
+        #     return
         now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
         self._currentNotes = "%s\n[%s] on %s\n%s\n" % (self._currentNotes, self.currentUser, now, note)
         self._currentSceneInfo["Versions"][self._currentVersionIndex-1][1] = self._currentNotes
@@ -869,8 +888,8 @@ class RootManager(object):
         initialsList = currentDB.values()
         if initials in initialsList:
             msg="Initials are in use"
-            print msg
-            return -1, msg
+            raise Exception([340, msg])
+            # return -1, msg
         currentDB[fullName] = initials
         self._dumpJson(currentDB, self._pathsDict["usersFile"])
         self._usersDict = currentDB
@@ -890,8 +909,10 @@ class RootManager(object):
         # TODO // TEST IT
         curCategories = self._loadCategories()
         if categoryName in curCategories:
-            logger.warning("Duplicate Category names are not allowed")
-            return -1
+            msg = "Duplicate Category names are not allowed"
+            logger.warning(msg)
+            raise Exception([340, msg])
+            # return -1
         curCategories.append(categoryName)
         self._dumpJson(curCategories, self._pathsDict["categoriesFile"])
         self._categories = curCategories
@@ -908,8 +929,10 @@ class RootManager(object):
                 baseScenes = self.scanBaseScenes(categoryAs=categoryName, subProjectAs=subP)
                 if baseScenes:
                     # if it in not empty abort
-                    logger.warning("Category is not empty. Aborting...")
-                    return -1
+                    msg = "Category is not empty. Aborting..."
+                    logger.warning(msg)
+                    raise Exception([360, msg])
+                    # return -1
 
             # remove the empty category
             curCategories.remove(categoryName)
@@ -918,8 +941,10 @@ class RootManager(object):
             return
 
         else:
-            logger.warning("Specified Category does not exist")
-            return -1
+            msg = "Specified Category does not exist"
+            logger.warning(msg)
+            raise Exception([101, msg])
+            # return -1
 
         # try:
         #     curCategories.remove(categoryName)
@@ -972,30 +997,38 @@ class RootManager(object):
             try:
                 os.remove(os.path.join(self.projectDir, s[0]))
             except:
-                logger.warning("Cannot delete scene version:%s" % (s[0]))
-                pass
+                msg = "Cannot delete scene version:%s" % (s[0])
+                logger.warning(msg)
+                raise Exception([203, msg])
+                # pass
 
         # delete reference file
         if jsonInfo["ReferenceFile"]:
             try:
                 os.remove(os.path.join(self.projectDir, jsonInfo["ReferenceFile"]))
             except:
-                logger.warning("Cannot delete reference file %s" % (jsonInfo["ReferenceFile"]))
-                pass
+                msg = "Cannot delete reference file %s" % (jsonInfo["ReferenceFile"])
+                logger.warning(msg)
+                raise Exception([203, msg])
+                # pass
 
         # delete base scene directory
         scene_path = os.path.join(self.projectDir, jsonInfo["Path"])
         try:
             os.rmdir(scene_path)
         except:
-            logger.warning("Cannot delete scene path %s" % (scene_path))
-            pass
+            msg = "Cannot delete scene path %s" % (scene_path)
+            logger.warning(msg)
+            raise Exception([203, msg])
+            # pass
         # delete json database file
         try:
             os.remove(os.path.join(self.projectDir, databaseFile))
         except:
-            logger.warning("Cannot delete scene path %s" % (databaseFile))
-            pass
+            msg = "Cannot delete scene path %s" % (databaseFile)
+            logger.warning(msg)
+            raise Exception([203, msg])
+            # pass
         logger.debug("all database entries and version files of %s deleted" %databaseFile)
 
     def deleteReference(self, databaseFile):
@@ -1013,7 +1046,9 @@ class RootManager(object):
                 jsonInfo["ReferencedVersion"] = None
                 self._dumpJson(jsonInfo, databaseFile)
             except:
-                logger.warning("Cannot delete reference file %s" % (jsonInfo["ReferenceFile"]))
+                msg = "Cannot delete reference file %s" % (jsonInfo["ReferenceFile"])
+                logger.warning(msg)
+                raise Exception([203, msg])
                 pass
 
     def makeReference(self):
@@ -1021,8 +1056,10 @@ class RootManager(object):
         logger.debug("Func: makeReference")
 
         if self._currentVersionIndex == -1:
-            logger.warning("Cursor is not on a Base Scene Version. Cancelling")
-            return
+            msg = "Cursor is not on a Base Scene Version. Cancelling"
+            logger.warning(msg)
+            raise Exception([101, msg])
+            # return
 
         absVersionFile = os.path.join(self.projectDir, self._currentSceneInfo["Versions"][self._currentVersionIndex-1][0])
         name = os.path.split(absVersionFile)[1]
@@ -1042,7 +1079,9 @@ class RootManager(object):
         logger.debug("Func: checkReference")
 
         sceneInfo = self._loadJson(jsonFile)
+        # assert (sceneInfo == -2)
         if sceneInfo == -2:
+            # raise AssertionError(200, "cok fena exception")
             return -2 # Corrupted database file
 
         if sceneInfo["ReferenceFile"]:
@@ -1110,12 +1149,16 @@ class RootManager(object):
     #     else:
     #         return -1
 
-    def _nameCheck(self, text):
+    def _nameCheck(self, text, allowSpaces=False):
         """Checks the text for illegal characters, Returns:  corrected Text or -1 for Error """
         logger.debug("Func: _nameCheck")
 
+        if allowSpaces:
+            pattern = "^[ A-Za-z0-9_-]*$"
+        else:
+            pattern = "^[A-Za-z0-9_-]*$"
 
-        if re.match("^[A-Za-z0-9_-]*$", text):
+        if re.match(pattern, text):
             return True
         else:
             return False
@@ -1134,7 +1177,8 @@ class RootManager(object):
         if projectName == "" or client == "" or projectRoot == "":
             msg = ("Fill the mandatory fields")
             logger.warning(msg)
-            return -1, msg
+            raise Exception([341, msg])
+            # return -1, msg
         projectDate = datetime.datetime.now().strftime("%y%m%d")
 
         if brandName:
@@ -1150,6 +1194,7 @@ class RootManager(object):
 
     def _loadJson(self, file):
         """Loads the given json file"""
+        # raise Exception((200, "ASSDFSDFSD"))
         logger.debug("Func: _loadJson")
 
         if os.path.isfile(file):
@@ -1158,8 +1203,9 @@ class RootManager(object):
                     data = json.load(f)
                     return data
             except ValueError:
-                logger.error("Corrupted JSON file => %s" % file)
-                # raise
+                msg = "Corrupted JSON file => %s" % file
+                logger.error(msg)
+                # raise Exception(200, "cok fena exception")
                 return -2 # code for corrupted json file
         else:
             return None

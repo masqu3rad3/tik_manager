@@ -1,4 +1,5 @@
 import os
+import sys
 import SmRoot
 reload(SmRoot)
 from SmRoot import RootManager
@@ -41,6 +42,104 @@ SM_Version = "Scene Manager Maya v%s" %_version.__version__
 logging.basicConfig()
 logger = logging.getLogger('smMaya')
 logger.setLevel(logging.WARNING)
+
+
+def excepthook(excType, excValue, tracebackobj):
+    """
+    Global function to catch unhandled exceptions.
+
+    @param excType exception type
+    @param excValue exception value
+    @param tracebackobj traceback object
+    """
+    # separator = '-' * 80
+    # logFile = "simple.log"
+    # notice = \
+    #     """An unhandled exception occurred. Please report the problem\n""" \
+    #     """using the error reporting dialog or via email to <%s>.\n""" \
+    #     """A log has been written to "%s".\n\nError information:\n""" % \
+    #     ("yourmail at server.com", "")
+    # versionInfo = "0.0.1"
+    # timeString = time.strftime("%Y-%m-%d, %H:%M:%S")
+
+    # tbinfofile = cStringIO.StringIO()
+    # traceback.print_tb(tracebackobj, None, tbinfofile)
+    # tbinfofile.seek(0)
+    # tbinfo = tbinfofile.read()
+    # errmsg = '%s: \n%s' % (str(excType), str(excValue))
+    # sections = [separator, timeString, separator, errmsg, separator, tbinfo]
+    # msg = '\n'.join(sections)
+    # try:
+    #     f = open(logFile, "w")
+    #     f.write(msg)
+    #     f.write(versionInfo)
+    #     f.close()
+    # except IOError:
+    #     pass
+
+    # title, header, info, severity(
+
+    # CRITICAL ERRORS:
+    # ----------------
+    # corrupted file (code 200)
+    # missing file (code 201)
+    # cannot read/write (code 202)
+    # cannot delete (code 203)
+    # OS is not supported (code 210)
+
+    # RARE EXCEPTIONS:
+    # ----------------
+    # out of range (Rare exception) (code 101)
+
+    # WARNINGS:
+    # ---------
+    # naming error (Already in use) (code 340)
+        # Initials are in use (addUser)
+        # Full name in use (addUser)
+        # category already exist (addCategory)
+    # mandatory fields are not filled (code 341)
+    # Action not permitted (code 360)
+        # category is not empty (removeCategory)
+
+    errorCodeDict = {200: "Corrupted File",
+                     201: "Missing File",
+                     202: "Read/Write Error",
+                     203: "Delete Error",
+                     210: "OS Not Supported",
+                     101: "Out of range",
+                     102: "Missing Override",
+                     340: "Naming Error",
+                     341: "Mandatory fields are not filled",
+                     360: "Action not permitted"}
+
+
+    # textTitle = "info", textHeader = "", textInfo = "", type = "I"
+    # print excType
+    # print excValue
+    # print tracebackobj
+
+    errorCode = excValue[0][0]
+    errorMsg = excValue[0][1]
+
+    if errorCode == 200: # question box for this
+        q = QtWidgets.QMessageBox()
+        q.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        q.setText(errorMsg)
+        q.setWindowTitle(errorCodeDict[errorCode])
+        ret = q.exec_()
+        if ret == QtWidgets.QMessageBox.Yes:
+            os.startfile(excValue[0][2])
+        elif ret == QtWidgets.QMessageBox.No:
+            pass
+            # print "no"
+
+    else:
+        errorbox = QtWidgets.QMessageBox()
+        errorbox.setText(errorMsg)
+        errorbox.setWindowTitle(errorCodeDict[errorCode])
+        errorbox.exec_()
+
+sys.excepthook = excepthook
 
 def getMayaMainWindow():
     """
@@ -328,6 +427,7 @@ class MayaManager(RootManager):
 
     def createPreview(self, *args, **kwargs):
         """Creates a Playblast preview from currently open scene"""
+        # TODO : FIX the error referenced cameras (namespacing problem)
         logger.debug("Func: createPreview")
 
         pbSettings = self._loadPBSettings()
@@ -909,6 +1009,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.category_tabWidget.setUsesScrollButtons(False)
         self.category_tabWidget.setObjectName(("tabWidget"))
 
+        # TODO : ref
         for i in self.manager._categories:
             self.preTab = QtWidgets.QWidget()
             self.preTab.setObjectName((i))
@@ -1032,12 +1133,19 @@ class MainUI(QtWidgets.QMainWindow):
         # MENU BAR / STATUS BAR
         # ---------------------
         file = self.menubar.addMenu("File")
+        createProject_fm = QtWidgets.QAction("&Create Project", self)
         saveVersion_fm = QtWidgets.QAction("&Save Version", self)
         saveBaseScene_fm = QtWidgets.QAction("&Save Base Scene", self)
+
         loadReferenceScene_fm = QtWidgets.QAction("&Load/Reference Scene", self)
-        createProject_fm = QtWidgets.QAction("&Create Project", self)
-        pb_settings_fm = QtWidgets.QAction("&Playblast Settings", self)
+
         add_remove_users_fm = QtWidgets.QAction("&Add/Remove Users", self)
+        # TODO : ref
+        add_remove_categories_fm = QtWidgets.QAction("&Add/Remove Categories", self)
+        pb_settings_fm = QtWidgets.QAction("&Playblast Settings", self)
+
+
+
         deleteFile_fm = QtWidgets.QAction("&Delete Selected Base Scene", self)
         deleteReference_fm = QtWidgets.QAction("&Delete Reference of Selected Scene", self)
         reBuildDatabase_fm = QtWidgets.QAction("&Re-build Project Database", self)
@@ -1056,6 +1164,8 @@ class MainUI(QtWidgets.QMainWindow):
         #settings
         file.addSeparator()
         file.addAction(add_remove_users_fm)
+        # TODO : ref
+        file.addAction(add_remove_categories_fm)
         file.addAction(pb_settings_fm)
 
         #delete
@@ -1132,6 +1242,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         add_remove_users_fm.triggered.connect(self.addRemoveUserUI)
         pb_settings_fm.triggered.connect(self.pbSettingsUI)
+        # TODO : ref
+        add_remove_categories_fm.triggered.connect(self.addRemoveCategoryUI)
 
 
 
@@ -1906,8 +2018,6 @@ class MainUI(QtWidgets.QMainWindow):
 
     def addRemoveUserUI(self):
 
-        # TODO : ref
-
         admin_pswd = "682"
         passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query", "Enter Admin Password:",
                                                    QtWidgets.QLineEdit.Password)
@@ -2018,12 +2128,117 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.fullname_lineEdit.textChanged.connect(
             lambda: self._checkValidity(self.fullname_lineEdit.text(), addnewuser_pushButton,
-                                  self.fullname_lineEdit))
+                                  self.fullname_lineEdit, allowSpaces=True))
         self.initials_lineEdit.textChanged.connect(
             lambda: self._checkValidity(self.initials_lineEdit.text(), addnewuser_pushButton,
                                   self.initials_lineEdit))
 
         users_Dialog.show()
+
+    def addRemoveCategoryUI(self):
+
+        # admin_pswd = "682"
+        # passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query", "Enter Admin Password:",
+        #                                            QtWidgets.QLineEdit.Password)
+        # if ok:
+        #     if passw == admin_pswd:
+        #         pass
+        #     else:
+        #         self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
+        #         return
+        # else:
+        #     return
+
+        categories_dialog = QtWidgets.QDialog(parent=self)
+        categories_dialog.setModal(True)
+        categories_dialog.setObjectName(("category_Dialog"))
+        categories_dialog.setMinimumSize(QtCore.QSize(342, 177))
+        categories_dialog.setMaximumSize(QtCore.QSize(342, 177))
+        categories_dialog.setWindowTitle(("Add/Remove Categories"))
+        categories_dialog.setFocus()
+
+        addnewcategory_groupbox = QtWidgets.QGroupBox(categories_dialog)
+        addnewcategory_groupbox.setGeometry(QtCore.QRect(10, 10, 321, 81))
+        addnewcategory_groupbox.setTitle(("Add New Category"))
+        addnewcategory_groupbox.setObjectName(("addnewcategory_groupBox"))
+
+        categoryName_label = QtWidgets.QLabel(addnewcategory_groupbox)
+        categoryName_label.setGeometry(QtCore.QRect(10, 30, 81, 21))
+        categoryName_label.setLayoutDirection(QtCore.Qt.LeftToRight)
+        categoryName_label.setText(("Category Name:"))
+        categoryName_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        categoryName_label.setObjectName(("categoryName_label"))
+
+        self.categoryName_lineEdit= QtWidgets.QLineEdit(addnewcategory_groupbox)
+        self.categoryName_lineEdit.setGeometry(QtCore.QRect(105, 30, 135, 20))
+        self.categoryName_lineEdit.setPlaceholderText(("e.g \"Look Dev\""))
+        self.categoryName_lineEdit.setObjectName(("categoryName_lineEdit"))
+
+        addnewcategory_pushButton = QtWidgets.QPushButton(addnewcategory_groupbox)
+        addnewcategory_pushButton.setGeometry(QtCore.QRect(250, 28, 61, 26))
+        addnewcategory_pushButton.setText(("Add"))
+        addnewcategory_pushButton.setObjectName(("addnewcategory_pushButton"))
+
+        deletecategory_groupBox = QtWidgets.QGroupBox(categories_dialog)
+        deletecategory_groupBox.setGeometry(QtCore.QRect(10, 110, 321, 51))
+        deletecategory_groupBox.setTitle(("Delete category"))
+        deletecategory_groupBox.setObjectName(("deletecategory_groupBox"))
+
+        self.selectcategory_comboBox = QtWidgets.QComboBox(deletecategory_groupBox)
+        self.selectcategory_comboBox.setGeometry(QtCore.QRect(10, 20, 231, 22))
+        self.selectcategory_comboBox.setObjectName(("selectcategory_comboBox"))
+
+        self.selectcategory_comboBox.addItems(self.manager._categories)
+        # userListSorted = self.manager._categories
+        # for num in range(len(userListSorted)):
+        #     self.selectuser_comboBox.addItem((userListSorted[num]))
+        #     self.selectuser_comboBox.setItemText(num, (userListSorted[num]))
+
+        deletecategory_pushButton = QtWidgets.QPushButton(deletecategory_groupBox)
+        deletecategory_pushButton.setGeometry(QtCore.QRect(250, 20, 61, 21))
+        deletecategory_pushButton.setText(("Delete"))
+        deletecategory_pushButton.setObjectName(("deletecategory_pushButton"))
+
+
+        def onAddCategory():
+            self.manager.addCategory(self.categoryName_lineEdit.text())
+            # ret, msg = self.manager.addUser(self.fullname_lineEdit.text(), self.initials_lineEdit.text())
+            # if ret == -1:
+            #     self.infoPop(textTitle="Cannot Add User", textHeader=msg)
+            #     return
+            # self.manager.currentUser = self.fullname_lineEdit.text()
+            # self._initUsers()
+            # userListSorted = sorted(self.manager._usersDict.keys())
+            self.selectcategory_comboBox.clear()
+            self.selectcategory_comboBox.addItems(self.manager.getCategories())
+            self.initMainUI(newborn=False)
+            # self.statusBar().showMessage("Status | User Added => %s" % self.fullname_lineEdit.text())
+            # self.fullname_lineEdit.setText("")
+            # self.initials_lineEdit.setText("")
+
+            # pass
+
+        def onRemoveCategory():
+            self.manager.removeCategory(self.selectcategory_comboBox.currentText())
+            # self.manager.removeUser(self.selectuser_comboBox.currentText())
+            # self.manager.currentUser = self.manager._usersDict.keys()[0]
+            # self._initUsers()
+            # userListSorted = sorted(self.manager._usersDict.keys())
+            # self.selectuser_comboBox.clear()
+            # for num in range(len(userListSorted)):
+            #     self.selectuser_comboBox.addItem((userListSorted[num]))
+            #     self.selectuser_comboBox.setItemText(num, (userListSorted[num]))
+            # pass
+
+        addnewcategory_pushButton.clicked.connect(onAddCategory)
+        deletecategory_pushButton.clicked.connect(onRemoveCategory)
+
+        self.categoryName_lineEdit.textChanged.connect(
+            lambda: self._checkValidity(self.categoryName_lineEdit.text(), addnewcategory_pushButton,
+                                  self.categoryName_lineEdit))
+
+
+        categories_dialog.show()
 
     def saveBaseSceneDialog(self):
         self.save_Dialog = QtWidgets.QDialog(parent=self)
@@ -2245,12 +2460,14 @@ class MainUI(QtWidgets.QMainWindow):
             return
 
     def initMainUI(self, newborn=False):
+        # self._initCategories()
 
         if not newborn:
             self.manager.init_paths()
             self.manager.init_database()
 
         self.manager.getOpenSceneInfo()
+
 
         self._initOpenScene()
         # openSceneInfo = self.manager.getOpenSceneInfo()
@@ -2545,6 +2762,15 @@ class MainUI(QtWidgets.QMainWindow):
     def onIviewer(self):
         IvMaya.MainUI().show()
 
+    def _initCategories(self):
+        self.category_tabWidget.clear()
+        for i in self.manager._categories:
+            self.preTab = QtWidgets.QWidget()
+            self.preTab.setObjectName((i))
+            self.category_tabWidget.addTab(self.preTab, (i))
+        self.category_tabWidget.setCurrentIndex(self.manager.currentTabIndex)
+
+
     def _initUsers(self):
         # init users
         self.user_comboBox.clear()
@@ -2563,8 +2789,8 @@ class MainUI(QtWidgets.QMainWindow):
             self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: yellow")
 
 
-    def _checkValidity(self, text, button, lineEdit):
-        if self.manager._nameCheck(text):
+    def _checkValidity(self, text, button, lineEdit, allowSpaces=False):
+        if self.manager._nameCheck(text, allowSpaces=allowSpaces):
             lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: white")
             button.setEnabled(True)
         else:
