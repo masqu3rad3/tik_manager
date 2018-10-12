@@ -1,5 +1,6 @@
 import os
-import ctypes
+import sys
+# import ctypes
 import SmRoot
 reload(SmRoot)
 from SmRoot import RootManager
@@ -20,63 +21,9 @@ import MaxPlus
 
 from MaxPlus import FileManager as fManager
 from MaxPlus import PathManager as pManager
-# from MaxPlus import Core as core
-# import pymxs
+
 
 from pymxs import runtime as rt
-
-# MaxPlus.FileManager.CheckForSave()
-# propts to save the file
-
-# MaxPlus.FileManager.GetSaveRequiredFlag()
-# returns True if the file is not saved, false if it is
-
-# MaxPlus.FileManager.IsSaveRequired()
-# returns True if the file is not saved ** THIS IS PROBABLY THE BEST **
-
-# MaxPlus.FileManager.GetFileName()
-# returns the open file name
-
-# MaxPlus.FileManager.GetFileNameAndPath()
-# returns the path of the open file
-
-# Import(*args)
-# Import() -> bool
-# Import(wchar_t const * name, bool SuppressPrompts = False) -> bool
-# Import(wchar_t const * name) -> bool
-
-# Merge(*args)
-# Merge()
-# Merge(wchar_t const * name, bool mergeAll = False, bool selectMerged = False) -> bool
-# Merge(wchar_t const * name, bool mergeAll = False) -> bool
-# Merge(wchar_t const * name) -> bool
-
-# Open(*args)
-# Open()
-# Open(wchar_t const * name, bool NoPrompts = False, bool UseFileUnits = True, bool RefeshViewports = True,
-# bool SetCurrentFilePath = True) -> bool
-# Open(wchar_t const * name, bool NoPrompts = False, bool UseFileUnits = True, bool RefeshViewports = True) -> bool
-# Open(wchar_t const * name, bool NoPrompts = False, bool UseFileUnits = True) -> bool
-# Open(wchar_t const * name, bool NoPrompts = False) -> bool
-# Open(wchar_t const * name) -> bool
-
-# Save(*args)
-# Save() -> bool
-# Save(wchar_t const * name, bool clearNeedSaveFlag = True, bool useNewFile = True) -> bool
-# Save(wchar_t const * name, bool clearNeedSaveFlag = True) -> bool
-# Save(wchar_t const * name) -> bool
-
-# SaveSceneAsVersion(*args)
-# SaveSceneAsVersion(wchar_t const * fname, bool clearNeedSaveFlag = True, bool useNewFile = True, unsigned long saveAsVersion = MAX_RELEASE) -> bool
-# SaveSceneAsVersion(wchar_t const * fname, bool clearNeedSaveFlag = True, bool useNewFile = True) -> bool
-# SaveSceneAsVersion(wchar_t const * fname, bool clearNeedSaveFlag = True) -> bool
-# SaveSceneAsVersion(wchar_t const * fname) -> bool
-
-# IsMaxVersionNewerOrSame(*args)
-# IsMaxVersionNewerOrSame(uint maxRelease, uint maxExt) -> bool
-
-# GetMaxVersion()
-# GetMaxVersion() -> int
 
 
 __author__ = "Arda Kutlu"
@@ -93,6 +40,44 @@ SM_Version = "Scene Manager 3ds Max v%s" %_version.__version__
 logging.basicConfig()
 logger = logging.getLogger('sm3dsMax')
 logger.setLevel(logging.WARNING)
+
+def excepthook(excType, excValue, tracebackobj):
+    """Overrides sys.excepthook for gui feedback"""
+
+    errorCodeDict = {200: "Corrupted File",
+                     201: "Missing File",
+                     202: "Read/Write Error",
+                     203: "Delete Error",
+                     210: "OS Not Supported",
+                     101: "Out of range",
+                     102: "Missing Override",
+                     340: "Naming Error",
+                     341: "Mandatory fields are not filled",
+                     360: "Action not permitted"}
+
+
+    errorCode = excValue[0][0]
+    errorMsg = excValue[0][1]
+
+    if errorCode == 200: # question box for this
+        q = QtGui.QMessageBox()
+        q.setStandardButtons(QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+        q.setText(errorMsg)
+        q.setWindowTitle(errorCodeDict[errorCode])
+        ret = q.exec_()
+        if ret == QtGui.QMessageBox.Yes:
+            os.startfile(excValue[0][2])
+        elif ret == QtGui.QMessageBox.No:
+            pass
+            # print "no"
+
+    else:
+        errorbox = QtGui.QMessageBox()
+        errorbox.setText(errorMsg)
+        errorbox.setWindowTitle(errorCodeDict[errorCode])
+        errorbox.exec_()
+
+sys.excepthook = excepthook
 
 
 class MaxManager(RootManager):
@@ -913,10 +898,10 @@ class MainUI(QtGui.QMainWindow):
         self.category_tabWidget.setUsesScrollButtons(False)
         self.category_tabWidget.setObjectName(("tabWidget"))
 
-        for i in self.manager._categories:
-            self.preTab = QtGui.QWidget()
-            self.preTab.setObjectName((i))
-            self.category_tabWidget.addTab(self.preTab, (i))
+        # for i in self.manager._categories:
+        #     self.preTab = QtGui.QWidget()
+        #     self.preTab.setObjectName((i))
+        #     self.category_tabWidget.addTab(self.preTab, (i))
 
         self.category_tabWidget.setCurrentIndex(self.manager.currentTabIndex)
 
@@ -1040,8 +1025,11 @@ class MainUI(QtGui.QMainWindow):
         saveBaseScene_fm = QtGui.QAction("&Save Base Scene", self)
         loadReferenceScene_fm = QtGui.QAction("&Load/Reference Scene", self)
         createProject_fm = QtGui.QAction("&Create Project", self)
-        pb_settings_fm = QtGui.QAction("&Playblast Settings", self)
         add_remove_users_fm = QtGui.QAction("&Add/Remove Users", self)
+        add_remove_categories_fm = QtGui.QAction("&Add/Remove Categories", self)
+        pb_settings_fm = QtGui.QAction("&Playblast Settings", self)
+
+
         deleteFile_fm = QtGui.QAction("&Delete Selected Base Scene", self)
         deleteReference_fm = QtGui.QAction("&Delete Reference of Selected Scene", self)
         reBuildDatabase_fm = QtGui.QAction("&Re-build Project Database", self)
@@ -1060,6 +1048,7 @@ class MainUI(QtGui.QMainWindow):
         #settings
         file.addSeparator()
         file.addAction(add_remove_users_fm)
+        file.addAction(add_remove_categories_fm)
         file.addAction(pb_settings_fm)
 
         #delete
@@ -1136,7 +1125,7 @@ class MainUI(QtGui.QMainWindow):
 
         add_remove_users_fm.triggered.connect(self.addRemoveUserUI)
         pb_settings_fm.triggered.connect(self.pbSettingsUI)
-
+        add_remove_categories_fm.triggered.connect(self.addRemoveCategoryUI)
 
 
         deleteFile_fm.triggered.connect(self.onDeleteBaseScene)
@@ -2036,6 +2025,96 @@ class MainUI(QtGui.QMainWindow):
 
         users_Dialog.show()
 
+    def addRemoveCategoryUI(self):
+
+        admin_pswd = "682"
+        passw, ok = QtGui.QInputDialog.getText(self, "Password Query", "Enter Admin Password:",
+                                               QtGui.QLineEdit.Password)
+        if ok:
+            if passw == admin_pswd:
+                pass
+            else:
+                self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
+                return
+        else:
+            return
+
+        categories_dialog = QtGui.QDialog(parent=self)
+        categories_dialog.setModal(True)
+        categories_dialog.setObjectName(("category_Dialog"))
+        categories_dialog.setMinimumSize(QtCore.QSize(342, 177))
+        categories_dialog.setMaximumSize(QtCore.QSize(342, 177))
+        categories_dialog.setWindowTitle(("Add/Remove Categories"))
+        categories_dialog.setFocus()
+
+        addnewcategory_groupbox = QtGui.QGroupBox(categories_dialog)
+        addnewcategory_groupbox.setGeometry(QtCore.QRect(10, 10, 321, 81))
+        addnewcategory_groupbox.setTitle(("Add New Category"))
+        addnewcategory_groupbox.setObjectName(("addnewcategory_groupBox"))
+
+        categoryName_label = QtGui.QLabel(addnewcategory_groupbox)
+        categoryName_label.setGeometry(QtCore.QRect(10, 30, 81, 21))
+        categoryName_label.setLayoutDirection(QtCore.Qt.LeftToRight)
+        categoryName_label.setText(("Category Name:"))
+        categoryName_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        categoryName_label.setObjectName(("categoryName_label"))
+
+        self.categoryName_lineEdit= QtGui.QLineEdit(addnewcategory_groupbox)
+        self.categoryName_lineEdit.setGeometry(QtCore.QRect(105, 30, 135, 20))
+        self.categoryName_lineEdit.setPlaceholderText(("e.g \"Look Dev\""))
+        self.categoryName_lineEdit.setObjectName(("categoryName_lineEdit"))
+
+        addnewcategory_pushButton = QtGui.QPushButton(addnewcategory_groupbox)
+        addnewcategory_pushButton.setGeometry(QtCore.QRect(250, 28, 61, 26))
+        addnewcategory_pushButton.setText(("Add"))
+        addnewcategory_pushButton.setObjectName(("addnewcategory_pushButton"))
+
+        deletecategory_groupBox = QtGui.QGroupBox(categories_dialog)
+        deletecategory_groupBox.setGeometry(QtCore.QRect(10, 110, 321, 51))
+        deletecategory_groupBox.setTitle(("Delete category"))
+        deletecategory_groupBox.setObjectName(("deletecategory_groupBox"))
+
+        self.selectcategory_comboBox = QtGui.QComboBox(deletecategory_groupBox)
+        self.selectcategory_comboBox.setGeometry(QtCore.QRect(10, 20, 231, 22))
+        self.selectcategory_comboBox.setObjectName(("selectcategory_comboBox"))
+
+        self.selectcategory_comboBox.addItems(self.manager._categories)
+
+        deletecategory_pushButton = QtGui.QPushButton(deletecategory_groupBox)
+        deletecategory_pushButton.setGeometry(QtCore.QRect(250, 20, 61, 21))
+        deletecategory_pushButton.setText(("Delete"))
+        deletecategory_pushButton.setObjectName(("deletecategory_pushButton"))
+
+
+        def onAddCategory():
+            self.manager.addCategory(self.categoryName_lineEdit.text())
+
+
+            preTab = QtGui.QWidget()
+            preTab.setObjectName(self.categoryName_lineEdit.text())
+            self.category_tabWidget.addTab(preTab, self.categoryName_lineEdit.text())
+            self.selectcategory_comboBox.addItem(self.categoryName_lineEdit.text())
+
+            self.categoryName_lineEdit.setText("")
+
+        def onRemoveCategory():
+            self.manager.removeCategory(self.selectcategory_comboBox.currentText())
+            self.selectcategory_comboBox.clear()
+            self.selectcategory_comboBox.addItems(self.manager.getCategories())
+
+            self._initCategories()
+
+
+        addnewcategory_pushButton.clicked.connect(onAddCategory)
+        deletecategory_pushButton.clicked.connect(onRemoveCategory)
+
+        self.categoryName_lineEdit.textChanged.connect(
+            lambda: self._checkValidity(self.categoryName_lineEdit.text(), addnewcategory_pushButton,
+                                        self.categoryName_lineEdit))
+
+
+        categories_dialog.show()
+
     def saveBaseSceneDialog(self):
         self.save_Dialog = QtGui.QDialog(parent=self)
         self.save_Dialog.setModal(True)
@@ -2242,27 +2321,17 @@ class MainUI(QtGui.QMainWindow):
             self.manager.init_paths()
             self.manager.init_database()
 
+        self._initCategories()
+
         self.manager.getOpenSceneInfo()
 
         self._initOpenScene()
-
-
-
-        # openSceneInfo = self.manager.getOpenSceneInfo()
-        # if openSceneInfo: ## getSceneInfo returns None if there is no json database fil
-        #     self.baseScene_lineEdit.setText("%s ==> %s ==> %s" % (openSceneInfo["subProject"], openSceneInfo["category"], openSceneInfo["shotName"]))
-        #     self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: cyan")
-        # else:
-        #     self.baseScene_lineEdit.setText("Current Scene is not a Base Scene")
-        #     self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: yellow")
 
         # init project
         self.project_lineEdit.setText(self.manager.projectDir)
 
         # init subproject
-        self.subProject_comboBox.clear()
-        self.subProject_comboBox.addItems(self.manager.getSubProjects())
-        self.subProject_comboBox.setCurrentIndex(self.manager.currentSubIndex)
+        self._initSubProjects()
 
         # init base scenes
         self.populateBaseScenes()
@@ -2377,6 +2446,8 @@ class MainUI(QtGui.QMainWindow):
         self.populateBaseScenes()
 
     def onBaseSceneChange(self):
+        self.version_comboBox.blockSignals(True)
+
         #clear version_combobox
         self.version_comboBox.clear()
 
@@ -2395,7 +2466,12 @@ class MainUI(QtGui.QMainWindow):
         self.version_comboBox.setCurrentIndex(self.manager.currentVersionIndex-1)
         self.onVersionChange()
 
+        self.version_comboBox.blockSignals(False)
+
     def onVersionChange(self):
+
+        self.version_comboBox.blockSignals(True)
+
         if self.version_comboBox.currentIndex() is not -1:
             self.manager.currentVersionIndex = self.version_comboBox.currentIndex() + 1
 
@@ -2414,7 +2490,11 @@ class MainUI(QtGui.QMainWindow):
         else:
             self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
 
+        self.version_comboBox.blockSignals(False)
+
     def populateBaseScenes(self, deepCheck=False):
+        self.scenes_listWidget.blockSignals(True)
+
         self.scenes_listWidget.clear()
         baseScenesDict = self.manager.getBaseScenesInCategory()
         if self.reference_radioButton.isChecked():
@@ -2426,7 +2506,7 @@ class MainUI(QtGui.QMainWindow):
             codeDict = {-1: QtGui.QColor(255, 0, 0, 255), 1: QtGui.QColor(0, 255, 0, 255),
                         0: QtGui.QColor(255, 255, 0, 255), -2: QtGui.QColor(20, 20, 20, 255)}  # dictionary for color codes red, green, yellow
                         # gray for the corrupted database file
-        # TODO : ref
+
             for key in sorted(baseScenesDict):
                 retCode = self.manager.checkReference(baseScenesDict[key], deepCheck=deepCheck) # returns -1, 0, 1 or -2 for color ref
                 color = codeDict[retCode]
@@ -2434,6 +2514,8 @@ class MainUI(QtGui.QMainWindow):
                 listItem.setText(key)
                 listItem.setForeground(color)
                 self.scenes_listWidget.addItem(listItem)
+        self.scenes_listWidget.blockSignals(False)
+
 
     def onLoadScene(self):
         row = self.scenes_listWidget.currentRow()
@@ -2532,13 +2614,40 @@ class MainUI(QtGui.QMainWindow):
         logger.warning("Image Viewer N/A")
         # IvMaya.MainUI().show()
 
+    def _initSubProjects(self):
+
+        self.subProject_comboBox.blockSignals(True)
+
+        self.subProject_comboBox.clear()
+        self.subProject_comboBox.addItems(self.manager.getSubProjects())
+        self.subProject_comboBox.setCurrentIndex(self.manager.currentSubIndex)
+
+        self.subProject_comboBox.blockSignals(False)
+
+    def _initCategories(self):
+        self.category_tabWidget.blockSignals(True)
+        self.category_tabWidget.clear()
+
+        for i in self.manager._categories:
+            self.preTab = QtGui.QWidget()
+            self.preTab.setObjectName((i))
+            self.category_tabWidget.addTab(self.preTab, (i))
+
+        self.category_tabWidget.setCurrentIndex(self.manager.currentTabIndex)
+        self.category_tabWidget.blockSignals(False)
+
     def _initUsers(self):
+        self.user_comboBox.blockSignals(True)
+
         # init users
         self.user_comboBox.clear()
         self.user_comboBox.addItems(self.manager.getUsers())
         index = self.user_comboBox.findText(self.manager.currentUser, QtCore.Qt.MatchFixedString)
         if index >= 0:
             self.user_comboBox.setCurrentIndex(index)
+
+        self.user_comboBox.blockSignals(False)
+
 
     def _initOpenScene(self):
         openSceneInfo = self.manager._openSceneInfo

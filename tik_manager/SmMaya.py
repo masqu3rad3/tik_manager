@@ -45,62 +45,8 @@ logger.setLevel(logging.WARNING)
 
 
 def excepthook(excType, excValue, tracebackobj):
-    """
-    Global function to catch unhandled exceptions.
-
-    @param excType exception type
-    @param excValue exception value
-    @param tracebackobj traceback object
-    """
-    # separator = '-' * 80
-    # logFile = "simple.log"
-    # notice = \
-    #     """An unhandled exception occurred. Please report the problem\n""" \
-    #     """using the error reporting dialog or via email to <%s>.\n""" \
-    #     """A log has been written to "%s".\n\nError information:\n""" % \
-    #     ("yourmail at server.com", "")
-    # versionInfo = "0.0.1"
-    # timeString = time.strftime("%Y-%m-%d, %H:%M:%S")
-
-    # tbinfofile = cStringIO.StringIO()
-    # traceback.print_tb(tracebackobj, None, tbinfofile)
-    # tbinfofile.seek(0)
-    # tbinfo = tbinfofile.read()
-    # errmsg = '%s: \n%s' % (str(excType), str(excValue))
-    # sections = [separator, timeString, separator, errmsg, separator, tbinfo]
-    # msg = '\n'.join(sections)
-    # try:
-    #     f = open(logFile, "w")
-    #     f.write(msg)
-    #     f.write(versionInfo)
-    #     f.close()
-    # except IOError:
-    #     pass
-
-    # title, header, info, severity(
-
-    # CRITICAL ERRORS:
-    # ----------------
-    # corrupted file (code 200)
-    # missing file (code 201)
-    # cannot read/write (code 202)
-    # cannot delete (code 203)
-    # OS is not supported (code 210)
-
-    # RARE EXCEPTIONS:
-    # ----------------
-    # out of range (Rare exception) (code 101)
-
-    # WARNINGS:
-    # ---------
-    # naming error (Already in use) (code 340)
-        # Initials are in use (addUser)
-        # Full name in use (addUser)
-        # category already exist (addCategory)
-    # mandatory fields are not filled (code 341)
-    # Action not permitted (code 360)
-        # category is not empty (removeCategory)
-
+    """Overrides sys.excepthook for gui feedback"""
+    parent = getMayaMainWindow()
     errorCodeDict = {200: "Corrupted File",
                      201: "Missing File",
                      202: "Read/Write Error",
@@ -112,17 +58,11 @@ def excepthook(excType, excValue, tracebackobj):
                      341: "Mandatory fields are not filled",
                      360: "Action not permitted"}
 
-
-    # textTitle = "info", textHeader = "", textInfo = "", type = "I"
-    # print excType
-    # print excValue
-    # print tracebackobj
-
     errorCode = excValue[0][0]
     errorMsg = excValue[0][1]
 
     if errorCode == 200: # question box for this
-        q = QtWidgets.QMessageBox()
+        q = QtWidgets.QMessageBox(parent = parent)
         q.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
         q.setText(errorMsg)
         q.setWindowTitle(errorCodeDict[errorCode])
@@ -134,7 +74,7 @@ def excepthook(excType, excValue, tracebackobj):
             # print "no"
 
     else:
-        errorbox = QtWidgets.QMessageBox()
+        errorbox = QtWidgets.QMessageBox(parent = parent)
         errorbox.setText(errorMsg)
         errorbox.setWindowTitle(errorCodeDict[errorCode])
         errorbox.exec_()
@@ -221,7 +161,6 @@ class MayaManager(RootManager):
             self._saveProjects(projectsDict)
             return norm_p_path
 
-
     def getSceneFile(self):
         """Overriden function"""
         logger.debug("Func: getSceneFile")
@@ -261,7 +200,6 @@ class MayaManager(RootManager):
                         print "Scene Manager Update:\nReference File Updated"
                     except:
                         pass
-
 
     def saveBaseScene(self, categoryName, baseName, subProjectIndex=0, makeReference=True, versionNotes="", sceneFormat="mb", *args, **kwargs):
         """
@@ -424,7 +362,6 @@ class MayaManager(RootManager):
             return -1, msg
         return jsonInfo
 
-
     def createPreview(self, *args, **kwargs):
         """Creates a Playblast preview from currently open scene"""
         # TODO : FIX the error referenced cameras (namespacing problem)
@@ -465,13 +402,19 @@ class MayaManager(RootManager):
         jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
 
         currentCam = cmds.modelPanel(cmds.getPanel(wf=True), q=True, cam=True)
+        validName = currentCam
 
-        validName = currentCam.replace("|", "__").replace(" ", "_")
+        replaceDict = {"|":"__",
+                       " ":"_",
+                       ":":"_"}
+        for item in replaceDict.items():
+            validName = validName.replace(item[0], item[1])
 
         if not self._nameCheck(validName):
             msg = "A scene view must be highlighted"
             cmds.warning(msg)
-            return -1, msg
+            raise Exception([360, msg])
+            # return -1, msg
 
         versionName = self.getSceneFile()
         relVersionName = os.path.relpath(versionName, start=openSceneInfo["projectPath"])
@@ -612,7 +555,6 @@ class MayaManager(RootManager):
         self._dumpJson(jsonInfo, openSceneInfo["jsonFile"])
         return 0, ""
 
-
     def loadBaseScene(self, force=False):
         """Loads the scene at cursor position"""
         logger.debug("Func: loadBaseScene")
@@ -656,7 +598,6 @@ class MayaManager(RootManager):
         else:
             cmds.warning("There is no reference set for this scene. Nothing changed")
 
-
     def createThumbnail(self, useCursorPosition=False, dbPath = None, versionInt = None):
         """
         Creates the thumbnail file.
@@ -694,7 +635,6 @@ class MayaManager(RootManager):
             return ""
         # return thumbPath
         return relThumbPath
-
 
     def replaceThumbnail(self, filePath=None ):
         """
@@ -1397,8 +1337,11 @@ class MainUI(QtWidgets.QMainWindow):
             bName = self.brandname_lineEdit.text()
             cName = self.client_lineEdit.text()
             pPath = self.manager.createNewProject(root, pName, bName, cName)
-            self.manager.setProject(pPath)
-            self.onProjectChange()
+            if pPath:
+                self.manager.setProject(pPath)
+            # self.onProjectChange()
+            # TODO : ref
+            self.initMainUI()
             self.createproject_Dialog.close()
 
         def resolve():
@@ -2137,17 +2080,17 @@ class MainUI(QtWidgets.QMainWindow):
 
     def addRemoveCategoryUI(self):
 
-        # admin_pswd = "682"
-        # passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query", "Enter Admin Password:",
-        #                                            QtWidgets.QLineEdit.Password)
-        # if ok:
-        #     if passw == admin_pswd:
-        #         pass
-        #     else:
-        #         self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
-        #         return
-        # else:
-        #     return
+        admin_pswd = "682"
+        passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query", "Enter Admin Password:",
+                                                   QtWidgets.QLineEdit.Password)
+        if ok:
+            if passw == admin_pswd:
+                pass
+            else:
+                self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
+                return
+        else:
+            return
 
         categories_dialog = QtWidgets.QDialog(parent=self)
         categories_dialog.setModal(True)
@@ -2202,34 +2145,14 @@ class MainUI(QtWidgets.QMainWindow):
 
         def onAddCategory():
             self.manager.addCategory(self.categoryName_lineEdit.text())
-            # ret, msg = self.manager.addUser(self.fullname_lineEdit.text(), self.initials_lineEdit.text())
-            # if ret == -1:
-            #     self.infoPop(textTitle="Cannot Add User", textHeader=msg)
-            #     return
-            # self.manager.currentUser = self.fullname_lineEdit.text()
-            # self._initUsers()
-            # userListSorted = sorted(self.manager._usersDict.keys())
 
-            # self.selectcategory_comboBox.clear()
-            # self.selectcategory_comboBox.addItem(self.categoryName_lineEdit.text())
-            # self._initCategories()
-            # self.initMainUI(newborn=True)
-
-            # self.category_tabWidget.clear()
 
             preTab = QtWidgets.QWidget()
             preTab.setObjectName(self.categoryName_lineEdit.text())
             self.category_tabWidget.addTab(preTab, self.categoryName_lineEdit.text())
             self.selectcategory_comboBox.addItem(self.categoryName_lineEdit.text())
-            # self.category_tabWidget.setCurrentIndex(self.manager.currentTabIndex)
 
-
-            # self.initMainUI(newborn=False)
-            # self.statusBar().showMessage("Status | User Added => %s" % self.fullname_lineEdit.text())
             self.categoryName_lineEdit.setText("")
-            # self.initials_lineEdit.setText("")
-
-            # pass
 
         def onRemoveCategory():
             self.manager.removeCategory(self.selectcategory_comboBox.currentText())
@@ -2238,15 +2161,6 @@ class MainUI(QtWidgets.QMainWindow):
 
             self._initCategories()
 
-            # self.manager.removeUser(self.selectuser_comboBox.currentText())
-            # self.manager.currentUser = self.manager._usersDict.keys()[0]
-            # self._initUsers()
-            # userListSorted = sorted(self.manager._usersDict.keys())
-            # self.selectuser_comboBox.clear()
-            # for num in range(len(userListSorted)):
-            #     self.selectuser_comboBox.addItem((userListSorted[num]))
-            #     self.selectuser_comboBox.setItemText(num, (userListSorted[num]))
-            # pass
 
         addnewcategory_pushButton.clicked.connect(onAddCategory)
         deletecategory_pushButton.clicked.connect(onRemoveCategory)
@@ -2478,58 +2392,33 @@ class MainUI(QtWidgets.QMainWindow):
             return
 
     def initMainUI(self, newborn=False):
-        print "here1"
-        self._initCategories()
-        print "here2"
 
         if not newborn:
             self.manager.init_paths()
             self.manager.init_database()
-            # self._initCategories()
 
-        print "here3"
+        self._initCategories()
 
         self.manager.getOpenSceneInfo()
 
-        print "here4"
-
         self._initOpenScene()
-        # openSceneInfo = self.manager.getOpenSceneInfo()
-        # if openSceneInfo: ## getSceneInfo returns None if there is no json database fil
-        #     self.baseScene_lineEdit.setText("%s ==> %s ==> %s" % (openSceneInfo["subProject"], openSceneInfo["category"], openSceneInfo["shotName"]))
-        #     self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: cyan")
-        # else:
-        #     self.baseScene_lineEdit.setText("Current Scene is not a Base Scene")
-        #     self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: yellow")
-        print "here5"
 
         # init project
         self.project_lineEdit.setText(self.manager.projectDir)
 
-        print "here6"
         # init subproject
-        # TODO : ref
+
         self._initSubProjects()
 
-        print "here7"
         # init base scenes
         self.populateBaseScenes()
 
-        print "here8"
-        # TODO : ref
+
         self._initUsers()
-        print "here9"
-        # # init users
-        # self.user_comboBox.clear()
-        # self.user_comboBox.addItems(self.manager.getUsers())
-        # index = self.user_comboBox.findText(self.manager.currentUser, QtCore.Qt.MatchFixedString)
-        # if index >= 0:
-        #     self.user_comboBox.setCurrentIndex(index)
 
         # disable the version related stuff
         self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
         self._vEnableDisable()
-        print "here10"
 
     def rcAction_scenes(self, command):
         if command == "importScene":
@@ -2636,8 +2525,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.populateBaseScenes()
 
     def onBaseSceneChange(self):
-        # TODO : ref
-        self.version_comboBox.signalsBlocked(True)
+        self.version_comboBox.blockSignals(True)
 
         #clear version_combobox
         self.version_comboBox.clear()
@@ -2656,13 +2544,12 @@ class MainUI(QtWidgets.QMainWindow):
         self.version_comboBox.setCurrentIndex(self.manager.currentVersionIndex-1)
         self.onVersionChange()
 
-        # TODO : ref
-        self.version_comboBox.signalsBlocked(False)
+        self.version_comboBox.blockSignals(False)
 
 
     def onVersionChange(self):
-        # TODO : ref
-        self.version_comboBox.signalsBlocked(True)
+
+        self.version_comboBox.blockSignals(True)
 
         if self.version_comboBox.currentIndex() is not -1:
             self.manager.currentVersionIndex = self.version_comboBox.currentIndex() + 1
@@ -2683,11 +2570,9 @@ class MainUI(QtWidgets.QMainWindow):
         else:
             self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
 
-        # TODO : ref
-        self.version_comboBox.signalsBlocked(False)
+        self.version_comboBox.blockSignals(False)
 
     def populateBaseScenes(self, deepCheck=False):
-        # TODO : ref
         self.scenes_listWidget.blockSignals(True)
 
         self.scenes_listWidget.clear()
@@ -2709,7 +2594,6 @@ class MainUI(QtWidgets.QMainWindow):
                 listItem.setForeground(color)
                 self.scenes_listWidget.addItem(listItem)
         self.scenes_listWidget.blockSignals(False)
-        # TODO : ref
 
     def onLoadScene(self):
         row = self.scenes_listWidget.currentRow()
@@ -2807,18 +2691,17 @@ class MainUI(QtWidgets.QMainWindow):
         IvMaya.MainUI().show()
 
     def _initSubProjects(self):
-        # TODO : ref
+
         self.subProject_comboBox.blockSignals(True)
 
         self.subProject_comboBox.clear()
         self.subProject_comboBox.addItems(self.manager.getSubProjects())
         self.subProject_comboBox.setCurrentIndex(self.manager.currentSubIndex)
 
-        # TODO : ref
         self.subProject_comboBox.blockSignals(False)
 
     def _initCategories(self):
-        # TODO : ref
+
         self.category_tabWidget.blockSignals(True)
         self.category_tabWidget.clear()
 
@@ -2828,19 +2711,18 @@ class MainUI(QtWidgets.QMainWindow):
             self.category_tabWidget.addTab(self.preTab, (i))
 
         self.category_tabWidget.setCurrentIndex(self.manager.currentTabIndex)
-        # TODO : ref
         self.category_tabWidget.blockSignals(False)
 
     def _initUsers(self):
         # init users
-        # TODO : ref
         self.user_comboBox.blockSignals(True)
+
         self.user_comboBox.clear()
         self.user_comboBox.addItems(self.manager.getUsers())
         index = self.user_comboBox.findText(self.manager.currentUser, QtCore.Qt.MatchFixedString)
         if index >= 0:
             self.user_comboBox.setCurrentIndex(index)
-        # TODO : ref
+
         self.user_comboBox.blockSignals(False)
 
     def _initOpenScene(self):
@@ -2862,9 +2744,6 @@ class MainUI(QtWidgets.QMainWindow):
             button.setEnabled(False)
 
     def _vEnableDisable(self):
-        # TODO : ref
-        self.load_radioButton.blockSignals(True)
-        self.reference_radioButton.blockSignals(True)
 
         if self.load_radioButton.isChecked() and self.manager.currentBaseSceneName:
             self.version_comboBox.setEnabled(True)
@@ -2881,10 +2760,6 @@ class MainUI(QtWidgets.QMainWindow):
             self.makeReference_pushButton.setEnabled(False)
             self.addNote_pushButton.setEnabled(False)
             self.version_label.setEnabled(False)
-
-        # TODO : ref
-        self.load_radioButton.blockSignals(False)
-        self.reference_radioButton.blockSignals(False)
 
     def infoPop(self, textTitle="info", textHeader="", textInfo="", type="I"):
         self.msg = QtWidgets.QMessageBox(parent=self)

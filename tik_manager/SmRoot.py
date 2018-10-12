@@ -14,7 +14,7 @@ import ctypes
 
 logging.basicConfig()
 logger = logging.getLogger('smRoot')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 
 
 
@@ -754,7 +754,7 @@ class RootManager(object):
             msg = "%s is not supported" %self.currentPlatform
             logger.warning(msg)
             raise Exception([210, msg])
-            return
+            # return
 
     # def scanBaseScenes(self, categoryAs=None, subProjectAs=None):
 
@@ -772,7 +772,7 @@ class RootManager(object):
             category = self._categories[self.currentTabIndex]
 
         if subProjectAs:
-            subProject = subProjectAs
+            subProject = self._subProjectsList[subProjectAs]
         else:
             subProject = self._subProjectsList[self.currentSubIndex]
 
@@ -1361,7 +1361,7 @@ class RootManager(object):
         if not os.path.isfile(self._pathsDict["pbSettingsFile"]):
             defaultSettings = {"Resolution": (1280, 720),  ## done
                                "Format": 'avi',  ## done
-                               "Codec": 'IYUV Codec',  ## done
+                               "Codec": 'IYUV codec',  ## done
                                "Percent": 100,  ## done
                                "Quality": 100,  ## done
                                "ShowFrameNumber": True,
