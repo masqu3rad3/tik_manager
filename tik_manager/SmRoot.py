@@ -105,7 +105,7 @@ class RootManager(object):
         # all paths in here must be absolute paths
         _softwarePathsDict = self.getSoftwarePaths()
 
-        self._pathsDict["userSettingsDir"] = os.path.join(os.path.expanduser("~"), _softwarePathsDict["userSettingsDir"])
+        self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(os.path.expanduser("~"), _softwarePathsDict["userSettingsDir"]))
         self._folderCheck(self._pathsDict["userSettingsDir"])
 
         self._pathsDict["bookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smBookmarks.json"))
@@ -130,7 +130,7 @@ class RootManager(object):
         self._folderCheck(self._pathsDict["scenesDir"])
 
         self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], "subPdata.json"))
-        self._pathsDict["categoriesFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], "categories.json"))
+        self._pathsDict["categoriesFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], _softwarePathsDict["categoriesFile"]))
 
         self._pathsDict["previewsDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "Playblasts")) # dont change
         self._folderCheck(self._pathsDict["previewsDir"])
@@ -769,10 +769,17 @@ class RootManager(object):
         if categoryAs:
             category = categoryAs
         else:
-            category = self._categories[self.currentTabIndex]
+            try:
+                category = self._categories[self.currentTabIndex]
+            except IndexError:
+                self.currentTabIndex = 0
+                category = self._categories[self.currentTabIndex]
 
         if subProjectAs:
-            subProject = self._subProjectsList[subProjectAs]
+            if type(subProjectAs) == int: # it index number of projects list is given, get the name from t
+                subProject = self._subProjectsList[subProjectAs]
+            else:
+                subProject = subProjectAs
         else:
             subProject = self._subProjectsList[self.currentSubIndex]
 
@@ -908,7 +915,6 @@ class RootManager(object):
         return None, None
 
     def addCategory(self, categoryName):
-        # TODO // TEST IT
         curCategories = self._loadCategories()
         if categoryName in curCategories:
             msg = "Duplicate Category names are not allowed"
@@ -924,6 +930,11 @@ class RootManager(object):
     def removeCategory(self, categoryName):
         # TODO // TEST IT
         curCategories = self._loadCategories()
+        if len(curCategories) == 1:
+            # Last category cannot be removed
+            msg = "Last Category cannot be removed"
+            logger.warning(msg)
+            raise Exception([360, msg])
 
         if categoryName in curCategories:
             # Check if category about to be removed is empty

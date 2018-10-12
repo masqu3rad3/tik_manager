@@ -108,6 +108,7 @@ class MayaManager(RootManager):
         return {"databaseDir": "mayaDB",
                 "scenesDir": "scenes",
                 "pbSettingsFile": "pbSettings.json",
+                "categoriesFile": "categoriesMaya.json",
                 "userSettingsDir": "SceneManager"}
 
     # def getProjectDir(self):
@@ -172,6 +173,7 @@ class MayaManager(RootManager):
 
     def setProject(self, path):
         """Sets the project"""
+        print "zero Point"
         logger.debug("Func: setProject")
 
         # totally software specific or N/A
@@ -180,6 +182,7 @@ class MayaManager(RootManager):
         mel.eval(command)
         # self.projectDir = cmds.workspace(q=1, rd=1)
         self.projectDir = self.getProjectDir()
+        print "here1"
 
     def saveCallback(self):
         """Callback function to update reference files when files saved regularly"""
@@ -828,19 +831,19 @@ class MainUI(QtWidgets.QMainWindow):
         self.main_horizontalLayout.setObjectName(("horizontalLayout"))
         self.main_horizontalLayout.setStretch(0, 1)
 
-        self.saveVersion_pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.saveVersion_pushButton.setMinimumSize(QtCore.QSize(150, 45))
-        self.saveVersion_pushButton.setMaximumSize(QtCore.QSize(150, 45))
-        self.saveVersion_pushButton.setText(("Save As Version"))
-        self.saveVersion_pushButton.setObjectName(("saveVersion_pushButton"))
-        self.main_horizontalLayout.addWidget(self.saveVersion_pushButton)
-
         self.saveBaseScene_pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.saveBaseScene_pushButton.setMinimumSize(QtCore.QSize(150, 45))
         self.saveBaseScene_pushButton.setMaximumSize(QtCore.QSize(150, 45))
         self.saveBaseScene_pushButton.setText(("Save Base Scene"))
         self.saveBaseScene_pushButton.setObjectName(("saveBaseScene_pushButton"))
         self.main_horizontalLayout.addWidget(self.saveBaseScene_pushButton)
+
+        self.saveVersion_pushButton = QtWidgets.QPushButton(self.centralwidget)
+        self.saveVersion_pushButton.setMinimumSize(QtCore.QSize(150, 45))
+        self.saveVersion_pushButton.setMaximumSize(QtCore.QSize(150, 45))
+        self.saveVersion_pushButton.setText(("Save As Version"))
+        self.saveVersion_pushButton.setObjectName(("saveVersion_pushButton"))
+        self.main_horizontalLayout.addWidget(self.saveVersion_pushButton)
 
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.main_horizontalLayout.addItem(spacerItem)
@@ -920,6 +923,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.baseScene_lineEdit.setText((""))
         self.baseScene_lineEdit.setPlaceholderText((""))
         self.baseScene_lineEdit.setObjectName(("baseScene_lineEdit"))
+        # TODO : ref
+        self.baseScene_lineEdit.setReadOnly(True)
         self.r1_gridLayout.addWidget(self.baseScene_lineEdit, 0, 1, 1, 1)
 
         self.project_label = QtWidgets.QLabel(self.centralwidget)
@@ -932,7 +937,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.project_lineEdit.setText((""))
         self.project_lineEdit.setPlaceholderText((""))
         self.project_lineEdit.setObjectName(("project_lineEdit"))
-        self.project_lineEdit.setReadOnly(True)
+        # TODO : ref
+        # self.project_lineEdit.setReadOnly(True)
         self.r1_gridLayout.addWidget(self.project_lineEdit, 1, 1, 1, 1)
 
         self.setProject_pushButton = QtWidgets.QPushButton(self.centralwidget)
@@ -948,12 +954,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.category_tabWidget.setElideMode(QtCore.Qt.ElideNone)
         self.category_tabWidget.setUsesScrollButtons(False)
         self.category_tabWidget.setObjectName(("tabWidget"))
-
-        # TODO : ref
-        # for i in self.manager._categories:
-        #     self.preTab = QtWidgets.QWidget()
-        #     self.preTab.setObjectName((i))
-        #     self.category_tabWidget.addTab(self.preTab, (i))
 
         self.category_tabWidget.setCurrentIndex(self.manager.currentTabIndex)
 
@@ -1059,6 +1059,11 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.main_gridLayout.addWidget(self.splitter, 3, 0, 1, 1)
 
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(1)
+        sizePolicy.setVerticalStretch(1)
+        self.splitter.setSizePolicy(sizePolicy)
+
         self.splitter.setStretchFactor(0, 1)
 
         self.menubar = QtWidgets.QMenuBar(self)
@@ -1080,7 +1085,7 @@ class MainUI(QtWidgets.QMainWindow):
         loadReferenceScene_fm = QtWidgets.QAction("&Load/Reference Scene", self)
 
         add_remove_users_fm = QtWidgets.QAction("&Add/Remove Users", self)
-        # TODO : ref
+
         add_remove_categories_fm = QtWidgets.QAction("&Add/Remove Categories", self)
         pb_settings_fm = QtWidgets.QAction("&Playblast Settings", self)
 
@@ -1104,7 +1109,6 @@ class MainUI(QtWidgets.QMainWindow):
         #settings
         file.addSeparator()
         file.addAction(add_remove_users_fm)
-        # TODO : ref
         file.addAction(add_remove_categories_fm)
         file.addAction(pb_settings_fm)
 
@@ -1182,7 +1186,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         add_remove_users_fm.triggered.connect(self.addRemoveUserUI)
         pb_settings_fm.triggered.connect(self.pbSettingsUI)
-        # TODO : ref
+
         add_remove_categories_fm.triggered.connect(self.addRemoveCategoryUI)
 
 
@@ -1200,6 +1204,8 @@ class MainUI(QtWidgets.QMainWindow):
 
 
         self.statusBar().showMessage("Status | Idle")
+
+        # self.project_lineEdit.
 
         self.load_radioButton.clicked.connect(self.onModeChange)
         self.reference_radioButton.clicked.connect(self.onModeChange)

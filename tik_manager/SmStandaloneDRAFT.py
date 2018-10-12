@@ -27,10 +27,6 @@ class StandaloneManager(RootManager)
     def __init__(self):
         super(StandaloneManager, self).__init__()
 
-    def getProjectDir(self):
-        """Overriden function"""
-
-    def initSoftwares(self):
 
     def getSoftwarePaths(self):
         """Overriden function"""
@@ -39,7 +35,16 @@ class StandaloneManager(RootManager)
                 "scenesDir": "scenes",
                 "pbSettingsFile": "pbSettings"}
 
+    def getProjectDir(self):
+        """Overriden function"""
+        pass
 
+    def getSceneFile(self):
+        """Overriden function"""
+        return ""
+
+    def initSoftwares(self):
+        pass
 
 class MainUI(QtGui.QMainWindow):
     def __init__(self):
@@ -312,6 +317,11 @@ class MainUI(QtGui.QMainWindow):
         self.gridLayout_6.addLayout(self.gridLayout_7, 0, 0, 1, 1)
 
         self.main_gridLayout.addWidget(self.splitter, 3, 0, 1, 1)
+
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(1)
+        sizePolicy.setVerticalStretch(1)
+        self.splitter.setSizePolicy(sizePolicy)
 
         self.splitter.setStretchFactor(0, 1)
 

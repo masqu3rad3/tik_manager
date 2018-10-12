@@ -95,6 +95,7 @@ class MaxManager(RootManager):
         return {"databaseDir": "maxDB",
                 "scenesDir": "scenes_3dsMax",
                 "pbSettingsFile": "pbSettings_3dsMax.json",
+                "categoriesFile": "categories3dsMax.json",
                 "userSettingsDir": "Documents\\SceneManager"} # this is just for 3ds max. expanduser"~" returns different in max
 
     def getProjectDir(self):
@@ -108,15 +109,18 @@ class MaxManager(RootManager):
             norm_p_path = os.path.normpath(pManager.GetProjectFolderDir())
             projectsDict = {"3dsMaxProject": norm_p_path}
             self._saveProjects(projectsDict)
-        else:
-            try:
-                norm_p_path = projectsDict["3dsMaxProject"]
-            except KeyError:
-                norm_p_path = os.path.normpath(pManager.GetProjectFolderDir())
-                projectsDict = {"3dsMaxProject": norm_p_path}
-                self._saveProjects(projectsDict)
+            return norm_p_path
 
-        return norm_p_path
+        # get the project defined in the database file
+        try:
+            norm_p_path = projectsDict["3dsMaxProject"]
+            return norm_p_path
+        except KeyError:
+            norm_p_path = os.path.normpath(pManager.GetProjectFolderDir())
+            projectsDict = {"3dsMaxProject": norm_p_path}
+            self._saveProjects(projectsDict)
+            return norm_p_path
+
 
     def getSceneFile(self):
         """Overriden function"""
@@ -128,6 +132,7 @@ class MaxManager(RootManager):
 
     def setProject(self, path):
         """Sets the project"""
+        print "zero Point"
         projectsDict = self._loadProjects()
         if not projectsDict:
             projectsDict = {"3dsMaxProject": path}
@@ -135,6 +140,7 @@ class MaxManager(RootManager):
             projectsDict["3dsMaxProject"] = path
         self._saveProjects(projectsDict)
         self.projectDir = path
+        print "here1"
 
         # pManager.SetProjectFolderDir(path)
         # self.projectDir = self.getProjectDir()
@@ -1006,6 +1012,11 @@ class MainUI(QtGui.QMainWindow):
         self.gridLayout_6.addLayout(self.gridLayout_7, 0, 0, 1, 1)
 
         self.main_gridLayout.addWidget(self.splitter, 3, 0, 1, 1)
+
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(1)
+        sizePolicy.setVerticalStretch(1)
+        self.splitter.setSizePolicy(sizePolicy)
 
         self.splitter.setStretchFactor(0, 1)
 
@@ -2317,7 +2328,7 @@ class MainUI(QtGui.QMainWindow):
 
     def initMainUI(self, newborn=False):
 
-        if newborn:
+        if not newborn:
             self.manager.init_paths()
             self.manager.init_database()
 
