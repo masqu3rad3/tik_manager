@@ -109,7 +109,7 @@ class MayaManager(RootManager):
                 "scenesDir": "scenes",
                 "pbSettingsFile": "pbSettings.json",
                 "categoriesFile": "categoriesMaya.json",
-                "userSettingsDir": "SceneManager"}
+                "userSettingsDir": "SceneManager\\Maya"}
 
     # def getProjectDir(self):
     #     """Overriden function"""
@@ -767,6 +767,76 @@ class MayaManager(RootManager):
         for x in callbackIDList:
             if cmds.scriptJob(ex=x):
                 cmds.scriptJob(kill=x)
+
+    def backwardcompatibility(self):
+        """
+        This function checks for the old database structure and creates a copy with the new structure
+        :return: None
+        """
+        logger.debug("Func: backwardcompatibility")
+        def recursive_overwrite(src, dest, ignore=None):
+            if os.path.isdir(src):
+                if not os.path.isdir(dest):
+                    os.makedirs(dest)
+                files = os.listdir(src)
+                if ignore is not None:
+                    ignored = ignore(src, files)
+                else:
+                    ignored = set()
+                for f in files:
+                    if f not in ignored:
+                        recursive_overwrite(os.path.join(src, f),
+                                            os.path.join(dest, f),
+                                            ignore)
+            else:
+                shutil.copyfile(src, dest)
+
+        old_dbDir = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "data", "SMdata"))
+        bck_dbDir = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "data", "SMdata_oldVersion"))
+        new_dbDir = self._pathsDict["databaseDir"]
+        if os.path.isdir(bck_dbDir):
+            logger.info("Old database backuped before. Returning without doing any modification")
+            return
+        if os.path.isdir(old_dbDir):
+
+            recursive_overwrite(old_dbDir, new_dbDir)
+            logger.info("All old database contents copied to the new structure folder => %s" % self._pathsDict["databaseDir"])
+
+            oldCategories = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
+            for category in oldCategories:
+                categoryDBpath = os.path.normpath(os.path.join(new_dbDir, category))
+                if os.path.isdir(categoryDBpath):
+                    jsonFiles = [y for x in os.walk(categoryDBpath) for y in glob(os.path.join(x[0], '*.json'))]
+                    for file in jsonFiles:
+                        fileData = self._loadJson(file)
+                        # figure out the subproject
+                        path = fileData["Path"]
+                        name = fileData["Name"]
+                        cate = fileData["Category"]
+                        parts = path.split("\\")
+                        diff = list(set(parts) - set([name, cate, "scenes"]))
+                        if diff:
+                            fileData["SubProject"] = diff[0]
+                        else:
+                            fileData["SubProject"] = "None"
+                        for vers in fileData["Versions"]:
+
+                            #if there is no thumbnail column, skip
+                            try:
+                                vers[5] = vers[5].replace("data\\SMdata", "smDatabase\\mayaDB") # relative thumbnail path
+                            except IndexError:
+                                vers.append("") ## create the fifth column
+
+                            for key in vers[4].keys(): # Playblast dictionary
+                                vers[4][key] = vers[4][key].replace("data\\SMdata", "smDatabase\\mayaDB")
+                        self._dumpJson(fileData, file)
+            logger.info("Database preview and thumbnail paths are fixed")
+            try:
+                os.rename(old_dbDir, bck_dbDir)
+                logger.info("Old database folder renamed to 'SMdata_oldVersion'")
+            except WindowsError:
+                logger.warning("Cannot rename the old database folder because of windows bullshit")
+
 
 
 class MainUI(QtWidgets.QMainWindow):

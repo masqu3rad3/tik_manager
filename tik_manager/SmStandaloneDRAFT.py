@@ -28,12 +28,18 @@ class StandaloneManager(RootManager)
         super(StandaloneManager, self).__init__()
 
 
+    def noname(self):
+        self.userSettingsDir = os.path.normpath(os.path.join(os.path.expanduser("~"), "SceneManager", "Standalone"))
+        self._folderCheck(self.userSettingsDir)
+
     def getSoftwarePaths(self):
         """Overriden function"""
         # To tell the base class maya specific path names
-        return {"databaseDir": "mayaDB",
-                "scenesDir": "scenes",
-                "pbSettingsFile": "pbSettings"}
+        return {"databaseDir": "maxDB",
+                "scenesDir": "scenes_3dsMax",
+                "pbSettingsFile": "pbSettings_3dsMax.json",
+                "categoriesFile": "categories3dsMax.json",
+                "userSettingsDir": "Documents\\SceneManager\\Standalone"} # this is just for 3ds max. expanduser"~" returns different in max
 
     def getProjectDir(self):
         """Overriden function"""
@@ -44,6 +50,7 @@ class StandaloneManager(RootManager)
         return ""
 
     def initSoftwares(self):
+        # We need to get which softwares are used in the current project
         pass
 
 class MainUI(QtGui.QMainWindow):
