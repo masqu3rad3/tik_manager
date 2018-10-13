@@ -23,14 +23,31 @@ logging.basicConfig()
 logger = logging.getLogger('smStandalone')
 logger.setLevel(logging.DEBUG)
 
-class StandaloneManager(RootManager)
+class StandaloneManager(RootManager):
     def __init__(self):
         super(StandaloneManager, self).__init__()
 
+        self.swDict = {"Maya": "mayaDB",
+                       "3dsMax": "maxDB"}
 
-    def noname(self):
-        self.userSettingsDir = os.path.normpath(os.path.join(os.path.expanduser("~"), "SceneManager", "Standalone"))
+    def initializer(self):
+        # get the project folder
+        homeDir = os.path.expanduser("~")
+        self.userSettingsDir = os.path.normpath(os.path.join(homeDir, "SceneManager", "Standalone"))
         self._folderCheck(self.userSettingsDir)
+
+        # get the projects file for standalone manager
+        self.projectsFile = os.path.join(self.userSettingsDir, "smProjects.json")
+        if os.path.isfile(self.projectsFile):
+            self.projectsData = self._loadJson(self.projectsFile)
+        else:
+            self.projectsData = {"project":homeDir}
+            self._dumpJson(self.projectsData, self.projectsFile)
+
+        self.currentProject = self.projectsData["project"]
+        # search for the used Softwares
+
+
 
     def getSoftwarePaths(self):
         """Overriden function"""
@@ -39,7 +56,7 @@ class StandaloneManager(RootManager)
                 "scenesDir": "scenes_3dsMax",
                 "pbSettingsFile": "pbSettings_3dsMax.json",
                 "categoriesFile": "categories3dsMax.json",
-                "userSettingsDir": "Documents\\SceneManager\\Standalone"} # this is just for 3ds max. expanduser"~" returns different in max
+                "userSettingsDir": "Documents\\SceneManager\\Standalone"}
 
     def getProjectDir(self):
         """Overriden function"""
@@ -51,6 +68,11 @@ class StandaloneManager(RootManager)
 
     def initSoftwares(self):
         # We need to get which softwares are used in the current project
+        dbFolder = os.path.join(self.currentProject, "smDatabase")
+        if not os.path.isdir(dbFolder):
+            return #this is not a sceneManager project
+
+
         pass
 
 class MainUI(QtGui.QMainWindow):
