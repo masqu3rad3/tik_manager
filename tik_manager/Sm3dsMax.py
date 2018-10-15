@@ -132,7 +132,6 @@ class MaxManager(RootManager):
 
     def setProject(self, path):
         """Sets the project"""
-        print "zero Point"
         projectsDict = self._loadProjects()
         if not projectsDict:
             projectsDict = {"3dsMaxProject": path}
@@ -140,7 +139,6 @@ class MaxManager(RootManager):
             projectsDict["3dsMaxProject"] = path
         self._saveProjects(projectsDict)
         self.projectDir = path
-        print "here1"
 
         # pManager.SetProjectFolderDir(path)
         # self.projectDir = self.getProjectDir()

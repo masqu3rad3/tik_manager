@@ -173,7 +173,6 @@ class MayaManager(RootManager):
 
     def setProject(self, path):
         """Sets the project"""
-        print "zero Point"
         logger.debug("Func: setProject")
 
         # totally software specific or N/A
@@ -182,7 +181,6 @@ class MayaManager(RootManager):
         mel.eval(command)
         # self.projectDir = cmds.workspace(q=1, rd=1)
         self.projectDir = self.getProjectDir()
-        print "here1"
 
     def saveCallback(self):
         """Callback function to update reference files when files saved regularly"""
