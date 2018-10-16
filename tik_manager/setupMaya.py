@@ -25,8 +25,8 @@ else:
 ## add Manager button:
 
 cmd = """
-from tik_manager import manager
-tik_sceneManager = manager.MainUI(scriptJob="tik_sceneManager")
+from tik_manager import SmMaya
+tik_sceneManager = SmMaya.MainUI(scriptJob="tik_sceneManager")
 tik_sceneManager.show()
 """
 icon = os.path.join(iconsLocation, "manager_ICON.png")
@@ -37,8 +37,8 @@ addButton("SceneManager", command=cmd, icon=icon )
 
 ## add saveVersion button
 cmd = """
-from tik_manager import manager
-manager.MainUI().saveAsVersionDialog()
+from tik_manager import SmMaya
+SmMaya.MainUI().saveAsVersionDialog()
 """
 icon = os.path.join(iconsLocation, "saveVersion_ICON.png")
 if not os.path.isfile(icon):
@@ -48,8 +48,8 @@ addButton("saveVersion", command=cmd, icon=icon )
 
 ## add imageManager button
 cmd = """
-from tik_manager import imageManager
-tik_imageManager = imageManager.MainUI(scriptJob="tik_imageManager")
+from tik_manager import ImMaya
+tik_imageManager = ImMaya.MainUI(scriptJob="tik_imageManager")
 """
 icon = os.path.join(iconsLocation, "imageManager_ICON.png")
 if not os.path.isfile(icon):
@@ -59,14 +59,15 @@ addButton("imageManager", command=cmd, icon=icon )
 
 ## add imageViewer button
 cmd = """
-from tik_manager import imageViewer
-tik_imageViewer = imageViewer.MainUI().show()
+from tik_manager import IvMaya
+tik_imageViewer = IvMaya.MainUI().show()
 """
 icon = os.path.join(iconsLocation, "imageViewer_ICON.png")
 if not os.path.isfile(icon):
     mc.warning("Icon cannot found - %s" %icon)
     icon = None
 addButton("imageViewer", command=cmd, icon=icon )
+
 
 
 # User Setup
@@ -84,9 +85,9 @@ addButton("imageViewer", command=cmd, icon=icon )
 #     sys.path.append(targetFolder)
 #
 # def smUpdate(*args):
-#     import sceneManager
-#     m = sceneManager.TikManager()
-#     m.regularSaveUpdate()
+#     from tik_manager import SmMaya
+#     m = SmMaya.MayaManager()
+#     m.saveCallback()
 #
 #
 # maya.utils.executeDeferred('initFolder("M:\\Projects\\__database\\scripts")')
