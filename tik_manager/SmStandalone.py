@@ -1,4 +1,3 @@
-import os
 import SmRoot
 reload(SmRoot)
 from SmRoot import RootManager
@@ -27,6 +26,44 @@ SM_Version = "Scene Manager Standalone v%s" %_version.__version__
 logging.basicConfig()
 logger = logging.getLogger('smStandalone')
 logger.setLevel(logging.DEBUG)
+
+def excepthook(excType, excValue, tracebackobj):
+    """Overrides sys.excepthook for gui feedback"""
+
+    errorCodeDict = {200: "Corrupted File",
+                     201: "Missing File",
+                     202: "Read/Write Error",
+                     203: "Delete Error",
+                     210: "OS Not Supported",
+                     101: "Out of range",
+                     102: "Missing Override",
+                     340: "Naming Error",
+                     341: "Mandatory fields are not filled",
+                     360: "Action not permitted"}
+
+
+    errorCode = excValue[0][0]
+    errorMsg = excValue[0][1]
+
+    if errorCode == 200: # question box for this
+        q = QtGui.QMessageBox()
+        q.setStandardButtons(QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+        q.setText(errorMsg)
+        q.setWindowTitle(errorCodeDict[errorCode])
+        ret = q.exec_()
+        if ret == QtGui.QMessageBox.Yes:
+            os.startfile(excValue[0][2])
+        elif ret == QtGui.QMessageBox.No:
+            pass
+            # print "no"
+
+    else:
+        errorbox = QtGui.QMessageBox()
+        errorbox.setText(errorMsg)
+        errorbox.setWindowTitle(errorCodeDict[errorCode])
+        errorbox.exec_()
+
+sys.excepthook = excepthook
 
 class SwViewer(RootManager):
     def __init__(self, swDict, projectDir):
@@ -98,6 +135,8 @@ class StandaloneManager(RootManager):
 
         self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
 
+
+
         self._pathsDict["generalSettingsDir"] = os.path.dirname(os.path.abspath(__file__))
         self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerUsers.json"))
 
@@ -142,6 +181,9 @@ class StandaloneManager(RootManager):
             projectsDict["StandaloneProject"] = path
         self._saveProjects(projectsDict)
         self.projectDir = path
+        self.init_paths()
+        self.init_database()
+        self.initSoftwares()
 
 
     def initSoftwares(self):
@@ -158,11 +200,48 @@ class StandaloneManager(RootManager):
         return self.swList
 
 
+    @property
+    def currentSwIndex(self):
+        """returns current sofware"""
+        return self._currentsDict["currentSwIndex"]
 
-    # @property
-    # def currentSoftware(self):
-    #     """returns current sofware"""
-    #     pass
+    @currentSwIndex.setter
+    def currentSwIndex(self, indexData):
+        """Moves the cursor to the given software index"""
+        if not 0 <= indexData < len(self.swList):
+            msg="Software index is out of range!"
+            raise Exception([101, msg])
+        if indexData == self.currentSwIndex:
+            self.swList[indexData].cursorInfo()
+            return
+        self._setCurrents("currentSwIndex", indexData)
+        # self.swList[indexData].scanBaseScenes()
+        # self.swList[indexData].currentBaseSceneName = ""
+        # self.swList[indexData]._currentPreviewCamera = ""
+        # self.swList[indexData].cursorInfo()
+        pass
+
+    # def getSoftwareList(self):
+    #     return self.swList
+
+    def _loadUserPrefs(self):
+        """OVERRIDEN FUNCTION Load Last CategoryIndex, SubProject Index,
+        User name and Access mode from file as dictionary"""
+        print "currentsFile", self._pathsDict["currentsFile"]
+        if os.path.isfile(self._pathsDict["currentsFile"]):
+            settingsData = self._loadJson(self._pathsDict["currentsFile"])
+            if settingsData == -2:
+                return -2
+        else:
+            settingsData = {"currentTabIndex": 0,
+                            "currentSubIndex": 0,
+                            "currentUser": self._usersDict.keys()[0],
+                            "currentSwIndex": -1} # added multi software switch
+            self._dumpJson(settingsData, self._pathsDict["currentsFile"])
+        return settingsData
+
+
+
 
     # def getAllBaseScenes(self):
     #     """Collects all base scenes for each category at cursor category and subproject"""
@@ -204,7 +283,7 @@ class MainUI(QtGui.QMainWindow):
         self.setWindowTitle(SM_Version)
         self.centralwidget = QtGui.QWidget(self)
 
-        self.buildUI(self)
+        self.buildUI()
 
         self.setCentralWidget(self.centralwidget)
 
@@ -237,6 +316,17 @@ class MainUI(QtGui.QMainWindow):
         self.r2_gridLayout = QtGui.QGridLayout()
         self.r2_gridLayout.setObjectName(("r2_gridLayout"))
         self.r2_gridLayout.setColumnStretch(1, 1)
+
+        self.software_label = QtGui.QLabel(self.centralwidget)
+        self.software_label.setText("Software:")
+        self.software_label.setObjectName(("software_label"))
+        self.r2_gridLayout.addWidget(self.software_label, 0, 0, 1, 1)
+
+        self.software_comboBox = QtGui.QComboBox(self.centralwidget)
+        self.software_comboBox.setMinimumSize(QtCore.QSize(150, 30))
+        self.software_comboBox.setMaximumSize(QtCore.QSize(16777215, 30))
+        self.software_comboBox.setObjectName(("software_comboBox"))
+        self.r2_gridLayout.addWidget(self.software_comboBox, 0, 1, 1, 1)
 
         self.subProject_label = QtGui.QLabel(self.centralwidget)
         self.subProject_label.setText(("Sub-Project:"))
@@ -300,11 +390,6 @@ class MainUI(QtGui.QMainWindow):
         self.category_tabWidget.setUsesScrollButtons(False)
         self.category_tabWidget.setObjectName(("tabWidget"))
 
-        # for i in self.manager._categories:
-        #     self.preTab = QtGui.QWidget()
-        #     self.preTab.setObjectName((i))
-        #     self.category_tabWidget.addTab(self.preTab, (i))
-
         self.category_tabWidget.setCurrentIndex(self.masterManager.currentTabIndex)
 
         self.main_gridLayout.addWidget(self.category_tabWidget, 2, 0, 1, 1)
@@ -316,6 +401,7 @@ class MainUI(QtGui.QMainWindow):
 
         self.scenes_listWidget = QtGui.QListWidget(self.splitter)
         self.scenes_listWidget.setObjectName(("listWidget"))
+        # self.scenes_listWidget.setStyleSheet("background-color: rgb(80,80,80); color: white")
 
         self.frame = QtGui.QFrame(self.splitter)
         self.frame.setFrameShape(QtGui.QFrame.StyledPanel)
@@ -439,6 +525,9 @@ class MainUI(QtGui.QMainWindow):
         projectReport_fm = QtGui.QAction("&Project Report", self)
         checkReferences_fm = QtGui.QAction("&Check References", self)
 
+        #save
+        file.addAction(createProject_fm)
+
         #load
         file.addSeparator()
         file.addAction(loadReferenceScene_fm)
@@ -510,7 +599,7 @@ class MainUI(QtGui.QMainWindow):
         # ------------------
 
         createProject_fm.triggered.connect(self.createProjectUI)
-
+        #
         add_remove_users_fm.triggered.connect(self.addRemoveUserUI)
         add_remove_categories_fm.triggered.connect(self.addRemoveCategoryUI)
 
@@ -523,7 +612,7 @@ class MainUI(QtGui.QMainWindow):
 
         self.statusBar().showMessage("Status | Idle")
 
-        self.load_radioButton.clicked.connect(self.onModeChange)
+
 
         self.category_tabWidget.currentChanged.connect(self.onCategoryChange)
 
@@ -548,369 +637,9 @@ class MainUI(QtGui.QMainWindow):
 
         self.addNote_pushButton.clicked.connect(self.addNoteDialog)
 
-    # def setupUi(self, sceneManager_MainWindow):
-    #     sceneManager_MainWindow.setObjectName(("sceneManager_MainWindow"))
-    #     sceneManager_MainWindow.setCentralWidget(self.centralwidget)
-    #
-    #     self.centralwidget = QtGui.QWidget(sceneManager_MainWindow)
-    #     self.centralwidget.setObjectName(("centralwidget"))
-    #
-    #     self.main_gridLayout = QtGui.QGridLayout(self.centralwidget)
-    #     self.main_gridLayout.setObjectName(("main_gridLayout"))
-    #
-    #     self.main_horizontalLayout = QtGui.QHBoxLayout()
-    #     self.main_horizontalLayout.setContentsMargins(-1, -1, 0, -1)
-    #     self.main_horizontalLayout.setSpacing(6)
-    #     self.main_horizontalLayout.setObjectName(("horizontalLayout"))
-    #     self.main_horizontalLayout.setStretch(0, 1)
-    #
-    #     # self.saveVersion_pushButton = QtGui.QPushButton(self.centralwidget)
-    #     # self.saveVersion_pushButton.setMinimumSize(QtCore.QSize(150, 45))
-    #     # self.saveVersion_pushButton.setMaximumSize(QtCore.QSize(150, 45))
-    #     # self.saveVersion_pushButton.setText(("Save As Version"))
-    #     # self.saveVersion_pushButton.setObjectName(("saveVersion_pushButton"))
-    #     # self.main_horizontalLayout.addWidget(self.saveVersion_pushButton)
-    #     #
-    #     # self.saveBaseScene_pushButton = QtGui.QPushButton(self.centralwidget)
-    #     # self.saveBaseScene_pushButton.setMinimumSize(QtCore.QSize(150, 45))
-    #     # self.saveBaseScene_pushButton.setMaximumSize(QtCore.QSize(150, 45))
-    #     # self.saveBaseScene_pushButton.setText(("Save Base Scene"))
-    #     # self.saveBaseScene_pushButton.setObjectName(("saveBaseScene_pushButton"))
-    #     # self.main_horizontalLayout.addWidget(self.saveBaseScene_pushButton)
-    #
-    #     spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-    #     self.main_horizontalLayout.addItem(spacerItem)
-    #
-    #     self.loadScene_pushButton = QtGui.QPushButton(self.centralwidget)
-    #     self.loadScene_pushButton.setMinimumSize(QtCore.QSize(150, 45))
-    #     self.loadScene_pushButton.setMaximumSize(QtCore.QSize(150, 45))
-    #     self.loadScene_pushButton.setLayoutDirection(QtCore.Qt.LeftToRight)
-    #     self.loadScene_pushButton.setText(("Load Scene"))
-    #     self.loadScene_pushButton.setObjectName(("loadScene_pushButton"))
-    #     self.main_horizontalLayout.addWidget(self.loadScene_pushButton)
-    #
-    #     self.main_gridLayout.addLayout(self.main_horizontalLayout, 4, 0, 1, 1)
-    #
-    #     self.r2_gridLayout = QtGui.QGridLayout()
-    #     self.r2_gridLayout.setObjectName(("r2_gridLayout"))
-    #     self.r2_gridLayout.setColumnStretch(1, 1)
-    #
-    #     # self.load_radioButton = QtGui.QRadioButton(self.centralwidget)
-    #     # self.load_radioButton.setText(("Load Mode"))
-    #     # self.load_radioButton.setChecked(False)
-    #     # self.load_radioButton.setObjectName(("load_radioButton"))
-    #     # self.r2_gridLayout.addWidget(self.load_radioButton, 0, 0, 1, 1)
-    #
-    #     self.subProject_label = QtGui.QLabel(self.centralwidget)
-    #     self.subProject_label.setText(("Sub-Project:"))
-    #     self.subProject_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-    #     self.subProject_label.setObjectName(("subProject_label"))
-    #     self.r2_gridLayout.addWidget(self.subProject_label, 0, 2, 1, 1)
-    #
-    #     self.subProject_comboBox = QtGui.QComboBox(self.centralwidget)
-    #     self.subProject_comboBox.setMinimumSize(QtCore.QSize(150, 30))
-    #     self.subProject_comboBox.setMaximumSize(QtCore.QSize(16777215, 30))
-    #     self.subProject_comboBox.setObjectName(("subProject_comboBox"))
-    #     self.r2_gridLayout.addWidget(self.subProject_comboBox, 0, 3, 1, 1)
-    #
-    #     # self.reference_radioButton = QtGui.QRadioButton(self.centralwidget)
-    #     # self.reference_radioButton.setText(("Reference Mode"))
-    #     # self.reference_radioButton.setChecked(True)
-    #     # self.reference_radioButton.setObjectName(("reference_radioButton"))
-    #     # self.r2_gridLayout.addWidget(self.reference_radioButton, 0, 1, 1, 1)
-    #
-    #     self.addSubProject_pushButton = QtGui.QPushButton(self.centralwidget)
-    #     self.addSubProject_pushButton.setMinimumSize(QtCore.QSize(30, 30))
-    #     self.addSubProject_pushButton.setMaximumSize(QtCore.QSize(30, 30))
-    #     self.addSubProject_pushButton.setText(("+"))
-    #     self.addSubProject_pushButton.setObjectName(("addSubProject_pushButton"))
-    #     self.r2_gridLayout.addWidget(self.addSubProject_pushButton, 0, 4, 1, 1)
-    #
-    #     self.user_label = QtGui.QLabel(self.centralwidget)
-    #     self.user_label.setText(("User:"))
-    #     self.user_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-    #     self.user_label.setObjectName(("user_label"))
-    #     self.r2_gridLayout.addWidget(self.user_label, 0, 5, 1, 1)
-    #
-    #     self.user_comboBox = QtGui.QComboBox(self.centralwidget)
-    #     self.user_comboBox.setMinimumSize(QtCore.QSize(130, 30))
-    #     self.user_comboBox.setMaximumSize(QtCore.QSize(16777215, 30))
-    #     self.user_comboBox.setObjectName(("user_comboBox"))
-    #     self.r2_gridLayout.addWidget(self.user_comboBox, 0, 6, 1, 1)
-    #
-    #     self.main_gridLayout.addLayout(self.r2_gridLayout, 1, 0, 1, 1)
-    #     self.r1_gridLayout = QtGui.QGridLayout()
-    #     self.r1_gridLayout.setObjectName(("gridLayout"))
-    #
-    #     self.baseScene_label = QtGui.QLabel(self.centralwidget)
-    #     self.baseScene_label.setLayoutDirection(QtCore.Qt.LeftToRight)
-    #     self.baseScene_label.setText(("Base Scene:"))
-    #     self.baseScene_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-    #     self.baseScene_label.setObjectName(("baseScene_label"))
-    #     self.r1_gridLayout.addWidget(self.baseScene_label, 0, 0, 1, 1)
-    #
-    #     self.baseScene_lineEdit = QtGui.QLineEdit(self.centralwidget)
-    #     self.baseScene_lineEdit.setText((""))
-    #     self.baseScene_lineEdit.setPlaceholderText((""))
-    #     self.baseScene_lineEdit.setObjectName(("baseScene_lineEdit"))
-    #     self.r1_gridLayout.addWidget(self.baseScene_lineEdit, 0, 1, 1, 1)
-    #
-    #     self.project_label = QtGui.QLabel(self.centralwidget)
-    #     self.project_label.setText(("Project:"))
-    #     self.project_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-    #     self.project_label.setObjectName(("project_label"))
-    #     self.r1_gridLayout.addWidget(self.project_label, 1, 0, 1, 1)
-    #
-    #     self.project_lineEdit = QtGui.QLineEdit(self.centralwidget)
-    #     self.project_lineEdit.setText((""))
-    #     self.project_lineEdit.setPlaceholderText((""))
-    #     self.project_lineEdit.setObjectName(("project_lineEdit"))
-    #     self.r1_gridLayout.addWidget(self.project_lineEdit, 1, 1, 1, 1)
-    #
-    #     self.setProject_pushButton = QtGui.QPushButton(self.centralwidget)
-    #     self.setProject_pushButton.setText(("SET"))
-    #     self.setProject_pushButton.setObjectName(("setProject_pushButton"))
-    #     self.r1_gridLayout.addWidget(self.setProject_pushButton, 1, 2, 1, 1)
-    #
-    #     self.main_gridLayout.addLayout(self.r1_gridLayout, 0, 0, 1, 1)
-    #
-    #     self.category_tabWidget = QtGui.QTabWidget(self.centralwidget)
-    #     self.category_tabWidget.setMaximumSize(QtCore.QSize(16777215, 22))
-    #     self.category_tabWidget.setTabPosition(QtGui.QTabWidget.North)
-    #     self.category_tabWidget.setElideMode(QtCore.Qt.ElideNone)
-    #     self.category_tabWidget.setUsesScrollButtons(False)
-    #     self.category_tabWidget.setObjectName(("tabWidget"))
-    #
-    #     for i in self.tempCategories:
-    #         self.preTab = QtGui.QWidget()
-    #         self.preTab.setObjectName((i))
-    #         self.category_tabWidget.addTab(self.preTab, (i))
-    #
-    #     self.main_gridLayout.addWidget(self.category_tabWidget, 2, 0, 1, 1)
-    #
-    #     self.splitter = QtGui.QSplitter(self.centralwidget)
-    #     self.splitter.setOrientation(QtCore.Qt.Horizontal)
-    #     self.splitter.setObjectName(("splitter"))
-    #
-    #
-    #     self.scenes_listWidget = QtGui.QListWidget(self.splitter)
-    #     self.scenes_listWidget.setObjectName(("listWidget"))
-    #
-    #     self.frame = QtGui.QFrame(self.splitter)
-    #     self.frame.setFrameShape(QtGui.QFrame.StyledPanel)
-    #     self.frame.setFrameShadow(QtGui.QFrame.Raised)
-    #     self.frame.setObjectName(("frame"))
-    #
-    #     self.gridLayout_6 = QtGui.QGridLayout(self.frame)
-    #     self.gridLayout_6.setContentsMargins(-1, -1, 0, 0)
-    #     self.gridLayout_6.setObjectName(("gridLayout_6"))
-    #
-    #     self.verticalLayout = QtGui.QVBoxLayout()
-    #     self.verticalLayout.setObjectName(("verticalLayout"))
-    #
-    #     self.versionNotes_label = QtGui.QLabel(self.frame)
-    #     self.versionNotes_label.setLayoutDirection(QtCore.Qt.LeftToRight)
-    #     self.versionNotes_label.setText(("Version Notes:"))
-    #     self.versionNotes_label.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
-    #     self.versionNotes_label.setObjectName(("version_label_2"))
-    #     self.verticalLayout.addWidget(self.versionNotes_label)
-    #
-    #     self.notes_textEdit = QtGui.QTextEdit(self.frame)
-    #     self.notes_textEdit.setObjectName(("textEdit"))
-    #     self.verticalLayout.addWidget(self.notes_textEdit)
-    #
-    #     # testFile = os.path.normpath("D:\\PROJECT_AND_ARGE\\testo_testo_testo_180715\\DSC_2179.JPG")
-    #     testFile = os.path.normpath("C:\\a.JPG")
-    #     self.tPixmap = QtGui.QPixmap((testFile))
-    #     # os.startfile(testFile)
-    #     self.thumbnail_label = ImageWidget(self.frame)
-    #     # self.label = QtGui.QLabel(self.frame)
-    #     self.thumbnail_label.setPixmap(self.tPixmap)
-    #
-    #     # self.label.setPixmap(self.tPixmap.scaledToWidth(self.label.width()))
-    #     # sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-    #     # sizePolicy.setHorizontalStretch(0)
-    #     # sizePolicy.setVerticalStretch(0)
-    #     # sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
-    #     # sizePolicy.setHeightForWidth(True)
-    #     # self.label.setSizePolicy(sizePolicy)
-    #
-    #     self.thumbnail_label.setMinimumSize(QtCore.QSize(221, 124))
-    #     # self.label.setMaximumSize(QtCore.QSize(884, 496))
-    #     # self.label.setSizeIncrement(QtCore.QSize(1, 1))
-    #     # self.label.setBaseSize(QtCore.QSize(0, 0))
-    #     # self.label.setText(("test"))
-    #     self.thumbnail_label.setFrameShape(QtGui.QFrame.Box)
-    #     self.thumbnail_label.setScaledContents(True)
-    #     self.thumbnail_label.setAlignment(QtCore.Qt.AlignCenter)
-    #     self.thumbnail_label.setObjectName(("label"))
-    #     self.verticalLayout.addWidget(self.thumbnail_label)
-    #
-    #     self.gridLayout_6.addLayout(self.verticalLayout, 3, 0, 1, 1)
-    #
-    #     self.gridLayout_7 = QtGui.QGridLayout()
-    #     self.gridLayout_7.setContentsMargins(-1, -1, 10, 10)
-    #     self.gridLayout_7.setObjectName(("gridLayout_7"))
-    #
-    #     self.showPreview_pushButton = QtGui.QPushButton(self.frame)
-    #     self.showPreview_pushButton.setMinimumSize(QtCore.QSize(100, 30))
-    #     self.showPreview_pushButton.setMaximumSize(QtCore.QSize(150, 30))
-    #     self.showPreview_pushButton.setText(("Show Preview"))
-    #     self.showPreview_pushButton.setObjectName(("setProject_pushButton_5"))
-    #     self.gridLayout_7.addWidget(self.showPreview_pushButton, 0, 3, 1, 1)
-    #
-    #     self.horizontalLayout_4 = QtGui.QHBoxLayout()
-    #     # self.horizontalLayout_4.setMargin(0)
-    #     self.horizontalLayout_4.setSpacing(1)
-    #     self.horizontalLayout_4.setObjectName(("horizontalLayout_4"))
-    #
-    #     self.version_label = QtGui.QLabel(self.frame)
-    #     self.version_label.setMinimumSize(QtCore.QSize(60, 30))
-    #     self.version_label.setMaximumSize(QtCore.QSize(60, 30))
-    #     self.version_label.setFrameShape(QtGui.QFrame.Box)
-    #     self.version_label.setText(("Version:"))
-    #     self.version_label.setAlignment(QtCore.Qt.AlignCenter)
-    #     self.version_label.setObjectName(("version_label"))
-    #     self.horizontalLayout_4.addWidget(self.version_label)
-    #
-    #     self.version_comboBox = QtGui.QComboBox(self.frame)
-    #     self.version_comboBox.setMinimumSize(QtCore.QSize(60, 30))
-    #     self.version_comboBox.setMaximumSize(QtCore.QSize(100, 30))
-    #     self.version_comboBox.setObjectName(("version_comboBox"))
-    #     self.horizontalLayout_4.addWidget(self.version_comboBox)
-    #
-    #     self.gridLayout_7.addLayout(self.horizontalLayout_4, 0, 0, 1, 1)
-    #
-    #     self.makeReference_pushButton = QtGui.QPushButton(self.frame)
-    #     self.makeReference_pushButton.setMinimumSize(QtCore.QSize(100, 30))
-    #     self.makeReference_pushButton.setMaximumSize(QtCore.QSize(300, 30))
-    #     self.makeReference_pushButton.setText(("Make Reference"))
-    #     self.makeReference_pushButton.setObjectName(("makeReference_pushButton"))
-    #     self.gridLayout_7.addWidget(self.makeReference_pushButton, 1, 0, 1, 1)
-    #
-    #     self.addNote_pushButton = QtGui.QPushButton(self.frame)
-    #     self.addNote_pushButton.setMinimumSize(QtCore.QSize(100, 30))
-    #     self.addNote_pushButton.setMaximumSize(QtCore.QSize(150, 30))
-    #     self.addNote_pushButton.setToolTip((""))
-    #     self.addNote_pushButton.setStatusTip((""))
-    #     self.addNote_pushButton.setWhatsThis((""))
-    #     self.addNote_pushButton.setAccessibleName((""))
-    #     self.addNote_pushButton.setAccessibleDescription((""))
-    #     self.addNote_pushButton.setText(("Add Note"))
-    #     self.addNote_pushButton.setObjectName(("addNote_pushButton"))
-    #     self.gridLayout_7.addWidget(self.addNote_pushButton, 1, 3, 1, 1)
-    #
-    #     self.gridLayout_6.addLayout(self.gridLayout_7, 0, 0, 1, 1)
-    #
-    #     self.main_gridLayout.addWidget(self.splitter, 3, 0, 1, 1)
-    #
-    #     sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-    #     sizePolicy.setHorizontalStretch(1)
-    #     sizePolicy.setVerticalStretch(1)
-    #     self.splitter.setSizePolicy(sizePolicy)
-    #
-    #     self.splitter.setStretchFactor(0, 1)
-    #
-    #     self.menubar = QtGui.QMenuBar(sceneManager_MainWindow)
-    #     self.menubar.setGeometry(QtCore.QRect(0, 0, 680, 18))
-    #     self.menubar.setObjectName(("menubar"))
-    #
-    #     sceneManager_MainWindow.setMenuBar(self.menubar)
-    #     self.statusbar = QtGui.QStatusBar(sceneManager_MainWindow)
-    #     self.statusbar.setObjectName(("statusbar"))
-    #     sceneManager_MainWindow.setStatusBar(self.statusbar)
-    #
-    #     # MENU BAR / STATUS BAR
-    #     # ---------------------
-    #     file = self.menubar.addMenu("File")
-    #     saveVersion_fm = QtGui.QAction("&Save Version", self)
-    #     saveBaseScene_fm = QtGui.QAction("&Save Base Scene", self)
-    #     loadReferenceScene_fm = QtGui.QAction("&Load/Reference Scene", self)
-    #     createProject_fm = QtGui.QAction("&Create Project", self)
-    #     pb_settings_fm = QtGui.QAction("&Playblast Settings", self)
-    #     add_remove_users_fm = QtGui.QAction("&Add/Remove Users", self)
-    #     deleteFile_fm = QtGui.QAction("&Delete Selected Base Scene", self)
-    #     deleteReference_fm = QtGui.QAction("&Delete Reference of Selected Scene", self)
-    #     reBuildDatabase_fm = QtGui.QAction("&Re-build Project Database", self)
-    #     projectReport_fm = QtGui.QAction("&Project Report", self)
-    #     checkReferences_fm = QtGui.QAction("&Check References", self)
-    #
-    #     #save
-    #     file.addAction(createProject_fm)
-    #     file.addAction(saveVersion_fm)
-    #     file.addAction(saveBaseScene_fm)
-    #
-    #     #load
-    #     file.addSeparator()
-    #     file.addAction(loadReferenceScene_fm)
-    #
-    #     #settings
-    #     file.addSeparator()
-    #     file.addAction(add_remove_users_fm)
-    #     file.addAction(pb_settings_fm)
-    #
-    #     #delete
-    #     file.addSeparator()
-    #     file.addAction(deleteFile_fm)
-    #     file.addAction(deleteReference_fm)
-    #
-    #     #misc
-    #     file.addSeparator()
-    #     file.addAction(projectReport_fm)
-    #     file.addAction(checkReferences_fm)
-    #
-    #     tools = self.menubar.addMenu("Tools")
-    #     imanager = QtGui.QAction("&Image Manager", self)
-    #     iviewer = QtGui.QAction("&Image Viewer", self)
-    #     createPB = QtGui.QAction("&Create PlayBlast", self)
-    #
-    #     tools.addAction(imanager)
-    #     tools.addAction(iviewer)
-    #     tools.addAction(createPB)
-    #
-    #     # RIGHT CLICK MENUS
-    #     # -----------------
-    #
-    #     # List Widget Right Click Menu
-    #     self.scenes_listWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-    #     self.scenes_listWidget.customContextMenuRequested.connect(self.onContextMenu_scenes)
-    #     self.popMenu_scenes = QtGui.QMenu()
-    #
-    #     scenes_rcAction_0 = QtGui.QAction('Import Scene', self)
-    #     self.popMenu_scenes.addAction(scenes_rcAction_0)
-    #
-    #     scenes_rcAction_1 = QtGui.QAction('Show Maya Folder in Explorer', self)
-    #     self.popMenu_scenes.addAction(scenes_rcAction_1)
-    #
-    #     scenes_rcAction_2 = QtGui.QAction('Show Playblast Folder in Explorer', self)
-    #     self.popMenu_scenes.addAction(scenes_rcAction_2)
-    #
-    #     scenes_rcAction_3 = QtGui.QAction('Show Data Folder in Explorer', self)
-    #     self.popMenu_scenes.addAction(scenes_rcAction_3)
-    #
-    #     self.popMenu_scenes.addSeparator()
-    #     scenes_rcAction_4 = QtGui.QAction('Scene Info', self)
-    #     self.popMenu_scenes.addAction(scenes_rcAction_4)
-    #
-    #     # Thumbnail Right Click Menu
-    #     self.thumbnail_label.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-    #     self.thumbnail_label.customContextMenuRequested.connect(self.onContextMenu_thumbnail)
-    #     self.popMenu_thumbnail = QtGui.QMenu()
-    #
-    #     thumb_rcAction_0 = QtGui.QAction('Replace with current view', self)
-    #     self.popMenu_thumbnail.addAction(thumb_rcAction_0)
-    #
-    #     thumb_rcAction_1 = QtGui.QAction('Replace with external file', self)
-    #     self.popMenu_thumbnail.addAction(thumb_rcAction_1)
-    #
-    #     # SHORTCUTS
-    #     # ---------
-    #     # shortcutRefresh = Qt.QShortcut(Qt.QKeySequence("F5"), self, self.refresh)
-    #
-    #     # SIGNAL CONNECTIONS
-    #     # ------------------
-    #
-    #     self.statusBar().showMessage("Status | Idle")
+        self.software_comboBox.activated.connect(self.onSoftwareChange)
+
+
 
     def createSubProjectUI(self):
 
@@ -1145,7 +874,7 @@ class MainUI(QtGui.QMainWindow):
         self.folders_tableView.setItemsExpandable(False)
         self.folders_tableView.setRootIsDecorated(False)
         self.folders_tableView.setSortingEnabled(True)
-        self.folders_tableView.sortByColumn(0, QtCore.Qt.SortOrder.AscendingOrder)
+        # self.folders_tableView.sortByColumn(0, QtCore.Qt.SortOrder.AscendingOrder)
 
 
         verticalLayoutWidget = QtGui.QWidget(M2_splitter)
@@ -1315,7 +1044,7 @@ class MainUI(QtGui.QMainWindow):
             onDragAndDrop(fullPath)
 
         def onDragAndDrop(path):
-            normPath = os.path.normpath(path)
+            normPath = os.path.normpath(str(path))
 
             path, fName = os.path.split(normPath)
             if [fName, normPath] in self.favList:
@@ -1337,7 +1066,7 @@ class MainUI(QtGui.QMainWindow):
             # block the signal to prevent unwanted cycle
             self.favorites_listWidget.blockSignals(True)
             index = self.folders_tableView.currentIndex()
-            self.spActiveProjectPath = os.path.normpath((self.setPmodel.filePath(index)))
+            self.spActiveProjectPath = os.path.normpath(str(self.setPmodel.filePath(index)))
 
 
             # clear the selection in favorites view
@@ -1590,13 +1319,6 @@ class MainUI(QtGui.QMainWindow):
 
         categories_dialog.show()
 
-    def onContextMenu_scenes(self, point):
-        # show context menu
-        self.popMenu_scenes.exec_(self.scenes_listWidget.mapToGlobal(point))
-    def onContextMenu_thumbnail(self, point):
-        # show context menu
-        self.popMenu_thumbnail.exec_(self.thumbnail_label.mapToGlobal(point))
-
     def addNoteDialog(self):
         row = self.scenes_listWidget.currentRow()
         if row == -1:
@@ -1639,47 +1361,329 @@ class MainUI(QtGui.QMainWindow):
 
         addNotes_Dialog.show()
 
+    def onContextMenu_scenes(self, point):
+        # show context menu
+        self.popMenu_scenes.exec_(self.scenes_listWidget.mapToGlobal(point))
+    def onContextMenu_thumbnail(self, point):
+        # show context menu
+        self.popMenu_thumbnail.exec_(self.thumbnail_label.mapToGlobal(point))
+
+    def onProjectChange(self):
+        self.initMainUI()
+
+
+    def onSoftwareChange(self):
+
+        self.masterManager.currentSwIndex = self.software_comboBox.currentIndex()
+
+        self._initCategories()
+        self._initSubProjects()
+        self.populateBaseScenes()
+
+        self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
+        self._vEnableDisable()
+
+    def onSubProjectChange(self):
+        manager = self._getManager()
+
+
+        manager.currentSubIndex = self.subProject_comboBox.currentIndex()
+        self.onCategoryChange()
+
+    def onCategoryChange(self):
+        manager = self._getManager()
+
+
+        manager.currentTabIndex = self.category_tabWidget.currentIndex()
+        self.populateBaseScenes()
+        self.onBaseSceneChange()
+
+    def onUserChange(self):
+        manager = self._getManager()
+
+
+        manager.currentUser = self.user_comboBox.currentText()
+
+    def onBaseSceneChange(self):
+        self.version_comboBox.blockSignals(True)
+
+        manager = self._getManager()
+        #clear version_combobox
+        self.version_comboBox.clear()
+
+        row = self.scenes_listWidget.currentRow()
+        if row == -1:
+            manager.currentBaseSceneName = ""
+
+        else:
+            manager.currentBaseSceneName = str(self.scenes_listWidget.currentItem().text())
+
+        self._vEnableDisable()
+        #get versions and add it to the combobox
+        versionData = manager.getVersions()
+        for num in range(len(versionData)):
+            self.version_comboBox.addItem("v{0}".format(str(num + 1).zfill(3)))
+        self.version_comboBox.setCurrentIndex(manager.currentVersionIndex-1)
+        self.onVersionChange()
+
+        self.version_comboBox.blockSignals(False)
+
+    def onVersionChange(self):
+
+        manager = self._getManager()
+        self.version_comboBox.blockSignals(True)
+
+        if self.version_comboBox.currentIndex() is not -1:
+            manager.currentVersionIndex = self.version_comboBox.currentIndex() + 1
+
+        # clear Notes and verison combobox
+        self.notes_textEdit.clear()
+
+        # update notes
+        self.notes_textEdit.setPlainText(manager.getNotes())
+
+        # update thumb
+        self.tPixmap = QtGui.QPixmap(manager.getThumbnail())
+        self.thumbnail_label.setPixmap(self.tPixmap)
+
+        if manager.currentVersionIndex != len(manager.getVersions()) and manager.currentVersionIndex != -1:
+            self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: yellow")
+        else:
+            self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
+
+        self.version_comboBox.blockSignals(False)
+
+
+
     def initMainUI(self, newborn=False):
 
         if not newborn:
-            for manager in self.masterManager.swList:
-                manager.init_paths()
-                manager.init_database()
+            self.masterManager.init_paths()
+            self.masterManager.init_database()
+
+
+        # init softwares
+        self.masterManager.initSoftwares()
+        self._initSoftwares()
+
 
         self._initCategories()
 
         # init project
         self.project_lineEdit.setText(self.masterManager.projectDir)
-
+        #
         # init subproject
         self._initSubProjects()
-
+        #
         # init base scenes
         self.populateBaseScenes()
-
+        #
         # init users
         self._initUsers()
-
-        # disable the version related stuff
+        #
+        # # disable the version related stuff
         self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
         self._vEnableDisable()
 
+    def onLoadScene(self):
+        pass
+
+    def onMakeReference(self):
+        manager = self._getManager()
+
+        manager.makeReference()
+        self.onVersionChange()
+        self.statusBar().showMessage(
+            "Status | Version {1} is the new reference of {0}".format(manager.currentBaseSceneName, manager.currentVersionIndex))
+        currentRow = self.scenes_listWidget.currentRow()
+        self.populateBaseScenes()
+        self.scenes_listWidget.setCurrentRow(currentRow)
+
+    def onShowPreview(self):
+        # TODO // TEST IT
+        row = self.scenes_listWidget.currentRow()
+        if row == -1:
+            return
+
+        manager = self._getManager()
+
+        cameraList = manager.getPreviews()
+        if len(manager.getPreviews()) == 1:
+            manager.playPreview(cameraList[0])
+        else:
+            zortMenu = QtGui.QMenu()
+            for z in cameraList:
+                tempAction = QtGui.QAction(z, self)
+                zortMenu.addAction(tempAction)
+                tempAction.triggered.connect(lambda item=z: manager.playPreview(item)) ## Take note about the usage of lambda "item=pbDict[z]" makes it possible using the loop
+
+            zortMenu.exec_((QtGui.QCursor.pos()))
+
+    def onDeleteBaseScene(self):
+
+        manager = self._getManager()
+
+        name = manager.currentBaseSceneName
+        state = self.queryPop("password", textTitle="DELETE BASE SCENE", textInfo="!!!DELETING BASE SCENE!!! %s\n\nAre you absolutely sure?" %name, password="682")
+        if state:
+            row = self.scenes_listWidget.currentRow()
+            if not row == -1:
+                manager.deleteBasescene(manager.currentDatabasePath)
+                self.populateBaseScenes()
+                self.statusBar().showMessage("Status | Scene Deleted => %s" % name)
+
+
+    def onDeleteReference(self):
+        manager = self._getManager()
+
+        name = manager.currentBaseSceneName
+        state = self.queryPop("password", textTitle="DELETE REFERENCE FILE", textInfo="DELETING Reference File of %s\n\nAre you sure?" %name, password="682")
+        if state:
+            row = self.scenes_listWidget.currentRow()
+            if not row == -1:
+                manager.deleteReference(manager.currentDatabasePath)
+                self.populateBaseScenes()
+                self.statusBar().showMessage("Status | Reference of %s is deleted" % name)
+
+
+
+    def populateBaseScenes(self, deepCheck=False):
+        self.scenes_listWidget.blockSignals(True)
+
+        manager = self._getManager()
+        if not manager:
+            return
+
+        self.scenes_listWidget.clear()
+        baseScenesDict = manager.getBaseScenesInCategory()
+
+        codeDict = {-1: QtGui.QColor(255, 0, 0, 255), 1: QtGui.QColor(0, 255, 0, 255),
+                    0: QtGui.QColor(255, 255, 0, 255), -2: QtGui.QColor(20, 20, 20, 255)}  # dictionary for color codes red, green, yellow
+                    # gray for the corrupted database file
+
+        for key in sorted(baseScenesDict):
+            retCode = manager.checkReference(baseScenesDict[key], deepCheck=deepCheck) # returns -1, 0, 1 or -2 for color ref
+            color = codeDict[retCode]
+            listItem = QtGui.QListWidgetItem()
+            listItem.setText(key)
+            listItem.setForeground(color)
+            self.scenes_listWidget.addItem(listItem)
+        self.scenes_listWidget.blockSignals(False)
+
+    def _initSoftwares(self):
+        self.software_comboBox.blockSignals(True)
+
+        self.software_comboBox.clear()
+        for x in self.masterManager.swList:
+            self.software_comboBox.addItem(x.niceName)
+
+        self.software_comboBox.blockSignals(False)
+
+    def _getManager(self):
+        swList = self.masterManager.swList
+        swIndex = self.software_comboBox.currentIndex()
+        try:
+            manager = swList[swIndex]
+        except IndexError:
+            return
+        return manager
+
+    def _initCategories(self):
+        self.category_tabWidget.blockSignals(True)
+
+        # swList = self.masterManager.swList
+        # swIndex = self.software_comboBox.currentIndex()
+        manager = self._getManager()
+        if not manager:
+            return
+
+        self.category_tabWidget.clear()
+
+        for i in manager._categories:
+            self.preTab = QtGui.QWidget()
+            self.preTab.setObjectName((i))
+            self.category_tabWidget.addTab(self.preTab, (i))
+
+        self.category_tabWidget.setCurrentIndex(manager.currentTabIndex)
+        self.category_tabWidget.blockSignals(False)
+
+    def _initUsers(self):
+        self.user_comboBox.blockSignals(True)
+
+        # init users
+        self.user_comboBox.clear()
+        self.user_comboBox.addItems(self.masterManager.getUsers())
+        index = self.user_comboBox.findText(self.masterManager.currentUser, QtCore.Qt.MatchFixedString)
+        if index >= 0:
+            self.user_comboBox.setCurrentIndex(index)
+
+        self.user_comboBox.blockSignals(False)
+
+
+    def _initSubProjects(self):
+
+        self.subProject_comboBox.blockSignals(True)
+
+        manager = self._getManager()
+        if not manager:
+            return
+
+        self.subProject_comboBox.clear()
+        self.subProject_comboBox.addItems(manager.getSubProjects())
+        self.subProject_comboBox.setCurrentIndex(manager.currentSubIndex)
+
+        self.subProject_comboBox.blockSignals(False)
+
+
+    def _checkValidity(self, text, button, lineEdit, allowSpaces=False):
+        if self.masterManager._nameCheck(text, allowSpaces=allowSpaces):
+            lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: white")
+            button.setEnabled(True)
+        else:
+            lineEdit.setStyleSheet("background-color: red; color: black")
+            button.setEnabled(False)
+
+
+    def _vEnableDisable(self):
+        manager = self._getManager()
+        if not manager:
+            return
+
+        if  manager.currentBaseSceneName:
+            self.version_comboBox.setEnabled(True)
+            if manager.getPreviews():
+                self.showPreview_pushButton.setEnabled(True)
+            else:
+                self.showPreview_pushButton.setEnabled(False)
+            self.makeReference_pushButton.setEnabled(True)
+            self.addNote_pushButton.setEnabled(True)
+            self.version_label.setEnabled(True)
+
+        else:
+            self.version_comboBox.setEnabled(False)
+            self.showPreview_pushButton.setEnabled(False)
+            self.makeReference_pushButton.setEnabled(False)
+            self.addNote_pushButton.setEnabled(False)
+            self.version_label.setEnabled(False)
+
     def rcAction_scenes(self, command):
+        manager = self._getManager()
+        if not manager:
+            return
 
         if command == "showInExplorerMaya":
-            self.manager.showInExplorer(self.manager.currentBaseScenePath)
+            manager.showInExplorer(manager.currentBaseScenePath)
 
         if command == "showInExplorerPB":
-            self.manager.showInExplorer(self.manager.currentPreviewPath)
+            manager.showInExplorer(manager.currentPreviewPath)
 
         if command == "showInExplorerData":
-            filePath = self.manager._baseScenesInCategory[self.manager.currentBaseSceneName]
+            filePath = manager._baseScenesInCategory[manager.currentBaseSceneName]
             dirPath = os.path.dirname(filePath)
-            self.manager.showInExplorer(dirPath)
+            manager.showInExplorer(dirPath)
 
         if command == "showSceneInfo":
-            textInfo = pprint.pformat(self.manager._currentSceneInfo)
-            print self.manager._currentSceneInfo
+            textInfo = pprint.pformat(manager._currentSceneInfo)
             self.messageDialog = QtGui.QDialog()
             self.messageDialog.setWindowTitle("Scene Info")
             self.messageDialog.resize(800, 700)
@@ -1710,9 +1714,99 @@ class ImageWidget(QtGui.QLabel):
         self.setMinimumHeight(h/self.aspectRatio)
         self.setMaximumHeight(h/self.aspectRatio)
 
+class ImageWidget(QtGui.QLabel):
+    """Custom class for thumbnail section. Keeps the aspect ratio when resized."""
+    def __init__(self, parent=None):
+        super(ImageWidget, self).__init__()
+        self.aspectRatio = 1.78
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
+        sizePolicy.setHeightForWidth(True)
+        self.setSizePolicy(sizePolicy)
+
+    def resizeEvent(self, r):
+        h = self.width()
+        self.setMinimumHeight(h/self.aspectRatio)
+        self.setMaximumHeight(h/self.aspectRatio)
+
+class DropListWidget(QtGui.QListWidget):
+    """Custom List Widget which accepts drops"""
+    # dropped = Qt.QtCore.Signal(str)
+    dropped = QtCore.pyqtSignal(str)
+
+    def __init__(self, type, parent=None):
+        super(DropListWidget, self).__init__(parent)
+        self.setAcceptDrops(True)
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasFormat('text/uri-list'):
+            event.accept()
+        else:
+            event.ignore()
+
+    def dragMoveEvent(self, event):
+        if event.mimeData().hasFormat('text/uri-list'):
+            event.setDropAction(QtCore.Qt.CopyAction)
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        rawPath = event.mimeData().data('text/uri-list').__str__()
+        path = rawPath.replace("file:///", "").splitlines()[0]
+        self.dropped.emit(path)
+
+class Browse(object):
+    """Browsing class with history"""
+    def __init__(self):
+        super(Browse, self).__init__()
+        self.history = []
+        self.index = 0
+        self.undoCount = 10
+    def forward(self):
+        if not self.isForwardLocked():
+            self.index += 1
+        else:
+            pass
+    def backward(self):
+        if not self.isBackwardLocked():
+            self.index -= 1
+        else:
+            pass
+    def addData(self, data):
+        # if the incoming data is identical with the current, do nothing
+        try:
+            currentData = self.history[self.index]
+            if data == currentData:
+                return
+        except IndexError:
+            pass
+        # delete history after index
+        del self.history[self.index+1:]
+        self.history.append(data)
+        if len(self.history) > self.undoCount:
+            self.history.pop(0)
+        self.index = len(self.history)-1
+        # the new data writes the history, so there is no future
+        self.forwardLimit = True
+        # but there is past
+        self.backwardLimit = False
+    def getData(self, index=None):
+        if index:
+            return self.history[index]
+        else:
+            return self.history[self.index]
+    def isBackwardLocked(self):
+        return self.index == 0
+    def isForwardLocked(self):
+        return self.index == (len(self.history)-1)
+
 
 if __name__ == '__main__':
+    stylesheetFile = "CSS\\darkorange.stylesheet"
+
     app = QtGui.QApplication(sys.argv)
+    with open(stylesheetFile, "r") as fh:
+        app.setStyleSheet(fh.read())
     window = MainUI()
     window.show()
     sys.exit(app.exec_())
