@@ -13,6 +13,7 @@ import datetime
 import socket
 import pprint
 import logging
+from glob import glob
 
 import IvMaya
 import ImMaya
@@ -287,7 +288,7 @@ class MayaManager(RootManager):
             jsonInfo["ReferenceFile"] = None
             jsonInfo["ReferencedVersion"] = None
 
-        jsonInfo["ID"] = "SceneManagerV02_sceneFile"
+        jsonInfo["ID"] = "SmMayaV02_sceneFile"
         jsonInfo["MayaVersion"] = cmds.about(q=True, api=True)
         jsonInfo["Name"] = baseName
         jsonInfo["Path"] = os.path.relpath(shotPath, start=projectPath)
@@ -801,6 +802,9 @@ class MayaManager(RootManager):
             logger.info("All old database contents copied to the new structure folder => %s" % self._pathsDict["databaseDir"])
 
             oldCategories = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
+
+            # dump the category file
+            self._dumpJson(oldCategories, os.path.join(self._pathsDict["databaseDir"], "categoriesMaya.json"))
             for category in oldCategories:
                 categoryDBpath = os.path.normpath(os.path.join(new_dbDir, category))
                 if os.path.isdir(categoryDBpath):
@@ -808,6 +812,7 @@ class MayaManager(RootManager):
                     for file in jsonFiles:
                         fileData = self._loadJson(file)
                         # figure out the subproject
+                        fileData["ID"] = fileData["ID"].replace("SceneManager", "SmMaya")
                         path = fileData["Path"]
                         name = fileData["Name"]
                         cate = fileData["Category"]

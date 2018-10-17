@@ -288,6 +288,13 @@ class RootManager(object):
         return os.path.join(self.projectDir, self._currentSceneInfo["Path"])
 
     @property
+    def currentScenePath(self):
+        """Returns absolute path of Base Scene at cursor position"""
+        # logger.debug("Func: currentBaseScenePath/getter")
+
+        return os.path.join(self.projectDir, self._currentSceneInfo["Versions"][self.currentVersionIndex-1][0])
+
+    @property
     def currentPreviewPath(self):
         """Returns absolute path of preview folder of the Base scene at cursor position"""
         # logger.debug("Func: currentPreviewPath/getter")
@@ -804,15 +811,15 @@ class RootManager(object):
         """Adds a note to the version at current position"""
         # logger.debug("Func: addNote")
 
-        assert (not self._currentBaseSceneName), [101, "No Base Scene file selected"]
-        assert (self._currentVersionIndex == -1), [101, "No Version selected"]
+        # assert (not self._currentBaseSceneName), [101, "No Base Scene file selected"]
+        # assert (self._currentVersionIndex == -1), [101, "No Version selected"]
 
-        # if not self._currentBaseSceneName:
-        #     logger.warning("No Base Scene file selected")
-        #     return
-        # if self._currentVersionIndex == -1:
-        #     logger.warning("No Version selected")
-        #     return
+        if not self._currentBaseSceneName:
+            logger.warning("No Base Scene file selected")
+            return
+        if self._currentVersionIndex == -1:
+            logger.warning("No Version selected")
+            return
         now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
         self._currentNotes = "%s\n[%s] on %s\n%s\n" % (self._currentNotes, self.currentUser, now, note)
         self._currentSceneInfo["Versions"][self._currentVersionIndex-1][1] = self._currentNotes

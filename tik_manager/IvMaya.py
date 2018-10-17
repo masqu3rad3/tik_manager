@@ -17,8 +17,9 @@ from Qt import QtWidgets, QtCore, QtGui
 from maya import OpenMayaUI as omui
 import json
 import datetime
+from shutil import copyfile
 
-import seqCopyProgress as sCopy
+# import seqCopyProgress as sCopy
 # reload(sCopy)
 
 import logging
@@ -53,18 +54,18 @@ windowName = "Image Viewer v%s" %_version.__version__
 #
 #     return treeDataList
 
-def setupLogger(handlerPath):
-    logger = logging.getLogger('imageViewer')
-    file_logger = logging.FileHandler(handlerPath)
-    logger.addHandler(file_logger)
-    logger.setLevel(logging.DEBUG)
-    return logger
-
-def deleteLogger(logger):
-    for i in logger.handlers:
-        logger.removeHandler(i)
-        i.flush()
-        i.close()
+# def setupLogger(handlerPath):
+#     logger = logging.getLogger('imageViewer')
+#     file_logger = logging.FileHandler(handlerPath)
+#     logger.addHandler(file_logger)
+#     logger.setLevel(logging.DEBUG)
+#     return logger
+#
+# def deleteLogger(logger):
+#     for i in logger.handlers:
+#         logger.removeHandler(i)
+#         i.flush()
+#         i.close()
 
 # def getTheImages(path, level=1):
 #     treeDataList = [a for a in seq.walk(path, level=level)]
@@ -126,6 +127,7 @@ def setTlocation(path):
     folderCheck(jsonPath)
     tLocationFile = os.path.normpath(os.path.join(jsonPath, "tLocation.json"))
     dumpJson(path, tLocationFile)
+    print "path", path
 
 class MainUI(QtWidgets.QMainWindow):
     def __init__(self):
@@ -436,6 +438,7 @@ class MainUI(QtWidgets.QMainWindow):
     def setRaidPath(self, dir):
         dir = str(dir)
         setTlocation(os.path.normpath(dir))
+        self.tLocation = dir
         self.raidFolder_lineEdit.setText(dir)
 
     def onCheckbox(self, extensions, state):
@@ -459,7 +462,9 @@ class MainUI(QtWidgets.QMainWindow):
 
     # @Qt.QtCore.pyqtSlot("QItemSelection, QItemSelection")
     def onContextMenu_images(self, point):
-        self.popMenu.exec_(self.sequences_listWidget.mapToGlobal(point))
+        # print se
+        if not self.sequences_listWidget.currentRow() is -1:
+            self.popMenu.exec_(self.sequences_listWidget.mapToGlobal(point))
 
     def onBrowse(self):
         dir = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory"))
@@ -475,21 +480,22 @@ class MainUI(QtWidgets.QMainWindow):
             return
 
 
-
     def onTransferFiles(self):
         if self.tLocation == "N/A":
+            raise Exception ([341], "Raid Location not defined")
             return
         row = self.sequences_listWidget.currentRow()
         selList = [x.row() for x in self.sequences_listWidget.selectedIndexes()]
         # return
         if row == -1:
+            raise Exception([101], "No sequence selected")
             return
 
         projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
         logPath = os.path.join(projectPath,"data","transferLogs")
         folderCheck(logPath)
 
-        seqCopy = sCopy.SeqCopyProgress()
+        seqCopy = SeqCopyProgress()
         seqCopy.copysequence(self.sequenceData, selList, self.tLocation, logPath, projectPath)
 
 
@@ -598,6 +604,205 @@ class DeselectableTreeView(QtWidgets.QTreeView):
             self.deselected.emit(True)
         QtWidgets.QTreeView.mousePressEvent(self, event)
 
+class SeqCopyProgress(QtWidgets.QWidget):
 
+    def __init__(self, src=None, dest=None):
+        super(SeqCopyProgress, self).__init__()
+        self.logger = None
+        self.src = src
+        self.dest = dest
+        self.build_ui()
+        self.terminated = False
+        self.cancelAll = False
+        self.errorFlag = False
+        # self.copyfileobj(src=self.src, dst=self.dest)
+
+
+    def build_ui(self):
+
+        hbox = QtWidgets.QVBoxLayout()
+
+        vbox = QtWidgets.QHBoxLayout()
+
+        lbl_src = QtWidgets.QLabel('Source: ')
+        lbl_dest = QtWidgets.QLabel('Destination: ')
+        lbl_overall = QtWidgets.QLabel('Overall Progress:')
+        self.pb = QtWidgets.QProgressBar()
+        self.pbOverall = QtWidgets.QProgressBar()
+        self.cancelButton = QtWidgets.QPushButton("Cancel")
+        self.cancelAllButton = QtWidgets.QPushButton("Cancel All")
+
+        self.pb.setMinimum(0)
+        self.pb.setMaximum(100)
+        self.pb.setValue(0)
+
+        self.pbOverall.setMinimum(0)
+        self.pbOverall.setMaximum(100)
+        self.pbOverall.setValue(0)
+
+        hbox.addWidget(lbl_src)
+        hbox.addWidget(lbl_dest)
+        hbox.addWidget(self.pb)
+        hbox.addWidget(lbl_overall)
+        hbox.addWidget(self.pbOverall)
+        vbox.addWidget(self.cancelButton)
+        vbox.addWidget(self.cancelAllButton)
+        hbox.addLayout(vbox)
+        self.setLayout(hbox)
+        self.setWindowTitle('File copy')
+        self.cancelButton.clicked.connect(self.terminate)
+        self.cancelAllButton.clicked.connect(lambda: self.terminate(all=True))
+        self.show()
+
+    def results_ui(self, status, color="white", logPath=None, destPath = None):
+
+        self.msgDialog = QtWidgets.QDialog(parent=self)
+        self.msgDialog.setModal(True)
+        self.msgDialog.setObjectName("Result_Dialog")
+        self.msgDialog.setWindowTitle("Transfer Results")
+        self.msgDialog.resize(300,120)
+        layoutMain = QtWidgets.QVBoxLayout()
+        self.msgDialog.setLayout(layoutMain)
+
+        infoHeader = QtWidgets.QLabel(status)
+
+        infoHeader.setStyleSheet(""
+                               "border: 18px solid black;"
+                               "background-color: black;"
+                               "font-size: 14px;"
+                               "color: {0}"
+                               "".format(color))
+
+        layoutMain.addWidget(infoHeader)
+        layoutH = QtWidgets.QHBoxLayout()
+        layoutMain.addLayout(layoutH)
+        if logPath:
+            showLogButton = QtWidgets.QPushButton("Show Log File")
+            layoutH.addWidget(showLogButton)
+            showLogButton.clicked.connect(lambda x=logPath: os.startfile(x))
+        showInExplorer = QtWidgets.QPushButton("Show in Explorer")
+        layoutH.addWidget(showInExplorer)
+        okButton = QtWidgets.QPushButton("OK")
+        layoutH.addWidget(okButton)
+
+        showInExplorer.clicked.connect(lambda x=destPath: self.onShowInExplorer(x))
+
+        okButton.clicked.connect(self.msgDialog.close)
+
+        self.msgDialog.show()
+
+
+        # # self.msg = QtWidgets.QMessageBox(parent=self)
+        # # self.msg.setIcon(QtWidgets.QMessageBox.Information)
+        # # self.msg.setText("Transfer Successfull")
+        # # self.msg.setInformativeText("Log file saved to")
+        # # self.msg.setWindowTitle("Transfer report")
+        # # self.msg.setDefaultButton(QtWidgets.QPushButton("ANBAN"))
+        # # # self.msg.setDetailedText("The details are as follows:")
+        # # self.msg.show()
+        # self.msgBox = QtWidgets.QMessageBox()
+        # self.msgBox.setText("Transfer Successfull")
+        # self.msgBox.setStandardButtons(QtWidgets.QMessageBox.Open | QtWidgets.QMessageBox.Ok);
+        # self.msgBox.setDefaultButton(QtWidgets.QMessageBox.Ok);
+        # # self.msgBox.addButton(QtWidgets.QPushButton('Show Log'), QtWidgets.QMessageBox.HelpRole)
+        # # self.msgBox.addButton(QtWidgets.QPushButton('Ok'), QtWidgets.QMessageBox.AcceptRole)
+        # self.msgBox.show()
+        # # ret = self.msgBox.exec_()
+
+    def onShowInExplorer(self, path):
+        os.startfile(path)
+        pass
+
+
+    def closeEvent(self, *args, **kwargs):
+        self.terminated = True
+
+    def terminate(self, all=False):
+        self.terminated = True
+        self.cancelAll = all
+        # self.pb.setValue(100)
+        # self.close()
+
+    def safeLog(self, msg):
+        try:
+            self.logger.debug(msg)
+        except AttributeError:
+            pass
+
+    def copyfileobj(self, src, dst):
+
+        self.pb.setValue(0)
+        self.terminated = False # reset the termination status
+        totalCount = len(src)
+        current = 0
+
+        for i in src:
+            targetPath = os.path.join(dst, os.path.basename(i))
+            try:
+                copyfile(i, targetPath)
+            except:
+                self.errorFlag = True
+                self.safeLog("FAILED - unknown error")
+            percent = (100 * current) / totalCount
+            self.pb.setValue(percent)
+            current += 1
+            QtWidgets.QApplication.processEvents()
+            self.safeLog("Success - {0}".format(targetPath))
+            if self.terminated or self.cancelAll:
+                self.errorFlag = True
+                self.safeLog("FAILED - skipped by user")
+                break
+
+    def copysequence(self, sequenceData, selectionList, destination, logPath, root):
+
+        now = datetime.datetime.now()
+        logName = "fileTransferLog_{0}.txt".format(now.strftime("%Y.%m.%d.%H.%M"))
+        logFile = os.path.join(logPath, logName)
+        self.logger = self.setupLogger(logFile)
+        totalCount = len(selectionList)
+        current = 0
+        for sel in selectionList:
+            if self.cancelAll:
+                self.safeLog("ALL CANCELED")
+                break
+            self.logger.debug(
+                "---------------------------------------------\n"
+                "Copy Progress - {0}\n"
+                "---------------------------------------------".format(
+                    sequenceData[sel]))
+            percent = (100 * current) / totalCount
+            self.pbOverall.setValue(percent)
+            current += 1
+            tFilesList = [i.path for i in sequenceData[sel]]
+            subPath = os.path.split(os.path.relpath(tFilesList[0], root))[0]  ## get the relative path
+            currentDate = now.strftime("%y%m%d")
+            targetPath = os.path.join(destination, currentDate, subPath)
+            if not os.path.isdir(os.path.normpath(targetPath)):
+                os.makedirs(os.path.normpath(targetPath))
+            self.copyfileobj(src=tFilesList, dst=targetPath)
+
+        self.deleteLogger(self.logger)
+
+        self.close()
+        if self.cancelAll:
+            self.results_ui("Canceled by user", logPath=logFile, destPath=destination)
+        elif self.errorFlag:
+            self.results_ui("Check log file for errors", color="red", logPath=logFile, destPath=destination)
+        else:
+            self.results_ui("Transfer Successfull", logPath=logFile, destPath=destination)
+        pass
+
+    def setupLogger(self, handlerPath):
+        logger = logging.getLogger('imageViewer')
+        file_logger = logging.FileHandler(handlerPath)
+        logger.addHandler(file_logger)
+        logger.setLevel(logging.DEBUG)
+        return logger
+
+    def deleteLogger(self, logger):
+        for i in logger.handlers:
+            logger.removeHandler(i)
+            i.flush()
+            i.close()
 
 

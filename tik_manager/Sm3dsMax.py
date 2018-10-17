@@ -269,7 +269,7 @@ class MaxManager(RootManager):
         version, api, sdk = rt.maxversion()
         vInfo = [version, api, sdk]
 
-        jsonInfo["ID"] = "SceneManagerV02_sceneFile"
+        jsonInfo["ID"] = "Sm3dsMaxV02_sceneFile"
         # jsonInfo["3dsMaxVersion"] = os.path.basename(os.path.split(pManager.GetMaxSysRootDir())[0])
         jsonInfo["3dsMaxVersion"] = vInfo
         jsonInfo["Name"] = baseName

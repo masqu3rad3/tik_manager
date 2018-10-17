@@ -4,7 +4,7 @@ from SmRoot import RootManager
 from PyQt4 import QtCore, QtGui, Qt
 
 import _version
-
+import subprocess
 import json
 import sys, os
 import pprint
@@ -87,6 +87,141 @@ class SwViewer(RootManager):
         """Overriden function"""
         return ""
 
+    def getExecutables(self):
+        if self.currentPlatform is not "Windows":
+            logger.warning("Currently only windows executables are supported")
+            return
+        programFiles32 = os.environ["PROGRAMFILES(X86)"]
+        programFiles64 = os.environ["PROGRAMFILES"]
+
+        # GET 3DS MAX VERSIONS
+        # --------------------
+        maxVersionsDict = {"3ds Max 2014": {}, "3ds Max 2015": {}, "3ds Max 2016": {}, "3ds Max 2017": {}, "3ds Max 2018": {}, "3ds Max 2019": {}}
+
+        for item in maxVersionsDict:
+            path32bit = os.path.join(programFiles32, "Autodesk", item, "3dsmax.exe")
+            if os.path.isfile(path32bit):
+                maxVersionsDict[item]["32bit"]=path32bit
+            else:
+                maxVersionsDict[item]["32bit"]=""
+
+            path64bit = os.path.join(programFiles64, "Autodesk", item, "3dsmax.exe")
+            if os.path.isfile(path64bit):
+                maxVersionsDict[item]["64bit"]=path64bit
+            else:
+                maxVersionsDict[item]["64bit"]=""
+
+        # GET MAYA VERSIONS
+        # -----------------
+
+        mayaVersionsDict = {"Maya2014": {}, "Maya2015":{}, "Maya2016": {}, "Maya2016.5": {}, "Maya2017": {}, "Maya2018": {}, "Maya2019": {}}
+        for item in mayaVersionsDict:
+            path32bit = os.path.join(programFiles32, "Autodesk", item, "bin", "maya.exe")
+            if os.path.isfile(path32bit):
+                mayaVersionsDict[item]["32bit"]=path32bit
+            else:
+                mayaVersionsDict[item]["32bit"]=""
+
+            path64bit = os.path.join(programFiles64, "Autodesk", item, "bin", "maya.exe")
+            if os.path.isfile(path64bit):
+                mayaVersionsDict[item]["64bit"]=path64bit
+            else:
+                mayaVersionsDict[item]["64bit"]=""
+
+        executablesDict = {"Maya": mayaVersionsDict, "3dsMax": maxVersionsDict}
+        return executablesDict
+
+    def executeScene(self):
+        # if not self._currentSceneInfo:
+        #     return
+        ID = self._currentSceneInfo["ID"]
+        exeDict = self.getExecutables()
+
+
+        if ID.startswith("SmMaya"):
+            print "EXECUTE MAYA SCENE"
+            versionDict = {201400: "Maya2014",
+                           201450: "Maya2014",
+                           201451: "Maya2014",
+                           201459: "Maya2014",
+                           201402: "Maya2014",
+                           201404: "Maya2014",
+                           201406: "Maya2014",
+                           201500: "Maya2015",
+                           201506: "Maya2015",
+                           201507: "Maya2015",
+                           201501: "Maya2015",
+                           201502: "Maya2015",
+                           201505: "Maya2015",
+                           201506: "Maya2015",
+                           201507: "Maya2015",
+                           201600: "Maya2016",
+                           201650: "Maya2016.5",
+                           201651: "Maya2016.5",
+                           201653: "Maya2016.5",
+                           201605: "Maya2016",
+                           201607: "Maya2016",
+                           201650: "Maya2016.5",
+                           201651: "Maya2016.5",
+                           201653: "Maya2016.5",
+                           201605: "Maya2016",
+                           201607: "Maya2016",
+                           201700: "Maya2017",
+                           201701: "Maya2017",
+                           201720: "Maya2017",
+                           201740: "Maya2017",
+                           20180000: "Maya2018"}
+            # print "z", exeDict["Maya"].keys()
+            try:
+                versionName = versionDict[self._currentSceneInfo["MayaVersion"]]
+            except KeyError:
+                logger.warning("maya version cannot resolved")
+                return
+
+            try:
+                if exeDict["Maya"][versionName]["64bit"]:
+                    exePath = exeDict["Maya"][versionName]["64bit"]
+                else:
+                    exePath = exeDict["Maya"][versionName]["32bit"]
+                print exePath
+            except KeyError:
+                logger.warning("Maya %s is not installed on this workstation" %versionName)
+
+            subprocess.check_call([exePath, "-file", self.currentScenePath], shell=True)
+
+        elif ID.startswith("Sm3dsMax"):
+            print "EXECUTE MAX SCENE"
+            versionDict = {16000: "3ds Max 2014",
+                           17000: "3ds Max 2015",
+                           18000: "3ds Max 2016",
+                           19000: "3ds Max 2017",
+                           20000: "3ds Max 2018"
+                           }
+            try:
+                versionName = versionDict[self._currentSceneInfo["3dsMaxVersion"][0]]
+            except KeyError:
+                logger.warning("3dsmax version cannot resolved")
+                return
+
+            try:
+                if exeDict["3dsMax"][versionName]["64bit"]:
+                    exePath = exeDict["3dsMax"][versionName]["64bit"]
+                else:
+                    exePath = exeDict["3dsMax"][versionName]["32bit"]
+                print exePath
+            except KeyError:
+                logger.warning("Maya %s is not installed on this workstation" %versionName)
+
+            subprocess.check_call([exePath, self.currentScenePath], shell=True)
+
+        else:
+            print "No Executer"
+            return
+
+        # command = "{0} {1}".format(os.path.normpath(exePath), os.path.normpath(self.currentScenePath))
+        # print "command", command
+
+
     # def setProject(self, path):
 
 
@@ -106,7 +241,7 @@ class StandaloneManager(RootManager):
                             "scenesDir": "scenes",
                             "pbSettingsFile": "pbSettings.json",
                             "categoriesFile": "categoriesMaya.json",
-                            "userSettingsDir": "SceneManager\\Maya"}]
+                            "userSettingsDir": "Documents\\SceneManager\\Maya"}]
 
         # self.validSoftwares = []
         self.swList = []
@@ -275,8 +410,13 @@ class MainUI(QtGui.QMainWindow):
     def __init__(self):
         super(MainUI, self).__init__()
 
+        self.swColorDict = {"Maya": "rgb(81, 230, 247, 255)",
+                            "3dsMax": "rgb(150, 247, 81, 255)",
+                            "Houdini": "rgb(247, 172, 81, 255)",
+                            "":  "rgb(0, 0, 0, 0)",
+                            }
+
         self.masterManager = StandaloneManager()
-        # self.tempCategories = ["Model", "Rig", "Shading", "Layout", "Animation", "Render", "Other"]
 
         self.setObjectName(SM_Version)
         self.resize(680, 600)
@@ -593,7 +733,7 @@ class MainUI(QtGui.QMainWindow):
 
         # SHORTCUTS
         # ---------
-        # shortcutRefresh = Qt.QShortcut(Qt.QKeySequence("F5"), self, self.refresh)
+        shortcutRefresh = Qt.QShortcut(Qt.QKeySequence("F5"), self, self.refresh)
 
         # SIGNAL CONNECTIONS
         # ------------------
@@ -1320,6 +1460,9 @@ class MainUI(QtGui.QMainWindow):
         categories_dialog.show()
 
     def addNoteDialog(self):
+        manager = self._getManager()
+        if not manager:
+            return
         row = self.scenes_listWidget.currentRow()
         if row == -1:
             return
@@ -1352,7 +1495,7 @@ class MainUI(QtGui.QMainWindow):
         buttonC.setText('Cancel')
 
         addNotes_buttonBox.setObjectName(("addNotes_buttonBox"))
-        addNotes_buttonBox.accepted.connect(lambda: self.masterManager.addNote(addNotes_textEdit.toPlainText()))
+        addNotes_buttonBox.accepted.connect(lambda: manager.addNote(addNotes_textEdit.toPlainText()))
         addNotes_buttonBox.accepted.connect(self.onVersionChange)
         addNotes_buttonBox.accepted.connect(addNotes_Dialog.accept)
 
@@ -1379,7 +1522,7 @@ class MainUI(QtGui.QMainWindow):
         self._initCategories()
         self._initSubProjects()
         self.populateBaseScenes()
-
+        self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.swColorDict[str(self.software_comboBox.currentText())])
         self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
         self._vEnableDisable()
 
@@ -1400,9 +1543,7 @@ class MainUI(QtGui.QMainWindow):
 
     def onUserChange(self):
         manager = self._getManager()
-
-
-        manager.currentUser = self.user_comboBox.currentText()
+        manager.currentUser = str(self.user_comboBox.currentText())
 
     def onBaseSceneChange(self):
         self.version_comboBox.blockSignals(True)
@@ -1460,33 +1601,39 @@ class MainUI(QtGui.QMainWindow):
         if not newborn:
             self.masterManager.init_paths()
             self.masterManager.init_database()
-
-
         # init softwares
         self.masterManager.initSoftwares()
         self._initSoftwares()
 
-
         self._initCategories()
-
         # init project
         self.project_lineEdit.setText(self.masterManager.projectDir)
-        #
         # init subproject
         self._initSubProjects()
-        #
         # init base scenes
         self.populateBaseScenes()
-        #
         # init users
         self._initUsers()
-        #
         # # disable the version related stuff
         self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
         self._vEnableDisable()
 
+    def refresh(self):
+        currentSWindex = self.software_comboBox.currentIndex()
+        # currentUserIndex = self.user_comboBox.currentIndex()
+        # currentTabIndex = self
+        self.initMainUI()
+
+        self.software_comboBox.setCurrentIndex(currentSWindex)
+        self.populateBaseScenes()
+
     def onLoadScene(self):
-        pass
+        if self.scenes_listWidget.currentRow() == -1:
+            return
+        manager = self._getManager()
+        if not manager:
+            return
+        manager.executeScene()
 
     def onMakeReference(self):
         manager = self._getManager()
@@ -1576,6 +1723,9 @@ class MainUI(QtGui.QMainWindow):
         self.software_comboBox.clear()
         for x in self.masterManager.swList:
             self.software_comboBox.addItem(x.niceName)
+
+
+        self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.swColorDict[str(self.software_comboBox.currentText())])
 
         self.software_comboBox.blockSignals(False)
 
