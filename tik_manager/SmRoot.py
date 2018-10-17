@@ -16,7 +16,7 @@ logging.basicConfig()
 logger = logging.getLogger('smRoot')
 logger.setLevel(logging.WARNING)
 
-
+# TODO : Make a project settings feature (Resolution, FPS, etc.)
 
 class RootManager(object):
     def __init__(self):
@@ -52,6 +52,7 @@ class RootManager(object):
 
         self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
         self._folderCheck(self._pathsDict["masterDir"])
+        self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
 
         self._pathsDict["databaseDir"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], _softwarePathsDict["databaseDir"]))
         self._folderCheck(self._pathsDict["databaseDir"])
@@ -532,7 +533,7 @@ class RootManager(object):
     #     self._bookmarksList = self.loadFavorites(self.bookmarksFile)  # not immediate
     #     return self._bookmarksList
 
-    def createNewProject(self, projectRoot, projectName, brandName, client):
+    def createNewProject(self, projectRoot, projectName, brandName, client, settingsData=None):
         """
         Creates New Project Structure
         :param projectRoot: (String) Path to where all projects are
@@ -586,6 +587,15 @@ class RootManager(object):
         os.mkdir(os.path.join(resolvedPath, "sound"))
         os.makedirs(os.path.join(resolvedPath, "sourceimages", "_FOOTAGE"))
         os.makedirs(os.path.join(resolvedPath, "sourceimages", "_HDR"))
+        os.makedirs(os.path.join(resolvedPath, "smDatabase"))
+
+        # Create project settings file
+        if not settingsData:
+            settingsData = {"Resolution": [1920, 1080],
+                                   "FPS": 25}
+
+        self._dumpJson(settingsData, os.path.join(resolvedPath, "smDatabase", "projectSettings.json"))
+
 
         filePath = os.path.join(resolvedPath, "workspace.mel")
         file = open(filePath, "w")
@@ -1168,6 +1178,28 @@ class RootManager(object):
         with open(file, "w") as f:
             json.dump(data, f, indent=4)
 
+    def _loadProjectSettings(self):
+        """Loads Project Settings from file"""
+        if not os.path.isdir(self._pathsDict["projectSettingsFile"]):
+            projectSettingsDB = {"Resolution": [1920, 1080],
+                                   "FPS": 25}
+            self._dumpJson(projectSettingsDB, self._pathsDict["projectSettingsFile"])
+            return projectSettingsDB
+        else:
+            projectSettingsDB = self._loadJson(self._pathsDict["projectSettingsFile"])
+            if projectSettingsDB== -2:
+                return -2
+            return projectSettingsDB
+
+    def _saveProjectSettings(self, data):
+        try:
+            self._dumpJson(data, self._pathsDict["projectSettingsFile"])
+            msg = ""
+            return 0, msg
+        except:
+            msg = "Cannot save current settings"
+            return -1, msg
+
     def _loadUsers(self):
         """Load Users from file"""
         # logger.debug("Func: _loadUsers")
@@ -1182,6 +1214,7 @@ class RootManager(object):
             if userDB == -2:
                 return -2
             return userDB
+
 
     def _loadFavorites(self):
         """Loads Bookmarked projects"""

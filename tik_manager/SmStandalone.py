@@ -1504,6 +1504,8 @@ class MainUI(QtGui.QMainWindow):
 
         addNotes_Dialog.show()
 
+    # TODO : PROJECT SETTINGS UI
+
     def onContextMenu_scenes(self, point):
         # show context menu
         self.popMenu_scenes.exec_(self.scenes_listWidget.mapToGlobal(point))

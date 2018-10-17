@@ -2324,6 +2324,8 @@ class MainUI(QtGui.QMainWindow):
 
         addNotes_Dialog.show()
 
+    # TODO : PROJECT SETTINGS UI
+
     def initMainUI(self, newborn=False):
 
         if not newborn:

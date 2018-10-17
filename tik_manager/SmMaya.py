@@ -2452,6 +2452,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         addNotes_Dialog.show()
 
+    # TODO : PROJECT SETTINGS UI
 
     def callbackRefresh(self):
         """
