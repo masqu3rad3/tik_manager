@@ -265,11 +265,13 @@ class StandaloneManager(RootManager):
         self._pathsDict["currentsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smCurrents.json"))
         self._pathsDict["projectsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smProjects.json"))
 
+
         self._pathsDict["projectDir"] = self.getProjectDir()
         self._pathsDict["sceneFile"] = ""
 
         self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
 
+        self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
 
 
         self._pathsDict["generalSettingsDir"] = os.path.dirname(os.path.abspath(__file__))
@@ -658,6 +660,9 @@ class MainUI(QtGui.QMainWindow):
         createProject_fm = QtGui.QAction("&Create Project", self)
         add_remove_users_fm = QtGui.QAction("&Add/Remove Users", self)
         add_remove_categories_fm = QtGui.QAction("&Add/Remove Categories", self)
+        # TODO : ref
+        projectSettings_fm = QtGui.QAction("&Project Settings", self)
+
 
         deleteFile_fm = QtGui.QAction("&Delete Selected Base Scene", self)
         deleteReference_fm = QtGui.QAction("&Delete Reference of Selected Scene", self)
@@ -676,6 +681,8 @@ class MainUI(QtGui.QMainWindow):
         file.addSeparator()
         file.addAction(add_remove_users_fm)
         file.addAction(add_remove_categories_fm)
+        # TODO : ref
+        file.addAction(projectSettings_fm)
 
         #delete
         file.addSeparator()
@@ -743,6 +750,9 @@ class MainUI(QtGui.QMainWindow):
         add_remove_users_fm.triggered.connect(self.addRemoveUserUI)
         add_remove_categories_fm.triggered.connect(self.addRemoveCategoryUI)
 
+        # TODO : ref
+        projectSettings_fm.triggered.connect(self.projectSettingsUI)
+
 
         deleteFile_fm.triggered.connect(self.onDeleteBaseScene)
 
@@ -798,7 +808,7 @@ class MainUI(QtGui.QMainWindow):
 
         self.createproject_Dialog = QtGui.QDialog(parent=self)
         self.createproject_Dialog.setObjectName(("createproject_Dialog"))
-        self.createproject_Dialog.resize(419, 249)
+        self.createproject_Dialog.resize(419, 300)
         self.createproject_Dialog.setWindowTitle(("Create New Project"))
 
         self.projectroot_label = QtGui.QLabel(self.createproject_Dialog)
@@ -842,6 +852,33 @@ class MainUI(QtGui.QMainWindow):
         self.client_label.setAlignment(QtCore.Qt.AlignCenter)
         self.client_label.setObjectName(("client_label"))
 
+        resolution_label = QtGui.QLabel(self.createproject_Dialog)
+        resolution_label.setGeometry(QtCore.QRect(24, 180 , 111, 21))
+        resolution_label.setText("Resolution")
+
+        resolutionX_spinBox = QtGui.QSpinBox(self.createproject_Dialog)
+        resolutionX_spinBox.setGeometry(QtCore.QRect(80, 180, 60, 21))
+        resolutionX_spinBox.setObjectName(("resolutionX_spinBox"))
+        resolutionX_spinBox.setButtonSymbols(QtGui.QAbstractSpinBox.NoButtons)
+        resolutionX_spinBox.setRange(1,99999)
+        resolutionX_spinBox.setValue(1920)
+
+        resolutionY_spinBox = QtGui.QSpinBox(self.createproject_Dialog)
+        resolutionY_spinBox.setGeometry(QtCore.QRect(145, 180, 60, 21))
+        resolutionY_spinBox.setObjectName(("resolutionY_spinBox"))
+        resolutionY_spinBox.setButtonSymbols(QtGui.QAbstractSpinBox.NoButtons)
+        resolutionY_spinBox.setRange(1,99999)
+        resolutionY_spinBox.setValue(1080)
+
+        fps_label = QtGui.QLabel(self.createproject_Dialog)
+        fps_label.setGeometry(QtCore.QRect(54, 210 , 111, 21))
+        fps_label.setText("FPS")
+
+        fps_comboBox = QtGui.QComboBox(self.createproject_Dialog)
+        fps_comboBox.setGeometry(QtCore.QRect(80, 210 , 60, 21))
+        fps_comboBox.addItems(self.masterManager.fpsList)
+        fps_comboBox.setCurrentIndex(2)
+
         self.brandname_lineEdit = QtGui.QLineEdit(self.createproject_Dialog)
         self.brandname_lineEdit.setGeometry(QtCore.QRect(20, 140, 111, 21))
         self.brandname_lineEdit.setPlaceholderText(("(optional)"))
@@ -858,7 +895,7 @@ class MainUI(QtGui.QMainWindow):
         self.client_lineEdit.setObjectName(("client_lineEdit"))
 
         self.createproject_buttonBox = QtGui.QDialogButtonBox(self.createproject_Dialog)
-        self.createproject_buttonBox.setGeometry(QtCore.QRect(30, 190, 371, 32))
+        self.createproject_buttonBox.setGeometry(QtCore.QRect(30, 250, 371, 32))
         self.createproject_buttonBox.setOrientation(QtCore.Qt.Horizontal)
         self.createproject_buttonBox.setStandardButtons(
             QtGui.QDialogButtonBox.Cancel | QtGui.QDialogButtonBox.Ok)
@@ -881,7 +918,9 @@ class MainUI(QtGui.QMainWindow):
             pName = self.projectname_lineEdit.text()
             bName = self.brandname_lineEdit.text()
             cName = self.client_lineEdit.text()
-            pPath = self.masterManager.createNewProject(root, pName, bName, cName)
+            projectSettingsDB = {"Resolution": [resolutionX_spinBox.value(), resolutionY_spinBox.value()],
+                                   "FPS": int(fps_comboBox.currentText())}
+            pPath = self.masterManager.createNewProject(root, pName, bName, cName, settingsData=projectSettingsDB)
             self.masterManager.setProject(pPath)
             self.onProjectChange()
             self.createproject_Dialog.close()
@@ -1459,6 +1498,104 @@ class MainUI(QtGui.QMainWindow):
 
         categories_dialog.show()
 
+    # TODO : ref
+    def projectSettingsUI(self):
+        admin_pswd = "682"
+        passw, ok = QtGui.QInputDialog.getText(self, "Password Query", "Enter Admin Password:",
+                                                   QtGui.QLineEdit.Password)
+        if ok:
+            if passw == admin_pswd:
+                pass
+            else:
+                self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
+                return
+        else:
+            return
+
+        projectSettingsDB = self.masterManager._loadProjectSettings()
+
+        projectSettings_Dialog = QtGui.QDialog(parent=self)
+        projectSettings_Dialog.setObjectName("projectSettings_Dialog")
+        projectSettings_Dialog.resize(270, 120)
+        projectSettings_Dialog.setMinimumSize(QtCore.QSize(270, 120))
+        projectSettings_Dialog.setMaximumSize(QtCore.QSize(270, 120))
+        projectSettings_Dialog.setWindowTitle("Project Settings")
+
+        gridLayout = QtGui.QGridLayout(projectSettings_Dialog)
+        gridLayout.setObjectName(("gridLayout"))
+
+        buttonBox = QtGui.QDialogButtonBox(projectSettings_Dialog)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        buttonBox.setMaximumSize(QtCore.QSize(16777215, 30))
+        buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Cancel | QtGui.QDialogButtonBox.Save)
+        buttonBox.setObjectName("buttonBox")
+
+        gridLayout.addWidget(buttonBox, 1, 0, 1, 1)
+
+        formLayout = QtGui.QFormLayout()
+        formLayout.setFieldGrowthPolicy(QtGui.QFormLayout.AllNonFixedFieldsGrow)
+        formLayout.setLabelAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        formLayout.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+        formLayout.setObjectName("formLayout")
+
+        resolution_label = QtGui.QLabel(projectSettings_Dialog)
+        resolution_label.setText("Resolution:")
+        resolution_label.setObjectName("resolution_label")
+        formLayout.setWidget(0, QtGui.QFormLayout.LabelRole, resolution_label)
+
+        horizontalLayout = QtGui.QHBoxLayout()
+        horizontalLayout.setObjectName("horizontalLayout")
+
+        resolutionX_spinBox = QtGui.QSpinBox(projectSettings_Dialog)
+        resolutionX_spinBox.setButtonSymbols(QtGui.QAbstractSpinBox.NoButtons)
+        resolutionX_spinBox.setObjectName("resolutionX_spinBox")
+        horizontalLayout.addWidget(resolutionX_spinBox)
+        resolutionX_spinBox.setRange(1, 99999)
+        resolutionX_spinBox.setValue(projectSettingsDB["Resolution"][0])
+
+        resolutionY_spinBox = QtGui.QSpinBox(projectSettings_Dialog)
+        resolutionY_spinBox.setButtonSymbols(QtGui.QAbstractSpinBox.NoButtons)
+        resolutionY_spinBox.setObjectName("resolutionY_spinBox")
+        horizontalLayout.addWidget(resolutionY_spinBox)
+        resolutionY_spinBox.setRange(1, 99999)
+        resolutionY_spinBox.setValue(projectSettingsDB["Resolution"][1])
+
+        formLayout.setLayout(0, QtGui.QFormLayout.FieldRole, horizontalLayout)
+        fps_label = QtGui.QLabel(projectSettings_Dialog)
+        fps_label.setText("FPS")
+        fps_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        fps_label.setObjectName("fps_label")
+        formLayout.setWidget(1, QtGui.QFormLayout.LabelRole, fps_label)
+
+        fps_comboBox = QtGui.QComboBox(projectSettings_Dialog)
+        fps_comboBox.setMaximumSize(QtCore.QSize(60, 16777215))
+        fps_comboBox.setObjectName("fps_comboBox")
+        formLayout.setWidget(1, QtGui.QFormLayout.FieldRole, fps_comboBox)
+        fps_comboBox.addItems(self.masterManager.fpsList)
+        try:
+            index = self.masterManager.fpsList.index(str(projectSettingsDB["FPS"]))
+        except:
+            index = 2
+        fps_comboBox.setCurrentIndex(index)
+        gridLayout.addLayout(formLayout, 0, 0, 1, 1)
+
+        # SIGNALS
+        # -------
+        def onAccepted():
+            projectSettingsDB = {"Resolution": [resolutionX_spinBox.value(), resolutionY_spinBox.value()],
+                                 "FPS": int(fps_comboBox.currentText())}
+            self.masterManager._saveProjectSettings(projectSettingsDB)
+            projectSettings_Dialog.close()
+
+
+        buttonBox.accepted.connect(onAccepted)
+        buttonBox.rejected.connect(projectSettings_Dialog.reject)
+
+        projectSettings_Dialog.show()
+
     def addNoteDialog(self):
         manager = self._getManager()
         if not manager:
@@ -1503,8 +1640,6 @@ class MainUI(QtGui.QMainWindow):
         QtCore.QMetaObject.connectSlotsByName(addNotes_Dialog)
 
         addNotes_Dialog.show()
-
-    # TODO : PROJECT SETTINGS UI
 
     def onContextMenu_scenes(self, point):
         # show context menu

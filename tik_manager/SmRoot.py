@@ -11,6 +11,7 @@ import json
 import filecmp
 import re
 import ctypes
+import socket
 
 logging.basicConfig()
 logger = logging.getLogger('smRoot')
@@ -27,6 +28,7 @@ class RootManager(object):
 
         self.currentPlatform = platform.system()
         self._pathsDict={}
+        self.fpsList=["15", "24", "25", "30", "48", "50", "60"]
         # self.padding = 3
 
 
@@ -528,6 +530,31 @@ class RootManager(object):
 
         return os.path.join(self.projectDir, self._currentThumbFile)
 
+    def getFPS(self):
+        """returns the project FPS setting"""
+        # load it each time, since this setting is not limited to a single user
+        projectSettingsDB = self._loadProjectSettings()
+        try:
+            fpsValue = projectSettingsDB["FPS"]
+            return fpsValue
+        except KeyError:
+            msg = "Database Error while reading projectSettings.json"
+            logger.error(msg)
+            return None
+
+    def getResolution(self):
+        """returns the project Resolution setting as a list"""
+        # load it each time, since this setting is not limited to a single user
+        projectSettingsDB = self._loadProjectSettings()
+        try:
+            resolution = projectSettingsDB["Resolution"]
+            return resolution
+        except KeyError:
+            msg = "Database Error while reading projectSettings.json"
+            logger.error(msg)
+            return None
+
+
     # def getFavorites(self):
     #     """returns List of favorite projects"""
     #     self._bookmarksList = self.loadFavorites(self.bookmarksFile)  # not immediate
@@ -989,7 +1016,9 @@ class RootManager(object):
             logger.warning(msg)
             raise Exception([203, msg])
             # pass
-        logger.debug("all database entries and version files of %s deleted" %databaseFile)
+        msg = "all database entries and version files of %s deleted" %databaseFile
+        logger.debug(msg)
+        self.manager.errorLogger(title="Deleted Base Scene", errorMessage=msg)
 
     def deleteReference(self, databaseFile):
         # logger.debug("Func: deleteReference")
@@ -1001,10 +1030,12 @@ class RootManager(object):
 
         if jsonInfo["ReferenceFile"]:
             try:
+                referenceFile = jsonInfo["ReferenceFile"]
                 os.remove(os.path.join(self.projectDir, jsonInfo["ReferenceFile"]))
                 jsonInfo["ReferenceFile"] = None
                 jsonInfo["ReferencedVersion"] = None
                 self._dumpJson(jsonInfo, databaseFile)
+                self.manager.errorLogger(title="Deleted Reference File", errorMessage="%s deleted" %referenceFile)
             except:
                 msg = "Cannot delete reference file %s" % (jsonInfo["ReferenceFile"])
                 logger.warning(msg)
@@ -1067,6 +1098,40 @@ class RootManager(object):
         else:
             logger.info("CODE YELLOW: File does not have a reference copy")
             return 0 # code yellow
+
+    def errorLogger(self, title="", errorMessage=""):
+        #
+        logger = logging.getLogger('SceneManager')
+        filePath = os.path.join(self._pathsDict["masterDir"], "sm_logs.log")
+        file_logger = logging.FileHandler(filePath)
+        logger.addHandler(file_logger)
+        logger.setLevel(logging.DEBUG)
+
+        now = datetime.datetime.now()
+        timeInfo = now.strftime("%d.%m.%Y - %H:%M")
+        userInfo = self.currentUser
+        machineInfo = socket.gethostname()
+
+        ## stuff
+
+
+
+        logMessage = "-----------------------------------------\n" \
+                     "{0} - {1}\n" \
+                     "-----------------------------------------\n" \
+                     "Error Message:\n" \
+                     "{2}\n\n" \
+                     "User: {3}\n" \
+                     "Workstation: {4}\n".format(title, timeInfo, errorMessage, userInfo, machineInfo)
+
+
+        logger.debug(logMessage)
+
+
+        logger.removeHandler(file_logger)
+        file_logger.flush()
+        file_logger.close()
+
 
     def _checkRequirements(self):
         """
@@ -1180,7 +1245,8 @@ class RootManager(object):
 
     def _loadProjectSettings(self):
         """Loads Project Settings from file"""
-        if not os.path.isdir(self._pathsDict["projectSettingsFile"]):
+        print "cheese", self._pathsDict["projectSettingsFile"]
+        if not os.path.isfile(self._pathsDict["projectSettingsFile"]):
             projectSettingsDB = {"Resolution": [1920, 1080],
                                    "FPS": 25}
             self._dumpJson(projectSettingsDB, self._pathsDict["projectSettingsFile"])

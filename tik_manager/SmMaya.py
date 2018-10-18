@@ -222,6 +222,7 @@ class MayaManager(RootManager):
         """
         logger.debug("Func: saveBaseScene")
 
+
         # fullName = self.userList.keys()[self.userList.values().index(userName)]
         now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
         completeNote = "[%s] on %s\n%s\n" % (self.currentUser, now, versionNotes)
@@ -755,6 +756,22 @@ class MayaManager(RootManager):
             (item, mel.eval('playblast -format "{0}" -q -compression;'.format(item))) for item in formatList)
         return codecsDictionary
 
+    def preSaveChecklist(self):
+        """Checks the scene for inconsistencies"""
+        checklist = []
+
+        # check Fps
+        fpsDict = {"game": 15, "film": 24, "pal": 25, "ntsc": 30, "show": 48, "palf": 50, "ntscf": 60}
+        fpsValue_setting = self.getFPS()
+        fpsName_current = cmds.currentUnit(query=True, time=True)
+        fpsValue_current = fpsDict[fpsName_current]
+
+        if fpsValue_setting is not fpsValue_current:
+            msg = "FPS values are not matching with the project settings.\n Project FPS => {0}\n scene FPS => {1}\nDo you want to continue?".format(fpsValue_setting, fpsValue_current)
+            checklist.append(msg)
+
+        return checklist
+
     def _createCallbacks(self, handler):
         logger.debug("Func: _createCallbacks")
         callbackIDList=[]
@@ -1162,7 +1179,7 @@ class MainUI(QtWidgets.QMainWindow):
         add_remove_categories_fm = QtWidgets.QAction("&Add/Remove Categories", self)
         pb_settings_fm = QtWidgets.QAction("&Playblast Settings", self)
 
-
+        projectSettings_fm = QtWidgets.QAction("&Project Settings", self)
 
         deleteFile_fm = QtWidgets.QAction("&Delete Selected Base Scene", self)
         deleteReference_fm = QtWidgets.QAction("&Delete Reference of Selected Scene", self)
@@ -1184,6 +1201,8 @@ class MainUI(QtWidgets.QMainWindow):
         file.addAction(add_remove_users_fm)
         file.addAction(add_remove_categories_fm)
         file.addAction(pb_settings_fm)
+        file.addAction(projectSettings_fm)
+
 
         #delete
         file.addSeparator()
@@ -1262,6 +1281,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         add_remove_categories_fm.triggered.connect(self.addRemoveCategoryUI)
 
+        projectSettings_fm.triggered.connect(self.projectSettingsUI)
 
 
         deleteFile_fm.triggered.connect(self.onDeleteBaseScene)
@@ -1332,7 +1352,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.createproject_Dialog = QtWidgets.QDialog(parent=self)
         self.createproject_Dialog.setObjectName(("createproject_Dialog"))
-        self.createproject_Dialog.resize(419, 249)
+        self.createproject_Dialog.resize(419, 300)
         self.createproject_Dialog.setWindowTitle(("Create New Project"))
 
         self.projectroot_label = QtWidgets.QLabel(self.createproject_Dialog)
@@ -1391,8 +1411,37 @@ class MainUI(QtWidgets.QMainWindow):
         self.client_lineEdit.setPlaceholderText(("Mandatory Field"))
         self.client_lineEdit.setObjectName(("client_lineEdit"))
 
+        # TODO : ref
+
+        resolution_label = QtWidgets.QLabel(self.createproject_Dialog)
+        resolution_label.setGeometry(QtCore.QRect(24, 180 , 111, 21))
+        resolution_label.setText("Resolution")
+
+        resolutionX_spinBox = QtWidgets.QSpinBox(self.createproject_Dialog)
+        resolutionX_spinBox.setGeometry(QtCore.QRect(80, 180, 60, 21))
+        resolutionX_spinBox.setObjectName(("resolutionX_spinBox"))
+        resolutionX_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        resolutionX_spinBox.setRange(1,99999)
+        resolutionX_spinBox.setValue(1920)
+
+        resolutionY_spinBox = QtWidgets.QSpinBox(self.createproject_Dialog)
+        resolutionY_spinBox.setGeometry(QtCore.QRect(145, 180, 60, 21))
+        resolutionY_spinBox.setObjectName(("resolutionY_spinBox"))
+        resolutionY_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        resolutionY_spinBox.setRange(1,99999)
+        resolutionY_spinBox.setValue(1080)
+
+        fps_label = QtWidgets.QLabel(self.createproject_Dialog)
+        fps_label.setGeometry(QtCore.QRect(54, 210 , 111, 21))
+        fps_label.setText("FPS")
+
+        fps_comboBox = QtWidgets.QComboBox(self.createproject_Dialog)
+        fps_comboBox.setGeometry(QtCore.QRect(80, 210 , 60, 21))
+        fps_comboBox.addItems(self.manager.fpsList)
+        fps_comboBox.setCurrentIndex(2)
+
         self.createproject_buttonBox = QtWidgets.QDialogButtonBox(self.createproject_Dialog)
-        self.createproject_buttonBox.setGeometry(QtCore.QRect(30, 190, 371, 32))
+        self.createproject_buttonBox.setGeometry(QtCore.QRect(30, 250, 371, 32))
         self.createproject_buttonBox.setOrientation(QtCore.Qt.Horizontal)
         self.createproject_buttonBox.setStandardButtons(
             QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
@@ -1415,11 +1464,14 @@ class MainUI(QtWidgets.QMainWindow):
             pName = self.projectname_lineEdit.text()
             bName = self.brandname_lineEdit.text()
             cName = self.client_lineEdit.text()
-            pPath = self.manager.createNewProject(root, pName, bName, cName)
+            projectSettingsDB = {"Resolution": [resolutionX_spinBox.value(), resolutionY_spinBox.value()],
+                                   "FPS": int(fps_comboBox.currentText())}
+
+            pPath = self.manager.createNewProject(root, pName, bName, cName, settingsData=projectSettingsDB)
             if pPath:
                 self.manager.setProject(pPath)
             # self.onProjectChange()
-            # TODO : ref
+
             self.initMainUI()
             self.createproject_Dialog.close()
 
@@ -2251,6 +2303,102 @@ class MainUI(QtWidgets.QMainWindow):
 
         categories_dialog.show()
 
+    def projectSettingsUI(self):
+        # admin_pswd = "682"
+        # passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query", "Enter Admin Password:",
+        #                                        QtGui.QLineEdit.Password)
+        # if ok:
+        #     if passw == admin_pswd:
+        #         pass
+        #     else:
+        #         self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
+        #         return
+        # else:
+        #     return
+
+        projectSettingsDB = self.manager._loadProjectSettings()
+
+        projectSettings_Dialog = QtWidgets.QDialog(parent=self)
+        projectSettings_Dialog.setObjectName("projectSettings_Dialog")
+        projectSettings_Dialog.resize(270, 120)
+        projectSettings_Dialog.setMinimumSize(QtCore.QSize(270, 120))
+        projectSettings_Dialog.setMaximumSize(QtCore.QSize(270, 120))
+        projectSettings_Dialog.setWindowTitle("Project Settings")
+
+        gridLayout = QtWidgets.QGridLayout(projectSettings_Dialog)
+        gridLayout.setObjectName(("gridLayout"))
+
+        buttonBox = QtWidgets.QDialogButtonBox(projectSettings_Dialog)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        buttonBox.setMaximumSize(QtCore.QSize(16777215, 30))
+        buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Save)
+        buttonBox.setObjectName("buttonBox")
+
+        gridLayout.addWidget(buttonBox, 1, 0, 1, 1)
+
+        formLayout = QtWidgets.QFormLayout()
+        formLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
+        formLayout.setLabelAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        formLayout.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+        formLayout.setObjectName("formLayout")
+
+        resolution_label = QtWidgets.QLabel(projectSettings_Dialog)
+        resolution_label.setText("Resolution:")
+        resolution_label.setObjectName("resolution_label")
+        formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, resolution_label)
+
+        horizontalLayout = QtWidgets.QHBoxLayout()
+        horizontalLayout.setObjectName("horizontalLayout")
+
+        resolutionX_spinBox = QtWidgets.QSpinBox(projectSettings_Dialog)
+        resolutionX_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        resolutionX_spinBox.setObjectName("resolutionX_spinBox")
+        horizontalLayout.addWidget(resolutionX_spinBox)
+        resolutionX_spinBox.setRange(1, 99999)
+        resolutionX_spinBox.setValue(projectSettingsDB["Resolution"][0])
+
+        resolutionY_spinBox = QtWidgets.QSpinBox(projectSettings_Dialog)
+        resolutionY_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        resolutionY_spinBox.setObjectName("resolutionY_spinBox")
+        horizontalLayout.addWidget(resolutionY_spinBox)
+        resolutionY_spinBox.setRange(1, 99999)
+        resolutionY_spinBox.setValue(projectSettingsDB["Resolution"][1])
+
+        formLayout.setLayout(0, QtWidgets.QFormLayout.FieldRole, horizontalLayout)
+        fps_label = QtWidgets.QLabel(projectSettings_Dialog)
+        fps_label.setText("FPS")
+        fps_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        fps_label.setObjectName("fps_label")
+        formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, fps_label)
+
+        fps_comboBox = QtWidgets.QComboBox(projectSettings_Dialog)
+        fps_comboBox.setMaximumSize(QtCore.QSize(60, 16777215))
+        fps_comboBox.setObjectName("fps_comboBox")
+        formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, fps_comboBox)
+        fps_comboBox.addItems(self.manager.fpsList)
+        try:
+            index = self.manager.fpsList.index(str(projectSettingsDB["FPS"]))
+        except:
+            index = 2
+        fps_comboBox.setCurrentIndex(index)
+        gridLayout.addLayout(formLayout, 0, 0, 1, 1)
+
+        # SIGNALS
+        # -------
+        def onAccepted():
+            projectSettingsDB = {"Resolution": [resolutionX_spinBox.value(), resolutionY_spinBox.value()],
+                                 "FPS": int(fps_comboBox.currentText())}
+            self.manager._saveProjectSettings(projectSettingsDB)
+            projectSettings_Dialog.close()
+
+        buttonBox.accepted.connect(onAccepted)
+        buttonBox.rejected.connect(projectSettings_Dialog.reject)
+
+        projectSettings_Dialog.show()
+
     def saveBaseSceneDialog(self):
         self.save_Dialog = QtWidgets.QDialog(parent=self)
         self.save_Dialog.setModal(True)
@@ -2319,6 +2467,14 @@ class MainUI(QtWidgets.QMainWindow):
         self.sd_buttonBox.setObjectName(("sd_buttonBox"))
 
         def saveCommand():
+            # TODO : ref
+            checklist = self.manager.preSaveChecklist()
+            for msg in checklist:
+                q = self.queryPop(type="yesNo", textTitle="Checklist", textHeader=msg)
+                if q == "no":
+                    return
+                else:
+                    self.manager.errorLogger(title = "Disregarded warning" , errorMessage=msg)
             category = self.sdCategory_comboBox.currentText()
             name = self.sdName_lineEdit.text()
             subIndex = self.sdSubP_comboBox.currentIndex()
@@ -2381,6 +2537,15 @@ class MainUI(QtWidgets.QMainWindow):
         sv_buttonBox.setObjectName(("sd_buttonBox"))
 
         def saveAsVersionCommand():
+            # TODO : ref
+            checklist = self.manager.preSaveChecklist()
+            for msg in checklist:
+                q = self.queryPop(type="yesNo", textTitle="Checklist", textHeader=msg)
+                if q == "no":
+                    return
+                else:
+                    self.manager.errorLogger(title = "Disregarded warning" , errorMessage=msg)
+
             sceneInfo = self.manager.saveVersion(makeReference=self.svMakeReference_checkbox.checkState(),
                                                  versionNotes=self.svNotes_textEdit.toPlainText())
 
@@ -2407,6 +2572,7 @@ class MainUI(QtWidgets.QMainWindow):
         if sceneInfo:
             saveV_Dialog.show()
         else:
+            self.manager.errorLogger(title="Misuse Error", errorMessage="A version tried to be saved without base scene")
             self.infoPop(textInfo="Version Saving not possible",
                          textHeader="Current Scene is not a Base Scene. Only versions of Base Scenes can be saved", textTitle="Not a Base File", type="C")
 
@@ -2451,8 +2617,6 @@ class MainUI(QtWidgets.QMainWindow):
         QtCore.QMetaObject.connectSlotsByName(addNotes_Dialog)
 
         addNotes_Dialog.show()
-
-    # TODO : PROJECT SETTINGS UI
 
     def callbackRefresh(self):
         """
@@ -2685,6 +2849,8 @@ class MainUI(QtWidgets.QMainWindow):
             mismatch = self.queryPop(type="yesNo", textTitle="Version Mismatch", textHeader=msg)
             if mismatch == "no":
                 return
+            else:
+                self.manager.errorLogger(title="Disregarded warning", errorMessage=msg)
 
         if self.load_radioButton.isChecked():
             if self.manager.isSceneModified():

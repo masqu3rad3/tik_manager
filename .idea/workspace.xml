@@ -1,90 +1,241 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="BookmarkManager">
+    <bookmark url="file://$PROJECT_DIR$/tik_manager/SmMaya.py" line="1807" mnemonic="3" />
+    <bookmark url="file://$PROJECT_DIR$/tik_manager/SmStandalone.py" line="545" mnemonic="4" />
+    <bookmark url="file://$PROJECT_DIR$/tik_manager/SmStandalone.py" line="1867" mnemonic="2" />
+    <bookmark url="file://$PROJECT_DIR$/tik_manager/SmRoot.py" line="1110" mnemonic="1" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="73609c59-817f-4d05-94b7-2e526db2f81a" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tik_manager/SmRoot.py" beforeDir="false" afterPath="$PROJECT_DIR$/tik_manager/SmRoot.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tik_manager/sceneManagerUsers.json" beforeDir="false" afterPath="$PROJECT_DIR$/tik_manager/sceneManagerUsers.json" afterDir="false" />
+    <list default="true" id="141116ba-e7cf-403d-8990-39535c12a2cb" name="Default" comment="">
+      <change beforePath="" afterPath="$PROJECT_DIR$/tik_manager/SmHoudini.py" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change beforePath="$PROJECT_DIR$/tik_manager/Sm3dsMax.py" afterPath="$PROJECT_DIR$/tik_manager/Sm3dsMax.py" />
+      <change beforePath="$PROJECT_DIR$/tik_manager/SmMaya.py" afterPath="$PROJECT_DIR$/tik_manager/SmMaya.py" />
+      <change beforePath="$PROJECT_DIR$/tik_manager/SmRoot.py" afterPath="$PROJECT_DIR$/tik_manager/SmRoot.py" />
+      <change beforePath="$PROJECT_DIR$/tik_manager/SmStandalone.py" afterPath="$PROJECT_DIR$/tik_manager/SmStandalone.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="FUSProjectUsageTrigger">
-    <session id="1379017343">
-      <usages-collector id="statistics.lifecycle.project">
-        <counts>
-          <entry key="project.closed" value="1" />
-          <entry key="project.open.time.0" value="1" />
-          <entry key="project.opened" value="1" />
-        </counts>
-      </usages-collector>
-      <usages-collector id="statistics.file.extensions.open">
-        <counts>
-          <entry key="py" value="2" />
-        </counts>
-      </usages-collector>
-      <usages-collector id="statistics.file.types.open">
-        <counts>
-          <entry key="Python" value="2" />
-        </counts>
-      </usages-collector>
-      <usages-collector id="statistics.file.extensions.edit">
-        <counts>
-          <entry key="py" value="1" />
-        </counts>
-      </usages-collector>
-      <usages-collector id="statistics.file.types.edit">
-        <counts>
-          <entry key="Python" value="1" />
-        </counts>
-      </usages-collector>
-    </session>
-    <session id="619162876">
-      <usages-collector id="statistics.lifecycle.project">
-        <counts>
-          <entry key="project.open.time.7" value="1" />
-          <entry key="project.opened" value="1" />
-        </counts>
-      </usages-collector>
-      <usages-collector id="statistics.file.extensions.edit">
-        <counts>
-          <entry key="py" value="74" />
-        </counts>
-      </usages-collector>
-      <usages-collector id="statistics.file.types.edit">
-        <counts>
-          <entry key="Python" value="74" />
-        </counts>
-      </usages-collector>
-    </session>
-  </component>
   <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/tik_manager/SmMaya.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="37050">
-              <caret line="2472" column="8" selection-start-line="2472" selection-start-column="8" selection-end-line="2472" selection-end-column="8" />
-              <folding>
-                <element signature="e#0#9#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/tik_manager/SmRoot.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="105">
-              <caret line="18" column="64" selection-start-line="18" selection-start-column="64" selection-end-line="18" selection-end-column="64" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-    </leaf>
+    <splitter split-orientation="horizontal" split-proportion="0.62442815">
+      <split-first>
+        <leaf>
+          <file leaf-file-name="SmHoudini.py" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/tik_manager/SmHoudini.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="453">
+                  <caret line="95" column="59" lean-forward="false" selection-start-line="95" selection-start-column="59" selection-end-line="95" selection-end-column="59" />
+                  <folding>
+                    <element signature="e#0#9#0" expanded="true" />
+                    <element signature="e#37403#37451#0" expanded="false" />
+                    <element signature="e#37485#57241#0" expanded="false" />
+                    <element signature="e#57286#57982#0" expanded="false" />
+                    <element signature="e#58024#64769#0" expanded="false" />
+                    <element signature="e#64808#78631#0" expanded="false" />
+                    <element signature="e#78670#93843#0" expanded="false" />
+                    <element signature="e#93885#99717#0" expanded="false" />
+                    <element signature="e#99763#104203#0" expanded="false" />
+                    <element signature="e#104248#108976#0" expanded="false" />
+                    <element signature="e#109021#112034#0" expanded="false" />
+                    <element signature="e#112073#113990#0" expanded="false" />
+                    <element signature="e#114065#114666#0" expanded="false" />
+                    <element signature="e#114718#115322#0" expanded="false" />
+                    <element signature="e#115372#116899#0" expanded="false" />
+                    <element signature="e#116948#117392#0" expanded="false" />
+                    <element signature="e#117445#117832#0" expanded="false" />
+                    <element signature="e#117888#118076#0" expanded="false" />
+                    <element signature="e#118117#118334#0" expanded="false" />
+                    <element signature="e#118378#118480#0" expanded="false" />
+                    <element signature="e#118522#118744#0" expanded="false" />
+                    <element signature="e#118782#118880#0" expanded="false" />
+                    <element signature="e#118919#119455#0" expanded="false" />
+                    <element signature="e#119498#120257#0" expanded="false" />
+                    <element signature="e#120299#121185#0" expanded="false" />
+                    <element signature="e#121246#122372#0" expanded="false" />
+                    <element signature="e#122409#123820#0" expanded="false" />
+                    <element signature="e#123861#124246#0" expanded="false" />
+                    <element signature="e#124285#124965#0" expanded="false" />
+                    <element signature="e#125008#125519#0" expanded="false" />
+                    <element signature="e#125562#126074#0" expanded="false" />
+                    <element signature="e#126080#126103#0" expanded="false" />
+                    <element signature="e#126471#126762#0" expanded="false" />
+                    <element signature="e#126804#127211#0" expanded="false" />
+                    <element signature="e#127247#127625#0" expanded="false" />
+                    <element signature="e#127665#128239#0" expanded="false" />
+                    <element signature="e#128322#128625#0" expanded="false" />
+                    <element signature="e#128667#129424#0" expanded="false" />
+                    <element signature="e#129513#129944#0" expanded="false" />
+                    <element signature="e#130047#132383#0" expanded="false" />
+                    <element signature="e#130082#130662#0" expanded="false" />
+                    <element signature="e#132426#132964#0" expanded="false" />
+                    <element signature="e#133015#133794#0" expanded="false" />
+                    <element signature="e#133822#135195#0" expanded="false" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="v2_tests.py" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/test/v2_tests.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="461">
+                  <caret line="26" column="2" lean-forward="false" selection-start-line="26" selection-start-column="2" selection-end-line="26" selection-end-column="2" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="devCommands.py" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/test/devCommands.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="352">
+                  <caret line="16" column="23" lean-forward="false" selection-start-line="16" selection-start-column="23" selection-end-line="16" selection-end-column="23" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="SmRoot.py" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/tik_manager/SmRoot.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="2226">
+                  <caret line="1037" column="113" lean-forward="false" selection-start-line="1037" selection-start-column="113" selection-end-line="1037" selection-end-column="113" />
+                  <folding>
+                    <element signature="e#1#16#0" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="IvMaya.py" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/tik_manager/IvMaya.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="314">
+                  <caret line="767" column="0" lean-forward="false" selection-start-line="767" selection-start-column="0" selection-end-line="771" selection-end-column="39" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="ImMaya.py" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/tik_manager/ImMaya.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="376">
+                  <caret line="64" column="13" lean-forward="false" selection-start-line="64" selection-start-column="13" selection-end-line="64" selection-end-column="13" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="SmMaya.py" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/tik_manager/SmMaya.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="598">
+                  <caret line="2852" column="37" lean-forward="false" selection-start-line="2852" selection-start-column="0" selection-end-line="2853" selection-end-column="0" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="Sm3dsMax.py" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/tik_manager/Sm3dsMax.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="180">
+                  <caret line="43" column="4" lean-forward="false" selection-start-line="43" selection-start-column="4" selection-end-line="43" selection-end-column="4" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+        </leaf>
+      </split-first>
+      <split-second>
+        <leaf>
+          <file leaf-file-name="SmMaya.py" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/tik_manager/SmMaya.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="388">
+                  <caret line="1807" column="0" lean-forward="false" selection-start-line="1807" selection-start-column="0" selection-end-line="1807" selection-end-column="0" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="SmStandalone.py" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/tik_manager/SmStandalone.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="378">
+                  <caret line="1867" column="0" lean-forward="false" selection-start-line="1867" selection-start-column="0" selection-end-line="1867" selection-end-column="0" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="projectSettingsUI.py" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/tik_manager/QtDesigner/projectSettingsUI.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="1661">
+                  <caret line="80" column="62" lean-forward="false" selection-start-line="80" selection-start-column="13" selection-end-line="80" selection-end-column="62" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+        </leaf>
+      </split-second>
+    </splitter>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="HTML File" />
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>self.manager</find>
+      <find>BaseScene</find>
+      <find>color</find>
+      <find>onProjectChange</find>
+      <find>pprint</find>
+      <find>SeqCopyProgress</find>
+      <find>onDeleteBaseScene</find>
+      <find>SmMaya</find>
+      <find>SceneManager</find>
+      <find>elf.software_comboBox.setStyleSheet</find>
+      <find>executeScene</find>
+      <find>subprocess</find>
+      <find>QtWidget</find>
+      <find>widget</find>
+      <find>QPushButton</find>
+      <find>onCreateNewProject</find>
+      <find>_fromUtf8</find>
+      <find>self._pathsDict[&quot;projectSettingsFile&quot;]</find>
+      <find>createProjectUI</find>
+      <find>categories_dialog.show()</find>
+      <find>buttonBox</find>
+      <find>file</find>
+      <find>add_remove_categories_fm</find>
+      <find>queryPop</find>
+      <find>Qt</find>
+      <find>projectSettingsUI</find>
+      <find>Exception</find>
+      <find>socket</find>
+      <find>index = self</find>
+      <find>errorLogger</find>
+    </findStrings>
+    <replaceStrings>
+      <replace>rig_tab</replace>
+      <replace>QtGui</replace>
+    </replaceStrings>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -92,24 +243,84 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
+        <option value="$PROJECT_DIR$/suMod.py" />
+        <option value="$PROJECT_DIR$/UI/manager_addRemoveUser.py" />
+        <option value="$PROJECT_DIR$/UI/temp.py" />
+        <option value="$PROJECT_DIR$/__init__.py" />
+        <option value="$PROJECT_DIR$/UI/imageViewer.py" />
+        <option value="$PROJECT_DIR$/UI/test.py" />
+        <option value="$PROJECT_DIR$/setup_Class.py" />
+        <option value="$PROJECT_DIR$/setup.py" />
+        <option value="$PROJECT_DIR$/fileCopyProgress.py" />
+        <option value="$PROJECT_DIR$/imageViewer.py" />
+        <option value="$PROJECT_DIR$/imageManager.py" />
+        <option value="$PROJECT_DIR$/test.html" />
+        <option value="$PROJECT_DIR$/README.md" />
+        <option value="$PROJECT_DIR$/manager.py" />
+        <option value="$PROJECT_DIR$/tik_manager/pyseq.py" />
+        <option value="$PROJECT_DIR$/tik_manager/__init__.py" />
+        <option value="$PROJECT_DIR$/tik_manager/fileCopyProgress.py" />
+        <option value="$PROJECT_DIR$/tik_manager/seqCopyProgress.py" />
+        <option value="$PROJECT_DIR$/test/updateShared.py" />
+        <option value="$PROJECT_DIR$/ui/customSetProject.py" />
+        <option value="$PROJECT_DIR$/INSTALL.rst" />
+        <option value="$PROJECT_DIR$/tik_manager/smDatabaseOps.py" />
+        <option value="$PROJECT_DIR$/test/test.py" />
+        <option value="$PROJECT_DIR$/tik_manager/testo.py" />
+        <option value="$PROJECT_DIR$/tik_manager/organizer.py" />
+        <option value="$PROJECT_DIR$/tik_manager/testMaya.py" />
+        <option value="$PROJECT_DIR$/tik_manager/test.py" />
+        <option value="$PROJECT_DIR$/tik_manager/SmRootTT.py" />
+        <option value="$PROJECT_DIR$/tik_manager/SmDatabase.py" />
+        <option value="$PROJECT_DIR$/tik_manager/imageManager.py" />
+        <option value="$PROJECT_DIR$/tik_manager/_version.py" />
+        <option value="$PROJECT_DIR$/ChangeLog.rst" />
+        <option value="$PROJECT_DIR$/tik_manager/imageViewer.py" />
+        <option value="$PROJECT_DIR$/test/switch.py" />
+        <option value="$PROJECT_DIR$/tik_manager/ImMaya.py" />
+        <option value="$PROJECT_DIR$/test/v2_tests.py" />
+        <option value="$PROJECT_DIR$/test/devCommands.py" />
+        <option value="$PROJECT_DIR$/tik_manager/setup.py" />
+        <option value="$PROJECT_DIR$/tik_manager/setup3dsMax.py" />
+        <option value="$PROJECT_DIR$/tik_manager/manager.py" />
+        <option value="$PROJECT_DIR$/tik_manager/SmStandaloneDRAFT.py" />
+        <option value="$PROJECT_DIR$/test/standaloneTests.py" />
+        <option value="$PROJECT_DIR$/tik_manager/darkOrange.stylesheet" />
+        <option value="$PROJECT_DIR$/tik_manager/CSS/darkOrange.stylesheet" />
+        <option value="$PROJECT_DIR$/tik_manager/IvMaya.py" />
+        <option value="$PROJECT_DIR$/tik_manager/SmHoudini.py" />
+        <option value="$PROJECT_DIR$/tik_manager/QtDesigner/projectSettingsUI.py" />
+        <option value="$PROJECT_DIR$/tik_manager/SmStandalone.py" />
         <option value="$PROJECT_DIR$/tik_manager/SmRoot.py" />
+        <option value="$PROJECT_DIR$/tik_manager/SmMaya.py" />
+        <option value="$PROJECT_DIR$/tik_manager/Sm3dsMax.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="10" />
-    <option name="y" value="48" />
-    <option name="width" value="1346" />
-    <option name="height" value="666" />
+    <option name="x" value="-8" />
+    <option name="y" value="-8" />
+    <option name="width" value="2576" />
+    <option name="height" value="1586" />
   </component>
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
-    <ConfirmationsSetting value="1" id="Add" />
-  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
-    <navigator proportions="" version="1">
+    <navigator currentView="ProjectPane" proportions="" version="1">
+      <flattenPackages />
+      <showMembers />
+      <showModules />
+      <showLibraryContents />
+      <hideEmptyPackages />
+      <abbreviatePackageNames />
+      <autoscrollToSource />
+      <autoscrollFromSource />
+      <sortByType />
+      <manualOrder />
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
+      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -120,14 +331,45 @@
             <path>
               <item name="tik_manager" type="b2602c69:ProjectViewProjectNode" />
               <item name="tik_manager" type="462c0819:PsiDirectoryNode" />
+              <item name="test" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="tik_manager" type="b2602c69:ProjectViewProjectNode" />
               <item name="tik_manager" type="462c0819:PsiDirectoryNode" />
+              <item name="tik_manager" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="tik_manager" type="b2602c69:ProjectViewProjectNode" />
+              <item name="tik_manager" type="462c0819:PsiDirectoryNode" />
+              <item name="tik_manager" type="462c0819:PsiDirectoryNode" />
+              <item name="QtDesigner" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="tik_manager" type="b2602c69:ProjectViewProjectNode" />
+              <item name="tik_manager" type="462c0819:PsiDirectoryNode" />
+              <item name="ui" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="DefaultHtmlFileTemplate" value="HTML File" />
+    <property name="run.code.analysis.last.selected.profile" value="pProject Default" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\User\Documents\maya\scripts\dev\tik_manager\tik_manager\CSS" />
+      <recent name="C:\Users\User\Documents\maya\scripts\dev\tik_manager\tik_manager" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\User\Documents\maya\scripts\dev\tik_manager\tik_manager" />
+      <recent name="C:\Users\User\Documents\maya\scripts\dev\tik_manager" />
+    </key>
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -141,60 +383,706 @@
       </list>
     </option>
   </component>
+  <component name="RunManager" selected="Python.SmStandalone">
+    <configuration name="SmRoot" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tik_manager" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="tik_manager" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tik_manager/SmRoot.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <configuration name="SmStandalone" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tik_manager" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="tik_manager" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tik_manager/SmStandalone.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <configuration name="SmStandaloneDRAFT" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tik_manager" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="tik_manager" />
+      <option name="SCRIPT_NAME" value="C:\Users\User\Documents\maya\scripts\dev\tik_manager\tik_manager\SmStandalone.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <configuration name="setupMaya" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tik_manager" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="tik_manager" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tik_manager/setupMaya.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <configuration name="standaloneTests" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/test" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="tik_manager" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test/standaloneTests.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+    </configuration>
+    <configuration default="true" type="PythonConfigurationType" factoryName="Python">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="tik_manager" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <method />
+    </configuration>
+    <configuration default="true" type="Tox" factoryName="Tox">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="tik_manager" />
+      <method />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="Doctests">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="tik_manager" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <method />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="Unittests">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="tik_manager" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;.&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
+    </configuration>
+    <list size="5">
+      <item index="0" class="java.lang.String" itemvalue="Python.SmStandaloneDRAFT" />
+      <item index="1" class="java.lang.String" itemvalue="Python.standaloneTests" />
+      <item index="2" class="java.lang.String" itemvalue="Python.SmStandalone" />
+      <item index="3" class="java.lang.String" itemvalue="Python.setupMaya" />
+      <item index="4" class="java.lang.String" itemvalue="Python.SmRoot" />
+    </list>
+    <recent_temporary>
+      <list size="5">
+        <item index="0" class="java.lang.String" itemvalue="Python.SmStandalone" />
+        <item index="1" class="java.lang.String" itemvalue="Python.SmRoot" />
+        <item index="2" class="java.lang.String" itemvalue="Python.setupMaya" />
+        <item index="3" class="java.lang.String" itemvalue="Python.standaloneTests" />
+        <item index="4" class="java.lang.String" itemvalue="Python.SmStandaloneDRAFT" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="ShelveChangesManager" show_recycled="false">
+    <option name="remove_strategy" value="false" />
+  </component>
+  <component name="StructureViewFactory">
+    <option name="ACTIVE_ACTIONS" value=",SHOW_FIELDS,SHOW_INHERITED" />
+  </component>
   <component name="SvnConfiguration">
     <configuration />
   </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="73609c59-817f-4d05-94b7-2e526db2f81a" name="Default Changelist" comment="" />
-      <created>1539288940767</created>
+      <changelist id="141116ba-e7cf-403d-8990-39535c12a2cb" name="Default" comment="" />
+      <created>1513606645186</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1539288940767</updated>
+      <updated>1513606645186</updated>
     </task>
+    <task id="LOCAL-00001" summary="wip. Next: Referencing">
+      <created>1513699220318</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1513699220318</updated>
+    </task>
+    <task id="LOCAL-00002" summary="wip. Next: Referencing">
+      <created>1513790595160</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1513790595160</updated>
+    </task>
+    <task id="LOCAL-00003" summary="wip.">
+      <created>1513866651045</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1513866651045</updated>
+    </task>
+    <task id="LOCAL-00004" summary="problem with sub-project">
+      <created>1513872809911</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1513872809911</updated>
+    </task>
+    <task id="LOCAL-00005" summary="referencing left">
+      <created>1513955735581</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1513955735581</updated>
+    </task>
+    <task id="LOCAL-00006" summary="working version">
+      <created>1513963099923</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1513963099923</updated>
+    </task>
+    <task id="LOCAL-00007" summary="working version">
+      <created>1514039256663</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1514039256663</updated>
+    </task>
+    <task id="LOCAL-00008" summary="working version">
+      <created>1514040118214</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1514040118214</updated>
+    </task>
+    <task id="LOCAL-00009" summary="publishVersion">
+      <created>1514221547799</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1514221547799</updated>
+    </task>
+    <task id="LOCAL-00010" summary="publishVersion">
+      <created>1514393562809</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1514393562809</updated>
+    </task>
+    <task id="LOCAL-00011" summary="problem with make reference">
+      <created>1514636672173</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1514636672173</updated>
+    </task>
+    <task id="LOCAL-00012" summary="re-writing the whole thing">
+      <created>1536855176197</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1536855176197</updated>
+    </task>
+    <task id="LOCAL-00013" summary="&lt;RenderPass&gt; issue fixed for Arnold">
+      <created>1537012941690</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1537012941690</updated>
+    </task>
+    <task id="LOCAL-00014" summary="v2.0.0">
+      <created>1538155850279</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1538155850279</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
+  <component name="TodoView">
+    <todo-panel id="selected-file">
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+    <todo-panel id="all">
+      <are-packages-shown value="true" />
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+  </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="28" width="1366" height="706" extended-state="6" />
+    <frame x="-8" y="-8" width="2576" height="1586" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.5767196" visible="true" weight="0.24590164" />
-      <window_info id="Structure" order="1" sideWeight="0.42328042" side_tool="true" weight="0.24962743" />
-      <window_info id="Favorites" order="2" side_tool="true" />
-      <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
-      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
-      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Version Control" order="7" />
-      <window_info anchor="bottom" id="Terminal" order="8" weight="0.32978722" />
-      <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
-      <window_info anchor="bottom" id="Python Console" order="10" weight="0.32978722" />
-      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
-      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
-      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.12718602" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.14689656" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.16413793" sideWeight="0.5039401" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32965517" sideWeight="0.4968479" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32965517" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32965517" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16413793" sideWeight="0.4960599" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.13116057" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.20344828" sideWeight="0.49523053" order="12" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Inspection Results" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32965517" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
     </layout>
+  </component>
+  <component name="Vcs.Log.History.Properties">
+    <option name="COLUMN_ORDER">
+      <list>
+        <option value="0" />
+        <option value="2" />
+        <option value="3" />
+        <option value="1" />
+      </list>
+    </option>
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="RECENTLY_FILTERED_USER_GROUPS">
+                <collection />
+              </option>
+              <option name="RECENTLY_FILTERED_BRANCH_GROUPS">
+                <collection />
+              </option>
+              <option name="COLUMN_ORDER">
+                <list>
+                  <option value="0" />
+                  <option value="1" />
+                  <option value="2" />
+                  <option value="3" />
+                </list>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
   </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="wip. Next: Referencing" />
+    <MESSAGE value="wip." />
+    <MESSAGE value="problem with sub-project" />
+    <MESSAGE value="referencing left" />
+    <MESSAGE value="working version" />
+    <MESSAGE value="publishVersion" />
+    <MESSAGE value="problem with make reference" />
+    <MESSAGE value="re-writing the whole thing" />
+    <MESSAGE value="&lt;RenderPass&gt; issue fixed for Arnold" />
+    <MESSAGE value="v2.0.0" />
+    <option name="LAST_COMMIT_MESSAGE" value="v2.0.0" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints-dialog>
+        <breakpoints-dialog />
+      </breakpoints-dialog>
+      <option name="time" value="19" />
+    </breakpoint-manager>
+    <watches-manager />
+  </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/tik_manager/SmMaya.py">
+    <entry file="file://$PROJECT_DIR$/UI/imageViewer.py" />
+    <entry file="file://$PROJECT_DIR$/UI/test.py" />
+    <entry file="file://$PROJECT_DIR$/UI/imageManager.py" />
+    <entry file="file://$PROJECT_DIR$/setupShelf.py" />
+    <entry file="file://$PROJECT_DIR$/test.html" />
+    <entry file="file://$PROJECT_DIR$/userSetup.py" />
+    <entry file="file://$PROJECT_DIR$/setup_Class.py" />
+    <entry file="file://$PROJECT_DIR$/suMod.py" />
+    <entry file="file://$PROJECT_DIR$/__init__.py" />
+    <entry file="file://$USER_HOME$/.PyCharmCE2017.3/system/python_stubs/-92892792/exceptions.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="37050">
-          <caret line="2472" column="8" selection-start-line="2472" selection-start-column="8" selection-end-line="2472" selection-end-column="8" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="374">
+          <caret line="39" column="8" lean-forward="false" selection-start-line="39" selection-start-column="8" selection-end-line="39" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ui/customSetProject.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="550">
+          <caret line="25" column="0" lean-forward="false" selection-start-line="25" selection-start-column="0" selection-end-line="195" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/README.md">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="13" lean-forward="false" selection-start-line="0" selection-start-column="13" selection-end-line="0" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Anaconda2/Lib/platform.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/INSTALL.rst">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="528">
+          <caret line="24" column="32" lean-forward="false" selection-start-line="24" selection-start-column="8" selection-end-line="24" selection-end-column="32" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tik_manager/testo.py" />
+    <entry file="file://$USER_HOME$/Anaconda2/Lib/json/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Anaconda2/Lib/glob.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="308">
+          <caret line="17" column="4" lean-forward="false" selection-start-line="17" selection-start-column="4" selection-end-line="17" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tik_manager/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.PyCharmCE2017.3/system/python_stubs/-92892792/__builtin__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2948">
+          <caret line="760" column="8" lean-forward="false" selection-start-line="760" selection-start-column="8" selection-end-line="760" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Anaconda2/Lib/site-packages/PyQt4/examples/designer/plugins/python/multipagewidgetplugin.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="579">
+          <caret line="38" column="8" lean-forward="false" selection-start-line="38" selection-start-column="8" selection-end-line="38" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Anaconda2/Lib/pprint.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tik_manager/SmDatabase.py" />
+    <entry file="file://$PROJECT_DIR$/tik_manager/imageManager.py" />
+    <entry file="file://$PROJECT_DIR$/ChangeLog.rst">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="154">
+          <caret line="7" column="32" lean-forward="false" selection-start-line="7" selection-start-column="32" selection-end-line="7" selection-end-column="32" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tik_manager/_version.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="20" lean-forward="false" selection-start-line="0" selection-start-column="20" selection-end-line="0" selection-end-column="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Anaconda2/Lib/shutil.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tik_manager/manager3dsMax.py" />
+    <entry file="file://$PROJECT_DIR$/tik_manager/smDatabaseOps.py" />
+    <entry file="file://$PROJECT_DIR$/tik_manager/manager.py" />
+    <entry file="file://$USER_HOME$/.PyCharmCE2017.3/system/python_stubs/-148907955/PyQt4/QtGui/QListWidgetItem.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1">
+          <caret line="160" column="0" lean-forward="true" selection-start-line="160" selection-start-column="0" selection-end-line="160" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tik_manager/CSS/darkOrange.stylesheet">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="880">
+          <caret line="452" column="31" lean-forward="false" selection-start-line="452" selection-start-column="28" selection-end-line="452" selection-end-column="31" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tik_manager/fileCopyProgress.py" />
+    <entry file="file://$PROJECT_DIR$/tik_manager/testomat.py" />
+    <entry file="file://$PROJECT_DIR$/tik_manager/pyseq.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="506">
+          <caret line="210" column="0" lean-forward="false" selection-start-line="210" selection-start-column="0" selection-end-line="210" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tik_manager/seqCopyProgress.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="132">
+          <caret line="6" column="0" lean-forward="false" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="27" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tik_manager/setup3dsMax.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="44">
+          <caret line="2" column="0" lean-forward="false" selection-start-line="2" selection-start-column="0" selection-end-line="19" selection-end-column="50" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tik_manager/setupMaya.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="374">
+          <caret line="18" column="35" lean-forward="false" selection-start-line="18" selection-start-column="35" selection-end-line="18" selection-end-column="35" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/v2_tests.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="461">
+          <caret line="26" column="2" lean-forward="false" selection-start-line="26" selection-start-column="2" selection-end-line="26" selection-end-column="2" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/updateShared.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="286">
+          <caret line="14" column="63" lean-forward="false" selection-start-line="14" selection-start-column="63" selection-end-line="14" selection-end-column="63" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/switch.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="308">
+          <caret line="15" column="30" lean-forward="true" selection-start-line="0" selection-start-column="0" selection-end-line="40" selection-end-column="11" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/standaloneTests.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="506">
+          <caret line="23" column="9" lean-forward="false" selection-start-line="23" selection-start-column="9" selection-end-line="23" selection-end-column="9" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/devCommands.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="352">
+          <caret line="16" column="23" lean-forward="false" selection-start-line="16" selection-start-column="23" selection-end-line="16" selection-end-column="23" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tik_manager/QtDesigner/projectSettingsUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1661">
+          <caret line="80" column="62" lean-forward="false" selection-start-line="80" selection-start-column="13" selection-end-line="80" selection-end-column="62" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tik_manager/ImMaya.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="376">
+          <caret line="64" column="13" lean-forward="false" selection-start-line="64" selection-start-column="13" selection-end-line="64" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tik_manager/IvMaya.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="314">
+          <caret line="767" column="0" lean-forward="false" selection-start-line="767" selection-start-column="0" selection-end-line="771" selection-end-column="39" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Anaconda2/Lib/socket.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tik_manager/SmStandalone.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="378">
+          <caret line="1867" column="0" lean-forward="false" selection-start-line="1867" selection-start-column="0" selection-end-line="1867" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/tik_manager/SmRoot.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="18" column="64" selection-start-line="18" selection-start-column="64" selection-end-line="18" selection-end-column="64" />
+        <state relative-caret-position="2226">
+          <caret line="1037" column="113" lean-forward="false" selection-start-line="1037" selection-start-column="113" selection-end-line="1037" selection-end-column="113" />
+          <folding>
+            <element signature="e#1#16#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tik_manager/SmMaya.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="598">
+          <caret line="2852" column="37" lean-forward="false" selection-start-line="2852" selection-start-column="0" selection-end-line="2853" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tik_manager/Sm3dsMax.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="180">
+          <caret line="43" column="4" lean-forward="false" selection-start-line="43" selection-start-column="4" selection-end-line="43" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tik_manager/SmHoudini.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="453">
+          <caret line="95" column="59" lean-forward="false" selection-start-line="95" selection-start-column="59" selection-end-line="95" selection-end-column="59" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+            <element signature="e#37403#37451#0" expanded="false" />
+            <element signature="e#37485#57241#0" expanded="false" />
+            <element signature="e#57286#57982#0" expanded="false" />
+            <element signature="e#58024#64769#0" expanded="false" />
+            <element signature="e#64808#78631#0" expanded="false" />
+            <element signature="e#78670#93843#0" expanded="false" />
+            <element signature="e#93885#99717#0" expanded="false" />
+            <element signature="e#99763#104203#0" expanded="false" />
+            <element signature="e#104248#108976#0" expanded="false" />
+            <element signature="e#109021#112034#0" expanded="false" />
+            <element signature="e#112073#113990#0" expanded="false" />
+            <element signature="e#114065#114666#0" expanded="false" />
+            <element signature="e#114718#115322#0" expanded="false" />
+            <element signature="e#115372#116899#0" expanded="false" />
+            <element signature="e#116948#117392#0" expanded="false" />
+            <element signature="e#117445#117832#0" expanded="false" />
+            <element signature="e#117888#118076#0" expanded="false" />
+            <element signature="e#118117#118334#0" expanded="false" />
+            <element signature="e#118378#118480#0" expanded="false" />
+            <element signature="e#118522#118744#0" expanded="false" />
+            <element signature="e#118782#118880#0" expanded="false" />
+            <element signature="e#118919#119455#0" expanded="false" />
+            <element signature="e#119498#120257#0" expanded="false" />
+            <element signature="e#120299#121185#0" expanded="false" />
+            <element signature="e#121246#122372#0" expanded="false" />
+            <element signature="e#122409#123820#0" expanded="false" />
+            <element signature="e#123861#124246#0" expanded="false" />
+            <element signature="e#124285#124965#0" expanded="false" />
+            <element signature="e#125008#125519#0" expanded="false" />
+            <element signature="e#125562#126074#0" expanded="false" />
+            <element signature="e#126080#126103#0" expanded="false" />
+            <element signature="e#126471#126762#0" expanded="false" />
+            <element signature="e#126804#127211#0" expanded="false" />
+            <element signature="e#127247#127625#0" expanded="false" />
+            <element signature="e#127665#128239#0" expanded="false" />
+            <element signature="e#128322#128625#0" expanded="false" />
+            <element signature="e#128667#129424#0" expanded="false" />
+            <element signature="e#129513#129944#0" expanded="false" />
+            <element signature="e#130047#132383#0" expanded="false" />
+            <element signature="e#130082#130662#0" expanded="false" />
+            <element signature="e#132426#132964#0" expanded="false" />
+            <element signature="e#133015#133794#0" expanded="false" />
+            <element signature="e#133822#135195#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
