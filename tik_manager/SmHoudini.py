@@ -18,7 +18,25 @@ from PySide2 import QtCore
 from PySide2 import QtWidgets
 from PySide2 import QtGui
 
+# hou.isApprentice()
+# Return whether the application is an apprentice (non-commercial) version.
 
+# hou.fps()
+# Return the number of frames per second.
+
+# hou.hipFile.name()
+# name with .hip
+
+# hou.hipFile.basename()
+# only name
+
+# hou.hipFile.path()
+# full path
+
+# hou.hipFile.load(file_name, suppress_save_prompt=False, ignore_load_warnings=False)
+# hou.hipFile.save(file_name=None, save_to_recent_files=True)
+# hou.hipFile.merge(file_name, node_pattern="*", overwrite_on_conflict=False, ignore_load_warnings=False)
+# hou.hipFile.importFBX(file_name, suppress_save_prompt=False, merge_into_scene=True, import_cameras=True, import_joints_and_skin=True, import_geometry=True, import_lights=True, import_animation=True, import_materials=True, resample_animation=False, resample_interval=1.0, override_framerate=False,framerate=-1, hide_joints_attached_to_skin=True, convert_joints_to_zyx_rotation_order=False, material_mode=hou.fbxMaterialMode.FBXShaderNodes, compatibility_mode=hou.fbxCompatibilityMode.Maya, single_precision_vertex_caches=False, triangulate_nurbs=False, triangulate_patches=False, import_global_ambient_light=False, import_blend_deformers_as_blend_sops=False, segment_scale_already_baked_in=True, convert_file_paths_to_relative=True, unlock_geometry=False, unlock_deformations=False, import_nulls_as_subnets=False, import_into_object_subnet=True, convert_into_y_up_coordinate_system=False) → (hou.ObjNode, str )
 
 
 __author__ = "Arda Kutlu"
