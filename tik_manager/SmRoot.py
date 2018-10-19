@@ -295,7 +295,7 @@ class RootManager(object):
         """Returns absolute path of Base Scene at cursor position"""
         # logger.debug("Func: currentBaseScenePath/getter")
 
-        return os.path.join(self.projectDir, self._currentSceneInfo["Versions"][self.currentVersionIndex-1][0])
+        return os.path.join(self.projectDir, self._currentSceneInfo["Versions"][self.currentVersionIndex-1]["RelativePath"])
 
     @property
     def currentPreviewPath(self):
@@ -342,14 +342,14 @@ class RootManager(object):
         #     logger.warning("Cursor is already at %s" % indexData)
         #     return
         self._currentVersionIndex = indexData
-        self._currentNotes = self._currentSceneInfo["Versions"][self._currentVersionIndex-1][1]
-        self._currentPreviewsDict = self._currentSceneInfo["Versions"][self._currentVersionIndex-1][4]
+        self._currentNotes = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["Note"]
+        self._currentPreviewsDict = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["Preview"]
         if not self._currentPreviewsDict.keys():
             self._currentPreviewCamera = ""
         else:
             self._currentPreviewCamera = sorted(self._currentPreviewsDict.keys())[0]
 
-        self._currentThumbFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1][5]
+        self._currentThumbFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["Thumb"]
         self.cursorInfo()
 
     # @property
@@ -859,7 +859,7 @@ class RootManager(object):
             return
         now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
         self._currentNotes = "%s\n[%s] on %s\n%s\n" % (self._currentNotes, self.currentUser, now, note)
-        self._currentSceneInfo["Versions"][self._currentVersionIndex-1][1] = self._currentNotes
+        self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["Note"] = self._currentNotes
         self._dumpJson(self._currentSceneInfo, self._baseScenesInCategory[self._currentBaseSceneName])
 
     def addUser(self, fullName, initials):
@@ -965,7 +965,7 @@ class RootManager(object):
             previewFile = self._currentPreviewsDict[self._currentPreviewCamera]
             os.remove(os.path.join(self.projectDir, self._currentPreviewsDict[self._currentPreviewCamera]))
             del self._currentPreviewsDict[self._currentPreviewCamera]
-            self._currentSceneInfo["Versions"][self._currentVersionIndex-1][4] = self._currentPreviewsDict
+            self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["Preview"] = self._currentPreviewsDict
             self._dumpJson(self._currentSceneInfo, self._baseScenesInCategory[self.currentBaseSceneName])
             logger.info("""Preview file deleted and removed from database successfully 
             Preview Name: {0}
@@ -1052,7 +1052,7 @@ class RootManager(object):
             raise Exception([101, msg])
             # return
 
-        absVersionFile = os.path.join(self.projectDir, self._currentSceneInfo["Versions"][self._currentVersionIndex-1][0])
+        absVersionFile = os.path.join(self.projectDir, self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"])
         name = os.path.split(absVersionFile)[1]
         filename, extension = os.path.splitext(name)
         referenceName = "{0}_{1}_forReference".format(self._currentSceneInfo["Name"], self._currentSceneInfo["Category"])
@@ -1076,7 +1076,7 @@ class RootManager(object):
             return -2 # Corrupted database file
 
         if sceneInfo["ReferenceFile"]:
-            relVersionFile = sceneInfo["Versions"][sceneInfo["ReferencedVersion"] - 1][0]
+            relVersionFile = sceneInfo["Versions"][sceneInfo["ReferencedVersion"] - 1]["RelativePath"]
             absVersionFile = os.path.join(self.projectDir, relVersionFile)
             relRefFile = sceneInfo["ReferenceFile"]
             absRefFile = os.path.join(self.projectDir, relRefFile)

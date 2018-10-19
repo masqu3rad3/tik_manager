@@ -97,7 +97,7 @@ class MayaManager(RootManager):
         super(MayaManager, self).__init__()
 
         self.init_paths()
-        # self.backwardcompatibility()  # DO NOT RUN UNTIL RELEASE
+        self.backwardcompatibility()  # DO NOT RUN UNTIL RELEASE
         self.init_database()
 
 
@@ -193,7 +193,8 @@ class MayaManager(RootManager):
             jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
             if jsonInfo["ReferenceFile"]:
                 absRefFile = os.path.join(self._pathsDict["projectDir"], jsonInfo["ReferenceFile"])
-                absBaseSceneVersion = os.path.join(self._pathsDict["projectDir"], jsonInfo["Versions"][int(jsonInfo["ReferencedVersion"]) - 1][0])
+                # TODO : ref => Dict
+                absBaseSceneVersion = os.path.join(self._pathsDict["projectDir"], jsonInfo["Versions"][int(jsonInfo["ReferencedVersion"]) - 1]["RelativePath"])
                 # if the refererenced scene file is the saved file (saved or saved as)
                 if self._pathsDict["sceneFile"] == absBaseSceneVersion:
                     # copy over the forReference file
@@ -296,8 +297,12 @@ class MayaManager(RootManager):
         jsonInfo["Category"] = categoryName
         jsonInfo["Creator"] = self.currentUser
         jsonInfo["CreatorHost"] = (socket.gethostname())
+        # jsonInfo["Versions"] = [ # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
+        #     [relSceneFile, completeNote,  self._usersDict[self.currentUser], socket.gethostname(), {}, thumbPath]]
+        # TODO : ref => Dict
         jsonInfo["Versions"] = [ # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
-            [relSceneFile, completeNote,  self._usersDict[self.currentUser], socket.gethostname(), {}, thumbPath]]
+            {"RelativePath": relSceneFile, "Note": completeNote,  "User": self._usersDict[self.currentUser], "Workstation": socket.gethostname(), "Preview": {}, "Thumb": thumbPath}]
+
         jsonInfo["SubProject"] = self._subProjectsList[subProjectIndex]
         self._dumpJson(jsonInfo, jsonFile)
         return jsonInfo
@@ -348,7 +353,15 @@ class MayaManager(RootManager):
 
             jsonInfo["Versions"].append(
                 # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
-                [relSceneFile, completeNote, self._usersDict[self.currentUser], (socket.gethostname()), {}, thumbPath])
+                # [relSceneFile, completeNote, self._usersDict[self.currentUser], (socket.gethostname()), {}, thumbPath])
+            # TODO : ref => Dict
+                {"RelativePath": relSceneFile,
+                 "Note": completeNote,
+                 "User": self._usersDict[self.currentUser],
+                 "Workstation": socket.gethostname(),
+                 "Preview": {},
+                 "Thumb": thumbPath}
+                )
 
             if makeReference:
                 referenceName = "{0}_{1}_forReference".format(jsonInfo["Name"], jsonInfo["Category"])
@@ -551,9 +564,10 @@ class MayaManager(RootManager):
             cmds.headsUpDisplay(hud, e=True, vis=hudPreStates[hud])
         pm.select(selection)
         ## find this version in the json data
-        for i in jsonInfo["Versions"]:
-            if relVersionName == i[0]:
-                i[4][currentCam] = relPlayBlastFile
+        # TODO : ref => Dict
+        for version in jsonInfo["Versions"]:
+            if relVersionName == version["RelativePath"]:
+                version["Preview"][currentCam] = relPlayBlastFile
 
         self._dumpJson(jsonInfo, openSceneInfo["jsonFile"])
         return 0, ""
@@ -561,8 +575,8 @@ class MayaManager(RootManager):
     def loadBaseScene(self, force=False):
         """Loads the scene at cursor position"""
         logger.debug("Func: loadBaseScene")
-
-        relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1][0]
+        # TODO : ref => Dict
+        relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"]
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
             cmds.file(absSceneFile, o=True, force=force)
@@ -575,7 +589,8 @@ class MayaManager(RootManager):
     def importBaseScene(self):
         """Imports the scene at cursor position"""
         logger.debug("Func: importBaseScene")
-        relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1][0]
+        # TODO : ref => Dict
+        relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"]
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
             cmds.file(absSceneFile, i=True)
@@ -649,10 +664,12 @@ class MayaManager(RootManager):
         if not filePath:
             filePath = self.createThumbnail(useCursorPosition=True)
 
-        try:
-            self._currentSceneInfo["Versions"][self.currentVersionIndex-1][5]=filePath
-        except IndexError: # if this is an older file without thumbnail
-            self._currentSceneInfo["Versions"][self.currentVersionIndex-1].append(filePath)
+        self._currentSceneInfo["Versions"][self.currentVersionIndex-1]["Thumb"]=filePath
+
+        # try:
+        #     self._currentSceneInfo["Versions"][self.currentVersionIndex-1][5]=filePath
+        # except IndexError: # if this is an older file without thumbnail
+        #     self._currentSceneInfo["Versions"][self.currentVersionIndex-1].append(filePath)
 
         self._dumpJson(self._currentSceneInfo, self.currentDatabasePath)
 
@@ -839,16 +856,24 @@ class MayaManager(RootManager):
                             fileData["SubProject"] = diff[0]
                         else:
                             fileData["SubProject"] = "None"
+                        newVersions = []
                         for vers in fileData["Versions"]:
-
-                            #if there is no thumbnail column, skip
                             try:
-                                vers[5] = vers[5].replace("data\\SMdata", "smDatabase\\mayaDB") # relative thumbnail path
+                                thumb = vers[5].replace("data\\SMdata", "smDatabase\\mayaDB") # relative thumbnail path
                             except IndexError:
-                                vers.append("") ## create the fifth column
+                                thumb = ""
+                            versDict = {"RelativePath": vers[0],
+                                        "Note": vers[1],
+                                        "User": vers[2],
+                                        "Workstation": vers[3],
+                                        "Preview": vers[4],
+                                        "Thumb": thumb}
 
-                            for key in vers[4].keys(): # Playblast dictionary
-                                vers[4][key] = vers[4][key].replace("data\\SMdata", "smDatabase\\mayaDB")
+                            for key in versDict["Preview"].keys(): # Playblast dictionary
+                                versDict["Preview"][key] = versDict["Preview"][key].replace("data\\SMdata", "smDatabase\\mayaDB")
+
+                            newVersions.append(versDict)
+                        fileData["Versions"] = newVersions
                         self._dumpJson(fileData, file)
             logger.info("Database preview and thumbnail paths are fixed")
             try:

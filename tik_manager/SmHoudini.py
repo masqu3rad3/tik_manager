@@ -38,6 +38,7 @@ from PySide2 import QtGui
 # hou.hipFile.merge(file_name, node_pattern="*", overwrite_on_conflict=False, ignore_load_warnings=False)
 # hou.hipFile.importFBX(file_name, suppress_save_prompt=False, merge_into_scene=True, import_cameras=True, import_joints_and_skin=True, import_geometry=True, import_lights=True, import_animation=True, import_materials=True, resample_animation=False, resample_interval=1.0, override_framerate=False,framerate=-1, hide_joints_attached_to_skin=True, convert_joints_to_zyx_rotation_order=False, material_mode=hou.fbxMaterialMode.FBXShaderNodes, compatibility_mode=hou.fbxCompatibilityMode.Maya, single_precision_vertex_caches=False, triangulate_nurbs=False, triangulate_patches=False, import_global_ambient_light=False, import_blend_deformers_as_blend_sops=False, segment_scale_already_baked_in=True, convert_file_paths_to_relative=True, unlock_geometry=False, unlock_deformations=False, import_nulls_as_subnets=False, import_into_object_subnet=True, convert_into_y_up_coordinate_system=False) → (hou.ObjNode, str )
 
+# hscript_command = "set -g %s = '%s'" % ('JOB', 'E:\\')
 
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Scene Manager for Maya Project"
@@ -98,7 +99,6 @@ class HoudiniManager(RootManager):
         super(HoudiniManager, self).__init__()
 
         self.init_paths()
-        # self.backwardcompatibility()  # DO NOT RUN UNTIL RELEASE
         self.init_database()
 
 
@@ -117,75 +117,71 @@ class HoudiniManager(RootManager):
         """Overriden function"""
         logger.debug("Func: getProjectDir")
 
-        # This function gets the current maya project and informs the base class
-        # In addition it updates the projects file for (planned) interactivities with concurrent softwares
-        p_path = cmds.workspace(q=1, rd=1)
-        norm_p_path = os.path.normpath(p_path)
         projectsDict = self._loadProjects()
 
-        if not projectsDict: # if there is no project database file at all
-            projectsDict = {"MayaProject": norm_p_path}
+        if not projectsDict:
+            p_path = (hou.hscript('echo $JOB')[0])[:-1] # [:-1] is for the extra \n
+            norm_p_path = os.path.normpath(p_path)
+            projectsDict = {"HoudiniProject": norm_p_path}
             self._saveProjects(projectsDict)
             return norm_p_path
 
         # get the project defined in the database file
         try:
-            dbProject = projectsDict["MayaProject"]
+            norm_p_path = projectsDict["HoudiniProject"]
+            return norm_p_path
         except KeyError:
-            dbProject = None
-
-        if dbProject == norm_p_path:
-            # do nothing to the database if it is the same project
-            return norm_p_path
-
-        if dbProject:
-            projectsDict["MayaProject"] = norm_p_path
-            self._saveProjects(projectsDict)
-            return norm_p_path
-        else:
-            projectsDict = {"MayaProject": norm_p_path}
+            p_path = (hou.hscript('echo $JOB')[0])[:-1] # [:-1] is for the extra \n
+            norm_p_path = os.path.normpath(p_path)
+            projectsDict = {"HoudiniProject": norm_p_path}
             self._saveProjects(projectsDict)
             return norm_p_path
 
     def getSceneFile(self):
         """Overriden function"""
         logger.debug("Func: getSceneFile")
-
-        # Gets the current scene path ("" if untitled)
-        s_path = cmds.file(q=True, sn=True)
+        # # Gets the current scene path ("" if untitled)
+        s_path = hou.hipFile.path()
+        niceName = os.path.splitext(hou.hipFile.basename())[0]
+        if niceName == "untitled":
+            s_path = ""
         norm_s_path = os.path.normpath(s_path)
         return norm_s_path
 
     def setProject(self, path):
         """Sets the project"""
+
         logger.debug("Func: setProject")
 
-        # totally software specific or N/A
-        melCompPath = path.replace("\\", "/") # mel is picky
-        command = 'setProject "%s";' %melCompPath
-        mel.eval(command)
-        # self.projectDir = cmds.workspace(q=1, rd=1)
-        self.projectDir = self.getProjectDir()
+        projectsDict = self._loadProjects()
+        if not projectsDict:
+            projectsDict = {"HoudiniProject": path}
+        else:
+            projectsDict["HoudiniProject"] = path
+        self._saveProjects(projectsDict)
+        self.projectDir = path
+
+        self._setEnvVariable('JOB', path)
+
 
     def saveCallback(self):
         """Callback function to update reference files when files saved regularly"""
-
-        ## TODO // TEST IT
-        self._pathsDict["sceneFile"] = self.getSceneFile()
-        openSceneInfo = self.getOpenSceneInfo()
-        if openSceneInfo["jsonFile"]:
-            jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
-            if jsonInfo["ReferenceFile"]:
-                absRefFile = os.path.join(self._pathsDict["projectDir"], jsonInfo["ReferenceFile"])
-                absBaseSceneVersion = os.path.join(self._pathsDict["projectDir"], jsonInfo["Versions"][int(jsonInfo["ReferencedVersion"]) - 1][0])
-                # if the refererenced scene file is the saved file (saved or saved as)
-                if self._pathsDict["sceneFile"] == absBaseSceneVersion:
-                    # copy over the forReference file
-                    try:
-                        shutil.copyfile(self._pathsDict["sceneFile"], absRefFile)
-                        print "Scene Manager Update:\nReference File Updated"
-                    except:
-                        pass
+        pass
+        # self._pathsDict["sceneFile"] = self.getSceneFile()
+        # openSceneInfo = self.getOpenSceneInfo()
+        # if openSceneInfo["jsonFile"]:
+        #     jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
+        #     if jsonInfo["ReferenceFile"]:
+        #         absRefFile = os.path.join(self._pathsDict["projectDir"], jsonInfo["ReferenceFile"])
+        #         absBaseSceneVersion = os.path.join(self._pathsDict["projectDir"], jsonInfo["Versions"][int(jsonInfo["ReferencedVersion"]) - 1][0])
+        #         # if the refererenced scene file is the saved file (saved or saved as)
+        #         if self._pathsDict["sceneFile"] == absBaseSceneVersion:
+        #             # copy over the forReference file
+        #             try:
+        #                 shutil.copyfile(self._pathsDict["sceneFile"], absRefFile)
+        #                 print "Scene Manager Update:\nReference File Updated"
+        #             except:
+        #                 pass
 
     def saveBaseScene(self, categoryName, baseName, subProjectIndex=0, makeReference=True, versionNotes="", sceneFormat="mb", *args, **kwargs):
         """
@@ -206,7 +202,6 @@ class HoudiniManager(RootManager):
         """
         logger.debug("Func: saveBaseScene")
 
-        # fullName = self.userList.keys()[self.userList.values().index(userName)]
         now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
         completeNote = "[%s] on %s\n%s\n" % (self.currentUser, now, versionNotes)
 
@@ -300,289 +295,288 @@ class HoudiniManager(RootManager):
         """
         logger.debug("Func: saveVersion")
 
-
-
-        now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
-        completeNote = "[%s] on %s\n%s\n" % (self.currentUser, now, versionNotes)
-
-        sceneName = self.getSceneFile()
-        if not sceneName:
-            msg = "This is not a base scene (Untitled)"
-            cmds.warning(msg)
-            return -1, msg
-
-        sceneInfo = self.getOpenSceneInfo()
-
-        if sceneInfo: ## getCurrentJson returns None if the resolved json path is missing
-            jsonFile = sceneInfo["jsonFile"]
-            jsonInfo = self._loadJson(jsonFile)
-
-            currentVersion = len(jsonInfo["Versions"]) + 1
-            sceneName = "{0}_{1}_{2}_v{3}".format(jsonInfo["Name"], jsonInfo["Category"], self._usersDict[self.currentUser],
-                                                  str(currentVersion).zfill(3))
-            relSceneFile = os.path.join(jsonInfo["Path"], "{0}.{1}".format(sceneName, sceneFormat))
-
-            sceneFile = os.path.join(sceneInfo["projectPath"], relSceneFile)
-
-            # killTurtle()
-            # TODO // cmds?
-            pm.saveAs(sceneFile)
-            thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=currentVersion)
-
-            jsonInfo["Versions"].append(
-                # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
-                [relSceneFile, completeNote, self._usersDict[self.currentUser], (socket.gethostname()), {}, thumbPath])
-
-            if makeReference:
-                referenceName = "{0}_{1}_forReference".format(jsonInfo["Name"], jsonInfo["Category"])
-                relReferenceFile = os.path.join(jsonInfo["Path"], "{0}.{1}".format(referenceName, sceneFormat))
-                referenceFile = os.path.join(sceneInfo["projectPath"], relReferenceFile)
-
-                shutil.copyfile(sceneFile, referenceFile)
-                jsonInfo["ReferenceFile"] = relReferenceFile
-                jsonInfo["ReferencedVersion"] = currentVersion
-            self._dumpJson(jsonInfo, jsonFile)
-        else:
-            msg = "This is not a base scene (Json file cannot be found)"
-            cmds.warning(msg)
-            return -1, msg
-        return jsonInfo
+        #
+        #
+        # now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
+        # completeNote = "[%s] on %s\n%s\n" % (self.currentUser, now, versionNotes)
+        #
+        # sceneName = self.getSceneFile()
+        # if not sceneName:
+        #     msg = "This is not a base scene (Untitled)"
+        #     cmds.warning(msg)
+        #     return -1, msg
+        #
+        # sceneInfo = self.getOpenSceneInfo()
+        #
+        # if sceneInfo: ## getCurrentJson returns None if the resolved json path is missing
+        #     jsonFile = sceneInfo["jsonFile"]
+        #     jsonInfo = self._loadJson(jsonFile)
+        #
+        #     currentVersion = len(jsonInfo["Versions"]) + 1
+        #     sceneName = "{0}_{1}_{2}_v{3}".format(jsonInfo["Name"], jsonInfo["Category"], self._usersDict[self.currentUser],
+        #                                           str(currentVersion).zfill(3))
+        #     relSceneFile = os.path.join(jsonInfo["Path"], "{0}.{1}".format(sceneName, sceneFormat))
+        #
+        #     sceneFile = os.path.join(sceneInfo["projectPath"], relSceneFile)
+        #
+        #     # killTurtle()
+        #     # TODO // cmds?
+        #     pm.saveAs(sceneFile)
+        #     thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=currentVersion)
+        #
+        #     jsonInfo["Versions"].append(
+        #         # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
+        #         [relSceneFile, completeNote, self._usersDict[self.currentUser], (socket.gethostname()), {}, thumbPath])
+        #
+        #     if makeReference:
+        #         referenceName = "{0}_{1}_forReference".format(jsonInfo["Name"], jsonInfo["Category"])
+        #         relReferenceFile = os.path.join(jsonInfo["Path"], "{0}.{1}".format(referenceName, sceneFormat))
+        #         referenceFile = os.path.join(sceneInfo["projectPath"], relReferenceFile)
+        #
+        #         shutil.copyfile(sceneFile, referenceFile)
+        #         jsonInfo["ReferenceFile"] = relReferenceFile
+        #         jsonInfo["ReferencedVersion"] = currentVersion
+        #     self._dumpJson(jsonInfo, jsonFile)
+        # else:
+        #     msg = "This is not a base scene (Json file cannot be found)"
+        #     cmds.warning(msg)
+        #     return -1, msg
+        # return jsonInfo
 
     def createPreview(self, *args, **kwargs):
         """Creates a Playblast preview from currently open scene"""
-        # TODO : FIX the error referenced cameras (namespacing problem)
         logger.debug("Func: createPreview")
-
-        pbSettings = self._loadPBSettings()
-        validFormats = cmds.playblast(format=True, q=True)
-        validCodecs = cmds.playblast(c=True, q=True)
-
-        if not pbSettings["Format"] in validFormats:
-            msg = ("Format specified in project settings is not supported. Install {0}".format(pbSettings["Format"]))
-            cmds.warning(msg)
-            return -1, msg
-
-        if not pbSettings["Codec"] in validCodecs:
-            msg = ("Codec specified in project settings is not supported. Install {0}".format(pbSettings["Codec"]))
-            cmds.warning(msg)
-            return -1, msg
-
-        extension = "mov" if pbSettings["Format"] == "qt" else "avi"
-
-        # Quicktime format is missing the final frame all the time. Add an extra frame to compansate
-        if pbSettings["Format"] == 'qt':
-            maxTime = cmds.playbackOptions(q=True, maxTime=True)
-            endTime = cmds.playbackOptions(q=True, animationEndTime=True)
-            cmds.playbackOptions(maxTime=maxTime + 1)
-            cmds.playbackOptions(animationEndTime=endTime + 1)
-
-        openSceneInfo = self.getOpenSceneInfo()
-        # sceneName = self.getSceneFile()
-        if not openSceneInfo:
-            msg = "This is not a base scene. Scene must be saved as a base scene before playblasting."
-            pm.warning(msg)
-            return -1, msg
-
-        selection = cmds.ls(sl=True)
-        cmds.select(d=pbSettings["ClearSelection"])
-        jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
-
-        currentCam = cmds.modelPanel(cmds.getPanel(wf=True), q=True, cam=True)
-        validName = currentCam
-
-        replaceDict = {"|":"__",
-                       " ":"_",
-                       ":":"_"}
-        for item in replaceDict.items():
-            validName = validName.replace(item[0], item[1])
-
-        if not self._nameCheck(validName):
-            msg = "A scene view must be highlighted"
-            cmds.warning(msg)
-            raise Exception([360, msg])
-            # return -1, msg
-
-        versionName = self.getSceneFile()
-        relVersionName = os.path.relpath(versionName, start=openSceneInfo["projectPath"])
-        playBlastFile = os.path.join(openSceneInfo["previewPath"], "{0}_{1}_PB.{2}".format(self._niceName(versionName), validName, extension))
-        relPlayBlastFile = os.path.relpath(playBlastFile, start=openSceneInfo["projectPath"])
-
-        if os.path.isfile(playBlastFile):
-            try:
-                os.remove(playBlastFile)
-            except WindowsError:
-                msg = "The file is open somewhere else"
-                cmds.warning(msg)
-                return -1, msg
-
-        ## CREATE A CUSTOM PANEL WITH DESIRED SETTINGS
-
-        tempWindow = cmds.window(title="SM_Playblast",
-                               widthHeight=(pbSettings["Resolution"][0] * 1.1, pbSettings["Resolution"][1] * 1.1),
-                               tlc=(0, 0))
-        # panel = pm.getPanel(wf=True)
-
-        cmds.paneLayout()
-
-        pbPanel = cmds.modelPanel(camera=currentCam)
-        cmds.showWindow(tempWindow)
-        cmds.setFocus(pbPanel)
-
-        cmds.modelEditor(pbPanel, e=1,
-                       allObjects=not pbSettings["PolygonOnly"],
-                       da="smoothShaded",
-                       displayTextures=pbSettings["DisplayTextures"],
-                       wireframeOnShaded=pbSettings["WireOnShaded"],
-                       grid=pbSettings["ShowGrid"],
-                       useDefaultMaterial=pbSettings["UseDefaultMaterial"],
-                       polymeshes=True,
-                       imagePlane=True,
-                       hud=True
-                       )
-
-        cmds.camera(currentCam, e=True, overscan=True, displayFilmGate=False, displayResolution=False)
-
-        ## get previous HUD States and turn them all off
-        hudPreStates = {}
-        HUDS = cmds.headsUpDisplay(lh=True)
-        for hud in HUDS:
-            hudPreStates[hud] = cmds.headsUpDisplay(hud, q=True, vis=True)
-            cmds.headsUpDisplay(hud, e=True, vis=False)
-
-        ## clear the custom HUDS
-        customHuds = ['SMFrame', 'SMScene', 'SMCategory', 'SMFPS', 'SMCameraName', 'SMFrange']
-        for hud in customHuds:
-            if cmds.headsUpDisplay(hud, ex=True):
-                cmds.headsUpDisplay(hud, rem=True)
-
-        if pbSettings["ShowFrameNumber"]:
-            freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-            cmds.headsUpDisplay('SMFrame', s=5, b=freeBl, label="Frame", preset="currentFrame", dfs="large",
-                              lfs="large")
-        if pbSettings["ShowSceneName"]:
-            freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-            cmds.headsUpDisplay('SMScene', s=5, b=freeBl, label="Scene: %s" % (self._niceName(versionName)),
-                              lfs="large")
-        if pbSettings["ShowCategory"]:
-            freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-            cmds.headsUpDisplay('SMCategory', s=5, b=freeBl, label="Category: %s" % (jsonInfo["Category"]),
-                              lfs="large")
-        if pbSettings["ShowFPS"]:
-            freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-            cmds.headsUpDisplay('SMFPS', s=5, b=freeBl, label="Time Unit: %s" % (cmds.currentUnit(q=True, time=True)),
-                              lfs="large")
-
-        # v1.1 SPECIFIC
-        try:
-            if pbSettings["ShowFrameRange"]:
-                freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-                cmds.headsUpDisplay('SMFrange', s=5, b=freeBl,
-                                  label="Frame Range: {} - {}".format(int(cmds.playbackOptions(q=True, minTime=True)),
-                                                                      int(cmds.playbackOptions(q=True,
-                                                                                             maxTime=True))),
-                                  lfs="large")
-        except KeyError:
-            pass
-
-        freeBl = cmds.headsUpDisplay(nfb=2)
-        cmds.headsUpDisplay('SMCameraName', s=2, b=freeBl, ba='center', dw=50, pre='cameraNames')
-
-        ## Get the active sound
-
-        aPlayBackSliderPython = mel.eval('$tmpVar=$gPlayBackSlider')
-        activeSound = cmds.timeControl(aPlayBackSliderPython, q=True, sound=True)
-
-        ## Check here: http://download.autodesk.com/us/maya/2011help/pymel/generated/functions/pymel.core.windows/pymel.core.windows.headsUpDisplay.html
-        # print "playBlastFile", playBlastFile
-        normPB = os.path.normpath(playBlastFile)
-        # print "normPath", normPB
-        cmds.playblast(format=pbSettings["Format"],
-                     filename=playBlastFile,
-                     widthHeight=pbSettings["Resolution"],
-                     percent=pbSettings["Percent"],
-                     quality=pbSettings["Quality"],
-                     compression=pbSettings["Codec"],
-                     sound=activeSound,
-                     uts=True)
-        ## remove window when pb is donw
-        cmds.deleteUI(tempWindow)
-
-        # Get back to the original frame range if the codec is Quick Time
-        if pbSettings["Format"] == 'qt':
-            cmds.playbackOptions(maxTime=maxTime)
-            cmds.playbackOptions(animationEndTime=endTime)
-
-        ## remove the custom HUdS
-        if pbSettings["ShowFrameNumber"]:
-            cmds.headsUpDisplay('SMFrame', rem=True)
-        if pbSettings["ShowSceneName"]:
-            cmds.headsUpDisplay('SMScene', rem=True)
-        if pbSettings["ShowCategory"]:
-            cmds.headsUpDisplay('SMCategory', rem=True)
-        if pbSettings["ShowFPS"]:
-            cmds.headsUpDisplay('SMFPS', rem=True)
-        try:
-            if pbSettings["ShowFrameRange"]:
-                cmds.headsUpDisplay('SMFrange', rem=True)
-        except KeyError:
-            pass
-
-            cmds.headsUpDisplay('SMCameraName', rem=True)
-
-        ## get back the previous state of HUDS
-        for hud in hudPreStates.keys():
-            cmds.headsUpDisplay(hud, e=True, vis=hudPreStates[hud])
-        pm.select(selection)
-        ## find this version in the json data
-        for i in jsonInfo["Versions"]:
-            if relVersionName == i[0]:
-                i[4][currentCam] = relPlayBlastFile
-
-        self._dumpJson(jsonInfo, openSceneInfo["jsonFile"])
-        return 0, ""
+        #
+        # pbSettings = self._loadPBSettings()
+        # validFormats = cmds.playblast(format=True, q=True)
+        # validCodecs = cmds.playblast(c=True, q=True)
+        #
+        # if not pbSettings["Format"] in validFormats:
+        #     msg = ("Format specified in project settings is not supported. Install {0}".format(pbSettings["Format"]))
+        #     cmds.warning(msg)
+        #     return -1, msg
+        #
+        # if not pbSettings["Codec"] in validCodecs:
+        #     msg = ("Codec specified in project settings is not supported. Install {0}".format(pbSettings["Codec"]))
+        #     cmds.warning(msg)
+        #     return -1, msg
+        #
+        # extension = "mov" if pbSettings["Format"] == "qt" else "avi"
+        #
+        # # Quicktime format is missing the final frame all the time. Add an extra frame to compansate
+        # if pbSettings["Format"] == 'qt':
+        #     maxTime = cmds.playbackOptions(q=True, maxTime=True)
+        #     endTime = cmds.playbackOptions(q=True, animationEndTime=True)
+        #     cmds.playbackOptions(maxTime=maxTime + 1)
+        #     cmds.playbackOptions(animationEndTime=endTime + 1)
+        #
+        # openSceneInfo = self.getOpenSceneInfo()
+        # # sceneName = self.getSceneFile()
+        # if not openSceneInfo:
+        #     msg = "This is not a base scene. Scene must be saved as a base scene before playblasting."
+        #     pm.warning(msg)
+        #     return -1, msg
+        #
+        # selection = cmds.ls(sl=True)
+        # cmds.select(d=pbSettings["ClearSelection"])
+        # jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
+        #
+        # currentCam = cmds.modelPanel(cmds.getPanel(wf=True), q=True, cam=True)
+        # validName = currentCam
+        #
+        # replaceDict = {"|":"__",
+        #                " ":"_",
+        #                ":":"_"}
+        # for item in replaceDict.items():
+        #     validName = validName.replace(item[0], item[1])
+        #
+        # if not self._nameCheck(validName):
+        #     msg = "A scene view must be highlighted"
+        #     cmds.warning(msg)
+        #     raise Exception([360, msg])
+        #     # return -1, msg
+        #
+        # versionName = self.getSceneFile()
+        # relVersionName = os.path.relpath(versionName, start=openSceneInfo["projectPath"])
+        # playBlastFile = os.path.join(openSceneInfo["previewPath"], "{0}_{1}_PB.{2}".format(self._niceName(versionName), validName, extension))
+        # relPlayBlastFile = os.path.relpath(playBlastFile, start=openSceneInfo["projectPath"])
+        #
+        # if os.path.isfile(playBlastFile):
+        #     try:
+        #         os.remove(playBlastFile)
+        #     except WindowsError:
+        #         msg = "The file is open somewhere else"
+        #         cmds.warning(msg)
+        #         return -1, msg
+        #
+        # ## CREATE A CUSTOM PANEL WITH DESIRED SETTINGS
+        #
+        # tempWindow = cmds.window(title="SM_Playblast",
+        #                        widthHeight=(pbSettings["Resolution"][0] * 1.1, pbSettings["Resolution"][1] * 1.1),
+        #                        tlc=(0, 0))
+        # # panel = pm.getPanel(wf=True)
+        #
+        # cmds.paneLayout()
+        #
+        # pbPanel = cmds.modelPanel(camera=currentCam)
+        # cmds.showWindow(tempWindow)
+        # cmds.setFocus(pbPanel)
+        #
+        # cmds.modelEditor(pbPanel, e=1,
+        #                allObjects=not pbSettings["PolygonOnly"],
+        #                da="smoothShaded",
+        #                displayTextures=pbSettings["DisplayTextures"],
+        #                wireframeOnShaded=pbSettings["WireOnShaded"],
+        #                grid=pbSettings["ShowGrid"],
+        #                useDefaultMaterial=pbSettings["UseDefaultMaterial"],
+        #                polymeshes=True,
+        #                imagePlane=True,
+        #                hud=True
+        #                )
+        #
+        # cmds.camera(currentCam, e=True, overscan=True, displayFilmGate=False, displayResolution=False)
+        #
+        # ## get previous HUD States and turn them all off
+        # hudPreStates = {}
+        # HUDS = cmds.headsUpDisplay(lh=True)
+        # for hud in HUDS:
+        #     hudPreStates[hud] = cmds.headsUpDisplay(hud, q=True, vis=True)
+        #     cmds.headsUpDisplay(hud, e=True, vis=False)
+        #
+        # ## clear the custom HUDS
+        # customHuds = ['SMFrame', 'SMScene', 'SMCategory', 'SMFPS', 'SMCameraName', 'SMFrange']
+        # for hud in customHuds:
+        #     if cmds.headsUpDisplay(hud, ex=True):
+        #         cmds.headsUpDisplay(hud, rem=True)
+        #
+        # if pbSettings["ShowFrameNumber"]:
+        #     freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
+        #     cmds.headsUpDisplay('SMFrame', s=5, b=freeBl, label="Frame", preset="currentFrame", dfs="large",
+        #                       lfs="large")
+        # if pbSettings["ShowSceneName"]:
+        #     freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
+        #     cmds.headsUpDisplay('SMScene', s=5, b=freeBl, label="Scene: %s" % (self._niceName(versionName)),
+        #                       lfs="large")
+        # if pbSettings["ShowCategory"]:
+        #     freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
+        #     cmds.headsUpDisplay('SMCategory', s=5, b=freeBl, label="Category: %s" % (jsonInfo["Category"]),
+        #                       lfs="large")
+        # if pbSettings["ShowFPS"]:
+        #     freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
+        #     cmds.headsUpDisplay('SMFPS', s=5, b=freeBl, label="Time Unit: %s" % (cmds.currentUnit(q=True, time=True)),
+        #                       lfs="large")
+        #
+        # # v1.1 SPECIFIC
+        # try:
+        #     if pbSettings["ShowFrameRange"]:
+        #         freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
+        #         cmds.headsUpDisplay('SMFrange', s=5, b=freeBl,
+        #                           label="Frame Range: {} - {}".format(int(cmds.playbackOptions(q=True, minTime=True)),
+        #                                                               int(cmds.playbackOptions(q=True,
+        #                                                                                      maxTime=True))),
+        #                           lfs="large")
+        # except KeyError:
+        #     pass
+        #
+        # freeBl = cmds.headsUpDisplay(nfb=2)
+        # cmds.headsUpDisplay('SMCameraName', s=2, b=freeBl, ba='center', dw=50, pre='cameraNames')
+        #
+        # ## Get the active sound
+        #
+        # aPlayBackSliderPython = mel.eval('$tmpVar=$gPlayBackSlider')
+        # activeSound = cmds.timeControl(aPlayBackSliderPython, q=True, sound=True)
+        #
+        # ## Check here: http://download.autodesk.com/us/maya/2011help/pymel/generated/functions/pymel.core.windows/pymel.core.windows.headsUpDisplay.html
+        # # print "playBlastFile", playBlastFile
+        # normPB = os.path.normpath(playBlastFile)
+        # # print "normPath", normPB
+        # cmds.playblast(format=pbSettings["Format"],
+        #              filename=playBlastFile,
+        #              widthHeight=pbSettings["Resolution"],
+        #              percent=pbSettings["Percent"],
+        #              quality=pbSettings["Quality"],
+        #              compression=pbSettings["Codec"],
+        #              sound=activeSound,
+        #              uts=True)
+        # ## remove window when pb is donw
+        # cmds.deleteUI(tempWindow)
+        #
+        # # Get back to the original frame range if the codec is Quick Time
+        # if pbSettings["Format"] == 'qt':
+        #     cmds.playbackOptions(maxTime=maxTime)
+        #     cmds.playbackOptions(animationEndTime=endTime)
+        #
+        # ## remove the custom HUdS
+        # if pbSettings["ShowFrameNumber"]:
+        #     cmds.headsUpDisplay('SMFrame', rem=True)
+        # if pbSettings["ShowSceneName"]:
+        #     cmds.headsUpDisplay('SMScene', rem=True)
+        # if pbSettings["ShowCategory"]:
+        #     cmds.headsUpDisplay('SMCategory', rem=True)
+        # if pbSettings["ShowFPS"]:
+        #     cmds.headsUpDisplay('SMFPS', rem=True)
+        # try:
+        #     if pbSettings["ShowFrameRange"]:
+        #         cmds.headsUpDisplay('SMFrange', rem=True)
+        # except KeyError:
+        #     pass
+        #
+        #     cmds.headsUpDisplay('SMCameraName', rem=True)
+        #
+        # ## get back the previous state of HUDS
+        # for hud in hudPreStates.keys():
+        #     cmds.headsUpDisplay(hud, e=True, vis=hudPreStates[hud])
+        # pm.select(selection)
+        # ## find this version in the json data
+        # for i in jsonInfo["Versions"]:
+        #     if relVersionName == i[0]:
+        #         i[4][currentCam] = relPlayBlastFile
+        #
+        # self._dumpJson(jsonInfo, openSceneInfo["jsonFile"])
+        # return 0, ""
 
     def loadBaseScene(self, force=False):
         """Loads the scene at cursor position"""
         logger.debug("Func: loadBaseScene")
-
-        relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1][0]
-        absSceneFile = os.path.join(self.projectDir, relSceneFile)
-        if os.path.isfile(absSceneFile):
-            cmds.file(absSceneFile, o=True, force=force)
-            return 0
-        else:
-            msg = "File in Scene Manager database doesnt exist"
-            cmds.error(msg)
-            return -1, msg
+        #
+        # relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1][0]
+        # absSceneFile = os.path.join(self.projectDir, relSceneFile)
+        # if os.path.isfile(absSceneFile):
+        #     cmds.file(absSceneFile, o=True, force=force)
+        #     return 0
+        # else:
+        #     msg = "File in Scene Manager database doesnt exist"
+        #     cmds.error(msg)
+        #     return -1, msg
 
     def importBaseScene(self):
         """Imports the scene at cursor position"""
         logger.debug("Func: importBaseScene")
-        relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1][0]
-        absSceneFile = os.path.join(self.projectDir, relSceneFile)
-        if os.path.isfile(absSceneFile):
-            cmds.file(absSceneFile, i=True)
-            return 0
-        else:
-            msg = "File in Scene Manager database doesnt exist"
-            cmds.error(msg)
-            return -1, msg
+        # relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1][0]
+        # absSceneFile = os.path.join(self.projectDir, relSceneFile)
+        # if os.path.isfile(absSceneFile):
+        #     cmds.file(absSceneFile, i=True)
+        #     return 0
+        # else:
+        #     msg = "File in Scene Manager database doesnt exist"
+        #     cmds.error(msg)
+        #     return -1, msg
 
     def referenceBaseScene(self):
         """Creates reference from the scene at cursor position"""
         logger.debug("Func: referenceBaseScene")
-        projectPath = self.projectDir
-        relReferenceFile = self._currentSceneInfo["ReferenceFile"]
-
-        if relReferenceFile:
-            referenceFile = os.path.join(projectPath, relReferenceFile)
-            refFileBasename = os.path.split(relReferenceFile)[1]
-            namespace = os.path.splitext(refFileBasename)[0]
-            cmds.file(os.path.normpath(referenceFile), reference=True, gl=True, mergeNamespacesOnClash=False,
-                      namespace=namespace)
-
-        else:
-            cmds.warning("There is no reference set for this scene. Nothing changed")
+        # projectPath = self.projectDir
+        # relReferenceFile = self._currentSceneInfo["ReferenceFile"]
+        #
+        # if relReferenceFile:
+        #     referenceFile = os.path.join(projectPath, relReferenceFile)
+        #     refFileBasename = os.path.split(relReferenceFile)[1]
+        #     namespace = os.path.splitext(refFileBasename)[0]
+        #     cmds.file(os.path.normpath(referenceFile), reference=True, gl=True, mergeNamespacesOnClash=False,
+        #               namespace=namespace)
+        #
+        # else:
+        #     cmds.warning("There is no reference set for this scene. Nothing changed")
 
     def createThumbnail(self, useCursorPosition=False, dbPath = None, versionInt = None):
         """
@@ -592,35 +586,35 @@ class HoudiniManager(RootManager):
         :return: (String) Relative path of the thumbnail file
         """
         logger.debug("Func: createThumbnail")
-        projectPath = self.projectDir
-        if useCursorPosition:
-            versionInt = self.currentVersionIndex
-            dbPath = self.currentDatabasePath
-        else:
-            if not dbPath or not versionInt:
-                cmds.warning (("Both dbPath and version must be defined if useCursorPosition=False"))
-
-        versionStr = "v%s" % (str(versionInt).zfill(3))
-        dbDir, shotNameWithExt = os.path.split(dbPath)
-        shotName = os.path.splitext(shotNameWithExt)[0]
-
-        thumbPath = "{0}_{1}_thumb.jpg".format(os.path.join(dbDir, shotName), versionStr)
-        relThumbPath = os.path.relpath(thumbPath, projectPath)
-
-        # create a thumbnail using playblast
-        thumbDir = os.path.split(thumbPath)[0]
-        if os.path.exists(thumbDir):
-            frame = pm.currentTime(query=True)
-            store = pm.getAttr("defaultRenderGlobals.imageFormat")
-            pm.setAttr("defaultRenderGlobals.imageFormat", 8)  # This is the value for jpeg
-            pm.playblast(completeFilename=thumbPath, forceOverwrite=True, format='image', width=221, height=124,
-                         showOrnaments=False, frame=[frame], viewer=False, percent=100)
-            pm.setAttr("defaultRenderGlobals.imageFormat", store) #take it back
-        else:
-            pm.warning("something went wrong with thumbnail. Skipping thumbnail")
-            return ""
-        # return thumbPath
-        return relThumbPath
+        # projectPath = self.projectDir
+        # if useCursorPosition:
+        #     versionInt = self.currentVersionIndex
+        #     dbPath = self.currentDatabasePath
+        # else:
+        #     if not dbPath or not versionInt:
+        #         cmds.warning (("Both dbPath and version must be defined if useCursorPosition=False"))
+        #
+        # versionStr = "v%s" % (str(versionInt).zfill(3))
+        # dbDir, shotNameWithExt = os.path.split(dbPath)
+        # shotName = os.path.splitext(shotNameWithExt)[0]
+        #
+        # thumbPath = "{0}_{1}_thumb.jpg".format(os.path.join(dbDir, shotName), versionStr)
+        # relThumbPath = os.path.relpath(thumbPath, projectPath)
+        #
+        # # create a thumbnail using playblast
+        # thumbDir = os.path.split(thumbPath)[0]
+        # if os.path.exists(thumbDir):
+        #     frame = pm.currentTime(query=True)
+        #     store = pm.getAttr("defaultRenderGlobals.imageFormat")
+        #     pm.setAttr("defaultRenderGlobals.imageFormat", 8)  # This is the value for jpeg
+        #     pm.playblast(completeFilename=thumbPath, forceOverwrite=True, format='image', width=221, height=124,
+        #                  showOrnaments=False, frame=[frame], viewer=False, percent=100)
+        #     pm.setAttr("defaultRenderGlobals.imageFormat", store) #take it back
+        # else:
+        #     pm.warning("something went wrong with thumbnail. Skipping thumbnail")
+        #     return ""
+        # # return thumbPath
+        # return relThumbPath
 
     def replaceThumbnail(self, filePath=None ):
         """
@@ -628,201 +622,153 @@ class HoudiniManager(RootManager):
         :param filePath: (String)  if a filePath is defined, this image (.jpg or .gif) will be used as thumbnail
         :return: None
         """
+        pass
         logger.debug("Func: replaceThumbnail")
-        if not filePath:
-            filePath = self.createThumbnail(useCursorPosition=True)
-
-        try:
-            self._currentSceneInfo["Versions"][self.currentVersionIndex-1][5]=filePath
-        except IndexError: # if this is an older file without thumbnail
-            self._currentSceneInfo["Versions"][self.currentVersionIndex-1].append(filePath)
-
-        self._dumpJson(self._currentSceneInfo, self.currentDatabasePath)
+        # if not filePath:
+        #     filePath = self.createThumbnail(useCursorPosition=True)
+        #
+        # try:
+        #     self._currentSceneInfo["Versions"][self.currentVersionIndex-1][5]=filePath
+        # except IndexError: # if this is an older file without thumbnail
+        #     self._currentSceneInfo["Versions"][self.currentVersionIndex-1].append(filePath)
+        #
+        # self._dumpJson(self._currentSceneInfo, self.currentDatabasePath)
 
     def compareVersions(self):
+
 
         # // TODO : Find a BETTER way to compare versions.
         # // TODO : You may question each individual scen file for version insteas of base scene database
 
         """Compares the versions of current session and database version at cursor position"""
         logger.debug("Func: compareVersions")
-        if not self._currentSceneInfo["MayaVersion"]:
-            cmds.warning("Cursor is not on a base scene")
-            return
-        versionDict = {200800: "v2008",
-                       200806: "v2008_EXT2",
-                       200806: "v2008_SP1",
-                       200900: "v2009",
-                       200904: "v2009_EXT1",
-                       200906: "v2009_SP1A",
-                       201000: "v2010",
-                       201100: "v2011",
-                       201101: "v2011_HOTFIX1",
-                       201102: "v2011_HOTFIX2",
-                       201103: "v2011_HOTFIX3",
-                       201104: "v2011_SP1",
-                       201200: "v2012",
-                       201201: "v2012_HOTFIX1",
-                       201202: "v2012_HOTFIX2",
-                       201203: "v2012_HOTFIX3",
-                       201204: "v2012_HOTFIX4",
-                       201209: "v2012_SAP1",
-                       201217: "v2012_SAP1SP1",
-                       201209: "v2012_SP1",
-                       201217: "v2012_SP2",
-                       201300: "v2013",
-                       201400: "v2014",
-                       201450: "v2014_EXT1",
-                       201451: "v2014_EXT1SP1",
-                       201459: "v2014_EXT1SP2",
-                       201402: "v2014_SP1",
-                       201404: "v2014_SP2",
-                       201406: "v2014_SP3",
-                       201500: "v2015",
-                       201506: "v2015_EXT1",
-                       201507: "v2015_EXT1SP5",
-                       201501: "v2015_SP1",
-                       201502: "v2015_SP2",
-                       201505: "v2015_SP3",
-                       201506: "v2015_SP4",
-                       201507: "v2015_SP5",
-                       201600: "v2016",
-                       201650: "v20165",
-                       201651: "v20165_SP1",
-                       201653: "v20165_SP2",
-                       201605: "v2016_EXT1",
-                       201607: "v2016_EXT1SP4",
-                       201650: "v2016_EXT2",
-                       201651: "v2016_EXT2SP1",
-                       201653: "v2016_EXT2SP2",
-                       201605: "v2016_SP3",
-                       201607: "v2016_SP4",
-                       201700: "v2017",
-                       201701: "v2017U1",
-                       201720: "v2017U2",
-                       201740: "v2017U3",
-                       20180000: "v2018"}
-
-        currentVersion = pm.versions.current()
-        try:
-            niceVName=versionDict[self._currentSceneInfo["MayaVersion"]]
-        except KeyError:
-            niceVName = self._currentSceneInfo["MayaVersion"]
-        message = ""
-        if self._currentSceneInfo["MayaVersion"] == currentVersion:
-            return 0, message
-        elif pm.versions.current() > self._currentSceneInfo["MayaVersion"]:
-            message = "Base Scene is created with a LOWER Maya version ({0}). Are you sure you want to continue?".format(
-                niceVName)
-            return -1, message
-        elif pm.versions.current() < self._currentSceneInfo["MayaVersion"]:
-            message = "Base Scene is created with a HIGHER Maya version ({0}). Are you sure you want to continue?".format(
-                niceVName)
-            return -1, message
+        pass
+    #     if not self._currentSceneInfo["MayaVersion"]:
+    #         cmds.warning("Cursor is not on a base scene")
+    #         return
+    #     versionDict = {200800: "v2008",
+    #                    200806: "v2008_EXT2",
+    #                    200806: "v2008_SP1",
+    #                    200900: "v2009",
+    #                    200904: "v2009_EXT1",
+    #                    200906: "v2009_SP1A",
+    #                    201000: "v2010",
+    #                    201100: "v2011",
+    #                    201101: "v2011_HOTFIX1",
+    #                    201102: "v2011_HOTFIX2",
+    #                    201103: "v2011_HOTFIX3",
+    #                    201104: "v2011_SP1",
+    #                    201200: "v2012",
+    #                    201201: "v2012_HOTFIX1",
+    #                    201202: "v2012_HOTFIX2",
+    #                    201203: "v2012_HOTFIX3",
+    #                    201204: "v2012_HOTFIX4",
+    #                    201209: "v2012_SAP1",
+    #                    201217: "v2012_SAP1SP1",
+    #                    201209: "v2012_SP1",
+    #                    201217: "v2012_SP2",
+    #                    201300: "v2013",
+    #                    201400: "v2014",
+    #                    201450: "v2014_EXT1",
+    #                    201451: "v2014_EXT1SP1",
+    #                    201459: "v2014_EXT1SP2",
+    #                    201402: "v2014_SP1",
+    #                    201404: "v2014_SP2",
+    #                    201406: "v2014_SP3",
+    #                    201500: "v2015",
+    #                    201506: "v2015_EXT1",
+    #                    201507: "v2015_EXT1SP5",
+    #                    201501: "v2015_SP1",
+    #                    201502: "v2015_SP2",
+    #                    201505: "v2015_SP3",
+    #                    201506: "v2015_SP4",
+    #                    201507: "v2015_SP5",
+    #                    201600: "v2016",
+    #                    201650: "v20165",
+    #                    201651: "v20165_SP1",
+    #                    201653: "v20165_SP2",
+    #                    201605: "v2016_EXT1",
+    #                    201607: "v2016_EXT1SP4",
+    #                    201650: "v2016_EXT2",
+    #                    201651: "v2016_EXT2SP1",
+    #                    201653: "v2016_EXT2SP2",
+    #                    201605: "v2016_SP3",
+    #                    201607: "v2016_SP4",
+    #                    201700: "v2017",
+    #                    201701: "v2017U1",
+    #                    201720: "v2017U2",
+    #                    201740: "v2017U3",
+    #                    20180000: "v2018"}
+    #
+    #     currentVersion = pm.versions.current()
+    #     try:
+    #         niceVName=versionDict[self._currentSceneInfo["MayaVersion"]]
+    #     except KeyError:
+    #         niceVName = self._currentSceneInfo["MayaVersion"]
+    #     message = ""
+    #     if self._currentSceneInfo["MayaVersion"] == currentVersion:
+    #         return 0, message
+    #     elif pm.versions.current() > self._currentSceneInfo["MayaVersion"]:
+    #         message = "Base Scene is created with a LOWER Maya version ({0}). Are you sure you want to continue?".format(
+    #             niceVName)
+    #         return -1, message
+    #     elif pm.versions.current() < self._currentSceneInfo["MayaVersion"]:
+    #         message = "Base Scene is created with a HIGHER Maya version ({0}). Are you sure you want to continue?".format(
+    #             niceVName)
+    #         return -1, message
 
     def isSceneModified(self):
         """Checks the currently open scene saved or not"""
-        logger.debug("Func: isSceneModified")
-        return cmds.file(q=True, modified=True)
+        pass
+        # logger.debug("Func: isSceneModified")
+        # return cmds.file(q=True, modified=True)
 
     def saveSimple(self):
         """Save the currently open file"""
-        logger.debug("Func: saveSimple")
+        pass
+        # logger.debug("Func: saveSimple")
         # TODO // cmds?
-        pm.saveFile()
+        # pm.saveFile()
 
     def getFormatsAndCodecs(self):
         """Returns the codecs which can be used in current workstation"""
-        logger.debug("Func: getFormatsAndCodecs")
-        formatList = cmds.playblast(query=True, format=True)
-        codecsDictionary = dict(
-            (item, mel.eval('playblast -format "{0}" -q -compression;'.format(item))) for item in formatList)
-        return codecsDictionary
+        pass
+        # logger.debug("Func: getFormatsAndCodecs")
+        # formatList = cmds.playblast(query=True, format=True)
+        # codecsDictionary = dict(
+        #     (item, mel.eval('playblast -format "{0}" -q -compression;'.format(item))) for item in formatList)
+        # return codecsDictionary
+
+
 
     def _createCallbacks(self, handler):
-        logger.debug("Func: _createCallbacks")
-        callbackIDList=[]
-        callbackIDList.append(cmds.scriptJob(e=["workspaceChanged", "%s.callbackRefresh()" % handler], replacePrevious=True, parent=SM_Version))
-        return callbackIDList
+        pass
+        # logger.debug("Func: _createCallbacks")
+        # callbackIDList=[]
+        # callbackIDList.append(cmds.scriptJob(e=["workspaceChanged", "%s.callbackRefresh()" % handler], replacePrevious=True, parent=SM_Version))
+        # return callbackIDList
 
     def _killCallbacks(self, callbackIDList):
-        logger.debug("Func: _killCallbacks")
-        for x in callbackIDList:
-            if cmds.scriptJob(ex=x):
-                cmds.scriptJob(kill=x)
+        pass
+        # logger.debug("Func: _killCallbacks")
+        # for x in callbackIDList:
+        #     if cmds.scriptJob(ex=x):
+        #         cmds.scriptJob(kill=x)
 
-    def backwardcompatibility(self):
+    def _setEnvVariable(self, var, value):
+        """sets environment var
+        :param str var: The name of the var
+        :param value: The value of the variable
         """
-        This function checks for the old database structure and creates a copy with the new structure
-        :return: None
-        """
-        logger.debug("Func: backwardcompatibility")
-        def recursive_overwrite(src, dest, ignore=None):
-            if os.path.isdir(src):
-                if not os.path.isdir(dest):
-                    os.makedirs(dest)
-                files = os.listdir(src)
-                if ignore is not None:
-                    ignored = ignore(src, files)
-                else:
-                    ignored = set()
-                for f in files:
-                    if f not in ignored:
-                        recursive_overwrite(os.path.join(src, f),
-                                            os.path.join(dest, f),
-                                            ignore)
-            else:
-                shutil.copyfile(src, dest)
+        os.environ[var] = value
+        try:
+            hou.allowEnvironmentVariableToOverwriteVariable(var, True)
+        except AttributeError:
+            # should be Houdini 12
+            hou.allowEnvironmentToOverwriteVariable(var, True)
 
-        old_dbDir = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "data", "SMdata"))
-        bck_dbDir = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "data", "SMdata_oldVersion"))
-        new_dbDir = self._pathsDict["databaseDir"]
-        if os.path.isdir(bck_dbDir):
-            logger.info("Old database backuped before. Returning without doing any modification")
-            return
-        if os.path.isdir(old_dbDir):
-
-            recursive_overwrite(old_dbDir, new_dbDir)
-            logger.info("All old database contents copied to the new structure folder => %s" % self._pathsDict["databaseDir"])
-
-            oldCategories = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
-
-            # dump the category file
-            self._dumpJson(oldCategories, os.path.join(self._pathsDict["databaseDir"], "categoriesMaya.json"))
-            for category in oldCategories:
-                categoryDBpath = os.path.normpath(os.path.join(new_dbDir, category))
-                if os.path.isdir(categoryDBpath):
-                    jsonFiles = [y for x in os.walk(categoryDBpath) for y in glob(os.path.join(x[0], '*.json'))]
-                    for file in jsonFiles:
-                        fileData = self._loadJson(file)
-                        # figure out the subproject
-                        fileData["ID"] = fileData["ID"].replace("SceneManager", "SmMaya")
-                        path = fileData["Path"]
-                        name = fileData["Name"]
-                        cate = fileData["Category"]
-                        parts = path.split("\\")
-                        diff = list(set(parts) - set([name, cate, "scenes"]))
-                        if diff:
-                            fileData["SubProject"] = diff[0]
-                        else:
-                            fileData["SubProject"] = "None"
-                        for vers in fileData["Versions"]:
-
-                            #if there is no thumbnail column, skip
-                            try:
-                                vers[5] = vers[5].replace("data\\SMdata", "smDatabase\\mayaDB") # relative thumbnail path
-                            except IndexError:
-                                vers.append("") ## create the fifth column
-
-                            for key in vers[4].keys(): # Playblast dictionary
-                                vers[4][key] = vers[4][key].replace("data\\SMdata", "smDatabase\\mayaDB")
-                        self._dumpJson(fileData, file)
-            logger.info("Database preview and thumbnail paths are fixed")
-            try:
-                os.rename(old_dbDir, bck_dbDir)
-                logger.info("Old database folder renamed to 'SMdata_oldVersion'")
-            except WindowsError:
-                logger.warning("Cannot rename the old database folder because of windows bullshit")
+        hscript_command = "set -g %s = '%s'" % (var, value)
+        hou.hscript(str(hscript_command))
 
 
 

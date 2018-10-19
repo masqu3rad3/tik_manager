@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/tik_manager/SmMaya.py" line="1807" mnemonic="3" />
+    <bookmark url="file://$PROJECT_DIR$/tik_manager/SmMaya.py" line="1832" mnemonic="3" />
     <bookmark url="file://$PROJECT_DIR$/tik_manager/SmStandalone.py" line="545" mnemonic="4" />
     <bookmark url="file://$PROJECT_DIR$/tik_manager/SmStandalone.py" line="1867" mnemonic="2" />
-    <bookmark url="file://$PROJECT_DIR$/tik_manager/SmRoot.py" line="1110" mnemonic="1" />
+    <bookmark url="file://$PROJECT_DIR$/tik_manager/SmRoot.py" line="1111" mnemonic="1" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="141116ba-e7cf-403d-8990-39535c12a2cb" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change beforePath="$PROJECT_DIR$/tik_manager/Sm3dsMax.py" afterPath="$PROJECT_DIR$/tik_manager/Sm3dsMax.py" />
       <change beforePath="$PROJECT_DIR$/tik_manager/SmHoudini.py" afterPath="$PROJECT_DIR$/tik_manager/SmHoudini.py" />
+      <change beforePath="$PROJECT_DIR$/tik_manager/SmMaya.py" afterPath="$PROJECT_DIR$/tik_manager/SmMaya.py" />
+      <change beforePath="$PROJECT_DIR$/tik_manager/SmRoot.py" afterPath="$PROJECT_DIR$/tik_manager/SmRoot.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -18,63 +22,60 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <leaf>
-      <file leaf-file-name="SmHoudini.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/tik_manager/SmHoudini.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="829">
-              <caret line="39" column="0" lean-forward="true" selection-start-line="39" selection-start-column="0" selection-end-line="39" selection-end-column="0" />
-              <folding>
-                <element signature="e#0#9#0" expanded="true" />
-                <element signature="e#38832#38880#0" expanded="false" />
-                <element signature="e#38914#58670#0" expanded="false" />
-                <element signature="e#58715#59411#0" expanded="false" />
-                <element signature="e#59453#66198#0" expanded="false" />
-                <element signature="e#66237#80060#0" expanded="false" />
-                <element signature="e#80099#95272#0" expanded="false" />
-                <element signature="e#95314#101146#0" expanded="false" />
-                <element signature="e#101192#105632#0" expanded="false" />
-                <element signature="e#105677#110405#0" expanded="false" />
-                <element signature="e#110450#113463#0" expanded="false" />
-                <element signature="e#113502#115419#0" expanded="false" />
-                <element signature="e#115494#116095#0" expanded="false" />
-                <element signature="e#116147#116751#0" expanded="false" />
-                <element signature="e#116801#118328#0" expanded="false" />
-                <element signature="e#118377#118821#0" expanded="false" />
-                <element signature="e#118874#119261#0" expanded="false" />
-                <element signature="e#119317#119505#0" expanded="false" />
-                <element signature="e#119546#119763#0" expanded="false" />
-                <element signature="e#119807#119909#0" expanded="false" />
-                <element signature="e#119951#120173#0" expanded="false" />
-                <element signature="e#120211#120309#0" expanded="false" />
-                <element signature="e#120348#120884#0" expanded="false" />
-                <element signature="e#120927#121686#0" expanded="false" />
-                <element signature="e#121728#122614#0" expanded="false" />
-                <element signature="e#122675#123801#0" expanded="false" />
-                <element signature="e#123838#125249#0" expanded="false" />
-                <element signature="e#125290#125675#0" expanded="false" />
-                <element signature="e#125714#126394#0" expanded="false" />
-                <element signature="e#126437#126948#0" expanded="false" />
-                <element signature="e#126991#127503#0" expanded="false" />
-                <element signature="e#127509#127532#0" expanded="false" />
-                <element signature="e#127900#128191#0" expanded="false" />
-                <element signature="e#128233#128640#0" expanded="false" />
-                <element signature="e#128676#129054#0" expanded="false" />
-                <element signature="e#129094#129668#0" expanded="false" />
-                <element signature="e#129751#130054#0" expanded="false" />
-                <element signature="e#130096#130853#0" expanded="false" />
-                <element signature="e#130942#131373#0" expanded="false" />
-                <element signature="e#131476#133812#0" expanded="false" />
-                <element signature="e#131511#132091#0" expanded="false" />
-                <element signature="e#133855#134393#0" expanded="false" />
-                <element signature="e#134444#135223#0" expanded="false" />
-                <element signature="e#135251#136624#0" expanded="false" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-    </leaf>
+    <splitter split-orientation="horizontal" split-proportion="0.22878228">
+      <split-first>
+        <leaf>
+          <file leaf-file-name="SmRoot.py" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/tik_manager/SmRoot.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="298">
+                  <caret line="1079" column="0" lean-forward="false" selection-start-line="1079" selection-start-column="0" selection-end-line="1079" selection-end-column="0" />
+                  <folding>
+                    <element signature="e#1#16#0" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="SmStandalone.py" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/tik_manager/SmStandalone.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="411">
+                  <caret line="20" column="33" lean-forward="true" selection-start-line="20" selection-start-column="33" selection-end-line="20" selection-end-column="33" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="Sm3dsMax.py" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/tik_manager/Sm3dsMax.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="364">
+                  <caret line="2414" column="102" lean-forward="false" selection-start-line="2414" selection-start-column="92" selection-end-line="2414" selection-end-column="102" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+        </leaf>
+      </split-first>
+      <split-second>
+        <leaf>
+          <file leaf-file-name="SmMaya.py" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/tik_manager/SmMaya.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="738">
+                  <caret line="874" column="28" lean-forward="false" selection-start-line="874" selection-start-column="28" selection-end-line="874" selection-end-column="28" />
+                  <folding>
+                    <element signature="e#0#9#0" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+        </leaf>
+      </split-second>
+    </splitter>
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -86,8 +87,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>self.manager</find>
-      <find>BaseScene</find>
       <find>color</find>
       <find>onProjectChange</find>
       <find>pprint</find>
@@ -116,6 +115,8 @@
       <find>socket</find>
       <find>index = self</find>
       <find>errorLogger</find>
+      <find>version</find>
+      <find>&quot;Versions&quot;</find>
     </findStrings>
     <replaceStrings>
       <replace>rig_tab</replace>
@@ -175,10 +176,10 @@
         <option value="$PROJECT_DIR$/tik_manager/IvMaya.py" />
         <option value="$PROJECT_DIR$/tik_manager/QtDesigner/projectSettingsUI.py" />
         <option value="$PROJECT_DIR$/tik_manager/SmStandalone.py" />
+        <option value="$PROJECT_DIR$/tik_manager/SmHoudini.py" />
+        <option value="$PROJECT_DIR$/tik_manager/Sm3dsMax.py" />
         <option value="$PROJECT_DIR$/tik_manager/SmRoot.py" />
         <option value="$PROJECT_DIR$/tik_manager/SmMaya.py" />
-        <option value="$PROJECT_DIR$/tik_manager/Sm3dsMax.py" />
-        <option value="$PROJECT_DIR$/tik_manager/SmHoudini.py" />
       </list>
     </option>
   </component>
@@ -570,14 +571,16 @@
     <frame x="-8" y="-8" width="2576" height="1586" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16863672" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.17011128" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32965517" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
-      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24980299" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32965517" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32965517" sideWeight="0.4968479" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32965517" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32965517" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32965517" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.13831478" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32965517" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
@@ -591,10 +594,8 @@
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32965517" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16413793" sideWeight="0.4960599" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.20344828" sideWeight="0.49523053" order="12" side_tool="false" content_ui="tabs" />
-      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.12718602" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Inspection Results" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32965517" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32965517" sideWeight="0.4968479" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.13116057" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -842,21 +843,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/standaloneTests.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="506">
-          <caret line="23" column="9" lean-forward="false" selection-start-line="23" selection-start-column="9" selection-end-line="23" selection-end-column="9" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test/devCommands.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="352">
-          <caret line="16" column="23" lean-forward="false" selection-start-line="16" selection-start-column="23" selection-end-line="16" selection-end-column="23" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/tik_manager/QtDesigner/projectSettingsUI.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1661">
@@ -886,18 +872,95 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/tik_manager/SmHoudini.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="298">
+          <caret line="243" column="15" lean-forward="false" selection-start-line="243" selection-start-column="8" selection-end-line="243" selection-end-column="15" />
+          <folding>
+            <element signature="e#0#9#0" expanded="false" />
+            <element signature="e#36453#36501#0" expanded="false" />
+            <element signature="e#36535#56291#0" expanded="false" />
+            <element signature="e#56336#57032#0" expanded="false" />
+            <element signature="e#57074#63819#0" expanded="false" />
+            <element signature="e#63858#77681#0" expanded="false" />
+            <element signature="e#77720#92893#0" expanded="false" />
+            <element signature="e#92935#98767#0" expanded="false" />
+            <element signature="e#98813#103253#0" expanded="false" />
+            <element signature="e#103298#108026#0" expanded="false" />
+            <element signature="e#108071#111084#0" expanded="false" />
+            <element signature="e#111123#113040#0" expanded="false" />
+            <element signature="e#113115#113716#0" expanded="false" />
+            <element signature="e#113768#114372#0" expanded="false" />
+            <element signature="e#114422#115949#0" expanded="false" />
+            <element signature="e#115998#116442#0" expanded="false" />
+            <element signature="e#116495#116882#0" expanded="false" />
+            <element signature="e#116938#117126#0" expanded="false" />
+            <element signature="e#117167#117384#0" expanded="false" />
+            <element signature="e#117428#117530#0" expanded="false" />
+            <element signature="e#117572#117794#0" expanded="false" />
+            <element signature="e#117832#117930#0" expanded="false" />
+            <element signature="e#117969#118505#0" expanded="false" />
+            <element signature="e#118548#119307#0" expanded="false" />
+            <element signature="e#119349#120235#0" expanded="false" />
+            <element signature="e#120296#121422#0" expanded="false" />
+            <element signature="e#121459#122870#0" expanded="false" />
+            <element signature="e#122911#123296#0" expanded="false" />
+            <element signature="e#123335#124015#0" expanded="false" />
+            <element signature="e#124058#124569#0" expanded="false" />
+            <element signature="e#124612#125124#0" expanded="false" />
+            <element signature="e#125130#125153#0" expanded="false" />
+            <element signature="e#125521#125812#0" expanded="false" />
+            <element signature="e#125854#126261#0" expanded="false" />
+            <element signature="e#126297#126675#0" expanded="false" />
+            <element signature="e#126715#127289#0" expanded="false" />
+            <element signature="e#127372#127675#0" expanded="false" />
+            <element signature="e#127717#128474#0" expanded="false" />
+            <element signature="e#128563#128994#0" expanded="false" />
+            <element signature="e#129097#131433#0" expanded="false" />
+            <element signature="e#129132#129712#0" expanded="false" />
+            <element signature="e#131476#132014#0" expanded="false" />
+            <element signature="e#132065#132844#0" expanded="false" />
+            <element signature="e#132872#134245#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/devCommands.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="286">
+          <caret line="16" column="23" lean-forward="false" selection-start-line="16" selection-start-column="23" selection-end-line="16" selection-end-column="23" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/standaloneTests.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="506">
+          <caret line="23" column="20" lean-forward="true" selection-start-line="23" selection-start-column="20" selection-end-line="23" selection-end-column="20" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tik_manager/Sm3dsMax.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="364">
+          <caret line="2414" column="102" lean-forward="false" selection-start-line="2414" selection-start-column="92" selection-end-line="2414" selection-end-column="102" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/tik_manager/SmStandalone.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="378">
-          <caret line="1867" column="0" lean-forward="false" selection-start-line="1867" selection-start-column="0" selection-end-line="1867" selection-end-column="0" />
+        <state relative-caret-position="411">
+          <caret line="20" column="33" lean-forward="true" selection-start-line="20" selection-start-column="33" selection-end-line="20" selection-end-column="33" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/tik_manager/SmRoot.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2226">
-          <caret line="1037" column="113" lean-forward="false" selection-start-line="1037" selection-start-column="113" selection-end-line="1037" selection-end-column="113" />
+        <state relative-caret-position="298">
+          <caret line="1079" column="0" lean-forward="false" selection-start-line="1079" selection-start-column="0" selection-end-line="1079" selection-end-column="0" />
           <folding>
             <element signature="e#1#16#0" expanded="true" />
           </folding>
@@ -906,68 +969,10 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/tik_manager/SmMaya.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="598">
-          <caret line="2852" column="37" lean-forward="false" selection-start-line="2852" selection-start-column="0" selection-end-line="2853" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/tik_manager/Sm3dsMax.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="180">
-          <caret line="43" column="4" lean-forward="false" selection-start-line="43" selection-start-column="4" selection-end-line="43" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/tik_manager/SmHoudini.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="829">
-          <caret line="39" column="0" lean-forward="true" selection-start-line="39" selection-start-column="0" selection-end-line="39" selection-end-column="0" />
+        <state relative-caret-position="738">
+          <caret line="874" column="28" lean-forward="false" selection-start-line="874" selection-start-column="28" selection-end-line="874" selection-end-column="28" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
-            <element signature="e#38832#38880#0" expanded="false" />
-            <element signature="e#38914#58670#0" expanded="false" />
-            <element signature="e#58715#59411#0" expanded="false" />
-            <element signature="e#59453#66198#0" expanded="false" />
-            <element signature="e#66237#80060#0" expanded="false" />
-            <element signature="e#80099#95272#0" expanded="false" />
-            <element signature="e#95314#101146#0" expanded="false" />
-            <element signature="e#101192#105632#0" expanded="false" />
-            <element signature="e#105677#110405#0" expanded="false" />
-            <element signature="e#110450#113463#0" expanded="false" />
-            <element signature="e#113502#115419#0" expanded="false" />
-            <element signature="e#115494#116095#0" expanded="false" />
-            <element signature="e#116147#116751#0" expanded="false" />
-            <element signature="e#116801#118328#0" expanded="false" />
-            <element signature="e#118377#118821#0" expanded="false" />
-            <element signature="e#118874#119261#0" expanded="false" />
-            <element signature="e#119317#119505#0" expanded="false" />
-            <element signature="e#119546#119763#0" expanded="false" />
-            <element signature="e#119807#119909#0" expanded="false" />
-            <element signature="e#119951#120173#0" expanded="false" />
-            <element signature="e#120211#120309#0" expanded="false" />
-            <element signature="e#120348#120884#0" expanded="false" />
-            <element signature="e#120927#121686#0" expanded="false" />
-            <element signature="e#121728#122614#0" expanded="false" />
-            <element signature="e#122675#123801#0" expanded="false" />
-            <element signature="e#123838#125249#0" expanded="false" />
-            <element signature="e#125290#125675#0" expanded="false" />
-            <element signature="e#125714#126394#0" expanded="false" />
-            <element signature="e#126437#126948#0" expanded="false" />
-            <element signature="e#126991#127503#0" expanded="false" />
-            <element signature="e#127509#127532#0" expanded="false" />
-            <element signature="e#127900#128191#0" expanded="false" />
-            <element signature="e#128233#128640#0" expanded="false" />
-            <element signature="e#128676#129054#0" expanded="false" />
-            <element signature="e#129094#129668#0" expanded="false" />
-            <element signature="e#129751#130054#0" expanded="false" />
-            <element signature="e#130096#130853#0" expanded="false" />
-            <element signature="e#130942#131373#0" expanded="false" />
-            <element signature="e#131476#133812#0" expanded="false" />
-            <element signature="e#131511#132091#0" expanded="false" />
-            <element signature="e#133855#134393#0" expanded="false" />
-            <element signature="e#134444#135223#0" expanded="false" />
-            <element signature="e#135251#136624#0" expanded="false" />
           </folding>
         </state>
       </provider>

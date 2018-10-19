@@ -140,20 +140,6 @@ class MaxManager(RootManager):
         self._saveProjects(projectsDict)
         self.projectDir = path
 
-        # pManager.SetProjectFolderDir(path)
-        # self.projectDir = self.getProjectDir()
-
-
-        # projectsDict = self._loadProjects()
-        # if not projectsDict:
-        #     projectsDict = {"3dsMaxProject": path}
-        #
-        # else:
-        #     projectsDict["3dsMaxProject"] = path
-        # self._saveProjects(projectsDict)
-        #
-        # self.projectDir = path
-
     def saveCallback(self):
         """Callback function to update reference files when files saved regularly"""
         ## TODO // TEST IT
@@ -161,13 +147,9 @@ class MaxManager(RootManager):
         openSceneInfo = self.getOpenSceneInfo()
         if openSceneInfo["jsonFile"]:
             jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
-            if jsonInfo == -1:
-                msg = "Database file is corrupted"
-                print msg
-                return
             if jsonInfo["ReferenceFile"]:
                 absRefFile = os.path.join(self._pathsDict["projectDir"], jsonInfo["ReferenceFile"])
-                absBaseSceneVersion = os.path.join(self._pathsDict["projectDir"], jsonInfo["Versions"][int(jsonInfo["ReferencedVersion"]) - 1][0])
+                absBaseSceneVersion = os.path.join(self._pathsDict["projectDir"], jsonInfo["Versions"][int(jsonInfo["ReferencedVersion"]) - 1]["RelativePath"])
                 # if the refererenced scene file is the saved file (saved or saved as)
                 if self._pathsDict["sceneFile"] == absBaseSceneVersion:
                     # copy over the forReference file
@@ -277,8 +259,12 @@ class MaxManager(RootManager):
         jsonInfo["Category"] = categoryName
         jsonInfo["Creator"] = self.currentUser
         jsonInfo["CreatorHost"] = (socket.gethostname())
+        # jsonInfo["Versions"] = [ # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
+        #     [relSceneFile, completeNote,  self._usersDict[self.currentUser], socket.gethostname(), {}, thumbPath]]
         jsonInfo["Versions"] = [ # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
-            [relSceneFile, completeNote,  self._usersDict[self.currentUser], socket.gethostname(), {}, thumbPath]]
+            {"RelativePath": relSceneFile, "Note": completeNote,  "User": self._usersDict[self.currentUser], "Workstation": socket.gethostname(), "Preview": {}, "Thumb": thumbPath}]
+
+
         jsonInfo["SubProject"] = self._subProjectsList[subProjectIndex]
         self._dumpJson(jsonInfo, jsonFile)
         return jsonInfo
@@ -329,8 +315,13 @@ class MaxManager(RootManager):
             thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=currentVersion)
 
             jsonInfo["Versions"].append(
-                # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
-                [relSceneFile, completeNote, self._usersDict[self.currentUser], (socket.gethostname()), {}, thumbPath])
+                {"RelativePath": relSceneFile,
+                 "Note": completeNote,
+                 "User": self._usersDict[self.currentUser],
+                 "Workstation": socket.gethostname(),
+                 "Preview": {},
+                 "Thumb": thumbPath}
+                )
 
             if makeReference:
                 referenceName = "{0}_{1}_forReference".format(jsonInfo["Name"], jsonInfo["Category"])
@@ -478,9 +469,9 @@ class MaxManager(RootManager):
         print "relVersionName", relVersionName
         print "jInfo", jsonInfo
 
-        for i in jsonInfo["Versions"]:
-            if relVersionName == i[0]:
-                i[4][currentCam] = relPlayBlastFile
+        for version in jsonInfo["Versions"]:
+            if relVersionName == version["RelativePath"]:
+                version["Preview"][currentCam] = relPlayBlastFile
 
         self._dumpJson(jsonInfo, openSceneInfo["jsonFile"])
         return 0, ""
@@ -489,7 +480,7 @@ class MaxManager(RootManager):
     def loadBaseScene(self, force=False):
         """Loads the scene at cursor position"""
         # TODO // TEST IT
-        relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1][0]
+        relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"]
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
             fManager.Open(absSceneFile)
@@ -502,7 +493,7 @@ class MaxManager(RootManager):
 
     def importBaseScene(self):
         """Imports the scene at cursor position"""
-        relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1][0]
+        relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"]
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
             fManager.Merge(absSceneFile, mergeAll=True, selectMerged=True)
@@ -601,10 +592,13 @@ class MaxManager(RootManager):
         if not filePath:
             filePath = self.createThumbnail(useCursorPosition=True)
 
-        try:
-            self._currentSceneInfo["Versions"][self.currentVersionIndex-1][5]=filePath
-        except IndexError: # if this is an older file without thumbnail
-            self._currentSceneInfo["Versions"][self.currentVersionIndex-1].append(filePath)
+        self._currentSceneInfo["Versions"][self.currentVersionIndex-1]["Thumb"]=filePath
+
+
+        # try:
+        #     self._currentSceneInfo["Versions"][self.currentVersionIndex-1][5]=filePath
+        # except IndexError: # if this is an older file without thumbnail
+        #     self._currentSceneInfo["Versions"][self.currentVersionIndex-1].append(filePath)
 
         self._dumpJson(self._currentSceneInfo, self.currentDatabasePath)
 
