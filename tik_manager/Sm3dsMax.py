@@ -262,7 +262,15 @@ class MaxManager(RootManager):
         # jsonInfo["Versions"] = [ # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
         #     [relSceneFile, completeNote,  self._usersDict[self.currentUser], socket.gethostname(), {}, thumbPath]]
         jsonInfo["Versions"] = [ # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
-            {"RelativePath": relSceneFile, "Note": completeNote,  "User": self._usersDict[self.currentUser], "Workstation": socket.gethostname(), "Preview": {}, "Thumb": thumbPath}]
+            {"RelativePath": relSceneFile,
+             "Note": completeNote,
+             "User": self._usersDict[self.currentUser],
+             "Workstation": socket.gethostname(),
+             "Preview": {},
+             "Thumb": thumbPath,
+             "Ranges": self._getTimelineRanges()
+             }
+        ]
 
 
         jsonInfo["SubProject"] = self._subProjectsList[subProjectIndex]
@@ -320,7 +328,9 @@ class MaxManager(RootManager):
                  "User": self._usersDict[self.currentUser],
                  "Workstation": socket.gethostname(),
                  "Preview": {},
-                 "Thumb": thumbPath}
+                 "Thumb": thumbPath,
+                 "Ranges": self._getTimelineRanges()
+                 }
                 )
 
             if makeReference:
@@ -510,12 +520,18 @@ class MaxManager(RootManager):
         projectPath = self.projectDir
         relReferenceFile = self._currentSceneInfo["ReferenceFile"]
 
+
         if relReferenceFile:
             referenceFile = os.path.join(projectPath, relReferenceFile)
 
             # software specific
             Xrefobjs = rt.getMAXFileObjectNames(referenceFile)
             rt.xrefs.addNewXRefObject(referenceFile, Xrefobjs)
+            try:
+                ranges = self._currentSceneInfo["Versions"][self._currentSceneInfo["ReferencedVersion"]-1]["Ranges"]
+                self._setTimelineRanges(ranges)
+            except KeyError:
+                pass
 
         else:
             logger.warning("There is no reference set for this scene. Nothing changed")
@@ -702,6 +718,19 @@ class MaxManager(RootManager):
             checklist.append(msg)
 
         return checklist
+
+    def _getTimelineRanges(self):
+        R_ast = int(rt.animationRange.start)
+        R_min = int(rt.animationRange.start)
+        R_max = int(rt.animationRange.end)
+        R_aet = int(rt.animationRange.end)
+        return [R_ast, R_min, R_max, R_aet]
+
+    def _setTimelineRanges(self, rangeList):
+        """Sets the timeline ranges [AnimationStart, Min, Max, AnimationEnd]"""
+        rt.animationRange = rt.interval(rangeList[0], rangeList[-1])
+
+    rt.animationRange = rt.interval(4, 12)
 
     def _createCallbacks(self, handler):
         logger.warning("_createCallbacks Function not written yet")

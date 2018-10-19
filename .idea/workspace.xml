@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/tik_manager/SmMaya.py" line="1832" mnemonic="3" />
+    <bookmark url="file://$PROJECT_DIR$/tik_manager/SmMaya.py" line="1859" mnemonic="3" />
     <bookmark url="file://$PROJECT_DIR$/tik_manager/SmStandalone.py" line="545" mnemonic="4" />
     <bookmark url="file://$PROJECT_DIR$/tik_manager/SmStandalone.py" line="1867" mnemonic="2" />
-    <bookmark url="file://$PROJECT_DIR$/tik_manager/SmRoot.py" line="1111" mnemonic="1" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="141116ba-e7cf-403d-8990-39535c12a2cb" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/tik_manager/Sm3dsMax.py" afterPath="$PROJECT_DIR$/tik_manager/Sm3dsMax.py" />
-      <change beforePath="$PROJECT_DIR$/tik_manager/SmHoudini.py" afterPath="$PROJECT_DIR$/tik_manager/SmHoudini.py" />
       <change beforePath="$PROJECT_DIR$/tik_manager/SmMaya.py" afterPath="$PROJECT_DIR$/tik_manager/SmMaya.py" />
-      <change beforePath="$PROJECT_DIR$/tik_manager/SmRoot.py" afterPath="$PROJECT_DIR$/tik_manager/SmRoot.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -22,14 +19,14 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.22878228">
+    <splitter split-orientation="horizontal" split-proportion="0.4501845">
       <split-first>
         <leaf>
-          <file leaf-file-name="SmRoot.py" pinned="false" current-in-tab="true">
+          <file leaf-file-name="SmRoot.py" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/tik_manager/SmRoot.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="298">
-                  <caret line="1079" column="0" lean-forward="false" selection-start-line="1079" selection-start-column="0" selection-end-line="1079" selection-end-column="0" />
+                <state relative-caret-position="276">
+                  <caret line="1078" column="0" lean-forward="false" selection-start-line="1078" selection-start-column="0" selection-end-line="1078" selection-end-column="0" />
                   <folding>
                     <element signature="e#1#16#0" expanded="true" />
                   </folding>
@@ -40,18 +37,18 @@
           <file leaf-file-name="SmStandalone.py" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/tik_manager/SmStandalone.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="411">
+                <state relative-caret-position="-484">
                   <caret line="20" column="33" lean-forward="true" selection-start-line="20" selection-start-column="33" selection-end-line="20" selection-end-column="33" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="Sm3dsMax.py" pinned="false" current-in-tab="false">
+          <file leaf-file-name="Sm3dsMax.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/tik_manager/Sm3dsMax.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="364">
-                  <caret line="2414" column="102" lean-forward="false" selection-start-line="2414" selection-start-column="92" selection-end-line="2414" selection-end-column="102" />
+                <state relative-caret-position="609">
+                  <caret line="270" column="48" lean-forward="true" selection-start-line="270" selection-start-column="48" selection-end-line="270" selection-end-column="48" />
                   <folding />
                 </state>
               </provider>
@@ -64,8 +61,8 @@
           <file leaf-file-name="SmMaya.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/tik_manager/SmMaya.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="738">
-                  <caret line="874" column="28" lean-forward="false" selection-start-line="874" selection-start-column="28" selection-end-line="874" selection-end-column="28" />
+                <state relative-caret-position="562">
+                  <caret line="371" column="0" lean-forward="false" selection-start-line="371" selection-start-column="0" selection-end-line="371" selection-end-column="0" />
                   <folding>
                     <element signature="e#0#9#0" expanded="true" />
                   </folding>
@@ -87,8 +84,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>color</find>
-      <find>onProjectChange</find>
       <find>pprint</find>
       <find>SeqCopyProgress</find>
       <find>onDeleteBaseScene</find>
@@ -116,7 +111,9 @@
       <find>index = self</find>
       <find>errorLogger</find>
       <find>version</find>
+      <find>refere</find>
       <find>&quot;Versions&quot;</find>
+      <find>referenceBaseScene</find>
     </findStrings>
     <replaceStrings>
       <replace>rig_tab</replace>
@@ -177,9 +174,9 @@
         <option value="$PROJECT_DIR$/tik_manager/QtDesigner/projectSettingsUI.py" />
         <option value="$PROJECT_DIR$/tik_manager/SmStandalone.py" />
         <option value="$PROJECT_DIR$/tik_manager/SmHoudini.py" />
-        <option value="$PROJECT_DIR$/tik_manager/Sm3dsMax.py" />
         <option value="$PROJECT_DIR$/tik_manager/SmRoot.py" />
         <option value="$PROJECT_DIR$/tik_manager/SmMaya.py" />
+        <option value="$PROJECT_DIR$/tik_manager/Sm3dsMax.py" />
       </list>
     </option>
   </component>
@@ -576,11 +573,11 @@
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32965517" sideWeight="0.4968479" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32965517" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32965517" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32965517" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32965517" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.13831478" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32965517" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32965517" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
@@ -941,39 +938,39 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/tik_manager/Sm3dsMax.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="364">
-          <caret line="2414" column="102" lean-forward="false" selection-start-line="2414" selection-start-column="92" selection-end-line="2414" selection-end-column="102" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/tik_manager/SmStandalone.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="411">
-          <caret line="20" column="33" lean-forward="true" selection-start-line="20" selection-start-column="33" selection-end-line="20" selection-end-column="33" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/tik_manager/SmRoot.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="298">
-          <caret line="1079" column="0" lean-forward="false" selection-start-line="1079" selection-start-column="0" selection-end-line="1079" selection-end-column="0" />
+        <state relative-caret-position="276">
+          <caret line="1078" column="0" lean-forward="false" selection-start-line="1078" selection-start-column="0" selection-end-line="1078" selection-end-column="0" />
           <folding>
             <element signature="e#1#16#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/tik_manager/SmStandalone.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-484">
+          <caret line="20" column="33" lean-forward="true" selection-start-line="20" selection-start-column="33" selection-end-line="20" selection-end-column="33" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/tik_manager/SmMaya.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="738">
-          <caret line="874" column="28" lean-forward="false" selection-start-line="874" selection-start-column="28" selection-end-line="874" selection-end-column="28" />
+        <state relative-caret-position="562">
+          <caret line="371" column="0" lean-forward="false" selection-start-line="371" selection-start-column="0" selection-end-line="371" selection-end-column="0" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tik_manager/Sm3dsMax.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="609">
+          <caret line="270" column="48" lean-forward="true" selection-start-line="270" selection-start-column="48" selection-end-line="270" selection-end-column="48" />
+          <folding />
         </state>
       </provider>
     </entry>

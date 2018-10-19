@@ -97,7 +97,7 @@ class MayaManager(RootManager):
         super(MayaManager, self).__init__()
 
         self.init_paths()
-        self.backwardcompatibility()  # DO NOT RUN UNTIL RELEASE
+        # self.backwardcompatibility()  # DO NOT RUN UNTIL RELEASE
         self.init_database()
 
 
@@ -301,7 +301,15 @@ class MayaManager(RootManager):
         #     [relSceneFile, completeNote,  self._usersDict[self.currentUser], socket.gethostname(), {}, thumbPath]]
         # TODO : ref => Dict
         jsonInfo["Versions"] = [ # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
-            {"RelativePath": relSceneFile, "Note": completeNote,  "User": self._usersDict[self.currentUser], "Workstation": socket.gethostname(), "Preview": {}, "Thumb": thumbPath}]
+            {"RelativePath": relSceneFile,
+             "Note": completeNote,
+             "User": self._usersDict[self.currentUser],
+             "Workstation": socket.gethostname(),
+             "Preview": {},
+             "Thumb": thumbPath,
+             "Ranges": self._getTimelineRanges()
+             }
+        ]
 
         jsonInfo["SubProject"] = self._subProjectsList[subProjectIndex]
         self._dumpJson(jsonInfo, jsonFile)
@@ -360,7 +368,9 @@ class MayaManager(RootManager):
                  "User": self._usersDict[self.currentUser],
                  "Workstation": socket.gethostname(),
                  "Preview": {},
-                 "Thumb": thumbPath}
+                 "Thumb": thumbPath,
+                 "Ranges": self._getTimelineRanges()
+                 }
                 )
 
             if makeReference:
@@ -612,6 +622,11 @@ class MayaManager(RootManager):
             namespace = os.path.splitext(refFileBasename)[0]
             cmds.file(os.path.normpath(referenceFile), reference=True, gl=True, mergeNamespacesOnClash=False,
                       namespace=namespace)
+            try:
+                ranges = self._currentSceneInfo["Versions"][self._currentSceneInfo["ReferencedVersion"]-1]["Ranges"]
+                self._setTimelineRanges(ranges)
+            except KeyError:
+                pass
 
         else:
             cmds.warning("There is no reference set for this scene. Nothing changed")
@@ -788,6 +803,18 @@ class MayaManager(RootManager):
             checklist.append(msg)
 
         return checklist
+
+    def _getTimelineRanges(self):
+        R_ast = cmds.playbackOptions(q=True, ast=True)
+        R_min = cmds.playbackOptions(q=True, min=True)
+        R_max = cmds.playbackOptions(q=True, max=True)
+        R_aet = cmds.playbackOptions(q=True, aet=True)
+        return [R_ast, R_min, R_max, R_aet]
+
+    def _setTimelineRanges(self, rangeList):
+        """Sets the timeline ranges [AnimationStart, Min, Max, AnimationEnd]"""
+        cmds.playbackOptions(ast=rangeList[0], min=rangeList[1], max=rangeList[2], aet=rangeList[3])
+
 
     def _createCallbacks(self, handler):
         logger.debug("Func: _createCallbacks")
