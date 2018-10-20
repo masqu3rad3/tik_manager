@@ -1101,7 +1101,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.scenes_rcItem_1 = QtWidgets.QAction('Show Maya Folder in Explorer', self)
         self.popMenu_scenes.addAction(self.scenes_rcItem_1)
-        self.scenes_rcItem_1.triggered.connect(lambda: self.rcAction_scenes("showInExplorerMaya"))
+        self.scenes_rcItem_1.triggered.connect(lambda: self.rcAction_scenes("showInExplorerHoudini"))
 
         self.scenes_rcItem_2 = QtWidgets.QAction('Show Playblast Folder in Explorer', self)
         self.popMenu_scenes.addAction(self.scenes_rcItem_2)
@@ -2389,7 +2389,7 @@ class MainUI(QtWidgets.QMainWindow):
         if command == "importScene":
             self.manager.importBaseScene()
 
-        if command == "showInExplorerMaya":
+        if command == "showInExplorerHoudini":
             self.manager.showInExplorer(self.manager.currentBaseScenePath)
 
         if command == "showInExplorerPB":

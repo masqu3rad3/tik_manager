@@ -4,14 +4,12 @@
     <bookmark url="file://$PROJECT_DIR$/tik_manager/SmMaya.py" line="1860" mnemonic="3" />
     <bookmark url="file://$PROJECT_DIR$/tik_manager/SmStandalone.py" line="560" mnemonic="4" />
     <bookmark url="file://$PROJECT_DIR$/tik_manager/SmStandalone.py" line="1882" mnemonic="2" />
-    <bookmark url="file://$PROJECT_DIR$/tik_manager/SmHoudini.py" line="927" mnemonic="1" />
+    <bookmark url="file://$PROJECT_DIR$/tik_manager/SmMaya.py" line="2548" mnemonic="1" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="141116ba-e7cf-403d-8990-39535c12a2cb" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/tik_manager/Sm3dsMax.py" beforeDir="false" afterPath="$PROJECT_DIR$/tik_manager/Sm3dsMax.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tik_manager/SmHoudini.py" beforeDir="false" afterPath="$PROJECT_DIR$/tik_manager/SmHoudini.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tik_manager/SmMaya.py" beforeDir="false" afterPath="$PROJECT_DIR$/tik_manager/SmMaya.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tik_manager/SmRoot.py" beforeDir="false" afterPath="$PROJECT_DIR$/tik_manager/SmRoot.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -39,12 +37,12 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="py" value="217" />
+          <entry key="py" value="219" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Python" value="217" />
+          <entry key="Python" value="219" />
         </counts>
       </usages-collector>
     </session>
@@ -75,8 +73,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/tik_manager/SmMaya.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="290">
-              <caret line="2553" column="37" lean-forward="true" selection-start-line="2553" selection-start-column="37" selection-end-line="2553" selection-end-column="37" />
+            <state relative-caret-position="371">
+              <caret line="2704" lean-forward="true" selection-start-line="2704" selection-end-line="2704" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -599,7 +597,7 @@
     <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.12718602" />
-      <window_info active="true" id="Structure" order="1" visible="true" weight="0.21056548" />
+      <window_info id="Structure" order="1" visible="true" weight="0.21056548" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" sideWeight="0.4968479" weight="0.32965517" />
@@ -610,10 +608,10 @@
       <window_info anchor="bottom" id="TODO" order="6" weight="0.14689656" />
       <window_info anchor="bottom" id="Event Log" order="7" sideWeight="0.5039401" side_tool="true" weight="0.16413793" />
       <window_info anchor="bottom" id="Messages" order="8" />
-      <window_info anchor="bottom" id="Version Control" order="9" weight="0.32965517" />
+      <window_info anchor="bottom" id="Version Control" order="9" weight="0.32903227" />
       <window_info anchor="bottom" id="Inspection Results" order="10" weight="0.32965517" />
       <window_info anchor="bottom" id="Python Console" order="11" weight="0.32965517" />
-      <window_info anchor="bottom" id="Terminal" order="12" sideWeight="0.49523053" weight="0.20344828" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="12" sideWeight="0.49523053" visible="true" weight="0.2032258" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -903,8 +901,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/tik_manager/SmMaya.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="290">
-          <caret line="2553" column="37" lean-forward="true" selection-start-line="2553" selection-start-column="37" selection-end-line="2553" selection-end-column="37" />
+        <state relative-caret-position="371">
+          <caret line="2704" lean-forward="true" selection-start-line="2704" selection-end-line="2704" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
           </folding>

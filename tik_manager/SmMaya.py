@@ -2630,9 +2630,7 @@ class MainUI(QtWidgets.QMainWindow):
         # SIGNALS
         # -------
         sv_buttonBox.accepted.connect(saveAsVersionCommand)
-        # sv_buttonBox.accepted.connect(saveV_Dialog.accept)
         sv_buttonBox.rejected.connect(saveV_Dialog.reject)
-        # QtCore.QMetaObject.connectSlotsByName(saveV_Dialog)
 
         sceneInfo = self.manager.getOpenSceneInfo()
         if sceneInfo:
