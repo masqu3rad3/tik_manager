@@ -41,3 +41,16 @@ sys.path.append("C:\\Users\\user\\Documents\\maya\\scripts\\dev\\tik_manager")
 from tik_manager import Sm3dsMax as man
 reload(man)
 r=man.MainUI().show()
+
+
+# HOUDINI COMMANDS:
+# -----------------
+
+import sys
+sys.path.append("C:\\Users\\user\\Documents\\maya\\scripts\\dev\\tik_manager")
+
+from tik_manager import SmHoudini
+reload(SmHoudini)
+
+r = SmHoudini.MainUI()
+r.show()

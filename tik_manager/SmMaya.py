@@ -645,7 +645,8 @@ class MayaManager(RootManager):
             dbPath = self.currentDatabasePath
         else:
             if not dbPath or not versionInt:
-                cmds.warning (("Both dbPath and version must be defined if useCursorPosition=False"))
+                msg = "Both dbPath and version must be defined if useCursorPosition=False"
+                raise Exception ([360, msg])
 
         versionStr = "v%s" % (str(versionInt).zfill(3))
         dbDir, shotNameWithExt = os.path.split(dbPath)
@@ -1876,7 +1877,10 @@ class MainUI(QtWidgets.QMainWindow):
         self.folders_tableView.doubleClicked.connect(lambda index: navigate("folder", index=index))
 
         self.favorites_listWidget.currentItemChanged.connect(favoritesActivated)
-        self.folders_tableView.selectionModel().currentRowChanged.connect(foldersViewActivated)
+        # self.folders_tableView.selectionModel().currentRowChanged.connect(foldersViewActivated)
+        # There is a bug in here. If following two lines are run in a single line, a segmentation fault occurs and crashes 3ds max immediately
+        selectionModel = self.folders_tableView.selectionModel()
+        selectionModel.selectionChanged.connect(foldersViewActivated)
 
         self.favorites_listWidget.doubleClicked.connect(setProject)
 

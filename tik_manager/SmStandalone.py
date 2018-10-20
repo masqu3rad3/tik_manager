@@ -129,6 +129,12 @@ class SwViewer(RootManager):
                 mayaVersionsDict[item]["64bit"]=""
 
         executablesDict = {"Maya": mayaVersionsDict, "3dsMax": maxVersionsDict}
+
+        # GET HOUDINI VERSIONS
+        # --------------------
+        # search the houdini.exe under \\Side Effects Software\\(for everyfolder in here)\\bin
+        # if it exists, create a dict item in houdiniVersionsDict as "16.5.378" : "\\absolute\\path\\to\\exe"
+
         return executablesDict
 
     def executeScene(self):
@@ -241,7 +247,16 @@ class StandaloneManager(RootManager):
                             "scenesDir": "scenes",
                             "pbSettingsFile": "pbSettings.json",
                             "categoriesFile": "categoriesMaya.json",
-                            "userSettingsDir": "Documents\\SceneManager\\Maya"}]
+                            "userSettingsDir": "Documents\\SceneManager\\Maya"},
+
+                           {"niceName": "Houdini",
+                            "databaseDir": "houdiniDB",
+                            "scenesDir": "scenes_houdini",
+                            "pbSettingsFile": "pbSettings_houdini.json",
+                            "categoriesFile": "categoriesHoudini.json",
+                            "userSettingsDir": "Documents\\SceneManager\\Houdini"}
+
+                           ]
 
         # self.validSoftwares = []
         self.swList = []

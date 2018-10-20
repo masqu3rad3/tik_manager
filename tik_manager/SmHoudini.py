@@ -18,28 +18,6 @@ from PySide2 import QtCore
 from PySide2 import QtWidgets
 from PySide2 import QtGui
 
-# hou.isApprentice()
-# Return whether the application is an apprentice (non-commercial) version.
-
-# hou.fps()
-# Return the number of frames per second.
-
-# hou.hipFile.name()
-# name with .hip
-
-# hou.hipFile.basename()
-# only name
-
-# hou.hipFile.path()
-# full path
-
-# hou.hipFile.load(file_name, suppress_save_prompt=False, ignore_load_warnings=False)
-# hou.hipFile.save(file_name=None, save_to_recent_files=True)
-# hou.hipFile.merge(file_name, node_pattern="*", overwrite_on_conflict=False, ignore_load_warnings=False)
-# hou.hipFile.importFBX(file_name, suppress_save_prompt=False, merge_into_scene=True, import_cameras=True, import_joints_and_skin=True, import_geometry=True, import_lights=True, import_animation=True, import_materials=True, resample_animation=False, resample_interval=1.0, override_framerate=False,framerate=-1, hide_joints_attached_to_skin=True, convert_joints_to_zyx_rotation_order=False, material_mode=hou.fbxMaterialMode.FBXShaderNodes, compatibility_mode=hou.fbxCompatibilityMode.Maya, single_precision_vertex_caches=False, triangulate_nurbs=False, triangulate_patches=False, import_global_ambient_light=False, import_blend_deformers_as_blend_sops=False, segment_scale_already_baked_in=True, convert_file_paths_to_relative=True, unlock_geometry=False, unlock_deformations=False, import_nulls_as_subnets=False, import_into_object_subnet=True, convert_into_y_up_coordinate_system=False) → (hou.ObjNode, str )
-
-# hscript_command = "set -g %s = '%s'" % ('JOB', 'E:\\')
-
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Scene Manager for Maya Project"
 __credits__ = []
@@ -183,7 +161,7 @@ class HoudiniManager(RootManager):
         #             except:
         #                 pass
 
-    def saveBaseScene(self, categoryName, baseName, subProjectIndex=0, makeReference=True, versionNotes="", sceneFormat="mb", *args, **kwargs):
+    def saveBaseScene(self, categoryName, baseName, subProjectIndex=0, makeReference=True, versionNotes="", sceneFormat="hip", *args, **kwargs):
         """
         Saves the scene with formatted name and creates a json file for the scene
         Args:
@@ -210,7 +188,7 @@ class HoudiniManager(RootManager):
         for key in scenesToCheck.keys():
             if baseName.lower() == key.lower():
                 msg = ("Base Scene Name is not unique!")
-                cmds.warning(msg)
+                # hou.ui.displayMessage("Base Scene Name is not unique!")
                 return -1, msg
 
         projectPath = self.projectDir
@@ -247,8 +225,8 @@ class HoudiniManager(RootManager):
         ## relativity update
         relSceneFile = os.path.relpath(sceneFile, start=projectPath)
         # killTurtle()
-        # TODO // cmds may be used instead
-        pm.saveAs(sceneFile)
+
+        hou.hipFile.save(file_name=sceneFile)
 
         thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=version)
 
@@ -267,20 +245,28 @@ class HoudiniManager(RootManager):
             jsonInfo["ReferenceFile"] = None
             jsonInfo["ReferencedVersion"] = None
 
-        jsonInfo["ID"] = "SmMayaV02_sceneFile"
-        jsonInfo["MayaVersion"] = cmds.about(q=True, api=True)
+        jsonInfo["ID"] = "SmHoudiniV02_sceneFile"
+        jsonInfo["HoudiniVersion"] = hou.applicationVersion()
         jsonInfo["Name"] = baseName
         jsonInfo["Path"] = os.path.relpath(shotPath, start=projectPath)
         jsonInfo["Category"] = categoryName
         jsonInfo["Creator"] = self.currentUser
         jsonInfo["CreatorHost"] = (socket.gethostname())
         jsonInfo["Versions"] = [ # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
-            [relSceneFile, completeNote,  self._usersDict[self.currentUser], socket.gethostname(), {}, thumbPath]]
+            {"RelativePath": relSceneFile,
+             "Note": completeNote,
+             "User": self._usersDict[self.currentUser],
+             "Workstation": socket.gethostname(),
+             "Preview": {},
+             "Thumb": thumbPath,
+             "Ranges": self._getTimelineRanges()
+             }
+        ]
         jsonInfo["SubProject"] = self._subProjectsList[subProjectIndex]
         self._dumpJson(jsonInfo, jsonFile)
         return jsonInfo
 
-    def saveVersion(self, makeReference=True, versionNotes="", sceneFormat="mb", *args, **kwargs):
+    def saveVersion(self, makeReference=True, versionNotes="", sceneFormat="hip", *args, **kwargs):
         """
         Saves a version for the predefined scene. The scene json file must be present at the /data/[Category] folder.
         Args:
@@ -295,57 +281,68 @@ class HoudiniManager(RootManager):
         """
         logger.debug("Func: saveVersion")
 
-        #
-        #
-        # now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
-        # completeNote = "[%s] on %s\n%s\n" % (self.currentUser, now, versionNotes)
-        #
-        # sceneName = self.getSceneFile()
-        # if not sceneName:
-        #     msg = "This is not a base scene (Untitled)"
-        #     cmds.warning(msg)
-        #     return -1, msg
-        #
-        # sceneInfo = self.getOpenSceneInfo()
-        #
-        # if sceneInfo: ## getCurrentJson returns None if the resolved json path is missing
-        #     jsonFile = sceneInfo["jsonFile"]
-        #     jsonInfo = self._loadJson(jsonFile)
-        #
-        #     currentVersion = len(jsonInfo["Versions"]) + 1
-        #     sceneName = "{0}_{1}_{2}_v{3}".format(jsonInfo["Name"], jsonInfo["Category"], self._usersDict[self.currentUser],
-        #                                           str(currentVersion).zfill(3))
-        #     relSceneFile = os.path.join(jsonInfo["Path"], "{0}.{1}".format(sceneName, sceneFormat))
-        #
-        #     sceneFile = os.path.join(sceneInfo["projectPath"], relSceneFile)
-        #
-        #     # killTurtle()
-        #     # TODO // cmds?
-        #     pm.saveAs(sceneFile)
-        #     thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=currentVersion)
-        #
-        #     jsonInfo["Versions"].append(
-        #         # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
-        #         [relSceneFile, completeNote, self._usersDict[self.currentUser], (socket.gethostname()), {}, thumbPath])
-        #
-        #     if makeReference:
-        #         referenceName = "{0}_{1}_forReference".format(jsonInfo["Name"], jsonInfo["Category"])
-        #         relReferenceFile = os.path.join(jsonInfo["Path"], "{0}.{1}".format(referenceName, sceneFormat))
-        #         referenceFile = os.path.join(sceneInfo["projectPath"], relReferenceFile)
-        #
-        #         shutil.copyfile(sceneFile, referenceFile)
-        #         jsonInfo["ReferenceFile"] = relReferenceFile
-        #         jsonInfo["ReferencedVersion"] = currentVersion
-        #     self._dumpJson(jsonInfo, jsonFile)
-        # else:
-        #     msg = "This is not a base scene (Json file cannot be found)"
-        #     cmds.warning(msg)
-        #     return -1, msg
-        # return jsonInfo
+
+
+        now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
+        completeNote = "[%s] on %s\n%s\n" % (self.currentUser, now, versionNotes)
+
+        sceneName = self.getSceneFile()
+        if not sceneName:
+            msg = "This is not a base scene (Untitled)"
+            # cmds.warning(msg)
+            return -1, msg
+
+        sceneInfo = self.getOpenSceneInfo()
+
+        if sceneInfo: ## getCurrentJson returns None if the resolved json path is missing
+            jsonFile = sceneInfo["jsonFile"]
+            jsonInfo = self._loadJson(jsonFile)
+
+            currentVersion = len(jsonInfo["Versions"]) + 1
+            sceneName = "{0}_{1}_{2}_v{3}".format(jsonInfo["Name"], jsonInfo["Category"], self._usersDict[self.currentUser],
+                                                  str(currentVersion).zfill(3))
+            relSceneFile = os.path.join(jsonInfo["Path"], "{0}.{1}".format(sceneName, sceneFormat))
+
+            sceneFile = os.path.join(sceneInfo["projectPath"], relSceneFile)
+
+            # killTurtle()
+            hou.hipFile.save(file_name=sceneFile)
+
+            thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=currentVersion)
+
+            jsonInfo["Versions"].append(
+                # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
+                # [relSceneFile, completeNote, self._usersDict[self.currentUser], (socket.gethostname()), {}, thumbPath])
+            # TODO : ref => Dict
+                {"RelativePath": relSceneFile,
+                 "Note": completeNote,
+                 "User": self._usersDict[self.currentUser],
+                 "Workstation": socket.gethostname(),
+                 "Preview": {},
+                 "Thumb": thumbPath,
+                 "Ranges": self._getTimelineRanges()
+                 }
+                )
+
+            if makeReference:
+                referenceName = "{0}_{1}_forReference".format(jsonInfo["Name"], jsonInfo["Category"])
+                relReferenceFile = os.path.join(jsonInfo["Path"], "{0}.{1}".format(referenceName, sceneFormat))
+                referenceFile = os.path.join(sceneInfo["projectPath"], relReferenceFile)
+
+                shutil.copyfile(sceneFile, referenceFile)
+                jsonInfo["ReferenceFile"] = relReferenceFile
+                jsonInfo["ReferencedVersion"] = currentVersion
+            self._dumpJson(jsonInfo, jsonFile)
+        else:
+            msg = "This is not a base scene (Json file cannot be found)"
+            return -1, msg
+        return jsonInfo
+
 
     def createPreview(self, *args, **kwargs):
         """Creates a Playblast preview from currently open scene"""
         logger.debug("Func: createPreview")
+
         #
         # pbSettings = self._loadPBSettings()
         # validFormats = cmds.playblast(format=True, q=True)
@@ -538,29 +535,30 @@ class HoudiniManager(RootManager):
     def loadBaseScene(self, force=False):
         """Loads the scene at cursor position"""
         logger.debug("Func: loadBaseScene")
-        #
-        # relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1][0]
-        # absSceneFile = os.path.join(self.projectDir, relSceneFile)
-        # if os.path.isfile(absSceneFile):
-        #     cmds.file(absSceneFile, o=True, force=force)
-        #     return 0
-        # else:
-        #     msg = "File in Scene Manager database doesnt exist"
-        #     cmds.error(msg)
-        #     return -1, msg
+        # TODO : ref => Dict
+        relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"]
+        absSceneFile = os.path.join(self.projectDir, relSceneFile)
+        if os.path.isfile(absSceneFile):
+            hou.hipFile.load(absSceneFile, suppress_save_prompt=force, ignore_load_warnings=False)
+            # cmds.file(absSceneFile, o=True, force=force)
+            return 0
+        else:
+            msg = "File in Scene Manager database doesnt exist"
+            # cmds.error(msg)
+            return -1, msg
 
     def importBaseScene(self):
         """Imports the scene at cursor position"""
         logger.debug("Func: importBaseScene")
-        # relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1][0]
-        # absSceneFile = os.path.join(self.projectDir, relSceneFile)
-        # if os.path.isfile(absSceneFile):
-        #     cmds.file(absSceneFile, i=True)
-        #     return 0
-        # else:
-        #     msg = "File in Scene Manager database doesnt exist"
-        #     cmds.error(msg)
-        #     return -1, msg
+        # TODO : ref => Dict
+        relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"]
+        absSceneFile = os.path.join(self.projectDir, relSceneFile)
+        if os.path.isfile(absSceneFile):
+            hou.hipFile.merge(absSceneFile, node_pattern="*", overwrite_on_conflict=False, ignore_load_warnings=False)
+            return 0
+        else:
+            msg = "File in Scene Manager database doesnt exist"
+            return -1, msg
 
     def referenceBaseScene(self):
         """Creates reference from the scene at cursor position"""
@@ -585,36 +583,43 @@ class HoudiniManager(RootManager):
         :param version: (integer) if defined this version number will be used instead currently open scene version.
         :return: (String) Relative path of the thumbnail file
         """
+
         logger.debug("Func: createThumbnail")
-        # projectPath = self.projectDir
-        # if useCursorPosition:
-        #     versionInt = self.currentVersionIndex
-        #     dbPath = self.currentDatabasePath
-        # else:
-        #     if not dbPath or not versionInt:
-        #         cmds.warning (("Both dbPath and version must be defined if useCursorPosition=False"))
-        #
-        # versionStr = "v%s" % (str(versionInt).zfill(3))
-        # dbDir, shotNameWithExt = os.path.split(dbPath)
-        # shotName = os.path.splitext(shotNameWithExt)[0]
-        #
-        # thumbPath = "{0}_{1}_thumb.jpg".format(os.path.join(dbDir, shotName), versionStr)
-        # relThumbPath = os.path.relpath(thumbPath, projectPath)
-        #
-        # # create a thumbnail using playblast
-        # thumbDir = os.path.split(thumbPath)[0]
-        # if os.path.exists(thumbDir):
-        #     frame = pm.currentTime(query=True)
-        #     store = pm.getAttr("defaultRenderGlobals.imageFormat")
-        #     pm.setAttr("defaultRenderGlobals.imageFormat", 8)  # This is the value for jpeg
-        #     pm.playblast(completeFilename=thumbPath, forceOverwrite=True, format='image', width=221, height=124,
-        #                  showOrnaments=False, frame=[frame], viewer=False, percent=100)
-        #     pm.setAttr("defaultRenderGlobals.imageFormat", store) #take it back
-        # else:
-        #     pm.warning("something went wrong with thumbnail. Skipping thumbnail")
-        #     return ""
-        # # return thumbPath
-        # return relThumbPath
+        projectPath = self.projectDir
+        if useCursorPosition:
+            versionInt = self.currentVersionIndex
+            dbPath = self.currentDatabasePath
+        else:
+            if not dbPath or not versionInt:
+                msg = "Both dbPath and version must be defined if useCursorPosition=False"
+                raise Exception ([360, msg])
+
+        versionStr = "v%s" % (str(versionInt).zfill(3))
+        dbDir, shotNameWithExt = os.path.split(dbPath)
+        shotName = os.path.splitext(shotNameWithExt)[0]
+
+        thumbPath = "{0}_{1}_thumb.jpg".format(os.path.join(dbDir, shotName), versionStr)
+        relThumbPath = os.path.relpath(thumbPath, projectPath)
+
+        # create a thumbnail using playblast
+        thumbDir = os.path.split(thumbPath)[0]
+        if os.path.exists(thumbDir):
+
+            frame = hou.frame()
+            cur_desktop = hou.ui.curDesktop()
+            scene = cur_desktop.paneTabOfType(hou.paneTabType.SceneViewer)
+            flip_options = scene.flipbookSettings().stash()
+            flip_options.frameRange((frame, frame))
+            flip_options.outputToMPlay(False)
+            flip_options.output(thumbPath)
+            flip_options.useResolution(True)
+            flip_options.resolution((221, 124))
+            scene.flipbook(scene.curViewport(), flip_options)
+
+        else:
+            print ("something went wrong with thumbnail. Skipping thumbnail")
+            return ""
+        return relThumbPath
 
     def replaceThumbnail(self, filePath=None ):
         """
@@ -622,113 +627,49 @@ class HoudiniManager(RootManager):
         :param filePath: (String)  if a filePath is defined, this image (.jpg or .gif) will be used as thumbnail
         :return: None
         """
-        pass
-        logger.debug("Func: replaceThumbnail")
-        # if not filePath:
-        #     filePath = self.createThumbnail(useCursorPosition=True)
-        #
-        # try:
-        #     self._currentSceneInfo["Versions"][self.currentVersionIndex-1][5]=filePath
-        # except IndexError: # if this is an older file without thumbnail
-        #     self._currentSceneInfo["Versions"][self.currentVersionIndex-1].append(filePath)
-        #
-        # self._dumpJson(self._currentSceneInfo, self.currentDatabasePath)
+        if not filePath:
+            filePath = self.createThumbnail(useCursorPosition=True)
+
+        self._currentSceneInfo["Versions"][self.currentVersionIndex-1]["Thumb"]=filePath
+        self._dumpJson(self._currentSceneInfo, self.currentDatabasePath)
 
     def compareVersions(self):
-
 
         # // TODO : Find a BETTER way to compare versions.
         # // TODO : You may question each individual scen file for version insteas of base scene database
 
         """Compares the versions of current session and database version at cursor position"""
         logger.debug("Func: compareVersions")
-        pass
-    #     if not self._currentSceneInfo["MayaVersion"]:
-    #         cmds.warning("Cursor is not on a base scene")
-    #         return
-    #     versionDict = {200800: "v2008",
-    #                    200806: "v2008_EXT2",
-    #                    200806: "v2008_SP1",
-    #                    200900: "v2009",
-    #                    200904: "v2009_EXT1",
-    #                    200906: "v2009_SP1A",
-    #                    201000: "v2010",
-    #                    201100: "v2011",
-    #                    201101: "v2011_HOTFIX1",
-    #                    201102: "v2011_HOTFIX2",
-    #                    201103: "v2011_HOTFIX3",
-    #                    201104: "v2011_SP1",
-    #                    201200: "v2012",
-    #                    201201: "v2012_HOTFIX1",
-    #                    201202: "v2012_HOTFIX2",
-    #                    201203: "v2012_HOTFIX3",
-    #                    201204: "v2012_HOTFIX4",
-    #                    201209: "v2012_SAP1",
-    #                    201217: "v2012_SAP1SP1",
-    #                    201209: "v2012_SP1",
-    #                    201217: "v2012_SP2",
-    #                    201300: "v2013",
-    #                    201400: "v2014",
-    #                    201450: "v2014_EXT1",
-    #                    201451: "v2014_EXT1SP1",
-    #                    201459: "v2014_EXT1SP2",
-    #                    201402: "v2014_SP1",
-    #                    201404: "v2014_SP2",
-    #                    201406: "v2014_SP3",
-    #                    201500: "v2015",
-    #                    201506: "v2015_EXT1",
-    #                    201507: "v2015_EXT1SP5",
-    #                    201501: "v2015_SP1",
-    #                    201502: "v2015_SP2",
-    #                    201505: "v2015_SP3",
-    #                    201506: "v2015_SP4",
-    #                    201507: "v2015_SP5",
-    #                    201600: "v2016",
-    #                    201650: "v20165",
-    #                    201651: "v20165_SP1",
-    #                    201653: "v20165_SP2",
-    #                    201605: "v2016_EXT1",
-    #                    201607: "v2016_EXT1SP4",
-    #                    201650: "v2016_EXT2",
-    #                    201651: "v2016_EXT2SP1",
-    #                    201653: "v2016_EXT2SP2",
-    #                    201605: "v2016_SP3",
-    #                    201607: "v2016_SP4",
-    #                    201700: "v2017",
-    #                    201701: "v2017U1",
-    #                    201720: "v2017U2",
-    #                    201740: "v2017U3",
-    #                    20180000: "v2018"}
-    #
-    #     currentVersion = pm.versions.current()
-    #     try:
-    #         niceVName=versionDict[self._currentSceneInfo["MayaVersion"]]
-    #     except KeyError:
-    #         niceVName = self._currentSceneInfo["MayaVersion"]
-    #     message = ""
-    #     if self._currentSceneInfo["MayaVersion"] == currentVersion:
-    #         return 0, message
-    #     elif pm.versions.current() > self._currentSceneInfo["MayaVersion"]:
-    #         message = "Base Scene is created with a LOWER Maya version ({0}). Are you sure you want to continue?".format(
-    #             niceVName)
-    #         return -1, message
-    #     elif pm.versions.current() < self._currentSceneInfo["MayaVersion"]:
-    #         message = "Base Scene is created with a HIGHER Maya version ({0}). Are you sure you want to continue?".format(
-    #             niceVName)
-    #         return -1, message
+
+        # version serialization:
+        vTup = hou.applicationVersion()
+        currentVersion = float("%s.%s%s" % (vTup[0], vTup[1], vTup[2]))
+        baseSceneVersion = self._currentSceneInfo["HoudiniVersion"]
+
+        if currentVersion == baseSceneVersion:
+            msg = ""
+            return 0, msg
+
+        if currentVersion < baseSceneVersion[0]: # max version compare
+            message = "Base Scene is created with a LOWER Houdini version ({0}). Are you sure you want to continue?".format(baseSceneVersion)
+            return -1, message
+
+        if currentVersion > baseSceneVersion[0]:
+            message = "Base Scene is created with a HIGHER 3ds Max version ({0}). Are you sure you want to continue?".format(baseSceneVersion)
+            return -1, message
+
+        # old or corrupted database
+        return 0, ""  # skip
+
 
     def isSceneModified(self):
         """Checks the currently open scene saved or not"""
-        pass
-        # logger.debug("Func: isSceneModified")
-        # return cmds.file(q=True, modified=True)
+        hou.hipFile.hasUnsavedChanges()
+
 
     def saveSimple(self):
         """Save the currently open file"""
-        pass
-        # logger.debug("Func: saveSimple")
-        # TODO // cmds?
-        # pm.saveFile()
+        hou.hipFile.save()
 
     def getFormatsAndCodecs(self):
         """Returns the codecs which can be used in current workstation"""
@@ -739,8 +680,33 @@ class HoudiniManager(RootManager):
         #     (item, mel.eval('playblast -format "{0}" -q -compression;'.format(item))) for item in formatList)
         # return codecsDictionary
 
+    def preSaveChecklist(self):
+        """Checks the scene for inconsistencies"""
+        checklist = []
 
+        # TODO : Create a fps comparison with the settings file
+        fpsValue_setting = self.getFPS()
+        fpsValue_current = int(hou.fps())
+        if fpsValue_setting is not fpsValue_current:
+            msg = "FPS values are not matching with the project settings.\n Project FPS => {0}\n scene FPS => {1}\nDo you want to continue?".format(fpsValue_setting, fpsValue_current)
+            checklist.append(msg)
 
+        return checklist
+
+    def _getTimelineRanges(self):
+        pass
+        R_ast = int(hou.playbar.frameRange()[0])
+        R_min = int(hou.playbar.playbackRange()[0])
+        R_max = int(hou.playbar.playbackRange()[1])
+        R_aet = int(hou.playbar.frameRange()[1])
+        return [R_ast, R_min, R_max, R_aet]
+
+    def _setTimelineRanges(self, rangeList):
+        """Sets the timeline ranges [AnimationStart, Min, Max, AnimationEnd]"""
+        hou.playbar.setFrameRange(rangeList[0], rangeList[3])
+        hou.playbar.setPlaybackRange(rangeList[1], rangeList[2])
+
+        #
     def _createCallbacks(self, handler):
         pass
         # logger.debug("Func: _createCallbacks")
@@ -792,7 +758,7 @@ class MainUI(QtWidgets.QMainWindow):
         with open(stylesheetFile, "r") as fh:
             self.setStyleSheet(fh.read())
 
-        # self.manager = MayaManager()
+        self.manager = HoudiniManager()
         # problem, msg = self.manager._checkRequirements()
         # if problem:
         #     q = QtWidgets.QMessageBox()
@@ -801,11 +767,12 @@ class MainUI(QtWidgets.QMainWindow):
         #     q.setInformativeText(msg[1])
         #     q.setWindowTitle(msg[2])
         #     q.setStandardButtons(QtWidgets.QMessageBox.Ok)
-
-            # ret = q.exec_()
-            # if ret == QtWidgets.QMessageBox.Ok:
-            #     self.close()
-            #     self.deleteLater()
+        #
+        #     ret = q.exec_()
+        #     if ret == QtWidgets.QMessageBox.Ok:
+        #         self.close()
+        #         self.deleteLater()
+        #         # raise Exception ("")
 
         self.setObjectName(SM_Version)
         self.resize(680, 600)
@@ -823,12 +790,12 @@ class MainUI(QtWidgets.QMainWindow):
         # if self.isCallback:
         #     self.callbackIDList = self.manager._createCallbacks(self.isCallback)
 
-        # self.initMainUI(newborn=True)
+        self.initMainUI(newborn=True)
 
 
 
-    def closeEvent(self, event):
-        self.manager._killCallbacks(self.callbackIDList)
+    # def closeEvent(self, event):
+    #     self.manager._killCallbacks(self.callbackIDList)
 
     def buildUI(self):
 
@@ -958,7 +925,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.main_gridLayout.addLayout(self.r1_gridLayout, 0, 0, 1, 1)
 
         self.category_tabWidget = QtWidgets.QTabWidget(self.centralwidget)
-        self.category_tabWidget.setMaximumSize(QtCore.QSize(16777215, 20))
+        self.category_tabWidget.setMaximumSize(QtCore.QSize(16777215, 50))
         self.category_tabWidget.setTabPosition(QtWidgets.QTabWidget.North)
         self.category_tabWidget.setElideMode(QtCore.Qt.ElideNone)
         self.category_tabWidget.setUsesScrollButtons(False)
@@ -1706,7 +1673,11 @@ class MainUI(QtWidgets.QMainWindow):
         self.folders_tableView.doubleClicked.connect(lambda index: navigate("folder", index=index))
 
         self.favorites_listWidget.currentItemChanged.connect(favoritesActivated)
-        self.folders_tableView.selectionModel().currentRowChanged.connect(foldersViewActivated)
+        # self.folders_tableView.selectionModel().currentRowChanged.connect(foldersViewActivated)
+        # There is a bug in here. If following two lines are run in a single line, a segmentation fault occurs and crashes 3ds max immediately
+        selectionModel = self.folders_tableView.selectionModel()
+        selectionModel.selectionChanged.connect(foldersViewActivated)
+
 
         self.favorites_listWidget.doubleClicked.connect(setProject)
 
@@ -2258,7 +2229,7 @@ class MainUI(QtWidgets.QMainWindow):
             subIndex = self.sdSubP_comboBox.currentIndex()
             makeReference = self.sdMakeReference_checkbox.checkState()
             notes = self.sdNotes_textEdit.toPlainText()
-            sceneFormat = "mb"
+            sceneFormat = "hip"
             self.manager.saveBaseScene(category, name, subIndex, makeReference, notes, sceneFormat)
             self.populateBaseScenes()
             self.manager.getOpenSceneInfo()
@@ -2388,22 +2359,22 @@ class MainUI(QtWidgets.QMainWindow):
 
     # TODO : PROJECT SETTINGS UI
 
-    def callbackRefresh(self):
-        """
-        Buffer script for workspace change scriptjob
-        when a scene saved it also triggers "workspaceChanged" scriptjob event.
-        To prevent unnecessary initialization, this functions acts as a buffer
-        """
-
-        # logger.debug("callbackRefresh called")
-        oldProject = self.manager.projectDir
-        newProject = self.manager.getProjectDir()
-        if not oldProject == newProject:
-            # logger.debug("callbackRefresh - project changed")
-            self.initMainUI()
-        else:
-            # logger.debug("callbackRefresh - project same")
-            return
+    # def callbackRefresh(self):
+    #     """
+    #     Buffer script for workspace change scriptjob
+    #     when a scene saved it also triggers "workspaceChanged" scriptjob event.
+    #     To prevent unnecessary initialization, this functions acts as a buffer
+    #     """
+    #
+    #     # logger.debug("callbackRefresh called")
+    #     oldProject = self.manager.projectDir
+    #     newProject = self.manager.getProjectDir()
+    #     if not oldProject == newProject:
+    #         # logger.debug("callbackRefresh - project changed")
+    #         self.initMainUI()
+    #     else:
+    #         # logger.debug("callbackRefresh - project same")
+    #         return
 
     def initMainUI(self, newborn=False):
 
@@ -2619,6 +2590,8 @@ class MainUI(QtWidgets.QMainWindow):
             mismatch = self.queryPop(type="yesNo", textTitle="Version Mismatch", textHeader=msg)
             if mismatch == "no":
                 return
+            else:
+                self.manager.errorLogger(title="Disregarded warning", errorMessage=msg)
 
         if self.load_radioButton.isChecked():
             if self.manager.isSceneModified():

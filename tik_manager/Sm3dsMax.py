@@ -271,8 +271,6 @@ class MaxManager(RootManager):
              "Ranges": self._getTimelineRanges()
              }
         ]
-
-
         jsonInfo["SubProject"] = self._subProjectsList[subProjectIndex]
         self._dumpJson(jsonInfo, jsonFile)
         return jsonInfo
@@ -672,22 +670,6 @@ class MaxManager(RootManager):
         # old or corrupted database
         return 0, ""  # skip
 
-
-        # try:
-        #     niceVName=versionDict[self._currentSceneInfo["MayaVersion"]]
-        # except KeyError:
-        #     niceVName = self._currentSceneInfo["MayaVersion"]
-        # message = ""
-        # if self._currentSceneInfo["MayaVersion"] == currentVersion:
-        #     return 0, message
-        # elif pm.versions.current() > self._currentSceneInfo["MayaVersion"]:
-        #     message = "Base Scene is created with a LOWER Maya version ({0}). Are you sure you want to continue?".format(
-        #         niceVName)
-        #     return -1, message
-        # elif pm.versions.current() < self._currentSceneInfo["MayaVersion"]:
-        #     message = "Base Scene is created with a HIGHER Maya version ({0}). Are you sure you want to continue?".format(
-        #         niceVName)
-        #     return -1, message
 
     def isSceneModified(self):
         """Checks the currently open scene saved or not"""
@@ -2711,7 +2693,6 @@ class MainUI(QtGui.QMainWindow):
                 listItem.setForeground(color)
                 self.scenes_listWidget.addItem(listItem)
         self.scenes_listWidget.blockSignals(False)
-
 
     def onLoadScene(self):
         row = self.scenes_listWidget.currentRow()

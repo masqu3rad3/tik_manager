@@ -980,11 +980,11 @@ class RootManager(object):
         if jsonInfo == -2:
             return -2
         # delete all version files
-        for s in jsonInfo["Versions"]:
+        for version in jsonInfo["Versions"]:
             try:
-                os.remove(os.path.join(self.projectDir, s[0]))
+                os.remove(os.path.join(self.projectDir, version["RelativePath"]))
             except:
-                msg = "Cannot delete scene version:%s" % (s[0])
+                msg = "Cannot delete scene version:%s" % (version["RelativePath"])
                 logger.warning(msg)
                 raise Exception([203, msg])
                 # pass
@@ -1018,7 +1018,7 @@ class RootManager(object):
             # pass
         msg = "all database entries and version files of %s deleted" %databaseFile
         logger.debug(msg)
-        self.manager.errorLogger(title="Deleted Base Scene", errorMessage=msg)
+        self.errorLogger(title="Deleted Base Scene", errorMessage=msg)
 
     def deleteReference(self, databaseFile):
         # logger.debug("Func: deleteReference")
@@ -1035,7 +1035,7 @@ class RootManager(object):
                 jsonInfo["ReferenceFile"] = None
                 jsonInfo["ReferencedVersion"] = None
                 self._dumpJson(jsonInfo, databaseFile)
-                self.manager.errorLogger(title="Deleted Reference File", errorMessage="%s deleted" %referenceFile)
+                self.errorLogger(title="Deleted Reference File", errorMessage="%s deleted" %referenceFile)
             except:
                 msg = "Cannot delete reference file %s" % (jsonInfo["ReferenceFile"])
                 logger.warning(msg)
@@ -1119,7 +1119,7 @@ class RootManager(object):
         logMessage = "-----------------------------------------\n" \
                      "{0} - {1}\n" \
                      "-----------------------------------------\n" \
-                     "Error Message:\n" \
+                     "Log Message:\n" \
                      "{2}\n\n" \
                      "User: {3}\n" \
                      "Workstation: {4}\n".format(title, timeInfo, errorMessage, userInfo, machineInfo)
