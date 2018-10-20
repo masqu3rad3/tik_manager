@@ -141,26 +141,6 @@ class HoudiniManager(RootManager):
 
         self._setEnvVariable('JOB', path)
 
-
-    def saveCallback(self):
-        """Callback function to update reference files when files saved regularly"""
-        pass
-        # self._pathsDict["sceneFile"] = self.getSceneFile()
-        # openSceneInfo = self.getOpenSceneInfo()
-        # if openSceneInfo["jsonFile"]:
-        #     jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
-        #     if jsonInfo["ReferenceFile"]:
-        #         absRefFile = os.path.join(self._pathsDict["projectDir"], jsonInfo["ReferenceFile"])
-        #         absBaseSceneVersion = os.path.join(self._pathsDict["projectDir"], jsonInfo["Versions"][int(jsonInfo["ReferencedVersion"]) - 1][0])
-        #         # if the refererenced scene file is the saved file (saved or saved as)
-        #         if self._pathsDict["sceneFile"] == absBaseSceneVersion:
-        #             # copy over the forReference file
-        #             try:
-        #                 shutil.copyfile(self._pathsDict["sceneFile"], absRefFile)
-        #                 print "Scene Manager Update:\nReference File Updated"
-        #             except:
-        #                 pass
-
     def saveBaseScene(self, categoryName, baseName, subProjectIndex=0, makeReference=True, versionNotes="", sceneFormat="hip", *args, **kwargs):
         """
         Saves the scene with formatted name and creates a json file for the scene

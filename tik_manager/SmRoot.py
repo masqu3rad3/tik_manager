@@ -972,6 +972,7 @@ class RootManager(object):
             Path: {1}
                         """.format(previewName, previewFile))
 
+
     def deleteBasescene(self, databaseFile):
         # logger.debug("Func: deleteBasescene")
 
@@ -1065,6 +1066,26 @@ class RootManager(object):
 
         self._dumpJson(self._currentSceneInfo, self._baseScenesInCategory[self.currentBaseSceneName])
 
+    def saveCallback(self):
+        """Callback function to update reference files when files saved regularly"""
+
+        ## TODO // TEST IT
+        self._pathsDict["sceneFile"] = self.getSceneFile()
+        openSceneInfo = self.getOpenSceneInfo()
+        if openSceneInfo["jsonFile"]:
+            jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
+            if jsonInfo["ReferenceFile"]:
+                absRefFile = os.path.join(self._pathsDict["projectDir"], jsonInfo["ReferenceFile"])
+                # TODO : ref => Dict
+                absBaseSceneVersion = os.path.join(self._pathsDict["projectDir"], jsonInfo["Versions"][int(jsonInfo["ReferencedVersion"]) - 1]["RelativePath"])
+                # if the refererenced scene file is the saved file (saved or saved as)
+                if self._pathsDict["sceneFile"] == absBaseSceneVersion:
+                    # copy over the forReference file
+                    try:
+                        shutil.copyfile(self._pathsDict["sceneFile"], absRefFile)
+                        print "Scene Manager Update:\nReference File Updated"
+                    except:
+                        pass
 
     def checkReference(self, jsonFile, deepCheck=False):
         # logger.debug("Func: checkReference")
@@ -1245,7 +1266,6 @@ class RootManager(object):
 
     def _loadProjectSettings(self):
         """Loads Project Settings from file"""
-        print "cheese", self._pathsDict["projectSettingsFile"]
         if not os.path.isfile(self._pathsDict["projectSettingsFile"]):
             projectSettingsDB = {"Resolution": [1920, 1080],
                                    "FPS": 25}

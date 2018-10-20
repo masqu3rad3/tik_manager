@@ -183,26 +183,26 @@ class MayaManager(RootManager):
         # self.projectDir = cmds.workspace(q=1, rd=1)
         self.projectDir = self.getProjectDir()
 
-    def saveCallback(self):
-        """Callback function to update reference files when files saved regularly"""
-
-        ## TODO // TEST IT
-        self._pathsDict["sceneFile"] = self.getSceneFile()
-        openSceneInfo = self.getOpenSceneInfo()
-        if openSceneInfo["jsonFile"]:
-            jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
-            if jsonInfo["ReferenceFile"]:
-                absRefFile = os.path.join(self._pathsDict["projectDir"], jsonInfo["ReferenceFile"])
-                # TODO : ref => Dict
-                absBaseSceneVersion = os.path.join(self._pathsDict["projectDir"], jsonInfo["Versions"][int(jsonInfo["ReferencedVersion"]) - 1]["RelativePath"])
-                # if the refererenced scene file is the saved file (saved or saved as)
-                if self._pathsDict["sceneFile"] == absBaseSceneVersion:
-                    # copy over the forReference file
-                    try:
-                        shutil.copyfile(self._pathsDict["sceneFile"], absRefFile)
-                        print "Scene Manager Update:\nReference File Updated"
-                    except:
-                        pass
+    # def saveCallback(self):
+    #     """Callback function to update reference files when files saved regularly"""
+    #
+    #     ## TODO // TEST IT
+    #     self._pathsDict["sceneFile"] = self.getSceneFile()
+    #     openSceneInfo = self.getOpenSceneInfo()
+    #     if openSceneInfo["jsonFile"]:
+    #         jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
+    #         if jsonInfo["ReferenceFile"]:
+    #             absRefFile = os.path.join(self._pathsDict["projectDir"], jsonInfo["ReferenceFile"])
+    #             # TODO : ref => Dict
+    #             absBaseSceneVersion = os.path.join(self._pathsDict["projectDir"], jsonInfo["Versions"][int(jsonInfo["ReferencedVersion"]) - 1]["RelativePath"])
+    #             # if the refererenced scene file is the saved file (saved or saved as)
+    #             if self._pathsDict["sceneFile"] == absBaseSceneVersion:
+    #                 # copy over the forReference file
+    #                 try:
+    #                     shutil.copyfile(self._pathsDict["sceneFile"], absRefFile)
+    #                     print "Scene Manager Update:\nReference File Updated"
+    #                 except:
+    #                     pass
 
     def saveBaseScene(self, categoryName, baseName, subProjectIndex=0, makeReference=True, versionNotes="", sceneFormat="mb", *args, **kwargs):
         """
@@ -223,13 +223,11 @@ class MayaManager(RootManager):
         """
         logger.debug("Func: saveBaseScene")
 
-
-        # fullName = self.userList.keys()[self.userList.values().index(userName)]
         now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
         completeNote = "[%s] on %s\n%s\n" % (self.currentUser, now, versionNotes)
 
         # Check if the base name is unique
-        scenesToCheck = self.scanBaseScenes(categoryAs = categoryName, subProjectAs = subProjectIndex)
+        scenesToCheck = self.scanBaseScenes(categoryAs=categoryName, subProjectAs=subProjectIndex)
         for key in scenesToCheck.keys():
             if baseName.lower() == key.lower():
                 msg = ("Base Scene Name is not unique!")
@@ -1013,6 +1011,11 @@ class MainUI(QtWidgets.QMainWindow):
         self.load_radioButton.setChecked(self.manager.currentMode)
         self.r2_gridLayout.addWidget(self.load_radioButton, 0, 0, 1, 1)
 
+        self.reference_radioButton = QtWidgets.QRadioButton(self.centralwidget)
+        self.reference_radioButton.setText(("Reference Mode"))
+        self.reference_radioButton.setChecked(not self.manager.currentMode)
+        self.reference_radioButton.setObjectName(("reference_radioButton"))
+        self.r2_gridLayout.addWidget(self.reference_radioButton, 0, 1, 1, 1)
 
         self.subProject_label = QtWidgets.QLabel(self.centralwidget)
         self.subProject_label.setText(("Sub-Project:"))
@@ -1026,11 +1029,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.subProject_comboBox.setObjectName(("subProject_comboBox"))
         self.r2_gridLayout.addWidget(self.subProject_comboBox, 0, 3, 1, 1)
 
-        self.reference_radioButton = QtWidgets.QRadioButton(self.centralwidget)
-        self.reference_radioButton.setText(("Reference Mode"))
-        self.reference_radioButton.setChecked(not self.manager.currentMode)
-        self.reference_radioButton.setObjectName(("reference_radioButton"))
-        self.r2_gridLayout.addWidget(self.reference_radioButton, 0, 1, 1, 1)
+
 
         self.addSubProject_pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.addSubProject_pushButton.setMinimumSize(QtCore.QSize(30, 30))
@@ -2470,7 +2469,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.sdNotes_label.setObjectName(("sdNotes_label"))
 
         self.sdNotes_textEdit = QtWidgets.QTextEdit(self.save_Dialog)
-        self.sdNotes_textEdit.setGeometry(QtCore.QRect(260, 40, 215, 180))
+        self.sdNotes_textEdit.setGeometry(QtCore.QRect(260, 40, 210, 185))
         self.sdNotes_textEdit.setObjectName(("sdNotes_textEdit"))
 
         self.sdSubP_label = QtWidgets.QLabel(self.save_Dialog)
@@ -2516,6 +2515,18 @@ class MainUI(QtWidgets.QMainWindow):
         self.sdMakeReference_checkbox = QtWidgets.QCheckBox("Make it Reference", self.save_Dialog)
         self.sdMakeReference_checkbox.setGeometry(QtCore.QRect(130, 150, 151, 22))
 
+        mb_radioButton = QtWidgets.QRadioButton(self.save_Dialog)
+        mb_radioButton.setGeometry(QtCore.QRect(20, 150, 151, 22))
+        mb_radioButton.setText(("mb"))
+        mb_radioButton.setObjectName(("mb_radioButton"))
+        mb_radioButton.setChecked(True)
+
+        ma_radioButton = QtWidgets.QRadioButton(self.save_Dialog)
+        ma_radioButton.setGeometry(QtCore.QRect(70, 150, 151, 22))
+        ma_radioButton.setText(("ma"))
+        ma_radioButton.setChecked(False)
+        ma_radioButton.setObjectName(("ma_radioButton"))
+
         self.sd_buttonBox = QtWidgets.QDialogButtonBox(self.save_Dialog)
         self.sd_buttonBox.setGeometry(QtCore.QRect(20, 190, 220, 32))
         self.sd_buttonBox.setOrientation(QtCore.Qt.Horizontal)
@@ -2523,7 +2534,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.sd_buttonBox.setObjectName(("sd_buttonBox"))
 
         def saveCommand():
-            # TODO : ref
             checklist = self.manager.preSaveChecklist()
             for msg in checklist:
                 q = self.queryPop(type="yesNo", textTitle="Checklist", textHeader=msg)
@@ -2536,7 +2546,7 @@ class MainUI(QtWidgets.QMainWindow):
             subIndex = self.sdSubP_comboBox.currentIndex()
             makeReference = self.sdMakeReference_checkbox.checkState()
             notes = self.sdNotes_textEdit.toPlainText()
-            sceneFormat = "mb"
+            sceneFormat = "mb" if mb_radioButton.isChecked() else "ma"
             self.manager.saveBaseScene(category, name, subIndex, makeReference, notes, sceneFormat)
             self.populateBaseScenes()
             self.manager.getOpenSceneInfo()
