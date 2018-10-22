@@ -97,7 +97,7 @@ class MayaManager(RootManager):
         super(MayaManager, self).__init__()
 
         self.init_paths()
-        # self.backwardcompatibility()  # DO NOT RUN UNTIL RELEASE
+        self.backwardcompatibility()  # DO NOT RUN UNTIL RELEASE
         self.init_database()
 
 

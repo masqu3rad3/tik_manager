@@ -95,7 +95,9 @@ class ImageManager(RootManager):
         # To tell the base class maya specific path names
         return {"databaseDir": "mayaDB",
                 "scenesDir": "scenes",
-                "pbSettingsFile": "pbSettings"}
+                "pbSettingsFile": "pbSettings.json",
+                "categoriesFile": "categoriesMaya.json",
+                "userSettingsDir": "SceneManager\\Maya"}
 
     def getProjectDir(self):
         """Overriden function"""
@@ -104,12 +106,31 @@ class ImageManager(RootManager):
         p_path = cmds.workspace(q=1, rd=1)
         norm_p_path = os.path.normpath(p_path)
         projectsDict = self._loadProjects()
-        if not projectsDict:
+
+        if not projectsDict: # if there is no project database file at all
             projectsDict = {"MayaProject": norm_p_path}
-        else:
+            self._saveProjects(projectsDict)
+            return norm_p_path
+
+        # get the project defined in the database file
+        try:
+            dbProject = projectsDict["MayaProject"]
+        except KeyError:
+            dbProject = None
+
+        if dbProject == norm_p_path:
+            # do nothing to the database if it is the same project
+            return norm_p_path
+
+        if dbProject:
             projectsDict["MayaProject"] = norm_p_path
-        self._saveProjects(projectsDict)
-        return norm_p_path
+            self._saveProjects(projectsDict)
+            return norm_p_path
+        else:
+            projectsDict = {"MayaProject": norm_p_path}
+            self._saveProjects(projectsDict)
+            return norm_p_path
+
 
     def getSceneFile(self):
         """Overriden function"""

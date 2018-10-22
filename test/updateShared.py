@@ -6,9 +6,12 @@ shareDir = "M:\\Projects\\__database\\scripts\\tik_manager"
 
 smFiles = os.listdir(tikManagerDir)
 
+validExtensions = [".pyc", ".png", ".stylesheet"]
+
 for root, dirs, files in os.walk(tikManagerDir, topdown=False):
     for file in files:
-        if file.endswith(".pyc") or file.endswith(".png"):
+        ext = os.path.splitext(file)[1]
+        if ext in validExtensions:
             source = (os.path.join(root, file))
             relPath = os.path.relpath(root, tikManagerDir)
             relPathFix = "" if relPath == "." else relPath

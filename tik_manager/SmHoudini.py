@@ -819,12 +819,11 @@ class MainUI(QtWidgets.QMainWindow):
         self.r2_gridLayout.setObjectName(("r2_gridLayout"))
         self.r2_gridLayout.setColumnStretch(1, 1)
 
-        self.load_radioButton = QtWidgets.QRadioButton(self.centralwidget)
-        self.load_radioButton.setText(("Load Mode"))
-        self.load_radioButton.setChecked(True)
-        self.load_radioButton.setObjectName(("load_radioButton"))
-        # self.load_radioButton.setChecked(self.manager.currentMode)
-        self.r2_gridLayout.addWidget(self.load_radioButton, 0, 0, 1, 1)
+        # self.load_radioButton = QtWidgets.QRadioButton(self.centralwidget)
+        # self.load_radioButton.setText(("Load Mode"))
+        # self.load_radioButton.setChecked(True)
+        # self.load_radioButton.setObjectName(("load_radioButton"))
+        # self.r2_gridLayout.addWidget(self.load_radioButton, 0, 0, 1, 1)
 
 
         self.subProject_label = QtWidgets.QLabel(self.centralwidget)
@@ -839,11 +838,10 @@ class MainUI(QtWidgets.QMainWindow):
         self.subProject_comboBox.setObjectName(("subProject_comboBox"))
         self.r2_gridLayout.addWidget(self.subProject_comboBox, 0, 3, 1, 1)
 
-        self.reference_radioButton = QtWidgets.QRadioButton(self.centralwidget)
-        self.reference_radioButton.setText(("Reference Mode"))
-        # self.reference_radioButton.setChecked(not self.manager.currentMode)
-        self.reference_radioButton.setObjectName(("reference_radioButton"))
-        self.r2_gridLayout.addWidget(self.reference_radioButton, 0, 1, 1, 1)
+        # self.reference_radioButton = QtWidgets.QRadioButton(self.centralwidget)
+        # self.reference_radioButton.setText(("Reference Mode"))
+        # self.reference_radioButton.setObjectName(("reference_radioButton"))
+        # self.r2_gridLayout.addWidget(self.reference_radioButton, 0, 1, 1, 1)
 
         self.addSubProject_pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.addSubProject_pushButton.setMinimumSize(QtCore.QSize(30, 30))
@@ -879,7 +877,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.baseScene_lineEdit.setText((""))
         self.baseScene_lineEdit.setPlaceholderText((""))
         self.baseScene_lineEdit.setObjectName(("baseScene_lineEdit"))
-        # TODO : ref
         self.baseScene_lineEdit.setReadOnly(True)
         self.r1_gridLayout.addWidget(self.baseScene_lineEdit, 0, 1, 1, 1)
 
@@ -893,7 +890,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.project_lineEdit.setText((""))
         self.project_lineEdit.setPlaceholderText((""))
         self.project_lineEdit.setObjectName(("project_lineEdit"))
-        # TODO : ref
         # self.project_lineEdit.setReadOnly(True)
         self.r1_gridLayout.addWidget(self.project_lineEdit, 1, 1, 1, 1)
 
@@ -910,8 +906,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.category_tabWidget.setElideMode(QtCore.Qt.ElideNone)
         self.category_tabWidget.setUsesScrollButtons(False)
         self.category_tabWidget.setObjectName(("tabWidget"))
-
-        # self.category_tabWidget.setCurrentIndex(self.manager.currentTabIndex)
 
         self.main_gridLayout.addWidget(self.category_tabWidget, 2, 0, 1, 1)
 
@@ -992,12 +986,12 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.gridLayout_7.addLayout(self.horizontalLayout_4, 0, 0, 1, 1)
 
-        self.makeReference_pushButton = QtWidgets.QPushButton(self.frame)
-        self.makeReference_pushButton.setMinimumSize(QtCore.QSize(100, 30))
-        self.makeReference_pushButton.setMaximumSize(QtCore.QSize(300, 30))
-        self.makeReference_pushButton.setText(("Make Reference"))
-        self.makeReference_pushButton.setObjectName(("makeReference_pushButton"))
-        self.gridLayout_7.addWidget(self.makeReference_pushButton, 1, 0, 1, 1)
+        # self.makeReference_pushButton = QtWidgets.QPushButton(self.frame)
+        # self.makeReference_pushButton.setMinimumSize(QtCore.QSize(100, 30))
+        # self.makeReference_pushButton.setMaximumSize(QtCore.QSize(300, 30))
+        # self.makeReference_pushButton.setText(("Make Reference"))
+        # self.makeReference_pushButton.setObjectName(("makeReference_pushButton"))
+        # self.gridLayout_7.addWidget(self.makeReference_pushButton, 1, 0, 1, 1)
 
         self.addNote_pushButton = QtWidgets.QPushButton(self.frame)
         self.addNote_pushButton.setMinimumSize(QtCore.QSize(100, 30))
@@ -1163,8 +1157,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         # self.project_lineEdit.
 
-        self.load_radioButton.clicked.connect(self.onModeChange)
-        self.reference_radioButton.clicked.connect(self.onModeChange)
+        # self.load_radioButton.clicked.connect(self.onModeChange)
+        # self.reference_radioButton.clicked.connect(self.onModeChange)
 
         self.category_tabWidget.currentChanged.connect(self.onCategoryChange)
 
@@ -1172,7 +1166,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.version_comboBox.activated.connect(self.onVersionChange)
 
-        self.makeReference_pushButton.clicked.connect(self.onMakeReference)
+        # self.makeReference_pushButton.clicked.connect(self.onMakeReference)
 
         self.subProject_comboBox.activated.connect(self.onSubProjectChange)
 
@@ -2476,19 +2470,19 @@ class MainUI(QtWidgets.QMainWindow):
         self.manager.currentUser = self.user_comboBox.currentText()
         print self.manager.currentUser
 
-    def onModeChange(self):
-
-        self._vEnableDisable()
-
-        if self.load_radioButton.isChecked():
-            self.loadScene_pushButton.setText("Load Scene")
-            self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: grey;")
-        else:
-            self.loadScene_pushButton.setText("Reference Scene")
-            self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: cyan;")
-
-        self.manager.currentMode = self.load_radioButton.isChecked()
-        self.populateBaseScenes()
+    # def onModeChange(self):
+    #
+    #     self._vEnableDisable()
+    #
+    #     if self.load_radioButton.isChecked():
+    #         self.loadScene_pushButton.setText("Load Scene")
+    #         self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: grey;")
+    #     else:
+    #         self.loadScene_pushButton.setText("Reference Scene")
+    #         self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: cyan;")
+    #
+    #     self.manager.currentMode = self.load_radioButton.isChecked()
+    #     self.populateBaseScenes()
 
     def onBaseSceneChange(self):
         self.version_comboBox.blockSignals(True)
@@ -2543,21 +2537,21 @@ class MainUI(QtWidgets.QMainWindow):
         self.scenes_listWidget.clear()
         # logger.debug("populateBaseScenes")
         baseScenesDict = self.manager.getBaseScenesInCategory()
-        if self.reference_radioButton.isChecked():
-            for key in baseScenesDict:
-                if self.manager.checkReference(baseScenesDict[key]) == 1:
-                    self.scenes_listWidget.addItem(key)
-        else:
-            codeDict = {-1: QtGui.QColor(255, 0, 0, 255), 1: QtGui.QColor(0, 255, 0, 255),
-                        0: QtGui.QColor(255, 255, 0, 255), -2: QtGui.QColor(20, 20, 20, 255)}  # dictionary for color codes red, green, yellow
+        # if self.reference_radioButton.isChecked():
+        #     for key in baseScenesDict:
+        #         if self.manager.checkReference(baseScenesDict[key]) == 1:
+        #             self.scenes_listWidget.addItem(key)
+        # else:
+        codeDict = {-1: QtGui.QColor(255, 0, 0, 255), 1: QtGui.QColor(0, 255, 0, 255),
+                    0: QtGui.QColor(255, 255, 0, 255), -2: QtGui.QColor(20, 20, 20, 255)}  # dictionary for color codes red, green, yellow
 
-            for key in sorted(baseScenesDict):
-                retCode = self.manager.checkReference(baseScenesDict[key], deepCheck=deepCheck) # returns -1, 0 or 1 for color ref
-                color = codeDict[retCode]
-                listItem = QtWidgets.QListWidgetItem()
-                listItem.setText(key)
-                listItem.setForeground(color)
-                self.scenes_listWidget.addItem(listItem)
+        for key in sorted(baseScenesDict):
+            retCode = self.manager.checkReference(baseScenesDict[key], deepCheck=deepCheck) # returns -1, 0 or 1 for color ref
+            color = codeDict[retCode]
+            listItem = QtWidgets.QListWidgetItem()
+            listItem.setText(key)
+            listItem.setForeground(color)
+            self.scenes_listWidget.addItem(listItem)
         self.scenes_listWidget.blockSignals(False)
 
     def onLoadScene(self):
@@ -2573,17 +2567,17 @@ class MainUI(QtWidgets.QMainWindow):
             else:
                 self.manager.errorLogger(title="Disregarded warning", errorMessage=msg)
 
-        if self.load_radioButton.isChecked():
-            if self.manager.isSceneModified():
-                q = self.queryPop(type="yesNoCancel", textTitle="Save Changes", textInfo="Save Changes to",
-                                  textHeader=("Scene Modified"))
-                if q == "yes":
-                    self.manager.saveSimple()
-                    self.manager.loadBaseScene(force=True)
-                if q == "no":
-                    self.manager.loadBaseScene(force=True)
-                if q == "cancel":
-                    pass
+        # if self.load_radioButton.isChecked():
+        if self.manager.isSceneModified():
+            q = self.queryPop(type="yesNoCancel", textTitle="Save Changes", textInfo="Save Changes to",
+                              textHeader=("Scene Modified"))
+            if q == "yes":
+                self.manager.saveSimple()
+                self.manager.loadBaseScene(force=True)
+            if q == "no":
+                self.manager.loadBaseScene(force=True)
+            if q == "cancel":
+                pass
 
 
             else: # if current scene saved and secure
@@ -2593,19 +2587,19 @@ class MainUI(QtWidgets.QMainWindow):
 
             self.statusBar().showMessage("Status | Scene Loaded => %s" % self.manager.currentBaseSceneName)
 
-        if self.reference_radioButton.isChecked():
-            self.manager.referenceBaseScene()
-            # self.populateScenes()
-            self.statusBar().showMessage("Status | Scene Referenced => %s" % self.manager.currentBaseSceneName)
+        # if self.reference_radioButton.isChecked():
+        #     self.manager.referenceBaseScene()
+        #     # self.populateScenes()
+        #     self.statusBar().showMessage("Status | Scene Referenced => %s" % self.manager.currentBaseSceneName)
 
-    def onMakeReference(self):
-        self.manager.makeReference()
-        self.onVersionChange()
-        self.statusBar().showMessage(
-            "Status | Version {1} is the new reference of {0}".format(self.manager.currentBaseSceneName, self.manager.currentVersionIndex))
-        currentRow = self.scenes_listWidget.currentRow()
-        self.populateBaseScenes()
-        self.scenes_listWidget.setCurrentRow(currentRow)
+    # def onMakeReference(self):
+    #     self.manager.makeReference()
+    #     self.onVersionChange()
+    #     self.statusBar().showMessage(
+    #         "Status | Version {1} is the new reference of {0}".format(self.manager.currentBaseSceneName, self.manager.currentVersionIndex))
+    #     currentRow = self.scenes_listWidget.currentRow()
+    #     self.populateBaseScenes()
+    #     self.scenes_listWidget.setCurrentRow(currentRow)
 
     def onShowPreview(self):
         # TODO // TEST IT
@@ -2710,19 +2704,19 @@ class MainUI(QtWidgets.QMainWindow):
 
     def _vEnableDisable(self):
 
-        if self.load_radioButton.isChecked() and self.manager.currentBaseSceneName:
+        if self.manager.currentBaseSceneName:
             self.version_comboBox.setEnabled(True)
             if self.manager.getPreviews():
                 self.showPreview_pushButton.setEnabled(True)
             else:
                 self.showPreview_pushButton.setEnabled(False)
-            self.makeReference_pushButton.setEnabled(True)
+            # self.makeReference_pushButton.setEnabled(True)
             self.addNote_pushButton.setEnabled(True)
             self.version_label.setEnabled(True)
         else:
             self.version_comboBox.setEnabled(False)
             self.showPreview_pushButton.setEnabled(False)
-            self.makeReference_pushButton.setEnabled(False)
+            # self.makeReference_pushButton.setEnabled(False)
             self.addNote_pushButton.setEnabled(False)
             self.version_label.setEnabled(False)
 
