@@ -92,7 +92,8 @@ class MaxManager(RootManager):
     def getSoftwarePaths(self):
         """Overriden function"""
         # To tell the base class maya specific path names
-        return {"databaseDir": "maxDB",
+        return {"niceName": "3dsMax",
+                "databaseDir": "maxDB",
                 "scenesDir": "scenes_3dsMax",
                 "pbSettingsFile": "pbSettings_3dsMax.json",
                 "categoriesFile": "categories3dsMax.json",
@@ -353,8 +354,11 @@ class MaxManager(RootManager):
         openSceneInfo = self.getOpenSceneInfo()
         if not openSceneInfo:
             msg = "This is not a base scene. Scene must be saved as a base scene before playblasting."
-            logger.warning(msg)
-            return -1, msg
+            # raise Exception([360, msg])
+            self._exception(360, msg)
+            return
+            # logger.warning(msg)
+            # return -1, msg
 
         # get view info
         viewportType = rt.viewport.getType()
@@ -699,6 +703,13 @@ class MaxManager(RootManager):
             checklist.append(msg)
 
         return checklist
+
+    def _exception(self, code, msg):
+        """Overriden Function"""
+
+        rt.messageBox(msg, title=self.errorCodeDict[code])
+        # logger.debug("Exception %s" %errorCodeDict[code])
+        # logger.debug(msg)
 
     def _getTimelineRanges(self):
         R_ast = int(rt.animationRange.start)
@@ -1112,7 +1123,7 @@ class MainUI(QtGui.QMainWindow):
         self.popMenu_scenes.addAction(self.scenes_rcItem_0)
         self.scenes_rcItem_0.triggered.connect(lambda: self.rcAction_scenes("importScene"))
 
-        self.scenes_rcItem_1 = QtGui.QAction('Show Maya Folder in Explorer', self)
+        self.scenes_rcItem_1 = QtGui.QAction('Show 3dsMax Folder in Explorer', self)
         self.popMenu_scenes.addAction(self.scenes_rcItem_1)
         self.scenes_rcItem_1.triggered.connect(lambda: self.rcAction_scenes("showInExplorerMaya"))
 
@@ -1146,7 +1157,7 @@ class MainUI(QtGui.QMainWindow):
 
         # SHORTCUTS
         # ---------
-        # shortcutRefresh = Qt.QShortcut(Qt.QKeySequence("F5"), self, self.refresh)
+        shortcutRefresh = QtGui.QShortcut(QtGui.QKeySequence("F5"), self, self.refresh)
 
         # SIGNAL CONNECTIONS
         # ------------------
@@ -1599,6 +1610,7 @@ class MainUI(QtGui.QMainWindow):
                 if dir:
                     self.projectsRoot = dir
                     self.browser.addData(self.projectsRoot)
+
                 else:
                     return
 
@@ -1612,8 +1624,11 @@ class MainUI(QtGui.QMainWindow):
                 if os.path.isdir(dir):
                     self.projectsRoot = dir
                     self.browser.addData(self.projectsRoot)
+
                 else:
                     self.lookIn_lineEdit.setText(self.projectsRoot)
+
+            self.setPmodel.setRootPath(self.projectsRoot)
 
             self.forward_pushButton.setDisabled(self.browser.isForwardLocked())
             self.back_pushButton.setDisabled(self.browser.isBackwardLocked())
@@ -2519,6 +2534,13 @@ class MainUI(QtGui.QMainWindow):
         # disable the version related stuff
         self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
         self._vEnableDisable()
+
+    def refresh(self):
+        # currentUserIndex = self.user_comboBox.currentIndex()
+        # currentTabIndex = self
+        self.initMainUI()
+
+        self.populateBaseScenes()
 
     def rcAction_scenes(self, command):
         if command == "importScene":

@@ -106,11 +106,13 @@ class MayaManager(RootManager):
         logger.debug("Func: getSoftwarePaths")
 
         # To tell the base class maya specific path names
-        return {"databaseDir": "mayaDB",
+        return {"niceName": "Maya",
+                "databaseDir": "mayaDB",
                 "scenesDir": "scenes",
                 "pbSettingsFile": "pbSettings.json",
                 "categoriesFile": "categoriesMaya.json",
-                "userSettingsDir": "SceneManager\\Maya"}
+                "userSettingsDir": "SceneManager\\Maya",
+                }
 
     # def getProjectDir(self):
     #     """Overriden function"""
@@ -388,7 +390,6 @@ class MayaManager(RootManager):
 
     def createPreview(self, *args, **kwargs):
         """Creates a Playblast preview from currently open scene"""
-        # TODO : FIX the error referenced cameras (namespacing problem)
         logger.debug("Func: createPreview")
 
         pbSettings = self._loadPBSettings()
@@ -418,8 +419,9 @@ class MayaManager(RootManager):
         # sceneName = self.getSceneFile()
         if not openSceneInfo:
             msg = "This is not a base scene. Scene must be saved as a base scene before playblasting."
-            pm.warning(msg)
-            return -1, msg
+            # pm.warning(msg)
+            self._exception(360, msg)
+            return
 
         selection = cmds.ls(sl=True)
         cmds.select(d=pbSettings["ClearSelection"])
@@ -802,6 +804,10 @@ class MayaManager(RootManager):
             checklist.append(msg)
 
         return checklist
+
+    def _exception(self, code, msg):
+        """Overriden Function"""
+        cmds.confirmDialog(title=self.errorCodeDict[code], message=msg, button=['Ok'])
 
     def _getTimelineRanges(self):
         R_ast = cmds.playbackOptions(q=True, ast=True)
@@ -1304,6 +1310,11 @@ class MainUI(QtWidgets.QMainWindow):
         self.popMenu_scenes.addAction(self.scenes_rcItem_4)
         self.scenes_rcItem_4.triggered.connect(lambda: self.rcAction_scenes("showSceneInfo"))
 
+        self.popMenu_scenes.addSeparator()
+        self.scenes_rcItem_5 = QtWidgets.QAction('View Rendered Images', self)
+        self.popMenu_scenes.addAction(self.scenes_rcItem_5)
+        self.scenes_rcItem_5.triggered.connect(lambda: self.rcAction_scenes("viewRender"))
+
         # Thumbnail Right Click Menu
         self.thumbnail_label.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.thumbnail_label.customContextMenuRequested.connect(self.onContextMenu_thumbnail)
@@ -1321,7 +1332,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         # SHORTCUTS
         # ---------
-        # shortcutRefresh = Qt.QShortcut(Qt.QKeySequence("F5"), self, self.refresh)
+        shortcutRefresh = QtWidgets.QShortcut(QtGui.QKeySequence("F5"), self, self.refresh)
 
         # SIGNAL CONNECTIONS
         # ------------------
@@ -1782,6 +1793,7 @@ class MainUI(QtWidgets.QMainWindow):
                 if dir:
                     self.projectsRoot = dir
                     self.browser.addData(self.projectsRoot)
+
                 else:
                     return
 
@@ -1795,8 +1807,11 @@ class MainUI(QtWidgets.QMainWindow):
                 if os.path.isdir(dir):
                     self.projectsRoot = dir
                     self.browser.addData(self.projectsRoot)
+
                 else:
                     self.lookIn_lineEdit.setText(self.projectsRoot)
+
+            self.setPmodel.setRootPath(self.projectsRoot)
 
             self.forward_pushButton.setDisabled(self.browser.isForwardLocked())
             self.back_pushButton.setDisabled(self.browser.isBackwardLocked())
@@ -2359,17 +2374,16 @@ class MainUI(QtWidgets.QMainWindow):
         categories_dialog.show()
 
     def projectSettingsUI(self):
-        # admin_pswd = "682"
-        # passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query", "Enter Admin Password:",
-        #                                        QtGui.QLineEdit.Password)
-        # if ok:
-        #     if passw == admin_pswd:
-        #         pass
-        #     else:
-        #         self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
-        #         return
-        # else:
-        #     return
+        admin_pswd = "682"
+        passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query", "Enter Admin Password:", QtWidgets.QLineEdit.Password)
+        if ok:
+            if passw == admin_pswd:
+                pass
+            else:
+                self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
+                return
+        else:
+            return
 
         projectSettingsDB = self.manager._loadProjectSettings()
 
@@ -2728,6 +2742,13 @@ class MainUI(QtWidgets.QMainWindow):
         self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
         self._vEnableDisable()
 
+    def refresh(self):
+        # currentUserIndex = self.user_comboBox.currentIndex()
+        # currentTabIndex = self
+        self.initMainUI()
+
+        self.populateBaseScenes()
+
     def rcAction_scenes(self, command):
         if command == "importScene":
             self.manager.importBaseScene()
@@ -2763,6 +2784,10 @@ class MainUI(QtWidgets.QMainWindow):
             helpText.setText(textInfo)
             messageLayout.addWidget(helpText)
 
+        if command == "viewRender":
+            imagePath = os.path.join(self.manager.projectDir, "images", self.manager.currentBaseSceneName)
+            IvMaya.MainUI(self.manager.projectDir, relativePath=imagePath, recursive=True).show()
+
     def rcAction_thumb(self, command):
         # print "comm: ", command
         if command == "file":
@@ -2787,6 +2812,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.scenes_rcItem_1.setEnabled(os.path.isdir(self.manager.currentBaseScenePath))
         self.scenes_rcItem_2.setEnabled(os.path.isdir(self.manager.currentPreviewPath))
         # show context menu
+        self.scenes_rcItem_5.setEnabled(os.path.isdir(os.path.join(self.manager.projectDir, "images", self.manager.currentBaseSceneName)))
+
         self.popMenu_scenes.exec_(self.scenes_listWidget.mapToGlobal(point))
     def onContextMenu_thumbnail(self, point):
         row = self.scenes_listWidget.currentRow()
@@ -2834,7 +2861,6 @@ class MainUI(QtWidgets.QMainWindow):
 
     def onBaseSceneChange(self):
         self.version_comboBox.blockSignals(True)
-
         #clear version_combobox
         self.version_comboBox.clear()
 
@@ -2998,7 +3024,7 @@ class MainUI(QtWidgets.QMainWindow):
         e = ImMaya.MainUI()
 
     def onIviewer(self):
-        IvMaya.MainUI().show()
+        IvMaya.MainUI(self.manager.projectDir).show()
 
     def _initSubProjects(self):
 

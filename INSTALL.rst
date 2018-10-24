@@ -47,7 +47,7 @@ MAYA
 HOUDINI
 -------
 * Add following lines to 456.py under scripts in HOUDINI_PATH.
-    Default location is ~\Program Files\Side Effects Software\Houdini Version\houdini\scripts\
+    Default Windows location is C:\Program Files\Side Effects Software\<Houdini Version>\houdini\scripts\
 
     replace ``M://Projects//__database//scripts`` with the path of where the tik_manager folder copied
 
@@ -66,3 +66,10 @@ HOUDINI
     initFolder("M:\\Projects\\__database\\scripts")
 
 * Restart Houdini
+* Run from python shell:
+
+::
+
+    from tik_manager import houdiniSetup
+
+

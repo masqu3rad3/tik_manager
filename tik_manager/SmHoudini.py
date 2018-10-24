@@ -12,7 +12,10 @@ import socket
 import pprint
 import logging
 import hou
+import toolutils
 from glob import glob
+
+import subprocess
 
 from PySide2 import QtCore
 from PySide2 import QtWidgets
@@ -85,7 +88,8 @@ class HoudiniManager(RootManager):
         logger.debug("Func: getSoftwarePaths")
 
         # To tell the base class maya specific path names
-        return {"databaseDir": "houdiniDB",
+        return {"niceName": "Houdini",
+                "databaseDir": "houdiniDB",
                 "scenesDir": "scenes_houdini",
                 "pbSettingsFile": "pbSettings_houdini.json",
                 "categoriesFile": "categoriesHoudini.json",
@@ -323,8 +327,10 @@ class HoudiniManager(RootManager):
         """Creates a Playblast preview from currently open scene"""
         logger.debug("Func: createPreview")
 
+
+
         #
-        # pbSettings = self._loadPBSettings()
+        pbSettings = self._loadPBSettings()
         # validFormats = cmds.playblast(format=True, q=True)
         # validCodecs = cmds.playblast(c=True, q=True)
         #
@@ -338,53 +344,51 @@ class HoudiniManager(RootManager):
         #     cmds.warning(msg)
         #     return -1, msg
         #
-        # extension = "mov" if pbSettings["Format"] == "qt" else "avi"
+        extension = "jpg"
+
+        openSceneInfo = self.getOpenSceneInfo()
+        if not openSceneInfo:
+            msg = "This is not a base scene. Scene must be saved as a base scene before playblasting."
+            # hou.ui.displayMessage(msg)
+            return -1, msg
+
+        selection = hou.selectedItems()
+        hou.clearAllSelected()
+        jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
         #
-        # # Quicktime format is missing the final frame all the time. Add an extra frame to compansate
-        # if pbSettings["Format"] == 'qt':
-        #     maxTime = cmds.playbackOptions(q=True, maxTime=True)
-        #     endTime = cmds.playbackOptions(q=True, animationEndTime=True)
-        #     cmds.playbackOptions(maxTime=maxTime + 1)
-        #     cmds.playbackOptions(animationEndTime=endTime + 1)
+
+        scene_view = toolutils.sceneViewer()
+        viewport = scene_view.curViewport()
+        cam = viewport.camera()
+        if cam:
+            currentCam = cam.name()
+        else:
+            currentCam = 'persp'
+
+        flip_options = scene_view.flipbookSettings().stash()
+
+        # flip_options.output("E:\\test\\{0}_$F4.{1}".format(camName, "tga"))
+        # flip_options.useResolution(True)
+        # flip_options.resolution((221, 124))
+        # scene_view.flipbook(viewport, flip_options)
+
+
+        versionName = self.getSceneFile()
+        relVersionName = os.path.relpath(versionName, start=openSceneInfo["projectPath"])
+        playBlastDir = os.path.join(openSceneInfo["previewPath"], openSceneInfo["version"])
+        self._folderCheck(playBlastDir)
+        playBlastFile = os.path.join(playBlastDir, "{0}_{1}_PB_$F4.{2}".format(self._niceName(versionName), currentCam, extension))
+        relPlayBlastFile = os.path.relpath(playBlastFile, start=openSceneInfo["projectPath"])
         #
-        # openSceneInfo = self.getOpenSceneInfo()
-        # # sceneName = self.getSceneFile()
-        # if not openSceneInfo:
-        #     msg = "This is not a base scene. Scene must be saved as a base scene before playblasting."
-        #     pm.warning(msg)
-        #     return -1, msg
-        #
-        # selection = cmds.ls(sl=True)
-        # cmds.select(d=pbSettings["ClearSelection"])
-        # jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
-        #
-        # currentCam = cmds.modelPanel(cmds.getPanel(wf=True), q=True, cam=True)
-        # validName = currentCam
-        #
-        # replaceDict = {"|":"__",
-        #                " ":"_",
-        #                ":":"_"}
-        # for item in replaceDict.items():
-        #     validName = validName.replace(item[0], item[1])
-        #
-        # if not self._nameCheck(validName):
-        #     msg = "A scene view must be highlighted"
-        #     cmds.warning(msg)
-        #     raise Exception([360, msg])
-        #     # return -1, msg
-        #
-        # versionName = self.getSceneFile()
-        # relVersionName = os.path.relpath(versionName, start=openSceneInfo["projectPath"])
-        # playBlastFile = os.path.join(openSceneInfo["previewPath"], "{0}_{1}_PB.{2}".format(self._niceName(versionName), validName, extension))
-        # relPlayBlastFile = os.path.relpath(playBlastFile, start=openSceneInfo["projectPath"])
-        #
-        # if os.path.isfile(playBlastFile):
-        #     try:
-        #         os.remove(playBlastFile)
-        #     except WindowsError:
-        #         msg = "The file is open somewhere else"
-        #         cmds.warning(msg)
-        #         return -1, msg
+        if os.path.isfile(playBlastFile):
+            try:
+                os.remove(playBlastFile)
+            except WindowsError:
+                msg = "The file is open somewhere else"
+                # cmds.warning(msg)
+                return -1, msg
+
+        flip_options.output(playBlastFile)
         #
         # ## CREATE A CUSTOM PANEL WITH DESIRED SETTINGS
         #
@@ -467,6 +471,14 @@ class HoudiniManager(RootManager):
         # # print "playBlastFile", playBlastFile
         # normPB = os.path.normpath(playBlastFile)
         # # print "normPath", normPB
+        ranges = self._getTimelineRanges()
+        flip_options.frameRange((ranges[1], ranges[2]))
+        flip_options.outputToMPlay(True)
+        flip_options.useResolution(True)
+        flip_options.resolution((pbSettings["Resolution"][0], pbSettings["Resolution"][1]))
+        scene_view.flipbook(viewport, flip_options)
+
+
         # cmds.playblast(format=pbSettings["Format"],
         #              filename=playBlastFile,
         #              widthHeight=pbSettings["Resolution"],
@@ -504,13 +516,34 @@ class HoudiniManager(RootManager):
         # for hud in hudPreStates.keys():
         #     cmds.headsUpDisplay(hud, e=True, vis=hudPreStates[hud])
         # pm.select(selection)
-        # ## find this version in the json data
-        # for i in jsonInfo["Versions"]:
-        #     if relVersionName == i[0]:
-        #         i[4][currentCam] = relPlayBlastFile
-        #
-        # self._dumpJson(jsonInfo, openSceneInfo["jsonFile"])
+
+        ## find this version in the json data
+        for version in jsonInfo["Versions"]:
+            if relVersionName == version["RelativePath"]:
+                # replace the houdini variable with first frame
+                nonVarPBfile = relPlayBlastFile.replace("_$F4", "_0001")
+                # version["Preview"][currentCam] = nonVarPBfile
+                version["Preview"][currentCam] = relPlayBlastFile
+
+        self._dumpJson(jsonInfo, openSceneInfo["jsonFile"])
         # return 0, ""
+
+
+    def playPreview(self, camera):
+        """OVERRIDEN - Runs the playblast at cursor position"""
+        # logger.debug("Func: playPreview")
+
+        # absPath = os.path.join(self.projectDir, self._currentPreviewsDict[self._currentPreviewCamera])
+        absPath = os.path.join(self.projectDir, self._currentPreviewsDict[camera])
+        # absPath.replace("_$F4", "_0001")
+        if self.currentPlatform == "Windows":
+            try:
+                subprocess.check_call(["mplay", absPath], shell=True)
+                # subprocess.check_call(["mplay", "-viewer", absPath], shell=True)
+            except WindowsError:
+                return -1, ["Cannot Find Playblast", "Playblast File is missing", "Do you want to remove it from the Database?"]
+        # TODO something to play the file in linux
+        return
 
     def loadBaseScene(self, force=False):
         """Loads the scene at cursor position"""
@@ -541,20 +574,9 @@ class HoudiniManager(RootManager):
             return -1, msg
 
     def referenceBaseScene(self):
-        """Creates reference from the scene at cursor position"""
+        """Not implemented for Houdini"""
         logger.debug("Func: referenceBaseScene")
-        # projectPath = self.projectDir
-        # relReferenceFile = self._currentSceneInfo["ReferenceFile"]
-        #
-        # if relReferenceFile:
-        #     referenceFile = os.path.join(projectPath, relReferenceFile)
-        #     refFileBasename = os.path.split(relReferenceFile)[1]
-        #     namespace = os.path.splitext(refFileBasename)[0]
-        #     cmds.file(os.path.normpath(referenceFile), reference=True, gl=True, mergeNamespacesOnClash=False,
-        #               namespace=namespace)
-        #
-        # else:
-        #     cmds.warning("There is no reference set for this scene. Nothing changed")
+
 
     def createThumbnail(self, useCursorPosition=False, dbPath = None, versionInt = None):
         """
@@ -624,7 +646,8 @@ class HoudiniManager(RootManager):
         # version serialization:
         vTup = hou.applicationVersion()
         currentVersion = float("%s.%s%s" % (vTup[0], vTup[1], vTup[2]))
-        baseSceneVersion = self._currentSceneInfo["HoudiniVersion"]
+        dbVersionAsTuple = self._currentSceneInfo["HoudiniVersion"]
+        baseSceneVersion = float("%s.%s%s" % (dbVersionAsTuple[0], dbVersionAsTuple[1], dbVersionAsTuple[2]))
 
         if currentVersion == baseSceneVersion:
             msg = ""
@@ -644,7 +667,7 @@ class HoudiniManager(RootManager):
 
     def isSceneModified(self):
         """Checks the currently open scene saved or not"""
-        hou.hipFile.hasUnsavedChanges()
+        return hou.hipFile.hasUnsavedChanges()
 
 
     def saveSimple(self):
@@ -664,7 +687,6 @@ class HoudiniManager(RootManager):
         """Checks the scene for inconsistencies"""
         checklist = []
 
-        # TODO : Create a fps comparison with the settings file
         fpsValue_setting = self.getFPS()
         fpsValue_current = int(hou.fps())
         if fpsValue_setting is not fpsValue_current:
@@ -672,6 +694,11 @@ class HoudiniManager(RootManager):
             checklist.append(msg)
 
         return checklist
+
+    def _exception(self, code, msg):
+        """Overriden Function"""
+
+        hou.ui.displayMessage(msg, title=self.errorCodeDict[code])
 
     def _getTimelineRanges(self):
         pass
@@ -1039,7 +1066,7 @@ class MainUI(QtWidgets.QMainWindow):
         add_remove_categories_fm = QtWidgets.QAction("&Add/Remove Categories", self)
         pb_settings_fm = QtWidgets.QAction("&Playblast Settings", self)
 
-
+        projectSettings_fm = QtWidgets.QAction("&Project Settings", self)
 
         deleteFile_fm = QtWidgets.QAction("&Delete Selected Base Scene", self)
         deleteReference_fm = QtWidgets.QAction("&Delete Reference of Selected Scene", self)
@@ -1061,6 +1088,8 @@ class MainUI(QtWidgets.QMainWindow):
         file.addAction(add_remove_users_fm)
         file.addAction(add_remove_categories_fm)
         file.addAction(pb_settings_fm)
+        file.addAction(projectSettings_fm)
+
 
         #delete
         file.addSeparator()
@@ -1093,11 +1122,11 @@ class MainUI(QtWidgets.QMainWindow):
         self.popMenu_scenes.addAction(self.scenes_rcItem_0)
         self.scenes_rcItem_0.triggered.connect(lambda: self.rcAction_scenes("importScene"))
 
-        self.scenes_rcItem_1 = QtWidgets.QAction('Show Maya Folder in Explorer', self)
+        self.scenes_rcItem_1 = QtWidgets.QAction('Show Houdini Folder in Explorer', self)
         self.popMenu_scenes.addAction(self.scenes_rcItem_1)
         self.scenes_rcItem_1.triggered.connect(lambda: self.rcAction_scenes("showInExplorerHoudini"))
 
-        self.scenes_rcItem_2 = QtWidgets.QAction('Show Playblast Folder in Explorer', self)
+        self.scenes_rcItem_2 = QtWidgets.QAction('Show Flipbook Folder in Explorer', self)
         self.popMenu_scenes.addAction(self.scenes_rcItem_2)
         self.scenes_rcItem_2.triggered.connect(lambda: self.rcAction_scenes("showInExplorerPB"))
 
@@ -1127,7 +1156,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         # SHORTCUTS
         # ---------
-        # shortcutRefresh = Qt.QShortcut(Qt.QKeySequence("F5"), self, self.refresh)
+        shortcutRefresh = QtWidgets.QShortcut(QtGui.QKeySequence("F5"), self, self.refresh)
 
         # SIGNAL CONNECTIONS
         # ------------------
@@ -1139,7 +1168,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         add_remove_categories_fm.triggered.connect(self.addRemoveCategoryUI)
 
-
+        projectSettings_fm.triggered.connect(self.projectSettingsUI)
 
         deleteFile_fm.triggered.connect(self.onDeleteBaseScene)
 
@@ -1150,7 +1179,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         # imanager.triggered.connect(self.onImanager)
         # iviewer.triggered.connect(self.onIviewer)
-        # createPB.triggered.connect(self.manager.createPreview)
+        createPB.triggered.connect(self.manager.createPreview)
 
 
         self.statusBar().showMessage("Status | Idle")
@@ -1553,6 +1582,7 @@ class MainUI(QtWidgets.QMainWindow):
                 if dir:
                     self.projectsRoot = dir
                     self.browser.addData(self.projectsRoot)
+
                 else:
                     return
 
@@ -1566,8 +1596,11 @@ class MainUI(QtWidgets.QMainWindow):
                 if os.path.isdir(dir):
                     self.projectsRoot = dir
                     self.browser.addData(self.projectsRoot)
+
                 else:
                     self.lookIn_lineEdit.setText(self.projectsRoot)
+
+            self.setPmodel.setRootPath(self.projectsRoot)
 
             self.forward_pushButton.setDisabled(self.browser.isForwardLocked())
             self.back_pushButton.setDisabled(self.browser.isBackwardLocked())
@@ -2130,6 +2163,102 @@ class MainUI(QtWidgets.QMainWindow):
 
         categories_dialog.show()
 
+    def projectSettingsUI(self):
+        admin_pswd = "682"
+        passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query", "Enter Admin Password:",
+                                               QtWidgets.QLineEdit.Password)
+        if ok:
+            if passw == admin_pswd:
+                pass
+            else:
+                self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
+                return
+        else:
+            return
+
+        projectSettingsDB = self.manager._loadProjectSettings()
+
+        projectSettings_Dialog = QtWidgets.QDialog(parent=self)
+        projectSettings_Dialog.setObjectName("projectSettings_Dialog")
+        projectSettings_Dialog.resize(270, 120)
+        projectSettings_Dialog.setMinimumSize(QtCore.QSize(270, 120))
+        projectSettings_Dialog.setMaximumSize(QtCore.QSize(270, 120))
+        projectSettings_Dialog.setWindowTitle("Project Settings")
+
+        gridLayout = QtWidgets.QGridLayout(projectSettings_Dialog)
+        gridLayout.setObjectName(("gridLayout"))
+
+        buttonBox = QtWidgets.QDialogButtonBox(projectSettings_Dialog)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        buttonBox.setMaximumSize(QtCore.QSize(16777215, 30))
+        buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Save)
+        buttonBox.setObjectName("buttonBox")
+
+        gridLayout.addWidget(buttonBox, 1, 0, 1, 1)
+
+        formLayout = QtWidgets.QFormLayout()
+        formLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
+        formLayout.setLabelAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        formLayout.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+        formLayout.setObjectName("formLayout")
+
+        resolution_label = QtWidgets.QLabel(projectSettings_Dialog)
+        resolution_label.setText("Resolution:")
+        resolution_label.setObjectName("resolution_label")
+        formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, resolution_label)
+
+        horizontalLayout = QtWidgets.QHBoxLayout()
+        horizontalLayout.setObjectName("horizontalLayout")
+
+        resolutionX_spinBox = QtWidgets.QSpinBox(projectSettings_Dialog)
+        resolutionX_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        resolutionX_spinBox.setObjectName("resolutionX_spinBox")
+        horizontalLayout.addWidget(resolutionX_spinBox)
+        resolutionX_spinBox.setRange(1, 99999)
+        resolutionX_spinBox.setValue(projectSettingsDB["Resolution"][0])
+
+        resolutionY_spinBox = QtWidgets.QSpinBox(projectSettings_Dialog)
+        resolutionY_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        resolutionY_spinBox.setObjectName("resolutionY_spinBox")
+        horizontalLayout.addWidget(resolutionY_spinBox)
+        resolutionY_spinBox.setRange(1, 99999)
+        resolutionY_spinBox.setValue(projectSettingsDB["Resolution"][1])
+
+        formLayout.setLayout(0, QtWidgets.QFormLayout.FieldRole, horizontalLayout)
+        fps_label = QtWidgets.QLabel(projectSettings_Dialog)
+        fps_label.setText("FPS")
+        fps_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        fps_label.setObjectName("fps_label")
+        formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, fps_label)
+
+        fps_comboBox = QtWidgets.QComboBox(projectSettings_Dialog)
+        fps_comboBox.setMaximumSize(QtCore.QSize(60, 16777215))
+        fps_comboBox.setObjectName("fps_comboBox")
+        formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, fps_comboBox)
+        fps_comboBox.addItems(self.manager.fpsList)
+        try:
+            index = self.manager.fpsList.index(str(projectSettingsDB["FPS"]))
+        except:
+            index = 2
+        fps_comboBox.setCurrentIndex(index)
+        gridLayout.addLayout(formLayout, 0, 0, 1, 1)
+
+        # SIGNALS
+        # -------
+        def onAccepted():
+            projectSettingsDB = {"Resolution": [resolutionX_spinBox.value(), resolutionY_spinBox.value()],
+                                 "FPS": int(fps_comboBox.currentText())}
+            self.manager._saveProjectSettings(projectSettingsDB)
+            projectSettings_Dialog.close()
+
+        buttonBox.accepted.connect(onAccepted)
+        buttonBox.rejected.connect(projectSettings_Dialog.reject)
+
+        projectSettings_Dialog.show()
+
     def saveBaseSceneDialog(self):
         self.save_Dialog = QtWidgets.QDialog(parent=self)
         self.save_Dialog.setModal(True)
@@ -2198,6 +2327,14 @@ class MainUI(QtWidgets.QMainWindow):
         self.sd_buttonBox.setObjectName(("sd_buttonBox"))
 
         def saveCommand():
+            checklist = self.manager.preSaveChecklist()
+            for msg in checklist:
+                q = self.queryPop(type="yesNo", textTitle="Checklist", textHeader=msg)
+                if q == "no":
+                    return
+                else:
+                    self.manager.errorLogger(title = "Disregarded warning" , errorMessage=msg)
+
             category = self.sdCategory_comboBox.currentText()
             name = self.sdName_lineEdit.text()
             subIndex = self.sdSubP_comboBox.currentIndex()
@@ -2260,6 +2397,14 @@ class MainUI(QtWidgets.QMainWindow):
         sv_buttonBox.setObjectName(("sd_buttonBox"))
 
         def saveAsVersionCommand():
+            checklist = self.manager.preSaveChecklist()
+            for msg in checklist:
+                q = self.queryPop(type="yesNo", textTitle="Checklist", textHeader=msg)
+                if q == "no":
+                    return
+                else:
+                    self.manager.errorLogger(title = "Disregarded warning" , errorMessage=msg)
+
             sceneInfo = self.manager.saveVersion(makeReference=self.svMakeReference_checkbox.checkState(),
                                                  versionNotes=self.svNotes_textEdit.toPlainText())
 
@@ -2379,6 +2524,13 @@ class MainUI(QtWidgets.QMainWindow):
         self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
         self._vEnableDisable()
 
+    def refresh(self):
+        # currentUserIndex = self.user_comboBox.currentIndex()
+        # currentTabIndex = self
+        self.initMainUI()
+
+        self.populateBaseScenes()
+
     def rcAction_scenes(self, command):
         if command == "importScene":
             self.manager.importBaseScene()
@@ -2405,11 +2557,11 @@ class MainUI(QtWidgets.QMainWindow):
             messageLayout.setContentsMargins(0, 0, 0, 0)
             helpText = QtWidgets.QTextEdit()
             helpText.setReadOnly(True)
-            helpText.setStyleSheet("background-color: rgb(255, 255, 255);")
             helpText.setStyleSheet(""
                                    "border: 20px solid black;"
                                    "background-color: black;"
-                                   "font-size: 16px"
+                                   "font-size: 16px;"
+                                   "color: white"
                                    "")
             helpText.setText(textInfo)
             messageLayout.addWidget(helpText)
@@ -2577,15 +2729,15 @@ class MainUI(QtWidgets.QMainWindow):
             if q == "no":
                 self.manager.loadBaseScene(force=True)
             if q == "cancel":
-                pass
+                return
 
 
-            else: # if current scene saved and secure
-                self.manager.loadBaseScene(force=True)
-                self.manager.getOpenSceneInfo()
-                self._initOpenScene()
+        else: # if current scene saved and secure
+            self.manager.loadBaseScene(force=True)
+            self.manager.getOpenSceneInfo()
+            self._initOpenScene()
 
-            self.statusBar().showMessage("Status | Scene Loaded => %s" % self.manager.currentBaseSceneName)
+        self.statusBar().showMessage("Status | Scene Loaded => %s" % self.manager.currentBaseSceneName)
 
         # if self.reference_radioButton.isChecked():
         #     self.manager.referenceBaseScene()

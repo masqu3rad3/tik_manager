@@ -4,8 +4,12 @@ Scene Manager Version History
 
 2.0
 -----
+* **New.0:** 3ds Max support added
+* **New.0:** Houdini support added
+* **New.0:** Standalone Module added
 * **New.0:** manager module seperated into SmRoot and SmMaya modules and re-written
 * **Update.0:** UI improvements.
+* **Fix.0:** Various bug fixes
 
 1.93
 ----

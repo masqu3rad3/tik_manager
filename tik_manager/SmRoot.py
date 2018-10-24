@@ -31,6 +31,17 @@ class RootManager(object):
         self.fpsList=["15", "24", "25", "30", "48", "50", "60"]
         # self.padding = 3
 
+        self.errorCodeDict = {200: "Corrupted File",
+                         201: "Missing File",
+                         202: "Read/Write Error",
+                         203: "Delete Error",
+                         210: "OS Not Supported",
+                         101: "Out of range",
+                         102: "Missing Override",
+                         340: "Naming Error",
+                         341: "Mandatory fields are not filled",
+                         360: "Action not permitted"}
+
 
     def init_paths(self):
         # logger.debug("Func: init_paths")
@@ -65,7 +76,7 @@ class RootManager(object):
         self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], "subPdata.json"))
         self._pathsDict["categoriesFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], _softwarePathsDict["categoriesFile"]))
 
-        self._pathsDict["previewsDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "Playblasts")) # dont change
+        self._pathsDict["previewsDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "Playblasts", _softwarePathsDict["niceName"])) # dont change
         self._folderCheck(self._pathsDict["previewsDir"])
 
         self._pathsDict["pbSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["previewsDir"], _softwarePathsDict["pbSettingsFile"]))
@@ -160,8 +171,10 @@ class RootManager(object):
         # logger.debug("Func: currentTabIndex/setter")
         if not 0 <= indexData < len(self._categories):
             msg="Tab index is out of range!"
-            logger.error(msg)
-            raise Exception([101, msg])
+            # logger.error(msg)
+            # raise Exception([101, msg])
+            self._exception(101, msg)
+            return
         if indexData == self.currentTabIndex:
             self.cursorInfo()
             return
@@ -184,8 +197,11 @@ class RootManager(object):
         # logger.debug("Func: currentSubIndex/setter")
         if not 0 <= indexData < len(self._subProjectsList):
             msg="Sub Project index is out of range!"
-            logger.error(msg)
-            raise Exception([101, msg])
+            # raise Exception([101, msg])
+            self._exception(101, msg)
+            return
+
+
         if indexData == self.currentSubIndex:
             self.cursorInfo()
             return
@@ -212,8 +228,9 @@ class RootManager(object):
 
         if name not in self._usersDict.keys():
             msg="%s is not in the user list" %name
-            logger.error(msg)
-            raise Exception([101, msg])
+            # raise Exception([101, msg])
+            self._exception(101, msg)
+            return
         self._setCurrents("currentUser", name)
 
     @property
@@ -236,7 +253,9 @@ class RootManager(object):
             else:
                 msg = ("only boolean or 0-1 accepted, entered %s" %state)
                 logger.error(msg)
-                raise Exception([101, msg])
+                # raise Exception([101, msg])
+                self._exception(101, msg)
+                return
         self._setCurrents("currentMode", state)
 
     @property
@@ -260,19 +279,24 @@ class RootManager(object):
             # self._currentNotes = ""
             self.currentVersionIndex = -1
             msg = "There is no scene called %s in current category" %sceneName
-            logger.error(msg)
-            raise Exception([101, msg])
+            # logger.error(msg)
+            # raise Exception([101, msg])
+            self._exception(101, msg)
+            return
 
         self._currentBaseSceneName = sceneName
         self._currentSceneInfo = self._loadSceneInfo()
+
 
         # assert (self._currentSceneInfo == -2)
         if self._currentSceneInfo == -2: # corrupted db file
             # self._currentSceneInfo == {}
             self._currentBaseSceneName = ""
             self.currentVersionIndex = -1
-            raise Exception ([200, "Database file %s is corrupted\nDo you want to fix it manually?" %sceneName, self._baseScenesInCategory[sceneName]] )
-        #     return
+            msg = "Database file %s is corrupted"
+            # raise Exception ([200, "Database file %s is corrupted\nDo you want to fix it manually?" %sceneName, self._baseScenesInCategory[sceneName]] )
+            self._exception(200, msg)
+            return
 
 
         if self._currentSceneInfo["ReferencedVersion"]:
@@ -303,7 +327,7 @@ class RootManager(object):
         # logger.debug("Func: currentPreviewPath/getter")
         if self._currentSceneInfo["SubProject"] is not "None":
             path = os.path.join(self._pathsDict["previewsDir"], self._currentSceneInfo["Category"],
-                                self._currentSceneInfo["SubProject"], self._currentSceneInfo["Name"])
+                                self._currentSceneInfo["Name"])
         else:
             path = os.path.join(self._pathsDict["previewsDir"], self._currentSceneInfo["Category"],
                                 self._currentSceneInfo["SubProject"], self._currentSceneInfo["Name"])
@@ -336,8 +360,10 @@ class RootManager(object):
             return
         if not 1 <= indexData <= len(self._currentSceneInfo["Versions"]):
             msg = "out of range! %s" %indexData
-            logger.error(msg)
-            raise Exception([101, msg])
+            # logger.error(msg)
+            # raise Exception([101, msg])
+            self._exception(101, msg)
+            return
         # if self._currentVersionIndex == indexData:
         #     logger.warning("Cursor is already at %s" % indexData)
         #     return
@@ -383,8 +409,11 @@ class RootManager(object):
 
         if not self._currentSceneInfo:
             msg = "no current info"
-            logger.error(msg)
-            raise Exception([101, msg])
+            # logger.error(msg)
+            # raise Exception([101, msg])
+            self._exception(101, msg)
+            return
+
         if self._currentSceneInfo["SubProject"] == "None":
             subP = ""
         else:
@@ -579,8 +608,10 @@ class RootManager(object):
             os.makedirs(os.path.normpath(resolvedPath))
         else:
             msg = "Project already exists"
-            logger.warning(msg)
-            raise Exception ([340, msg])
+            # logger.warning(msg)
+            # raise Exception ([340, msg])
+            self._exception(340, msg)
+            return
 
         # create Directory structure:
         os.mkdir(os.path.join(resolvedPath, "_COMP"))
@@ -702,8 +733,11 @@ class RootManager(object):
 
         if nameOfSubProject in self._subProjectsList:
             msg = "%s is already in sub-projects list" % nameOfSubProject
-            logger.warning(msg)
-            raise Exception([340, msg])
+            # logger.warning(msg)
+            # raise Exception([340, msg])
+            self._exception(340, msg)
+            return
+
         self._subProjectsList.append(nameOfSubProject)
         self._saveSubprojects(self._subProjectsList)
         self.currentSubIndex = len(self._subProjectsList)-1
@@ -726,9 +760,10 @@ class RootManager(object):
             os.system('nautilus %s' % path)
         else:
             msg = "%s is not supported" %self.currentPlatform
-            logger.warning(msg)
-            raise Exception([210, msg])
-            # return
+            # logger.warning(msg)
+            # raise Exception([210, msg])
+            self._exception(210, msg)
+            return
 
     # def scanBaseScenes(self, categoryAs=None, subProjectAs=None):
 
@@ -871,7 +906,9 @@ class RootManager(object):
         initialsList = currentDB.values()
         if initials in initialsList:
             msg="Initials are in use"
-            raise Exception([340, msg])
+            # raise Exception([340, msg])
+            self._exception(340, msg)
+            return
             # return -1, msg
         currentDB[fullName] = initials
         self._dumpJson(currentDB, self._pathsDict["usersFile"])
@@ -892,8 +929,10 @@ class RootManager(object):
         curCategories = self._loadCategories()
         if categoryName in curCategories:
             msg = "Duplicate Category names are not allowed"
-            logger.warning(msg)
-            raise Exception([340, msg])
+            # logger.warning(msg)
+            # raise Exception([340, msg])
+            self._exception(101, msg)
+            return
             # return -1
         curCategories.append(categoryName)
         self._dumpJson(curCategories, self._pathsDict["categoriesFile"])
@@ -907,8 +946,10 @@ class RootManager(object):
         if len(curCategories) == 1:
             # Last category cannot be removed
             msg = "Last Category cannot be removed"
-            logger.warning(msg)
-            raise Exception([360, msg])
+            # logger.warning(msg)
+            # raise Exception([360, msg])
+            self._exception(360, msg)
+            return
 
         if categoryName in curCategories:
             # Check if category about to be removed is empty
@@ -917,9 +958,10 @@ class RootManager(object):
                 if baseScenes:
                     # if it in not empty abort
                     msg = "Category is not empty. Aborting..."
-                    logger.warning(msg)
-                    raise Exception([360, msg])
-                    # return -1
+                    # logger.warning(msg)
+                    # raise Exception([360, msg])
+                    self._exception(360, msg)
+                    return
 
             # remove the empty category
             curCategories.remove(categoryName)
@@ -929,9 +971,10 @@ class RootManager(object):
 
         else:
             msg = "Specified Category does not exist"
-            logger.warning(msg)
-            raise Exception([101, msg])
-            # return -1
+            # logger.warning(msg)
+            # raise Exception([101, msg])
+            self._exception(101, msg)
+            return
 
         # try:
         #     curCategories.remove(categoryName)
@@ -1006,16 +1049,18 @@ class RootManager(object):
             os.rmdir(scene_path)
         except:
             msg = "Cannot delete scene path %s" % (scene_path)
-            logger.warning(msg)
-            raise Exception([203, msg])
+            # logger.warning(msg)
+            # raise Exception([203, msg])
+            self._exception(203, msg)
             # pass
         # delete json database file
         try:
             os.remove(os.path.join(self.projectDir, databaseFile))
         except:
             msg = "Cannot delete scene path %s" % (databaseFile)
-            logger.warning(msg)
-            raise Exception([203, msg])
+            # logger.warning(msg)
+            # raise Exception([203, msg])
+            self._exception(203, msg)
             # pass
         msg = "all database entries and version files of %s deleted" %databaseFile
         logger.debug(msg)
@@ -1049,8 +1094,10 @@ class RootManager(object):
 
         if self._currentVersionIndex == -1:
             msg = "Cursor is not on a Base Scene Version. Cancelling"
-            logger.warning(msg)
-            raise Exception([101, msg])
+            # logger.warning(msg)
+            # raise Exception([101, msg])
+            self._exception(101, msg)
+            return
             # return
 
         absVersionFile = os.path.join(self.projectDir, self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"])
@@ -1153,6 +1200,10 @@ class RootManager(object):
         file_logger.flush()
         file_logger.close()
 
+    def _exception(self, code, msg):
+
+        logger.debug("Exception %s" %self.errorCodeDict[code])
+        logger.debug(msg)
 
     def _checkRequirements(self):
         """
@@ -1222,9 +1273,11 @@ class RootManager(object):
 
         if projectName == "" or client == "" or projectRoot == "":
             msg = ("Fill the mandatory fields")
-            logger.warning(msg)
-            raise Exception([341, msg])
-            # return -1, msg
+            # logger.warning(msg)
+            # raise Exception([341, msg])
+            self._exception(341, msg)
+            return
+
         projectDate = datetime.datetime.now().strftime("%y%m%d")
 
         if brandName:
@@ -1240,9 +1293,6 @@ class RootManager(object):
 
     def _loadJson(self, file):
         """Loads the given json file"""
-        # raise Exception((200, "ASSDFSDFSD"))
-        # logger.debug("Func: _loadJson")
-
         if os.path.isfile(file):
             try:
                 with open(file, 'r') as f:
@@ -1251,16 +1301,12 @@ class RootManager(object):
             except ValueError:
                 msg = "Corrupted JSON file => %s" % file
                 logger.error(msg)
-                # raise Exception(200, "cok fena exception")
                 return -2 # code for corrupted json file
         else:
             return None
 
     def _dumpJson(self, data, file):
         """Saves the data to the json file"""
-        # logger.debug("Func: _dumpJson %s %s" %(data, file))
-
-
         with open(file, "w") as f:
             json.dump(data, f, indent=4)
 

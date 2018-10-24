@@ -3,12 +3,14 @@ reload(SmRoot)
 from SmRoot import RootManager
 from PyQt4 import QtCore, QtGui, Qt
 
+import IvStandalone
 import _version
 import subprocess
 import json
 import sys, os
 import pprint
 import logging
+
 
 
 
@@ -351,6 +353,24 @@ class StandaloneManager(RootManager):
                 self.swList.append(SwViewer(swDict, self.projectDir))
         return self.swList
 
+    # def initTlocation(self, path):
+    #     """
+    #     Sets the Remote Server transfer location and saves it into the json database
+    #     Args:
+    #         path: (String) Path of the remote directory
+    #
+    #     Returns: None
+    #
+    #     """
+    #     projectPath = self.getProjectDir()
+    #     jsonPath = os.path.normpath(os.path.join(projectPath, "smDatabase"))
+    #     if not os.path.isdir(jsonPath):
+    #         logger.warning("NOT SCENE MANAGER PROJECT")
+    #         return None
+    #     tLocationFile = os.path.normpath(os.path.join(jsonPath, "tLocation.json"))
+    #     self._dumpJson(path, tLocationFile)
+    #     return tLocationFile
+
 
     @property
     def currentSwIndex(self):
@@ -675,7 +695,6 @@ class MainUI(QtGui.QMainWindow):
         createProject_fm = QtGui.QAction("&Create Project", self)
         add_remove_users_fm = QtGui.QAction("&Add/Remove Users", self)
         add_remove_categories_fm = QtGui.QAction("&Add/Remove Categories", self)
-        # TODO : ref
         projectSettings_fm = QtGui.QAction("&Project Settings", self)
 
 
@@ -696,7 +715,6 @@ class MainUI(QtGui.QMainWindow):
         file.addSeparator()
         file.addAction(add_remove_users_fm)
         file.addAction(add_remove_categories_fm)
-        # TODO : ref
         file.addAction(projectSettings_fm)
 
         #delete
@@ -708,6 +726,12 @@ class MainUI(QtGui.QMainWindow):
         file.addSeparator()
         file.addAction(projectReport_fm)
         file.addAction(checkReferences_fm)
+
+        tools = self.menubar.addMenu("Tools")
+        iviewer = QtGui.QAction("&Image Viewer", self)
+
+        tools.addAction(iviewer)
+
 
         # RIGHT CLICK MENUS
         # -----------------
@@ -721,7 +745,7 @@ class MainUI(QtGui.QMainWindow):
         self.popMenu_scenes.addAction(self.scenes_rcItem_0)
         self.scenes_rcItem_0.triggered.connect(lambda: self.rcAction_scenes("importScene"))
 
-        self.scenes_rcItem_1 = QtGui.QAction('Show Maya Folder in Explorer', self)
+        self.scenes_rcItem_1 = QtGui.QAction('Show Project File in Explorer', self)
         self.popMenu_scenes.addAction(self.scenes_rcItem_1)
         self.scenes_rcItem_1.triggered.connect(lambda: self.rcAction_scenes("showInExplorerMaya"))
 
@@ -737,6 +761,11 @@ class MainUI(QtGui.QMainWindow):
         self.scenes_rcItem_4 = QtGui.QAction('Scene Info', self)
         self.popMenu_scenes.addAction(self.scenes_rcItem_4)
         self.scenes_rcItem_4.triggered.connect(lambda: self.rcAction_scenes("showSceneInfo"))
+
+        self.popMenu_scenes.addSeparator()
+        self.scenes_rcItem_5 = QtGui.QAction('View Rendered Images', self)
+        self.popMenu_scenes.addAction(self.scenes_rcItem_5)
+        self.scenes_rcItem_5.triggered.connect(lambda: self.rcAction_scenes("viewRender"))
 
         # Thumbnail Right Click Menu
         self.thumbnail_label.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -765,7 +794,6 @@ class MainUI(QtGui.QMainWindow):
         add_remove_users_fm.triggered.connect(self.addRemoveUserUI)
         add_remove_categories_fm.triggered.connect(self.addRemoveCategoryUI)
 
-        # TODO : ref
         projectSettings_fm.triggered.connect(self.projectSettingsUI)
 
 
@@ -774,6 +802,8 @@ class MainUI(QtGui.QMainWindow):
         deleteReference_fm.triggered.connect(self.onDeleteReference)
 
         checkReferences_fm.triggered.connect(lambda: self.populateBaseScenes(deepCheck=True))
+
+        iviewer.triggered.connect(self.onIviewer)
 
         self.statusBar().showMessage("Status | Idle")
 
@@ -1091,7 +1121,7 @@ class MainUI(QtGui.QMainWindow):
         M2_S2_verticalLayout.addWidget(favorites_label)
 
         self.favorites_listWidget = DropListWidget(verticalLayoutWidget)
-        self.favorites_listWidget.setAlternatingRowColors(True)
+        # self.favorites_listWidget.setAlternatingRowColors(True)
         self.favorites_listWidget.setObjectName(("favorites_listWidget"))
 
         M2_S2_verticalLayout.addWidget(self.favorites_listWidget)
@@ -1195,6 +1225,8 @@ class MainUI(QtGui.QMainWindow):
                 if dir:
                     self.projectsRoot = dir
                     self.browser.addData(self.projectsRoot)
+
+
                 else:
                     return
 
@@ -1208,8 +1240,11 @@ class MainUI(QtGui.QMainWindow):
                 if os.path.isdir(dir):
                     self.projectsRoot = dir
                     self.browser.addData(self.projectsRoot)
+
                 else:
                     self.lookIn_lineEdit.setText(self.projectsRoot)
+
+            self.setPmodel.setRootPath(self.projectsRoot)
 
             self.forward_pushButton.setDisabled(self.browser.isForwardLocked())
             self.back_pushButton.setDisabled(self.browser.isBackwardLocked())
@@ -1513,7 +1548,6 @@ class MainUI(QtGui.QMainWindow):
 
         categories_dialog.show()
 
-    # TODO : ref
     def projectSettingsUI(self):
         admin_pswd = "682"
         passw, ok = QtGui.QInputDialog.getText(self, "Password Query", "Enter Admin Password:",
@@ -1658,10 +1692,59 @@ class MainUI(QtGui.QMainWindow):
 
     def onContextMenu_scenes(self, point):
         # show context menu
+        row = self.scenes_listWidget.currentRow()
+        if row == -1:
+            return
+        # check paths
+        manager = self._getManager()
+        self.scenes_rcItem_1.setEnabled(os.path.isdir(manager.currentBaseScenePath))
+        self.scenes_rcItem_2.setEnabled(os.path.isdir(manager.currentPreviewPath))
+        # TODO : ref
+        self.scenes_rcItem_5.setEnabled(os.path.isdir(os.path.join(self.masterManager.projectDir, "images", manager.currentBaseSceneName)))
         self.popMenu_scenes.exec_(self.scenes_listWidget.mapToGlobal(point))
     def onContextMenu_thumbnail(self, point):
         # show context menu
         self.popMenu_thumbnail.exec_(self.thumbnail_label.mapToGlobal(point))
+
+    def rcAction_scenes(self, command):
+        manager = self._getManager()
+        if not manager:
+            return
+
+        if command == "showInExplorerMaya":
+            manager.showInExplorer(manager.currentBaseScenePath)
+
+        if command == "showInExplorerPB":
+            manager.showInExplorer(manager.currentPreviewPath)
+
+        if command == "showInExplorerData":
+            filePath = manager._baseScenesInCategory[manager.currentBaseSceneName]
+            dirPath = os.path.dirname(filePath)
+            manager.showInExplorer(dirPath)
+
+        if command == "showSceneInfo":
+            textInfo = pprint.pformat(manager._currentSceneInfo)
+            self.messageDialog = QtGui.QDialog()
+            self.messageDialog.setWindowTitle("Scene Info")
+            self.messageDialog.resize(800, 700)
+            self.messageDialog.show()
+            messageLayout = QtGui.QVBoxLayout(self.messageDialog)
+            messageLayout.setContentsMargins(0, 0, 0, 0)
+            helpText = QtGui.QTextEdit()
+            helpText.setReadOnly(True)
+            helpText.setStyleSheet("background-color: rgb(255, 255, 255);")
+            helpText.setStyleSheet(""
+                                   "border: 20px solid black;"
+                                   "background-color: black;"
+                                   "font-size: 16px"
+                                   "")
+            helpText.setText(textInfo)
+            messageLayout.addWidget(helpText)
+
+        # TODO : ref
+        if command == "viewRender":
+            imagePath = os.path.join(self.masterManager.projectDir, "images", manager.currentBaseSceneName)
+            IvStandalone.MainUI(self.masterManager.projectDir, relativePath=imagePath, recursive=True).show()
 
     def onProjectChange(self):
         self.initMainUI()
@@ -1869,6 +1952,9 @@ class MainUI(QtGui.QMainWindow):
             self.scenes_listWidget.addItem(listItem)
         self.scenes_listWidget.blockSignals(False)
 
+    def onIviewer(self):
+        IvStandalone.MainUI(self.masterManager.projectDir).show()
+
     def _initSoftwares(self):
         self.software_comboBox.blockSignals(True)
 
@@ -1968,40 +2054,7 @@ class MainUI(QtGui.QMainWindow):
             self.addNote_pushButton.setEnabled(False)
             self.version_label.setEnabled(False)
 
-    def rcAction_scenes(self, command):
-        manager = self._getManager()
-        if not manager:
-            return
 
-        if command == "showInExplorerMaya":
-            manager.showInExplorer(manager.currentBaseScenePath)
-
-        if command == "showInExplorerPB":
-            manager.showInExplorer(manager.currentPreviewPath)
-
-        if command == "showInExplorerData":
-            filePath = manager._baseScenesInCategory[manager.currentBaseSceneName]
-            dirPath = os.path.dirname(filePath)
-            manager.showInExplorer(dirPath)
-
-        if command == "showSceneInfo":
-            textInfo = pprint.pformat(manager._currentSceneInfo)
-            self.messageDialog = QtGui.QDialog()
-            self.messageDialog.setWindowTitle("Scene Info")
-            self.messageDialog.resize(800, 700)
-            self.messageDialog.show()
-            messageLayout = QtGui.QVBoxLayout(self.messageDialog)
-            messageLayout.setContentsMargins(0, 0, 0, 0)
-            helpText = QtGui.QTextEdit()
-            helpText.setReadOnly(True)
-            helpText.setStyleSheet("background-color: rgb(255, 255, 255);")
-            helpText.setStyleSheet(""
-                                   "border: 20px solid black;"
-                                   "background-color: black;"
-                                   "font-size: 16px"
-                                   "")
-            helpText.setText(textInfo)
-            messageLayout.addWidget(helpText)
 
 class ImageWidget(QtGui.QLabel):
     def __init__(self, parent=None):

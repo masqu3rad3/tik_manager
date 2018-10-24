@@ -93,7 +93,8 @@ class ImageManager(RootManager):
     def getSoftwarePaths(self):
         """Overriden function"""
         # To tell the base class maya specific path names
-        return {"databaseDir": "mayaDB",
+        return {"niceName": "Maya",
+                "databaseDir": "mayaDB",
                 "scenesDir": "scenes",
                 "pbSettingsFile": "pbSettings.json",
                 "categoriesFile": "categoriesMaya.json",

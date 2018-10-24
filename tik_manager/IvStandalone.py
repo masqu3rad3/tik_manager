@@ -6,21 +6,19 @@ recursively.
 Double clicking on the seguence will execute the file on the defined application
 """
 import _version
-# reload(_version)
 import pyseq as seq
-# reload(seq)
-import os
-import pymel.core as pm
+import sys, os
+from PyQt4 import QtCore, QtGui, Qt
 
-import Qt
-from Qt import QtWidgets, QtCore, QtGui
-from maya import OpenMayaUI as omui
+# import SmRoot
+# reload(SmRoot)
+# from SmRoot import RootManager
+
 import json
 import datetime
 from shutil import copyfile
 
-# import seqCopyProgress as sCopy
-# reload(sCopy)
+
 
 import logging
 
@@ -34,123 +32,24 @@ __maintainer__ = "Arda Kutlu"
 __email__ = "ardakutlu@gmail.com"
 __status__ = "Development"
 
-if Qt.__binding__ == "PySide":
-    from shiboken import wrapInstance
-    from Qt.QtCore import Signal
-elif Qt.__binding__.startswith('PyQt'):
-    from sip import wrapinstance as wrapInstance
-    from Qt.Core import pyqtSignal as Signal
-else:
-    from shiboken2 import wrapInstance
-    from Qt.QtCore import Signal
 
-windowName = "Image Viewer v%s" %_version.__version__
-
-# def getTheImages():
-#     imagesFolder = os.path.join(os.path.normpath(pm.workspace(q=1, rd=1)), "images")
-#
-#     treeDataList = [a for a in seq.walk(imagesFolder, topdown=True)]
-#
-#
-#     return treeDataList
-
-# def setupLogger(handlerPath):
-#     logger = logging.getLogger('imageViewer')
-#     file_logger = logging.FileHandler(handlerPath)
-#     logger.addHandler(file_logger)
-#     logger.setLevel(logging.DEBUG)
-#     return logger
-#
-# def deleteLogger(logger):
-#     for i in logger.handlers:
-#         logger.removeHandler(i)
-#         i.flush()
-#         i.close()
-
-# def getTheImages(path, level=1):
-#     treeDataList = [a for a in seq.walk(path, level=level)]
-#     return treeDataList
-
-def getMayaMainWindow():
-    """
-    Gets the memory adress of the main window to connect Qt dialog to it.
-    Returns:
-        (long) Memory Adress
-    """
-    win = omui.MQtUtil_mainWindow()
-    ptr = wrapInstance(long(win), QtWidgets.QMainWindow)
-    return ptr
+windowName = "Image Viewer Standalone v%s" %_version.__version__
 
 def folderCheck(folder):
     if not os.path.isdir(os.path.normpath(folder)):
         os.makedirs(os.path.normpath(folder))
 
-# def loadJson(file):
-#     if os.path.isfile(file):
-#         with open(file, 'r') as f:
-#             # The JSON module will read our file, and convert it to a python dictionary
-#             data = json.load(f)
-#             return data
-#     else:
-#         return None
+class MainUI(QtGui.QMainWindow):
+    def __init__(self, projectPath, relativePath=None, recursive=False):
+        super(MainUI, self).__init__()
 
-# def dumpJson(data, file):
-#     with open(file, "w") as f:
-#         json.dump(data, f, indent=4)
-
-# def initDB():
-#     """
-#     Initializes json Database for remote server transfer location
-#     Returns: (List) if successfull [0, transferLocation] if failed [-1, "N/A"]
-#
-#     """
-#     projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
-#     jsonPath = os.path.normpath(os.path.join(projectPath, "smDatabase"))
-#     tLocationFile = os.path.normpath(os.path.join(jsonPath, "tLocation.json"))
-#     if os.path.isfile(tLocationFile):
-#         tLocation = loadJson(tLocationFile)
-#         return 0, tLocation
-#     else:
-#         return -1, "N/A"
-
-# def setTlocation(path):
-#     """
-#     Sets the Remote Server transfer location and saves it into the json database
-#     Args:
-#         path: (String) Path of the remote directory
-#
-#     Returns: None
-#
-#     """
-#     projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
-#     jsonPath = os.path.normpath(os.path.join(projectPath, "smDatabase"))
-#     folderCheck(jsonPath)
-#     tLocationFile = os.path.normpath(os.path.join(jsonPath, "tLocation.json"))
-#     dumpJson(path, tLocationFile)
-#     print "path", path
-
-class MainUI(QtWidgets.QMainWindow):
-    def __init__(self, projectPath=None, relativePath=None, recursive=False):
-        for entry in QtWidgets.QApplication.allWidgets():
-            try:
-                if entry.objectName() == windowName:
-                    entry.close()
-            except AttributeError:
-                pass
-        parent = getMayaMainWindow()
-        super(MainUI, self).__init__(parent=parent)
-
-        if projectPath:
-            self.projectPath=projectPath
-        else:
-            self.projectPath=os.path.normpath(pm.workspace(q=1, rd=1))
+        self.projectPath = projectPath
+        self.databaseDir = os.path.normpath(os.path.join(self.projectPath, "smDatabase"))
 
         if relativePath:
             self.rootPath = os.path.join(self.projectPath, relativePath)
         else:
             self.rootPath = os.path.join(self.projectPath, "images")
-
-        self.databaseDir = os.path.normpath(os.path.join(self.projectPath, "smDatabase"))
 
         if not os.path.isdir(self.databaseDir):
             msg=["Nothing to view", "No Scene Manager Database",
@@ -171,6 +70,8 @@ class MainUI(QtWidgets.QMainWindow):
         self._generator = None
         self._timerId = None
 
+
+        # self.projectPath = os.path.join(os.path.normpath(pm.workspace(q=1, rd=1)), "") # temporary
         self.sequenceData = []
 
         self.extensionDictionary = {"jpg": ["*.jpg", "*.jpeg"],
@@ -185,39 +86,37 @@ class MainUI(QtWidgets.QMainWindow):
         self.setObjectName(windowName)
         self.resize(670, 624)
         self.setWindowTitle(windowName)
-        self.centralwidget = QtWidgets.QWidget(self)
-        # self.centralwidget.setObjectName(("centralwidget"))
-        self.model = QtWidgets.QFileSystemModel()
+        self.centralwidget = QtGui.QWidget(self)
+        self.model = QtGui.QFileSystemModel()
         self.model.setRootPath(self.rootPath)
-        # filter = Qt.QStringList("")
-        # self.model.setFilter(QtCore.QDir.AllDirs|QtCore.QDir.NoDotAndDotDot)
         self.model.setFilter(QtCore.QDir.AllDirs|QtCore.QDir.NoDotAndDotDot)
         self.tLocation = self.getRaidPath()
+
         self.buildUI()
-        # self.filterList=[]
-        # self.onCheckbox()
 
         self.setCentralWidget(self.centralwidget)
-        # self.menubar = QtGui.QMenuBar(self)
-        # self.menubar.setGeometry(QtCore.QRect(0, 0, 670, 21))
-        # self.menubar.setObjectName(("menubar"))
-        # self.setMenuBar(self.menubar)
-        # self.statusbar = QtGui.QStatusBar(self)
-        # self.statusbar.setObjectName(("statusbar"))
-        # self.setStatusBar(self.statusbar)
+
+    # def getTlocation(self):
+    #     tLocationFile = os.path.normpath(os.path.join(self.databaseDir, "tLocation.json"))
+    #     if os.path.isfile(tLocationFile):
+    #         tLocation = self._loadJson(tLocationFile)
+    #     else:
+    #         tLocation = "N/A"
+    #         self._dumpJson(tLocation, tLocationFile)
+    #     return tLocation
 
     def buildUI(self):
-        self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
+        self.gridLayout = QtGui.QGridLayout(self.centralwidget)
         self.gridLayout.setObjectName(("gridLayout"))
 
-        self.recursive_checkBox = QtWidgets.QCheckBox(self.centralwidget)
+        self.recursive_checkBox = QtGui.QCheckBox(self.centralwidget)
         self.recursive_checkBox.setText(("Recursive"))
         self.recursive_checkBox.setChecked(self.recursiveInitial)
         # self.recursive_checkBox.setObjectName(("recursive_checkBox"))
         self.gridLayout.addWidget(self.recursive_checkBox, 0, 3, 1, 1)
 
-        self.rootFolder_label = QtWidgets.QLabel(self.centralwidget)
-        self.rootFolder_label.setFrameShape(QtWidgets.QFrame.Box)
+        self.rootFolder_label = QtGui.QLabel(self.centralwidget)
+        self.rootFolder_label.setFrameShape(QtGui.QFrame.Box)
         self.rootFolder_label.setLineWidth(1)
         self.rootFolder_label.setText(("Root Folder:"))
         self.rootFolder_label.setTextFormat(QtCore.Qt.AutoText)
@@ -232,13 +131,13 @@ class MainUI(QtWidgets.QMainWindow):
         # self.rootFolder_lineEdit.setObjectName(("rootFolder_lineEdit"))
         self.gridLayout.addWidget(self.rootFolder_lineEdit, 0, 1, 1, 1)
 
-        self.browse_pushButton = QtWidgets.QPushButton(self.centralwidget)
+        self.browse_pushButton = QtGui.QPushButton(self.centralwidget)
         self.browse_pushButton.setText(("Browse"))
         # self.browse_pushButton.setObjectName(("browse_pushButton"))
         self.gridLayout.addWidget(self.browse_pushButton, 0, 2, 1, 1)
 
-        self.raidFolder_label = QtWidgets.QLabel(self.centralwidget)
-        self.raidFolder_label.setFrameShape(QtWidgets.QFrame.Box)
+        self.raidFolder_label = QtGui.QLabel(self.centralwidget)
+        self.raidFolder_label.setFrameShape(QtGui.QFrame.Box)
         self.raidFolder_label.setLineWidth(1)
         self.raidFolder_label.setText(("Raid Folder:"))
         self.raidFolder_label.setTextFormat(QtCore.Qt.AutoText)
@@ -253,17 +152,17 @@ class MainUI(QtWidgets.QMainWindow):
         # self.raidFolder_lineEdit.setObjectName(("raidFolder_lineEdit"))
         self.gridLayout.addWidget(self.raidFolder_lineEdit, 1, 1, 1, 1)
 
-        self.browseRaid_pushButton = QtWidgets.QPushButton(self.centralwidget)
+        self.browseRaid_pushButton = QtGui.QPushButton(self.centralwidget)
         self.browseRaid_pushButton.setText(("Browse"))
         # self.browseRaid_pushButton.setObjectName(("browseRaid_pushButton"))
         self.gridLayout.addWidget(self.browseRaid_pushButton, 1, 2, 1, 1)
 
-        self.chkboxLayout = QtWidgets.QHBoxLayout()
+        self.chkboxLayout = QtGui.QHBoxLayout()
         self.chkboxLayout.setAlignment(QtCore.Qt.AlignRight)
 
         self.checkboxes=[]
         for key in (self.extensionDictionary.keys()):
-            tCheck = QtWidgets.QCheckBox()
+            tCheck = QtGui.QCheckBox()
             tCheck.setText(key)
             tCheck.setChecked(True)
             # name = lambda x=key: key
@@ -274,13 +173,13 @@ class MainUI(QtWidgets.QMainWindow):
 
 
 
-        self.selectAll_pushbutton = QtWidgets.QPushButton()
+        self.selectAll_pushbutton = QtGui.QPushButton()
         self.selectAll_pushbutton.setText("Select All")
 
-        self.selectNone_pushbutton = QtWidgets.QPushButton()
+        self.selectNone_pushbutton = QtGui.QPushButton()
         self.selectNone_pushbutton.setText("Select None")
 
-        spacerItem = QtWidgets.QSpacerItem(400, 25, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+        spacerItem = QtGui.QSpacerItem(400, 25, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Preferred)
 
         self.chkboxLayout.addWidget(self.selectAll_pushbutton)
         self.chkboxLayout.addWidget(self.selectNone_pushbutton)
@@ -297,37 +196,37 @@ class MainUI(QtWidgets.QMainWindow):
         self.directories_treeView.setSortingEnabled(True)
         self.directories_treeView.sortByColumn(0, QtCore.Qt.AscendingOrder)
         self.directories_treeView.setColumnWidth(0, 250)
-        self.directories_treeView.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.directories_treeView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.directories_treeView.hideColumn(1)
         self.directories_treeView.hideColumn(2)
         # self.directories_treeView.setCurrentIndex(self.model.index(self.locationsDic["rootLocation"]))
         self.directories_treeView.setContentsMargins(0, 0, 0, 0)
 
-        self.left_layout = QtWidgets.QVBoxLayout()
+        self.left_layout = QtGui.QVBoxLayout()
         self.left_layout.setSpacing(0)
         self.left_layout.addWidget(self.directories_treeView)
         self.left_layout.setContentsMargins(0, 0, 0, 0)
 
-        self.left_widget = QtWidgets.QFrame()
+        self.left_widget = QtGui.QFrame()
         self.left_widget.setContentsMargins(0, 0, 0, 0)
         self.left_widget.setLayout(self.left_layout)
 
         # Splitter Right Side:
 
-        self.sequences_listWidget = QtWidgets.QListWidget(self.centralwidget)
-        self.sequences_listWidget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        self.sequences_listWidget = QtGui.QListWidget(self.centralwidget)
+        self.sequences_listWidget.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
 
-        self.nameFilter_label = QtWidgets.QLabel(self.centralwidget)
+        self.nameFilter_label = QtGui.QLabel(self.centralwidget)
         self.nameFilter_label.setText("Filter:")
-        self.nameFilter_lineEdit = QtWidgets.QLineEdit(self.centralwidget)
-        self.nameFilterApply_pushButton = QtWidgets.QPushButton(self.centralwidget, text="Apply")
+        self.nameFilter_lineEdit = QtGui.QLineEdit(self.centralwidget)
+        self.nameFilterApply_pushButton = QtGui.QPushButton(self.centralwidget, text="Apply")
 
 
 
-        self.right_layout = QtWidgets.QVBoxLayout()
+        self.right_layout = QtGui.QVBoxLayout()
         self.right_layout.addWidget(self.sequences_listWidget)
 
-        nameFilter_layout = QtWidgets.QHBoxLayout()
+        nameFilter_layout = QtGui.QHBoxLayout()
         nameFilter_layout.addWidget(self.nameFilter_label)
         nameFilter_layout.addWidget(self.nameFilter_lineEdit)
         nameFilter_layout.addWidget(self.nameFilterApply_pushButton)
@@ -337,14 +236,14 @@ class MainUI(QtWidgets.QMainWindow):
 
 
 
-        self.right_widget = QtWidgets.QFrame()
+        self.right_widget = QtGui.QFrame()
         self.right_widget.setLayout(self.right_layout)
         self.right_widget.setContentsMargins(0, 0, 0, 0)
 
         ######
 
 
-        self.splitter = QtWidgets.QSplitter(parent=self)
+        self.splitter = QtGui.QSplitter(parent=self)
         self.splitter.setOrientation(QtCore.Qt.Horizontal)
         self.splitter.setHandleWidth(8)
         # self.splitter.setOpaqueResize(False)
@@ -367,10 +266,10 @@ class MainUI(QtWidgets.QMainWindow):
         ## RIGHT CLICK MENUS
         self.sequences_listWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.sequences_listWidget.customContextMenuRequested.connect(self.onContextMenu_images)
-        self.popMenu = QtWidgets.QMenu()
+        self.popMenu = QtGui.QMenu()
 
-        rcAction_0 = QtWidgets.QAction('Show in Explorer', self)
-        rcAction_1 = QtWidgets.QAction('Transfer Files to Raid', self)
+        rcAction_0 = QtGui.QAction('Show in Explorer', self)
+        rcAction_1 = QtGui.QAction('Transfer Files to Raid', self)
         self.popMenu.addAction(rcAction_0)
         self.popMenu.addAction(rcAction_1)
         rcAction_0.triggered.connect(lambda: self.onShowInExplorer())
@@ -389,57 +288,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         ## check if there is a json file on the project data path for target drive
 
-        # index = self.directories_treeView.currentIndex()
-        # print index.row()
         self.populate()
-
-
-
-
-
-        #
-        # self.splitter = QtWidgets.QSplitter(self.centralwidget)
-        # self.splitter.setOrientation(QtCore.Qt.Horizontal)
-        # # self.splitter.setObjectName(("splitter"))
-        #
-        # self.directories_treeView = QtWidgets.QTreeView(self.splitter)
-        # # self.directories_treeView.setObjectName(("directories_treeView"))
-        # self.directories_treeView.setModel(self.model)
-        # self.directories_treeView.setRootIndex(self.model.index(self.projectPath))
-        # self.directories_treeView.hideColumn(1)
-        # self.directories_treeView.hideColumn(2)
-        # self.directories_treeView.hideColumn(3)
-        #
-        # self.sequences_listWidget = QtWidgets.QListWidget(self.splitter)
-        # # self.sequences_listWidget.setObjectName(("sequences_listWidget"))
-        # self.sequences_listWidget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-        # self.gridLayout.addWidget(self.splitter, 3, 0, 1, 4)
-        #
-        # self.browse_pushButton.clicked.connect(self.onBrowse)
-        # self.directories_treeView.selectionModel().selectionChanged.connect(self.populate)
-        # self.recursive_checkBox.stateChanged.connect(self.populate)
-        # self.sequences_listWidget.doubleClicked.connect(self.onRunItem)
-        # self.browseRaid_pushButton.clicked.connect(self.onBrowseRaid)
-        #
-        # self.chkbox1_checkbox.toggled.connect(self.onCheckbox)
-        # self.chkbox2_checkbox.toggled.connect(self.onCheckbox)
-        # self.chkbox3_checkbox.toggled.connect(self.onCheckbox)
-        # self.chkbox4_checkbox.toggled.connect(self.onCheckbox)
-        # self.chkbox5_checkbox.toggled.connect(self.onCheckbox)
-        #
-        # ## RIGHT CLICK MENUS
-        # self.sequences_listWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        # self.sequences_listWidget.customContextMenuRequested.connect(self.onContextMenu_images)
-        # self.popMenu = QtWidgets.QMenu()
-        #
-        # rcAction_0 = QtWidgets.QAction('Show in Explorer', self)
-        # rcAction_1 = QtWidgets.QAction('Transfer Files to Raid', self)
-        # self.popMenu.addAction(rcAction_0)
-        # self.popMenu.addAction(rcAction_1)
-        # rcAction_0.triggered.connect(lambda: self.onShowInExplorer())
-        # rcAction_1.triggered.connect(lambda: self.onTransferFiles())
-        #
-        # ## check if there is a json file on the project data path for target drive
 
     def deselectTree(self):
         self.directories_treeView.setCurrentIndex(self.model.index(self.rootPath))
@@ -455,9 +304,8 @@ class MainUI(QtWidgets.QMainWindow):
 
     def setRootPath(self, dir):
         dir = str(dir)
-        self.rootPath = dir
+        self.rootPath=dir
         self.directories_treeView.reset()
-        # self.locationsDic["rootLocation"] = os.path.normpath(dir)
         self.model.setRootPath(dir)
         self.directories_treeView.setRootIndex(self.model.index(dir))
         self.rootFolder_lineEdit.setText(os.path.normpath(dir))
@@ -477,10 +325,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.tLocation = str(dir)
         self._dumpJson(tLocationFile, dir)
         self.raidFolder_lineEdit.setText(self.tLocation)
-        # dir = str(dir)
-        # setTlocation(os.path.normpath(dir))
-        # self.tLocation = dir
-        # self.raidFolder_lineEdit.setText(dir)
 
     def onCheckbox(self, extensions, state):
         if state:
@@ -489,26 +333,22 @@ class MainUI(QtWidgets.QMainWindow):
             self.filterList = list(set(self.filterList)-set(extensions))
         self.populate()
 
-
-    # @Qt.QtCore.pyqtSlot("QItemSelection, QItemSelection")
     def onContextMenu_images(self, point):
-        # print se
         if not self.sequences_listWidget.currentRow() is -1:
             self.popMenu.exec_(self.sequences_listWidget.mapToGlobal(point))
 
     def onBrowse(self):
-        dir = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory"))
+        dir = str(QtGui.QFileDialog.getExistingDirectory(self, "Select Directory"))
         if dir:
             self.setRootPath(dir)
         else:
             return
 
     def onBrowseRaid(self):
-        path = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory", self.tLocation))
+        path = str(QtGui.QFileDialog.getExistingDirectory(self, "Select Directory", self.tLocation))
         if path:
             self.setRaidPath(path)
             return
-
 
     def onTransferFiles(self):
         if self.tLocation == "N/A":
@@ -521,20 +361,17 @@ class MainUI(QtWidgets.QMainWindow):
             raise Exception([101], "No sequence selected")
             return
 
-        # projectPath = os.path.normpath(pm.workspace(q=1, rd=1))
         logPath = os.path.join(self.databaseDir,"transferLogs")
         folderCheck(logPath)
 
         seqCopy = SeqCopyProgress()
         seqCopy.copysequence(self.sequenceData, selList, self.tLocation, logPath, self.rootPath)
 
-
     def onShowInExplorer(self):
         row = self.sequences_listWidget.currentRow()
         if row == -1:
             return
         os.startfile(self.sequenceData[row].dirname)
-
 
     def populate(self):
         self.sequences_listWidget.clear()
@@ -563,11 +400,10 @@ class MainUI(QtWidgets.QMainWindow):
         self._generator = self.listingLoop(gen) # start the loop
         self._timerId = self.startTimer(0) # idle timer
 
-
     def listingLoop(self, gen):
         for x in gen:
             for i in x[2]:
-                QtWidgets.QApplication.processEvents(QtCore.QEventLoop.ExcludeUserInputEvents)
+                QtGui.QApplication.processEvents(QtCore.QEventLoop.ExcludeUserInputEvents)
                 # filtertest
                 filterWord = str(self.nameFilter_lineEdit.text())
                 # print filterWord
@@ -617,8 +453,8 @@ class MainUI(QtWidgets.QMainWindow):
         with open(file, "w") as f:
             json.dump(data, f, indent=4)
 
-class DropLineEdit(QtWidgets.QLineEdit):
-    dropped = Qt.QtCore.Signal(str)
+class DropLineEdit(QtGui.QLineEdit):
+    dropped = QtCore.pyqtSignal(str)
     def __init__(self, type, parent=None):
         super(DropLineEdit, self).__init__(parent)
         self.setAcceptDrops(True)
@@ -642,18 +478,16 @@ class DropLineEdit(QtWidgets.QLineEdit):
         self.dropped.emit(path)
         # self.addItem(path)
 
-
-class DeselectableTreeView(QtWidgets.QTreeView):
-    # deselected = QtCore.pyqtSignal(bool)
-    deselected = Qt.QtCore.Signal(bool)
+class DeselectableTreeView(QtGui.QTreeView):
+    deselected = QtCore.pyqtSignal(bool)
     def mousePressEvent(self, event):
         index = self.indexAt(event.pos()) # returns  -1 if click is outside
         if index.row() == -1:
             self.clearSelection()
             self.deselected.emit(True)
-        QtWidgets.QTreeView.mousePressEvent(self, event)
+        QtGui.QTreeView.mousePressEvent(self, event)
 
-class SeqCopyProgress(QtWidgets.QWidget):
+class SeqCopyProgress(QtGui.QWidget):
 
     def __init__(self, src=None, dest=None):
         super(SeqCopyProgress, self).__init__()
@@ -669,17 +503,17 @@ class SeqCopyProgress(QtWidgets.QWidget):
 
     def build_ui(self):
 
-        hbox = QtWidgets.QVBoxLayout()
+        hbox = QtGui.QVBoxLayout()
 
-        vbox = QtWidgets.QHBoxLayout()
+        vbox = QtGui.QHBoxLayout()
 
-        lbl_src = QtWidgets.QLabel('Source: ')
-        lbl_dest = QtWidgets.QLabel('Destination: ')
-        lbl_overall = QtWidgets.QLabel('Overall Progress:')
-        self.pb = QtWidgets.QProgressBar()
-        self.pbOverall = QtWidgets.QProgressBar()
-        self.cancelButton = QtWidgets.QPushButton("Cancel")
-        self.cancelAllButton = QtWidgets.QPushButton("Cancel All")
+        lbl_src = QtGui.QLabel('Source: ')
+        lbl_dest = QtGui.QLabel('Destination: ')
+        lbl_overall = QtGui.QLabel('Overall Progress:')
+        self.pb = QtGui.QProgressBar()
+        self.pbOverall = QtGui.QProgressBar()
+        self.cancelButton = QtGui.QPushButton("Cancel")
+        self.cancelAllButton = QtGui.QPushButton("Cancel All")
 
         self.pb.setMinimum(0)
         self.pb.setMaximum(100)
@@ -705,15 +539,15 @@ class SeqCopyProgress(QtWidgets.QWidget):
 
     def results_ui(self, status, color="white", logPath=None, destPath = None):
 
-        self.msgDialog = QtWidgets.QDialog(parent=self)
-        self.msgDialog.setModal(True)
+        self.msgDialog = QtGui.QDialog(parent=self)
+        self.msgDialog.QtGui(True)
         self.msgDialog.setObjectName("Result_Dialog")
         self.msgDialog.setWindowTitle("Transfer Results")
         self.msgDialog.resize(300,120)
-        layoutMain = QtWidgets.QVBoxLayout()
+        layoutMain = QtGui.QVBoxLayout()
         self.msgDialog.setLayout(layoutMain)
 
-        infoHeader = QtWidgets.QLabel(status)
+        infoHeader = QtGui.QLabel(status)
 
         infoHeader.setStyleSheet(""
                                "border: 18px solid black;"
@@ -723,15 +557,15 @@ class SeqCopyProgress(QtWidgets.QWidget):
                                "".format(color))
 
         layoutMain.addWidget(infoHeader)
-        layoutH = QtWidgets.QHBoxLayout()
+        layoutH = QtGui.QHBoxLayout()
         layoutMain.addLayout(layoutH)
         if logPath:
-            showLogButton = QtWidgets.QPushButton("Show Log File")
+            showLogButton = QtGui.QPushButton("Show Log File")
             layoutH.addWidget(showLogButton)
             showLogButton.clicked.connect(lambda x=logPath: os.startfile(x))
-        showInExplorer = QtWidgets.QPushButton("Show in Explorer")
+        showInExplorer = QtGui.QPushButton("Show in Explorer")
         layoutH.addWidget(showInExplorer)
-        okButton = QtWidgets.QPushButton("OK")
+        okButton = QtGui.QPushButton("OK")
         layoutH.addWidget(okButton)
 
         showInExplorer.clicked.connect(lambda x=destPath: self.onShowInExplorer(x))
@@ -741,22 +575,6 @@ class SeqCopyProgress(QtWidgets.QWidget):
         self.msgDialog.show()
 
 
-        # # self.msg = QtWidgets.QMessageBox(parent=self)
-        # # self.msg.setIcon(QtWidgets.QMessageBox.Information)
-        # # self.msg.setText("Transfer Successfull")
-        # # self.msg.setInformativeText("Log file saved to")
-        # # self.msg.setWindowTitle("Transfer report")
-        # # self.msg.setDefaultButton(QtWidgets.QPushButton("ANBAN"))
-        # # # self.msg.setDetailedText("The details are as follows:")
-        # # self.msg.show()
-        # self.msgBox = QtWidgets.QMessageBox()
-        # self.msgBox.setText("Transfer Successfull")
-        # self.msgBox.setStandardButtons(QtWidgets.QMessageBox.Open | QtWidgets.QMessageBox.Ok);
-        # self.msgBox.setDefaultButton(QtWidgets.QMessageBox.Ok);
-        # # self.msgBox.addButton(QtWidgets.QPushButton('Show Log'), QtWidgets.QMessageBox.HelpRole)
-        # # self.msgBox.addButton(QtWidgets.QPushButton('Ok'), QtWidgets.QMessageBox.AcceptRole)
-        # self.msgBox.show()
-        # # ret = self.msgBox.exec_()
 
     def onShowInExplorer(self, path):
         os.startfile(path)
@@ -795,7 +613,7 @@ class SeqCopyProgress(QtWidgets.QWidget):
             percent = (100 * current) / totalCount
             self.pb.setValue(percent)
             current += 1
-            QtWidgets.QApplication.processEvents()
+            QtGui.QApplication.processEvents()
             self.safeLog("Success - {0}".format(targetPath))
             if self.terminated or self.cancelAll:
                 self.errorFlag = True
@@ -853,5 +671,3 @@ class SeqCopyProgress(QtWidgets.QWidget):
             logger.removeHandler(i)
             i.flush()
             i.close()
-
-
