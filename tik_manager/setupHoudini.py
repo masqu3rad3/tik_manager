@@ -1,6 +1,8 @@
 import os
 import hou
 
+# find
+
 selfLocation = os.path.dirname(os.path.abspath(__file__))
 iconsLocation = os.path.join(selfLocation, "icons")
 

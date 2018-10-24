@@ -72,4 +72,7 @@ HOUDINI
 
     from tik_manager import houdiniSetup
 
+3DS MAX
+-------
+*
 

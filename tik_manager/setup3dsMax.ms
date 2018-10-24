@@ -9,7 +9,6 @@ icon: #("SceneManager",1)
 )
 
 
-
 macroScript TIK_smSaveVersion
 category: "Tik Works"
 tooltip: "Scene Manager - Save Version"
