@@ -1293,6 +1293,7 @@ class RootManager(object):
 
     def _loadJson(self, file):
         """Loads the given json file"""
+        # TODO : Is it paranoid checking?
         if os.path.isfile(file):
             try:
                 with open(file, 'r') as f:
