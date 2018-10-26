@@ -26,7 +26,7 @@ else:
 
 cmd = """
 from tik_manager import SmMaya
-tik_sceneManager = SmMaya.MainUI(scriptJob="tik_sceneManager")
+tik_sceneManager = SmMaya.MainUI(callback="tik_sceneManager")
 tik_sceneManager.show()
 """
 icon = os.path.join(iconsLocation, "manager_ICON.png")
@@ -49,7 +49,7 @@ addButton("saveVersion", command=cmd, icon=icon )
 ## add imageManager button
 cmd = """
 from tik_manager import ImMaya
-tik_imageManager = ImMaya.MainUI(scriptJob="tik_imageManager")
+tik_imageManager = ImMaya.MainUI(callback="tik_imageManager")
 """
 icon = os.path.join(iconsLocation, "imageManager_ICON.png")
 if not os.path.isfile(icon):

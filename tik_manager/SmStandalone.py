@@ -147,7 +147,6 @@ class SwViewer(RootManager):
 
 
         if ID.startswith("SmMaya"):
-            print "EXECUTE MAYA SCENE"
             versionDict = {201400: "Maya2014",
                            201450: "Maya2014",
                            201451: "Maya2014",
@@ -179,7 +178,6 @@ class SwViewer(RootManager):
                            201720: "Maya2017",
                            201740: "Maya2017",
                            20180000: "Maya2018"}
-            # print "z", exeDict["Maya"].keys()
             try:
                 versionName = versionDict[self._currentSceneInfo["MayaVersion"]]
             except KeyError:
@@ -191,14 +189,12 @@ class SwViewer(RootManager):
                     exePath = exeDict["Maya"][versionName]["64bit"]
                 else:
                     exePath = exeDict["Maya"][versionName]["32bit"]
-                print exePath
             except KeyError:
                 logger.warning("Maya %s is not installed on this workstation" %versionName)
 
             subprocess.check_call([exePath, "-file", self.currentScenePath], shell=True)
 
         elif ID.startswith("Sm3dsMax"):
-            print "EXECUTE MAX SCENE"
             versionDict = {16000: "3ds Max 2014",
                            17000: "3ds Max 2015",
                            18000: "3ds Max 2016",
@@ -216,18 +212,15 @@ class SwViewer(RootManager):
                     exePath = exeDict["3dsMax"][versionName]["64bit"]
                 else:
                     exePath = exeDict["3dsMax"][versionName]["32bit"]
-                print exePath
             except KeyError:
                 logger.warning("Maya %s is not installed on this workstation" %versionName)
 
             subprocess.check_call([exePath, self.currentScenePath], shell=True)
 
         else:
-            print "No Executer"
             return
 
         # command = "{0} {1}".format(os.path.normpath(exePath), os.path.normpath(self.currentScenePath))
-        # print "command", command
 
 
     # def setProject(self, path):
@@ -399,7 +392,6 @@ class StandaloneManager(RootManager):
     def _loadUserPrefs(self):
         """OVERRIDEN FUNCTION Load Last CategoryIndex, SubProject Index,
         User name and Access mode from file as dictionary"""
-        print "currentsFile", self._pathsDict["currentsFile"]
         if os.path.isfile(self._pathsDict["currentsFile"]):
             settingsData = self._loadJson(self._pathsDict["currentsFile"])
             if settingsData == -2:
@@ -968,6 +960,7 @@ class MainUI(QtGui.QMainWindow):
             pPath = self.masterManager.createNewProject(root, pName, bName, cName, settingsData=projectSettingsDB)
             self.masterManager.setProject(pPath)
             self.onProjectChange()
+            self.scenes_listWidget.clear()
             self.createproject_Dialog.close()
 
         def resolve():
@@ -1254,7 +1247,6 @@ class MainUI(QtGui.QMainWindow):
         def onRemoveFavs():
 
             row = self.favorites_listWidget.currentRow()
-            print row
             if row == -1:
                 return
             # item = self.favList[row]
@@ -1747,7 +1739,7 @@ class MainUI(QtGui.QMainWindow):
             IvStandalone.MainUI(self.masterManager.projectDir, relativePath=imagePath, recursive=True).show()
 
     def onProjectChange(self):
-        self.initMainUI()
+        self.initMainUI(newborn=True)
 
 
     def onSoftwareChange(self):
@@ -2157,7 +2149,8 @@ class Browse(object):
 
 
 if __name__ == '__main__':
-    stylesheetFile = "CSS\\darkorange.stylesheet"
+    selfLoc = os.path.dirname(os.path.abspath(__file__))
+    stylesheetFile = os.path.join(selfLoc, "CSS", "darkorange.stylesheet")
 
     app = QtGui.QApplication(sys.argv)
     with open(stylesheetFile, "r") as fh:
