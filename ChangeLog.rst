@@ -8,8 +8,9 @@ Scene Manager Version History
 * **New.0:** Houdini support added
 * **New.0:** Standalone Module added
 * **New.0:** manager module seperated into SmRoot and SmMaya modules and re-written
-* **Update.0:** UI improvements.
+* **Update.0:** Lots of UI improvements.
 * **Fix.0:** Various bug fixes
+* **Update.1:** added hashed password check and change password menu
 
 1.93
 ----

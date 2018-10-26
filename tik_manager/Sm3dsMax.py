@@ -1066,6 +1066,8 @@ class MainUI(QtGui.QMainWindow):
         add_remove_categories_fm = QtGui.QAction("&Add/Remove Categories", self)
         projectSettings_fm = QtGui.QAction("&Project Settings", self)
 
+        changeAdminPass_fm = QtGui.QAction("&Change Admin Password", self)
+
         pb_settings_fm = QtGui.QAction("&Playblast Settings", self)
 
 
@@ -1090,6 +1092,7 @@ class MainUI(QtGui.QMainWindow):
         file.addAction(add_remove_categories_fm)
         file.addAction(pb_settings_fm)
         file.addAction(projectSettings_fm)
+        file.addAction(changeAdminPass_fm)
 
 
         #delete
@@ -1169,6 +1172,8 @@ class MainUI(QtGui.QMainWindow):
         add_remove_categories_fm.triggered.connect(self.addRemoveCategoryUI)
 
         projectSettings_fm.triggered.connect(self.projectSettingsUI)
+
+        changeAdminPass_fm.triggered.connect(self.changePasswordUI)
 
         deleteFile_fm.triggered.connect(self.onDeleteBaseScene)
 
@@ -1725,29 +1730,18 @@ class MainUI(QtGui.QMainWindow):
 
     def pbSettingsUI(self):
 
-        admin_pswd = "682"
-        passw, ok = QtGui.QInputDialog.getText(self, "Password Query", "Enter Admin Password:",
-                                               QtGui.QLineEdit.Password)
+
+        passw, ok = QtGui.QInputDialog.getText(self, "Password Query",
+                                               "Enter Admin Password:", QtGui.QLineEdit.Password)
+
         if ok:
-            if passw == admin_pswd:
+            if self.manager.checkPassword(passw):
                 pass
             else:
                 self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
                 return
         else:
             return
-
-
-
-
-
-        # formatDict = self.manager.getFormatsAndCodecs()
-
-        # def updateCodecs():
-        #     codecList = formatDict[self.fileformat_comboBox.currentText()]
-        #     self.codec_comboBox.clear()
-        #
-        #     self.codec_comboBox.addItems(codecList)
 
         def onPbSettingsAccept():
             newPbSettings = {"Resolution": (self.resolutionx_spinBox.value(), self.resolutiony_spinBox.value()),
@@ -1984,11 +1978,11 @@ class MainUI(QtGui.QMainWindow):
 
     def addRemoveUserUI(self):
 
-        admin_pswd = "682"
-        passw, ok = QtGui.QInputDialog.getText(self, "Password Query", "Enter Admin Password:",
-                                               QtGui.QLineEdit.Password)
+        passw, ok = QtGui.QInputDialog.getText(self, "Password Query",
+                                               "Enter Admin Password:", QtGui.QLineEdit.Password)
+
         if ok:
-            if passw == admin_pswd:
+            if self.manager.checkPassword(passw):
                 pass
             else:
                 self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
@@ -2103,11 +2097,11 @@ class MainUI(QtGui.QMainWindow):
 
     def addRemoveCategoryUI(self):
 
-        admin_pswd = "682"
-        passw, ok = QtGui.QInputDialog.getText(self, "Password Query", "Enter Admin Password:",
-                                               QtGui.QLineEdit.Password)
+        passw, ok = QtGui.QInputDialog.getText(self, "Password Query",
+                                               "Enter Admin Password:", QtGui.QLineEdit.Password)
+
         if ok:
-            if passw == admin_pswd:
+            if self.manager.checkPassword(passw):
                 pass
             else:
                 self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
@@ -2192,11 +2186,12 @@ class MainUI(QtGui.QMainWindow):
         categories_dialog.show()
 
     def projectSettingsUI(self):
-        admin_pswd = "682"
-        passw, ok = QtGui.QInputDialog.getText(self, "Password Query", "Enter Admin Password:",
-                                                   QtGui.QLineEdit.Password)
+
+        passw, ok = QtGui.QInputDialog.getText(self, "Password Query",
+                                               "Enter Admin Password:", QtGui.QLineEdit.Password)
+
         if ok:
-            if passw == admin_pswd:
+            if self.manager.checkPassword(passw):
                 pass
             else:
                 self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
@@ -2204,7 +2199,7 @@ class MainUI(QtGui.QMainWindow):
         else:
             return
 
-        projectSettingsDB = self.masterManager._loadProjectSettings()
+        projectSettingsDB = self.manager._loadProjectSettings()
 
         projectSettings_Dialog = QtGui.QDialog(parent=self)
         projectSettings_Dialog.setObjectName("projectSettings_Dialog")
@@ -2266,7 +2261,7 @@ class MainUI(QtGui.QMainWindow):
         fps_comboBox.setMaximumSize(QtCore.QSize(60, 16777215))
         fps_comboBox.setObjectName("fps_comboBox")
         formLayout.setWidget(1, QtGui.QFormLayout.FieldRole, fps_comboBox)
-        fps_comboBox.addItems(self.masterManager.fpsList)
+        fps_comboBox.addItems(self.manager.fpsList)
         try:
             index = self.manager.fpsList.index(str(projectSettingsDB["FPS"]))
         except:
@@ -2279,7 +2274,7 @@ class MainUI(QtGui.QMainWindow):
         def onAccepted():
             projectSettingsDB = {"Resolution": [resolutionX_spinBox.value(), resolutionY_spinBox.value()],
                                  "FPS": int(fps_comboBox.currentText())}
-            self.masterManager._saveProjectSettings(projectSettingsDB)
+            self.manager._saveProjectSettings(projectSettingsDB)
             projectSettings_Dialog.close()
 
 
@@ -2287,6 +2282,86 @@ class MainUI(QtGui.QMainWindow):
         buttonBox.rejected.connect(projectSettings_Dialog.reject)
 
         projectSettings_Dialog.show()
+
+    def changePasswordUI(self):
+
+        changePassword_Dialog = QtGui.QDialog(parent=self)
+        changePassword_Dialog.setObjectName("projectSettings_Dialog")
+        changePassword_Dialog.resize(270, 120)
+        changePassword_Dialog.setMinimumSize(QtCore.QSize(270, 120))
+        changePassword_Dialog.setMaximumSize(QtCore.QSize(270, 120))
+        changePassword_Dialog.setWindowTitle("Project Settings")
+
+        gridLayout = QtGui.QGridLayout(changePassword_Dialog)
+        gridLayout.setObjectName(("gridLayout"))
+
+        buttonBox = QtGui.QDialogButtonBox(changePassword_Dialog)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        buttonBox.setMaximumSize(QtCore.QSize(16777215, 30))
+        buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Cancel | QtGui.QDialogButtonBox.Save)
+        buttonBox.setObjectName("buttonBox")
+
+        gridLayout.addWidget(buttonBox, 1, 0, 1, 1)
+
+        formLayout = QtGui.QFormLayout()
+        formLayout.setFieldGrowthPolicy(QtGui.QFormLayout.AllNonFixedFieldsGrow)
+        formLayout.setLabelAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        formLayout.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+        formLayout.setObjectName("formLayout")
+
+        oldPass_label = QtGui.QLabel(changePassword_Dialog)
+        oldPass_label.setText("Old Password:")
+        formLayout.setWidget(0, QtGui.QFormLayout.LabelRole, oldPass_label)
+
+        oldPass_lineEdit = QtGui.QLineEdit(changePassword_Dialog)
+        oldPass_lineEdit.setEchoMode(QtGui.QLineEdit.Password)
+        formLayout.setWidget(0, QtGui.QFormLayout.FieldRole, oldPass_lineEdit)
+
+
+        newPass_label = QtGui.QLabel(changePassword_Dialog)
+        newPass_label.setText("New Password:")
+        newPass_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        formLayout.setWidget(1, QtGui.QFormLayout.LabelRole, newPass_label)
+
+        newPass_lineEdit = QtGui.QLineEdit(changePassword_Dialog)
+        newPass_lineEdit.setEchoMode(QtGui.QLineEdit.Password)
+        formLayout.setWidget(1, QtGui.QFormLayout.FieldRole, newPass_lineEdit)
+
+        newPassAgain_label = QtGui.QLabel(changePassword_Dialog)
+        newPassAgain_label.setText("New Password Again:")
+        newPassAgain_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        formLayout.setWidget(2, QtGui.QFormLayout.LabelRole, newPassAgain_label)
+
+        newPassAgain_lineEdit = QtGui.QLineEdit(changePassword_Dialog)
+        newPassAgain_lineEdit.setEchoMode(QtGui.QLineEdit.Password)
+        formLayout.setWidget(2, QtGui.QFormLayout.FieldRole, newPassAgain_lineEdit)
+
+        gridLayout.addLayout(formLayout, 0, 0, 1, 1)
+        # SIGNALS
+        # -------
+        def onAccepted():
+
+            if not self.manager.checkPassword(oldPass_lineEdit.text()):
+                self.infoPop(textTitle="Incorrect Password", textHeader="Invalid Old Password", type="C")
+                return
+            if newPass_lineEdit.text() == "" or newPassAgain_lineEdit.text() == "":
+                self.infoPop(textTitle="Error", textHeader="Admin Password cannot be blank", type="C")
+                return
+            if newPass_lineEdit.text() != newPassAgain_lineEdit.text():
+                self.infoPop(textTitle="Error", textHeader="New passwords are not matching", type="C")
+                return
+
+            if self.manager.changePassword(oldPass_lineEdit.text(), newPass_lineEdit.text()):
+                self.infoPop(textTitle="Success", textHeader="Password Changed", type="I")
+                changePassword_Dialog.close()
+
+        buttonBox.accepted.connect(onAccepted)
+        buttonBox.rejected.connect(changePassword_Dialog.reject)
+
+        changePassword_Dialog.show()
 
     def saveBaseSceneDialog(self):
         self.save_Dialog = QtGui.QDialog(parent=self)
@@ -2780,25 +2855,43 @@ class MainUI(QtGui.QMainWindow):
             zortMenu.exec_((QtGui.QCursor.pos()))
 
     def onDeleteBaseScene(self):
+        passw, ok = QtGui.QInputDialog.getText(self, "!!!DELETING BASE SCENE!!! %s\n\nAre you absolutely sure?", "Enter Admin Password:", QtGui.QLineEdit.Password)
+
+        if ok:
+            if self.manager.checkPassword(passw):
+                pass
+            else:
+                self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
+                return
+        else:
+            return
+
         name = self.manager.currentBaseSceneName
-        state = self.queryPop("password", textTitle="DELETE BASE SCENE", textInfo="!!!DELETING BASE SCENE!!! %s\n\nAre you absolutely sure?" %name, password="682")
-        if state:
-            row = self.scenes_listWidget.currentRow()
-            if not row == -1:
-                self.manager.deleteBasescene(self.manager.currentDatabasePath)
-                self.populateBaseScenes()
-                self.statusBar().showMessage("Status | Scene Deleted => %s" % name)
+
+        row = self.scenes_listWidget.currentRow()
+        if not row == -1:
+            self.manager.deleteBasescene(self.manager.currentDatabasePath)
+            self.populateBaseScenes()
+            self.statusBar().showMessage("Status | Scene Deleted => %s" % name)
 
 
     def onDeleteReference(self):
+        passw, ok = QtGui.QInputDialog.getText(self, "DELETING Reference File of %s\n\nAre you sure?", "Enter Admin Password:", QtGui.QLineEdit.Password)
+
+        if ok:
+            if self.manager.checkPassword(passw):
+                pass
+            else:
+                self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
+                return
+        else:
+            return
         name = self.manager.currentBaseSceneName
-        state = self.queryPop("password", textTitle="DELETE REFERENCE FILE", textInfo="DELETING Reference File of %s\n\nAre you sure?" %name, password="682")
-        if state:
-            row = self.scenes_listWidget.currentRow()
-            if not row == -1:
-                self.manager.deleteReference(self.manager.currentDatabasePath)
-                self.populateBaseScenes()
-                self.statusBar().showMessage("Status | Reference of %s is deleted" % name)
+        row = self.scenes_listWidget.currentRow()
+        if not row == -1:
+            self.manager.deleteReference(self.manager.currentDatabasePath)
+            self.populateBaseScenes()
+            self.statusBar().showMessage("Status | Reference of %s is deleted" % name)
 
     def onImanager(self):
         # if self.isCallback:
@@ -2902,20 +2995,20 @@ class MainUI(QtGui.QMainWindow):
         self.msg.show()
 
     def queryPop(self, type, textTitle="Question", textHeader="", textInfo="", password=""):
-        if type == "password":
-            if password != "":
-                passw, ok= QtGui.QInputDialog.getText(self, textTitle,
-                                                       textInfo, QtGui.QLineEdit.Password, parent=self)
-                if ok:
-                    if passw == password:
-                        return True
-                    else:
-                        self.infoPop(textTitle="Incorrect Passsword", textHeader="Incorrect Password", type="C")
-                        return False
-                else:
-                    return False
-            else:
-                return -1
+        # if type == "password":
+        #     if password != "":
+        #         passw, ok= QtGui.QInputDialog.getText(self, textTitle,
+        #                                                textInfo, QtGui.QLineEdit.Password, parent=self)
+        #         if ok:
+        #             if passw == password:
+        #                 return True
+        #             else:
+        #                 self.infoPop(textTitle="Incorrect Passsword", textHeader="Incorrect Password", type="C")
+        #                 return False
+        #         else:
+        #             return False
+        #     else:
+        #         return -1
 
         if type == "yesNoCancel":
 

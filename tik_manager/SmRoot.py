@@ -4,6 +4,7 @@ import datetime
 import os
 import logging
 import pprint
+import hashlib
 
 import shutil
 from glob import glob
@@ -1199,6 +1200,48 @@ class RootManager(object):
         logger.removeHandler(file_logger)
         file_logger.flush()
         file_logger.close()
+
+    def checkPassword(self, password):
+        # get the hash
+        pswFile = os.path.join(os.path.dirname(os.path.abspath(__file__)), "adminPass.psw")
+        if os.path.isfile(pswFile):
+            f = open(pswFile, "r")
+            if f.mode == "r":
+                hashedPass = f.read()
+            else:
+                return None
+            f.close()
+        else:
+            hashedPass="7110eda4d09e062aa5e4a390b0a572ac0d2c0220"
+
+        passToCheck = (hashlib.sha1(str(password).encode('utf-8')).hexdigest())
+
+        if passToCheck == hashedPass:
+            print "passed"
+            return True
+
+        else:
+            print "failed"
+            return False
+
+    def changePassword(self, oldPassword, newPassword):
+        if self.checkPassword(oldPassword):
+            pswFile = os.path.join(os.path.dirname(os.path.abspath(__file__)), "adminPass.psw")
+            tempFile = os.path.join(os.path.dirname(os.path.abspath(__file__)), "adminPassTmp.psw")
+            newHash = (hashlib.sha1(str(newPassword).encode('utf-8')).hexdigest())
+
+            f = open(tempFile, "w+")
+            f.write(newHash)
+            f.close()
+            shutil.copyfile(tempFile, pswFile)
+            os.remove(tempFile)
+            return True
+        else:
+            return False
+
+
+
+
 
     def _exception(self, code, msg):
 

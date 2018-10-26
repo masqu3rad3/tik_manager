@@ -1613,7 +1613,7 @@ global proc float MayaVersion()
 		int $apiVersion = `about -apiVersion`;
 		$version = float($apiVersion) / 100.0;
 	}
-	if( $version = 2018 )
+	if( $version == 2018 )
 	{
 		$version = 2017.5;
 	}

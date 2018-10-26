@@ -6,7 +6,7 @@ shareDir = "M:\\Projects\\__database\\scripts\\tik_manager"
 
 smFiles = os.listdir(tikManagerDir)
 
-validExtensions = [".py", ".pyc", ".png", ".stylesheet"]
+validExtensions = [".pyc", ".png", ".stylesheet", ".ico", ".bmp"]
 
 for root, dirs, files in os.walk(tikManagerDir, topdown=False):
     for file in files:
