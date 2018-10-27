@@ -349,8 +349,8 @@ class HoudiniManager(RootManager):
         openSceneInfo = self.getOpenSceneInfo()
         if not openSceneInfo:
             msg = "This is not a base scene. Scene must be saved as a base scene before playblasting."
-            # hou.ui.displayMessage(msg)
-            return -1, msg
+            self._exception(360, msg)
+            return
 
         selection = hou.selectedItems()
         hou.clearAllSelected()
@@ -385,8 +385,8 @@ class HoudiniManager(RootManager):
                 os.remove(playBlastFile)
             except WindowsError:
                 msg = "The file is open somewhere else"
-                # cmds.warning(msg)
-                return -1, msg
+                self._exception(202, msg)
+                return
 
         flip_options.output(playBlastFile)
         #

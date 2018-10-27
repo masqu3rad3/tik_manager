@@ -4,18 +4,19 @@ import shutil
 
 def checkIntegrity():
     networkDir = os.path.dirname(os.path.abspath(__file__))
-    fileList = ["__init__.py",
-                "_version.py",
-                "ImMaya.py",
-                "IvMaya.py",
-                "IvStandalone.py",
-                "pyseq.py",
-                "Qt.py",
-                "SmHoudini.py",
-                "SmMaya.py",
-                "SmRoot.py",
-                "SmStandalone.py"
-                "SubmitMayaToDeadlineCustom.mel"
+    fileList = ["__init__.pyc",
+                "_version.pyc",
+                "ImMaya.pyc",
+                "IvMaya.pyc",
+                "IvStandalone.pyc",
+                "pyseq.pyc",
+                "Qt.pyc",
+                "SmHoudini.pyc",
+                "SmMaya.pyc",
+                "SmRoot.pyc",
+                "SmStandalone.pyc",
+                "SubmitMayaToDeadlineCustom.mel",
+                "adminPass.psw"
                 ]
     for file in fileList:
         if not os.path.isfile(os.path.join(networkDir, file)):
@@ -66,12 +67,13 @@ def createOrReplace(file, newContentList, startLine="# start Scene Manager\n", e
                 endIndex = contentList.index(i)
 
         print startIndex, endIndex
-        if (startIndex != -1) and (endIndex != -1):
-            del contentList[startIndex: endIndex + 1]
-            dumpList = contentList + newContentList
-            _dumpContent(file, dumpList)
-        else:
-            raise Exception ("Cannot edit %s. Edit it manually" %(file))
+        if ((startIndex == -1) and (endIndex != -1)) or ((startIndex != -1) and (endIndex == -1)):
+            raise Exception("Cannot edit %s. Edit it manually" % file)
+        del contentList[startIndex: endIndex + 1]
+        print "sik", contentList
+        dumpList = contentList + newContentList
+        _dumpContent(file, dumpList)
+
     else:
         _dumpContent(file, newContentList)
 
@@ -107,7 +109,7 @@ def mayaSetup():
         "# end Scene Manager\n"
     ]
     createOrReplace(userSetupFile, newUserSetupContent)
-
+    print "userSetup updated at: %s" %(userSetupFile)
 
     ## SHELF
     mayaVersions = [x for x in os.listdir(userMayaDir) if os.path.isdir(os.path.join(userMayaDir, x)) and x.startswith('20')]
@@ -116,6 +118,7 @@ def mayaSetup():
     saveVersionIcon = os.path.join(networkDir, "icons", "saveVersion_ICON.png").replace("\\", "\\\\")
     imageManagerIcon = os.path.join(networkDir, "icons", "imageManager_ICON.png").replace("\\", "\\\\")
     imageViewerIcon = os.path.join(networkDir, "icons", "imageViewer_ICON.png").replace("\\", "\\\\")
+    takePreviewIcon = os.path.join(networkDir, "icons", "takePreview_ICON.png").replace("\\", "\\\\")
     shelfContent = """global proc shelf_SceneManager () {
     global string $gBuffStr;
     global string $gBuffStr0;
@@ -226,18 +229,132 @@ def mayaSetup():
         -commandRepeatable 1
         -flat 1
     ;
+        shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "takePreview" 
+        -enableBackground 0
+        -align "center" 
+        -label "takePreview" 
+        -labelOffset 0
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.9 0.9 0.9 
+        -overlayLabelBackColor 0 0 0 0 
+        -image "%s"
+        -image1 "%s"
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "\\nfrom tik_manager import SmMaya\\ntik_imageViewer = SmMaya.MayaManager().createPreview()\\n" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
 
-} """ %(managerIcon,managerIcon,saveVersionIcon,saveVersionIcon,imageManagerIcon,imageManagerIcon,imageViewerIcon,imageViewerIcon)
+} """ %(managerIcon,managerIcon,saveVersionIcon,saveVersionIcon,imageManagerIcon,imageManagerIcon,imageViewerIcon,imageViewerIcon, takePreviewIcon, takePreviewIcon)
 
     for v in mayaVersions:
         shelfDir = os.path.join(userMayaDir, v, "prefs", "shelves")
+        if not os.path.isdir(shelfDir):
+            os.makedirs(os.path.normpath(shelfDir))
         shelfFile = os.path.join(shelfDir, "shelf_SceneManager.mel")
-        if os.path.isdir(shelfDir):
-            _dumpContent(shelfFile, shelfContent)
+        _dumpContent(shelfFile, shelfContent)
+        print "Shelf created for %s" %v
+
+
+
+
+
+def houdiniSetup():
+    networkDir = os.path.dirname(os.path.abspath(__file__))
+    upNetworkDir = os.path.abspath(os.path.join(networkDir, os.pardir))
+    userHomeDir = os.path.normpath(os.path.join(os.path.expanduser("~")))
+    userDocDir = os.path.join(userHomeDir, "Documents")
+    houdiniVersions = [x for x in os.listdir(userDocDir) if
+                    os.path.isdir(os.path.join(userDocDir, x)) and x.startswith('houdini')]
+
+    # ICON PATHS
+    managerIcon = os.path.join(networkDir, "icons", "manager_ICON.png").replace("\\", "\\\\")
+    saveVersionIcon = os.path.join(networkDir, "icons", "saveVersion_ICON.png").replace("\\", "\\\\")
+    imageManagerIcon = os.path.join(networkDir, "icons", "imageManager_ICON.png").replace("\\", "\\\\")
+    imageViewerIcon = os.path.join(networkDir, "icons", "imageViewer_ICON.png").replace("\\", "\\\\")
+    takePreviewIcon = os.path.join(networkDir, "icons", "takePreview_ICON.png").replace("\\", "\\\\")
+
+    sScriptContent = [
+        "# start Scene Manager\n",
+        "import os\n"
+        "import sys\n"
+        "\n"
+        "def initFolder(targetFolder):\n"
+        "    if targetFolder in sys.path:\n"
+        "        return\n"
+        "    if not os.path.isdir(targetFolder):\n"
+        "        print ('Path is not valid (%s)' % targetFolder)\n"
+        "    sys.path.append(targetFolder)\n"
+        "\n"
+        "initFolder('{0}')\n".format((upNetworkDir.replace("\\", "//"))),
+        "# end Scene Manager\n"
+    ]
+
+    shelfContent = """<?xml version="1.0" encoding="UTF-8"?>
+<shelfDocument>
+  <!-- This file contains definitions of shelves, toolbars, and tools.
+ It should not be hand-edited when it is being used by the application.
+ Note, that two definitions of the same element are not allowed in
+ a single file. -->
+
+  <toolshelf name="sceneManager" label="Scene Manager">
+    <memberTool name="sceneManager"/>
+    <memberTool name="saveVersion"/>
+    <memberTool name="imageViewer"/>
+    <memberTool name="takePreview"/>
+  </toolshelf>
+
+  <tool name="sceneManager" label="Manager" icon="%s">
+    <script scriptType="python"><![CDATA[from tik_manager import SmHoudini
+reload(SmHoudini)
+SmHoudini.MainUI().show()]]></script>
+  </tool>
+
+  <tool name="saveVersion" label="Version" icon="%s">
+    <script scriptType="python"><![CDATA[from tik_manager import SmHoudini
+SmHoudini.MainUI().saveAsVersionDialog()]]></script>
+  </tool>
+
+  <tool name="imageViewer" label="Images" icon="%s">
+    <script scriptType="python"><![CDATA[hou.ui.displayMessage("Not Yet Implemented")]]></script>
+  </tool>
+
+  <tool name="takePreview" label="Preview" icon="%s">
+    <script scriptType="python"><![CDATA[from tik_manager import SmHoudini
+SmHoudini.HoudiniManager().createPreview()]]></script>
+  </tool>
+</shelfDocument>
+    """ %(managerIcon, saveVersionIcon, imageViewerIcon, takePreviewIcon)
+
+    for v in houdiniVersions:
+        scriptsFolder = os.path.join(userDocDir, v, "scripts")
+        # create the directory if does not exist
+        if not os.path.isdir(scriptsFolder):
+            os.makedirs(os.path.normpath(scriptsFolder))
+        sScriptFile = os.path.join(scriptsFolder, "456.py")
+        createOrReplace(sScriptFile, sScriptContent)
+
+        ## SHELF
+        shelfDir = os.path.join(userDocDir, "toolbar")
+        # create the directory if does not exist
+        if not os.path.isdir(shelfDir):
+            os.makedirs(os.path.normpath(shelfDir))
+        shelfFile = os.path.join(shelfDir, "sceneManagerTEST.shelf")
+        _dumpContent(shelfFile, shelfContent)
+
 
 
 
 checkIntegrity()
-mayaSetup()
-
-
+houdiniSetup()

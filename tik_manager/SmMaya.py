@@ -44,43 +44,43 @@ logging.basicConfig()
 logger = logging.getLogger('smMaya')
 logger.setLevel(logging.WARNING)
 
+#
+# def excepthook(excType, excValue, tracebackobj):
+#     """Overrides sys.excepthook for gui feedback"""
+#     parent = getMayaMainWindow()
+#     errorCodeDict = {200: "Corrupted File",
+#                      201: "Missing File",
+#                      202: "Read/Write Error",
+#                      203: "Delete Error",
+#                      210: "OS Not Supported",
+#                      101: "Out of range",
+#                      102: "Missing Override",
+#                      340: "Naming Error",
+#                      341: "Mandatory fields are not filled",
+#                      360: "Action not permitted"}
+#
+#     errorCode = excValue[0][0]
+#     errorMsg = excValue[0][1]
+#
+#     if errorCode == 200: # question box for this
+#         q = QtWidgets.QMessageBox(parent = parent)
+#         q.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+#         q.setText(errorMsg)
+#         q.setWindowTitle(errorCodeDict[errorCode])
+#         ret = q.exec_()
+#         if ret == QtWidgets.QMessageBox.Yes:
+#             os.startfile(excValue[0][2])
+#         elif ret == QtWidgets.QMessageBox.No:
+#             pass
+#             # print "no"
+#
+#     else:
+#         errorbox = QtWidgets.QMessageBox(parent = parent)
+#         errorbox.setText(errorMsg)
+#         errorbox.setWindowTitle(errorCodeDict[errorCode])
+#         errorbox.exec_()
 
-def excepthook(excType, excValue, tracebackobj):
-    """Overrides sys.excepthook for gui feedback"""
-    parent = getMayaMainWindow()
-    errorCodeDict = {200: "Corrupted File",
-                     201: "Missing File",
-                     202: "Read/Write Error",
-                     203: "Delete Error",
-                     210: "OS Not Supported",
-                     101: "Out of range",
-                     102: "Missing Override",
-                     340: "Naming Error",
-                     341: "Mandatory fields are not filled",
-                     360: "Action not permitted"}
-
-    errorCode = excValue[0][0]
-    errorMsg = excValue[0][1]
-
-    if errorCode == 200: # question box for this
-        q = QtWidgets.QMessageBox(parent = parent)
-        q.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
-        q.setText(errorMsg)
-        q.setWindowTitle(errorCodeDict[errorCode])
-        ret = q.exec_()
-        if ret == QtWidgets.QMessageBox.Yes:
-            os.startfile(excValue[0][2])
-        elif ret == QtWidgets.QMessageBox.No:
-            pass
-            # print "no"
-
-    else:
-        errorbox = QtWidgets.QMessageBox(parent = parent)
-        errorbox.setText(errorMsg)
-        errorbox.setWindowTitle(errorCodeDict[errorCode])
-        errorbox.exec_()
-
-sys.excepthook = excepthook
+# sys.excepthook = excepthook
 
 def getMayaMainWindow():
     """
@@ -398,13 +398,14 @@ class MayaManager(RootManager):
 
         if not pbSettings["Format"] in validFormats:
             msg = ("Format specified in project settings is not supported. Install {0}".format(pbSettings["Format"]))
-            cmds.warning(msg)
-            return -1, msg
+            # cmds.warning(msg)
+            self._exception(360, msg)
+            return
 
         if not pbSettings["Codec"] in validCodecs:
             msg = ("Codec specified in project settings is not supported. Install {0}".format(pbSettings["Codec"]))
-            cmds.warning(msg)
-            return -1, msg
+            self._exception(360, msg)
+            return
 
         extension = "mov" if pbSettings["Format"] == "qt" else "avi"
 
@@ -438,9 +439,8 @@ class MayaManager(RootManager):
 
         if not self._nameCheck(validName):
             msg = "A scene view must be highlighted"
-            cmds.warning(msg)
-            raise Exception([360, msg])
-            # return -1, msg
+            self._exception(360, msg)
+            return
 
         versionName = self.getSceneFile()
         relVersionName = os.path.relpath(versionName, start=openSceneInfo["projectPath"])
@@ -452,8 +452,8 @@ class MayaManager(RootManager):
                 os.remove(playBlastFile)
             except WindowsError:
                 msg = "The file is open somewhere else"
-                cmds.warning(msg)
-                return -1, msg
+                self._exception(202, msg)
+                return
 
         ## CREATE A CUSTOM PANEL WITH DESIRED SETTINGS
 
