@@ -1,6 +1,10 @@
 import sys
 import os
 import shutil
+import psutil
+import ctypes  # An included library with Python install.
+
+
 
 def checkIntegrity():
     networkDir = os.path.dirname(os.path.abspath(__file__))
@@ -18,9 +22,78 @@ def checkIntegrity():
                 "SubmitMayaToDeadlineCustom.mel",
                 "adminPass.psw"
                 ]
-    for file in fileList:
-        if not os.path.isfile(os.path.join(networkDir, file)):
-            raise Exception ("MISSING FILE: %s" %file)
+    # for file in fileList:
+    #     if not os.path.isfile(os.path.join(networkDir, file)):
+    #
+    #         raise Exception ("MISSING FILE: %s" %file)
+    #
+    # for p in psutil.process_iter():
+    #     # if "houdini" in p.name():
+    #     #
+    #     #     msg = "houdini is running"
+    #     #     ctypes.windll.user32.MessageBoxA(0, msg, "Cannot continue", 0)
+    #     if "houdini" in p.name():
+    #
+    #         msg = "Houdini is running exit Houdini and hit ok to continue"
+    #         ret = ctypes.windll.user32.MessageBoxA(0, msg, "Setup Cannot Continue", 1)
+    #         if ret == 0: #OK
+    # houdiniInstance = checkRuninngInstances("houdini")
+    # if houdiniInstance == -1:
+    #     print "user aborted"
+    #     return # user aborts
+    #
+    aborted = checkRuninngInstances("maya.exe")
+    if aborted:
+        print "user aborted"
+        return # user aborts
+
+    aborted = checkRuninngInstances("3dsmax.exe")
+    if aborted:
+        print "user aborted"
+        return # user aborts
+
+    aborted = checkRuninngInstances("houdinifx.exe")
+    if aborted:
+        print "user aborted"
+        return # user aborts
+
+def checkRuninngInstances(sw):
+    # for p in psutil.process_iter():
+    #     if sw in p.name():
+    #         msg = "%s is running. Exit software and hit ok to continue" %(sw)
+    #         ret = ctypes.windll.user32.MessageBoxA(0, msg, "Setup Cannot Continue", 1)
+    #         print "rr", ret
+    #         if ret == 1:  # OK
+    #             print "ok pressed"
+    #             checkRuninngInstances(sw)
+    #             return
+    #         if ret == 2:
+    #             return -1 #aborthi
+    aborted=False
+    closed=False
+    while not aborted and not closed:
+        closed = not (sw in (p.name() for p in psutil.process_iter()))
+        print "cl", closed
+        if not closed:
+            msg = "%s is running. Exit software and hit ok to continue" % (sw)
+            ret = ctypes.windll.user32.MessageBoxA(0, msg, "Setup Cannot Continue", 1)
+            if ret == 1:  # OK
+                print "ok pressed"
+
+            if ret == 2:
+                aborted = True
+                print aborted
+    return aborted
+
+
+
+
+# if "maya" in p.name():
+        #     print "maya is running"
+        # if "3dsmax" in p.name():
+        #     print "3ds max is running"
+
+    # "houdinifx.exe" in (p.name() for p in psutil.process_iter())
 
 
 
@@ -266,10 +339,6 @@ def mayaSetup():
         _dumpContent(shelfFile, shelfContent)
         print "Shelf created for %s" %v
 
-
-
-
-
 def houdiniSetup():
     networkDir = os.path.dirname(os.path.abspath(__file__))
     upNetworkDir = os.path.abspath(os.path.join(networkDir, os.pardir))
@@ -357,4 +426,4 @@ SmHoudini.HoudiniManager().createPreview()]]></script>
 
 
 checkIntegrity()
-houdiniSetup()
+# houdiniSetup()
