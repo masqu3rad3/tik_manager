@@ -2,102 +2,37 @@ import sys
 import os
 import shutil
 import psutil
-import ctypes  # An included library with Python install.
+# import win32ui
+# import win32con
 
-
-
-def checkIntegrity():
-    networkDir = os.path.dirname(os.path.abspath(__file__))
-    fileList = ["__init__.pyc",
-                "_version.pyc",
-                "ImMaya.pyc",
-                "IvMaya.pyc",
-                "IvStandalone.pyc",
-                "pyseq.pyc",
-                "Qt.pyc",
-                "SmHoudini.pyc",
-                "SmMaya.pyc",
-                "SmRoot.pyc",
-                "SmStandalone.pyc",
-                "SubmitMayaToDeadlineCustom.mel",
-                "adminPass.psw"
-                ]
-    # for file in fileList:
-    #     if not os.path.isfile(os.path.join(networkDir, file)):
-    #
-    #         raise Exception ("MISSING FILE: %s" %file)
-    #
-    # for p in psutil.process_iter():
-    #     # if "houdini" in p.name():
-    #     #
-    #     #     msg = "houdini is running"
-    #     #     ctypes.windll.user32.MessageBoxA(0, msg, "Cannot continue", 0)
-    #     if "houdini" in p.name():
-    #
-    #         msg = "Houdini is running exit Houdini and hit ok to continue"
-    #         ret = ctypes.windll.user32.MessageBoxA(0, msg, "Setup Cannot Continue", 1)
-    #         if ret == 0: #OK
-    # houdiniInstance = checkRuninngInstances("houdini")
-    # if houdiniInstance == -1:
-    #     print "user aborted"
-    #     return # user aborts
-    #
-    aborted = checkRuninngInstances("maya.exe")
-    if aborted:
-        print "user aborted"
-        return # user aborts
-
-    aborted = checkRuninngInstances("3dsmax.exe")
-    if aborted:
-        print "user aborted"
-        return # user aborts
-
-    aborted = checkRuninngInstances("houdinifx.exe")
-    if aborted:
-        print "user aborted"
-        return # user aborts
 
 def checkRuninngInstances(sw):
-    # for p in psutil.process_iter():
-    #     if sw in p.name():
-    #         msg = "%s is running. Exit software and hit ok to continue" %(sw)
-    #         ret = ctypes.windll.user32.MessageBoxA(0, msg, "Setup Cannot Continue", 1)
-    #         print "rr", ret
-    #         if ret == 1:  # OK
-    #             print "ok pressed"
-    #             checkRuninngInstances(sw)
-    #             return
-    #         if ret == 2:
-    #             return -1 #aborthi
+    running = True
     aborted=False
-    closed=False
-    while not aborted and not closed:
-        closed = not (sw in (p.name() for p in psutil.process_iter()))
-        print "cl", closed
-        if not closed:
-            msg = "%s is running. Exit software and hit ok to continue" % (sw)
-            ret = ctypes.windll.user32.MessageBoxA(0, msg, "Setup Cannot Continue", 1)
+
+    while not aborted and running:
+        # closed = not (sw in (p.name() for p in psutil.process_iter()))
+        matchList = [p for p in psutil.process_iter() if p.name().startswith(sw)]
+        if matchList:
+            running = True
+        else:
+            running = False
+
+        if running:
+            # msg = "%s is running. Exit software and ok to continue" % (sw)
+            msg = "%s is running. Exit software and type 'y'. type 'n' to abort" % (sw)
+            # ret = ctypes.windll.user32.MessageBoxA(0, msg, "Setup Cannot Continue", 1)
+            # ret = win32ui.MessageBox(msg, "Setup Cannot Continue", win32con.MB_OKCANCEL)
+            ret = okCancel(msg)
             if ret == 1:  # OK
-                print "ok pressed"
+                pass
 
             if ret == 2:
                 aborted = True
-                print aborted
-    return aborted
-
-
-
-
-# if "maya" in p.name():
-        #     print "maya is running"
-        # if "3dsmax" in p.name():
-        #     print "3ds max is running"
-
-    # "houdinifx.exe" in (p.name() for p in psutil.process_iter())
-
-
-
-
+                return -1
+        else:
+            return 1
+        # return -1
 
 def _loadContent(filePath):
     f = open(filePath, "r")
@@ -139,25 +74,65 @@ def createOrReplace(file, newContentList, startLine="# start Scene Manager\n", e
             if i == endLine:
                 endIndex = contentList.index(i)
 
-        print startIndex, endIndex
         if ((startIndex == -1) and (endIndex != -1)) or ((startIndex != -1) and (endIndex == -1)):
             raise Exception("Cannot edit %s. Edit it manually" % file)
         del contentList[startIndex: endIndex + 1]
-        print "sik", contentList
         dumpList = contentList + newContentList
         _dumpContent(file, dumpList)
 
     else:
         _dumpContent(file, newContentList)
 
-def mayaSetup():
+def mayaSetup(prompt=True):
+    # Check file integrity
+    print "Starting Maya Setup"
+    print "Checking files..."
     networkDir = os.path.dirname(os.path.abspath(__file__))
+    fileList = ["__init__.py",
+                "_version.py",
+                "ImMaya.py",
+                "IvMaya.py",
+                "pyseq.py",
+                "Qt.py",
+                "SmMaya.py",
+                "SmRoot.py",
+                "SubmitMayaToDeadlineCustom.mel",
+                "adminPass.psw"
+                ]
+    for file in fileList:
+        if not os.path.isfile(os.path.join(networkDir, file)):
+            # if the extension is pyc give it another chance
+            if os.path.splitext(file)[1] == "py":
+                if not os.path.isfile(os.path.join(networkDir, "%sc" %file)): # make the extension pyc
+                    print "Missing file:\nCannot find %s" % file
+                    raw_input("Press Enter to continue...")
+                    return
+            else:
+                print "Missing file:\nCannot find %s" %file
+                raw_input("Press Enter to continue...")
+                return
+
+    # check for running instances
+    state = checkRuninngInstances("maya")
+    if state == -1:
+        print "Installation Aborted by User"
+        return # user aborts
+
     upNetworkDir = os.path.abspath(os.path.join(networkDir, os.pardir))
     userHomeDir = os.path.normpath(os.path.join(os.path.expanduser("~")))
     userDocDir = os.path.join(userHomeDir, "Documents")
     userMayaDir = os.path.join(userDocDir, "maya")
     userScriptsDir = os.path.join(userMayaDir, "scripts")
     userSetupFile = os.path.join(userScriptsDir, "userSetup.py")
+
+    print "Finding Maya Versions..."
+    mayaVersions = [x for x in os.listdir(userMayaDir) if os.path.isdir(os.path.join(userMayaDir, x)) and x.startswith('20')]
+    if mayaVersions:
+        print "Found Maya Versions: %s " % str(mayaVersions)
+    else:
+        print "No Maya version can be found, try manual installation"
+        return
+
     newUserSetupContent = [
         "# start Scene Manager\n",
         "import os\n",
@@ -185,7 +160,7 @@ def mayaSetup():
     print "userSetup updated at: %s" %(userSetupFile)
 
     ## SHELF
-    mayaVersions = [x for x in os.listdir(userMayaDir) if os.path.isdir(os.path.join(userMayaDir, x)) and x.startswith('20')]
+
 
     managerIcon = os.path.join(networkDir, "icons", "manager_ICON.png").replace("\\", "\\\\")
     saveVersionIcon = os.path.join(networkDir, "icons", "saveVersion_ICON.png").replace("\\", "\\\\")
@@ -339,14 +314,52 @@ def mayaSetup():
         _dumpContent(shelfFile, shelfContent)
         print "Shelf created for %s" %v
 
-def houdiniSetup():
+    print "Successfull => Maya Setup"
+    if prompt:
+        raw_input("Press Enter to continue...")
+
+def houdiniSetup(prompt=True):
+    # Check file integrity
+    print "Starting Houdini Setup"
+    print "Checking files..."
     networkDir = os.path.dirname(os.path.abspath(__file__))
+    fileList = ["__init__.py",
+                "_version.py",
+                "pyseq.py",
+                "SmHoudini.py",
+                "SmRoot.py",
+                "adminPass.psw"
+                ]
+    for file in fileList:
+        if not os.path.isfile(os.path.join(networkDir, file)):
+            # if the extension is pyc give it another chance
+            if os.path.splitext(file)[1] == "py":
+                if not os.path.isfile(os.path.join(networkDir, "%sc" %file)): # make the extension pyc
+                    print "Missing file:\nCannot find %s" % file
+                    raw_input("Press Enter to continue...")
+                    return
+            else:
+                print "Missing file:\nCannot find %s" %file
+                raw_input("Press Enter to continue...")
+                return
+
+    # check for running instances
+    state = checkRuninngInstances("houdini")
+    if state == -1:
+        print "Aborted bt user"
+        return # user aborts
+
     upNetworkDir = os.path.abspath(os.path.join(networkDir, os.pardir))
     userHomeDir = os.path.normpath(os.path.join(os.path.expanduser("~")))
     userDocDir = os.path.join(userHomeDir, "Documents")
+    print "Finding Houdini Versions..."
     houdiniVersions = [x for x in os.listdir(userDocDir) if
                     os.path.isdir(os.path.join(userDocDir, x)) and x.startswith('houdini')]
-
+    if houdiniVersions:
+        print "Found Houdini Versions: %s " % str(houdiniVersions)
+    else:
+        print "No Houdini version can be found, try manual installation"
+        return
     # ICON PATHS
     managerIcon = os.path.join(networkDir, "icons", "manager_ICON.png").replace("\\", "\\\\")
     saveVersionIcon = os.path.join(networkDir, "icons", "saveVersion_ICON.png").replace("\\", "\\\\")
@@ -406,6 +419,7 @@ SmHoudini.HoudiniManager().createPreview()]]></script>
 </shelfDocument>
     """ %(managerIcon, saveVersionIcon, imageViewerIcon, takePreviewIcon)
 
+
     for v in houdiniVersions:
         scriptsFolder = os.path.join(userDocDir, v, "scripts")
         # create the directory if does not exist
@@ -414,16 +428,135 @@ SmHoudini.HoudiniManager().createPreview()]]></script>
         sScriptFile = os.path.join(scriptsFolder, "456.py")
         createOrReplace(sScriptFile, sScriptContent)
 
+        print "Path config appended to %s" %sScriptFile
+
         ## SHELF
-        shelfDir = os.path.join(userDocDir, "toolbar")
+        shelfDir = os.path.join(userDocDir, v, "toolbar")
         # create the directory if does not exist
         if not os.path.isdir(shelfDir):
             os.makedirs(os.path.normpath(shelfDir))
-        shelfFile = os.path.join(shelfDir, "sceneManagerTEST.shelf")
+        shelfFile = os.path.join(shelfDir, "sceneManager.shelf")
         _dumpContent(shelfFile, shelfContent)
 
+        print "Scene manager shelf created or updated at %s" % shelfFile
 
+    print "\nInside Houdini, Scene Manager shelf should be enabled for the desired shelf set by clicking to '+' icon and selecting 'shelves' sub menu."
 
+    print "Successfull => Maya Setup"
 
-checkIntegrity()
+    if prompt:
+        raw_input("Press Enter to continue...")
+
+def maxSetup(prompt=True):
+
+    #WIP
+    # "C:\Program Files\Autodesk\3ds Max 2017\scripts\startup"
+    # "C:\Program Files\Autodesk\3ds Max 2017\scripts"
+    # "C:\Users\kutlu\AppData\Local\Autodesk\3dsMax\2017 - 64bit\ENU\scripts"
+    # "C:\Users\kutlu\AppData\Local\Autodesk\3dsMax\2017 - 64bit\ENU\scripts\startup"
+    # "C:\Users\kutlu\AppData\Local\Autodesk\3dsMax\2017 - 64bit\ENU\usericons"
+    # "C:\Users\kutlu\AppData\Local\Autodesk\3dsMax\2017 - 64bit\ENU\usermacros"
+
+    networkDir = os.path.dirname(os.path.abspath(__file__))
+    fileList = ["__init__.pyc",
+                "_version.pyc",
+                "pyseq.pyc",
+                "SmRoot.pyc",
+                "SmStandalone.pyc",
+                "SubmitMayaToDeadlineCustom.mel",
+                "adminPass.psw"
+                ]
+    for file in fileList:
+        if not os.path.isfile(os.path.join(networkDir, file)):
+            # if the extension is pyc give it another chance
+            if os.path.splitext(file)[1] == "py":
+                if not os.path.isfile(os.path.join(networkDir, "%sc" %file)): # make the extension pyc
+                    print "Missing file:\nCannot find %s" % file
+                    raw_input("Press Enter to continue...")
+                    return
+            else:
+                print "Missing file:\nCannot find %s" %file
+                raw_input("Press Enter to continue...")
+                return
+
+    print "Successfull => Maya Setup"
+
+    if prompt:
+        raw_input("Press Enter to continue...")
+
+def installAll():
+    mayaSetup()
+    houdiniSetup()
+    maxSetup()
+
+# checkIntegrity()
 # houdiniSetup()
+
+# runCode = True
+# def terminate():
+#     runCode = False
+
+
+header = """
+-------------------
+Scene Manager Setup
+-------------------
+
+Choose the software you want to setup Scene Manager:"""
+
+# colors = {
+#         'blue': '\033[94m',
+#         'pink': '\033[1;35m',
+#         'green': '\033[92m',
+#         }
+
+menuItems = [
+    { "Maya": mayaSetup },
+    { "Houdini": houdiniSetup },
+    { "3dsMax": houdiniSetup },
+    { "Install All": installAll },
+    { "Exit": sys.exit}
+]
+
+# def message():
+#     print "Setup Cannot Continue"
+
+def okCancel(msg):
+    reply = str(raw_input(msg+' (y/n): ')).lower().strip()
+    if reply[0] == 'y':
+        return 1
+    if reply[0] == 'n':
+        return 2
+    else:
+        return okCancel(msg)
+
+
+def main():
+    while True:
+        # os.system('cls')
+        # Print some badass ascii art header here !
+        # print colorize(header, 'green')
+        print (header)
+        # print colorize('version 0.1\n', 'green')
+        for item in menuItems:
+            # print colorize("[" + str(menuItems.index(item)) + "] ", 'blue') + item.keys()[0]
+            print ("[" + str(menuItems.index(item)) + "] ") + item.keys()[0]
+        choice = raw_input(">> ")
+        try:
+            if int(choice) < 0 : raise ValueError
+            # Call the matching function
+            menuItems[int(choice)].values()[0]()
+            os.system('cls')
+
+
+        except (ValueError, IndexError):
+            pass
+
+# def colorize(string, color):
+#     if not color in colors: return string
+#     return colors[color] + string + '\033[0m'
+
+# Main Program
+# main()
+if __name__ == "__main__":
+    main()
