@@ -308,8 +308,7 @@ def mayaSetup(prompt=True):
 
     for v in mayaVersions:
         shelfDir = os.path.join(userMayaDir, v, "prefs", "shelves")
-        if not os.path.isdir(shelfDir):
-            os.makedirs(os.path.normpath(shelfDir))
+        folderCheck(shelfDir)
         shelfFile = os.path.join(shelfDir, "shelf_SceneManager.mel")
         _dumpContent(shelfFile, shelfContent)
         print "Shelf created for %s" %v
@@ -423,8 +422,7 @@ SmHoudini.HoudiniManager().createPreview()]]></script>
     for v in houdiniVersions:
         scriptsFolder = os.path.join(userDocDir, v, "scripts")
         # create the directory if does not exist
-        if not os.path.isdir(scriptsFolder):
-            os.makedirs(os.path.normpath(scriptsFolder))
+        folderCheck(scriptsFolder)
         sScriptFile = os.path.join(scriptsFolder, "456.py")
         createOrReplace(sScriptFile, sScriptContent)
 
@@ -433,8 +431,7 @@ SmHoudini.HoudiniManager().createPreview()]]></script>
         ## SHELF
         shelfDir = os.path.join(userDocDir, v, "toolbar")
         # create the directory if does not exist
-        if not os.path.isdir(shelfDir):
-            os.makedirs(os.path.normpath(shelfDir))
+        folderCheck(shelfDir)
         shelfFile = os.path.join(shelfDir, "sceneManager.shelf")
         _dumpContent(shelfFile, shelfContent)
 
@@ -479,16 +476,88 @@ def maxSetup(prompt=True):
                 raw_input("Press Enter to continue...")
                 return
 
-    print "Successfull => Maya Setup"
+    userHomeDir = os.path.normpath(os.path.join(os.path.expanduser("~")))
+    userMaxDir = os.path.join(userHomeDir, "AppData", "Local", "Autodesk", "3dsMax")
+
+    # ICON PATHS
+    pack_16a = os.path.join(networkDir, "icons", "SceneManager_16a.bmp").replace("\\", "\\\\")
+    pack_16i = os.path.join(networkDir, "icons", "SceneManager_16i.bmp").replace("\\", "\\\\")
+    pack_24a = os.path.join(networkDir, "icons", "SceneManager_24a.bmp").replace("\\", "\\\\")
+    pack_24i = os.path.join(networkDir, "icons", "SceneManager_24i.bmp").replace("\\", "\\\\")
+
+    workSpaceInjection ="""<Window name="findThisBar" type="T" rank="0" subRank="2" hidden="0" dPanel="1" tabbed="0" curTab="-1" cType="1" toolbarRows="1" toolbarType="3">
+            <FRect left="828" top="213" right="937" bottom="287" />
+            <DRect left="1395" top="53" right="1504" bottom="92" />
+            <DRectPref left="2147483647" top="2147483647" right="-2147483648" bottom="-2147483648" />
+            <CurPos left="1395" top="53" right="1504" bottom="92" floating="0" panelID="1" />
+            <Items>
+                <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" imageID="-1" imageName="" actionID="manager`SceneManager" tip="Scene Manager" label="Scene Manager" />
+                <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" imageID="-1" imageName="" actionID="saveVersion`SceneManager" tip="Scene Manager - Version Save" label="Save Version" />
+                <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" imageID="-1" imageName="" actionID="makePreview`SceneManager" tip="Scene Manager - Make Preview" label="Make Preview" />
+            </Items>
+        </Window>"""
+
+    print "Finding 3ds Max Versions..."
+    maxVersions = [x for x in os.listdir(userMaxDir)]
+
+    for v in maxVersions:
+        print "Setup for version %s" %v
+        sScriptsDir = os.path.join(userMaxDir, v, "ENU", "scripts", "startup")
+        folderCheck(sScriptsDir)
+        iconsDir = os.path.join(userMaxDir, v, "ENU", "usericons")
+        folderCheck(iconsDir)
+        macrosDir = os.path.join(userMaxDir, v, "ENU", "usermacros")
+        folderCheck(macrosDir)
+        print "Copying Icon sets..."
+        print iconsDir
+        shutil.copy(pack_16a, os.path.join(iconsDir, "SceneManager_16a.bmp"))
+        shutil.copy(pack_16i, os.path.join(iconsDir, "SceneManager_16i.bmp"))
+        shutil.copy(pack_24a, os.path.join(iconsDir, "SceneManager_24a.bmp"))
+        shutil.copy(pack_24i, os.path.join(iconsDir, "SceneManager_24i.bmp"))
+
+        workspaceDir =  os.path.join(userMaxDir, v, "ENU", "en-US", "UI", "Workspaces", "usersave")
+        folderCheck(workspaceDir)
+        workspaceFile = os.path.join(workspaceDir, "Workspace1__usersave__.cuix")\
+
+        workSpaceContentList = _loadContent(workspaceFile)
+
+        startLine = None
+        for line in workSpaceContentList:
+            if "findThisBar" in line:
+                print "found"
+                startLine = workSpaceContentList.index(line)
+                print "line", startLine
+                break
+
+        if startLine:
+            for line in workSpaceContentList[startLine:]:
+                print line
+                if "</Window>" in line:
+                    endLine = workSpaceContentList.index(line)
+                    break
+
+        # TODO : Write an inject function
+
+
+
+
+
+
+
+
+    print "Successfull => 3ds Max Setup"
 
     if prompt:
         raw_input("Press Enter to continue...")
 
 def installAll():
-    mayaSetup()
-    houdiniSetup()
+    mayaSetup(prompt=False)
+    houdiniSetup(prompt=False)
     maxSetup()
 
+def folderCheck(folder):
+    if not os.path.isdir(folder):
+        os.makedirs(os.path.normpath(folder))
 # checkIntegrity()
 # houdiniSetup()
 
@@ -513,7 +582,7 @@ Choose the software you want to setup Scene Manager:"""
 menuItems = [
     { "Maya": mayaSetup },
     { "Houdini": houdiniSetup },
-    { "3dsMax": houdiniSetup },
+    { "3dsMax": maxSetup },
     { "Install All": installAll },
     { "Exit": sys.exit}
 ]
@@ -559,4 +628,5 @@ def main():
 # Main Program
 # main()
 if __name__ == "__main__":
-    main()
+    # main()
+    maxSetup()
