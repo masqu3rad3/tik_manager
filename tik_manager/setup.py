@@ -433,6 +433,9 @@ def mayaSetup(prompt=True):
         raw_input("Press Enter to continue...")
 
 def houdiniSetup(prompt=True):
+
+    # TODO : implement workspace injection to XML
+    # TODO : TEST IT
     # Check file integrity
     print "Starting Houdini Setup"
     print "Checking files..."
@@ -798,5 +801,5 @@ def main():
 # Main Program
 # main()
 if __name__ == "__main__":
-    # main()
-    maxSetup()
+    main()
+    # maxSetup()

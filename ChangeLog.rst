@@ -134,8 +134,7 @@ Scene Manager Version History
 1.2
 ----
 * **Fix:** loading and referencing system fixed. Now it checks for the selected rows 'name' not the list number id.
-* **Update:** the name check for duplicate base scenes. It doesnt allow creating base scenes with the same name disregarding it
-has lower case or upper case characters.
+* **Update:** the name check for duplicate base scenes. It doesnt allow creating base scenes with the same name disregarding it has lower case or upper case characters.
 
 1.1
 ----
