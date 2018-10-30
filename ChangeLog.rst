@@ -11,6 +11,7 @@ Scene Manager Version History
 * **Update.0:** Lots of UI improvements.
 * **Fix.0:** Various bug fixes
 * **Update.1:** added hashed password check and change password menu
+* **Fix.11:** Fixed callback crash in 3ds max
 
 1.93
 ----

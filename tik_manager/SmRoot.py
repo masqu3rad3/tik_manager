@@ -1119,7 +1119,12 @@ class RootManager(object):
 
         ## TODO // TEST IT
         self._pathsDict["sceneFile"] = self.getSceneFile()
-        openSceneInfo = self.getOpenSceneInfo()
+        try:
+            openSceneInfo = self.getOpenSceneInfo()
+            if not openSceneInfo:
+                return
+        except TypeError:
+            return
         if openSceneInfo["jsonFile"]:
             jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
             if jsonInfo["ReferenceFile"]:

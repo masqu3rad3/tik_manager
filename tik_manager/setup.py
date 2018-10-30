@@ -43,8 +43,15 @@ def _loadContent(filePath):
     f.close()
     return contentList
 
-def _dumpContent(filePath, contentList):
+def _dumpContent(filePath, contentList, backup=False):
+    if backup:
+        shutil.copyfile(filePath)
     name, ext = os.path.splitext(filePath)
+    if backup:
+        if os.path.isdir(filePath):
+            backupFile = "{0}.bak".format(name)
+            shutil.copyfile(filePath, backupFile)
+            print "Backup complete\n%s => %s" %(filePath, backupFile)
     tempFile = "{0}_TMP{1}".format(name, ext)
     f = open(tempFile, "w+")
     f.writelines(contentList)
@@ -52,36 +59,143 @@ def _dumpContent(filePath, contentList):
     shutil.copyfile(tempFile, filePath)
     os.remove(tempFile)
 
-def createOrReplace(file, newContentList, startLine="# start Scene Manager\n", endLine="# end Scene Manager\n"):
-    # if there is no file
-    if os.path.isfile(file):
-        contentList = _loadContent(file)
+def inject(file, newContentList, between=None, after=None, before=None, matchMode="equal", force=True, searchDirection="forward"):
+    if type(newContentList) == str:
+        newContentList = [newContentList]
 
-        # if the file is empty ->
-        if not contentList:
+    # try:
+    #     content = _loadContent(file)
+    # except IOError:
+    #     print "Error Writing to file %s aborting" %file
+    #     return None
+    if not os.path.isfile(file):
+        if force:
             _dumpContent(file, newContentList)
+            print "Created %s with new content" % file
+            return True
+        else:
+            print "File does not exist (%s)" %file
+            return False
+
+    contentList = _loadContent(file)
+
+    # if the file is empty ->
+    if not contentList:
+        if force:
+            _dumpContent(file, newContentList)
+            print "New content added to empty %s" %file
+            return True
+        else:
+            print "File is empty, nothing to change"
+            return False
+
+    # make sure last line ends with a break line
+    if "\n" not in contentList[-1] and contentList[-1] is not "":
+        contentList[-1] = "%s\n" % (contentList[-1])
+
+    if not between and not after and not before:
+        # no search, just append
+        _dumpContent(file, (contentList + newContentList))
+        return True
+
+    #continue with search and replace
+
+    startIndex = None
+    endIndex = None
+
+
+    searchList = list(reversed(contentList)) if searchDirection == "backward" else contentList
+
+    ####################################
+
+    def collectIndex(searchList, line, beginFrom=0, mode="equal"):
+        if mode == "equal":
+            try:
+                index = searchList.index(line)
+            except ValueError:
+                index = None
+            return index
+        elif mode == "includes":
+            for i in range(beginFrom, len(searchList)):
+                if line in searchList[i]:
+                    index = i
+                    return index
+            return None # if no match
+
+    if between:
+        startLine = between[0]
+        endLine = between[1]
+        startIndex = collectIndex(searchList, startLine, mode=matchMode)
+        print "startIndex", startIndex
+        if startIndex:
+            endIndex = collectIndex(searchList, endLine, beginFrom=startIndex, mode=matchMode)
+            print "endIndex", endIndex
+        if not startIndex or not endIndex:
+            if force:
+                "Cannot find Start Line. Just appending to the file"
+                _dumpContent(file, (contentList + newContentList))
+            else:
+                print "Cannot find Start Line. Aborting"
+                return
+
+    elif after:
+        startIndex = collectIndex(searchList, after, mode=matchMode)
+        if not startIndex:
+            print "Cannot find After Line. Aborting"
             return
+        endIndex = startIndex+1
 
-        # make sure last line ends with a break line
-        if "\n" not in contentList[-1] and contentList[-1] is not "":
-            contentList[-1] = "%s\n" % (contentList[-1])
-        # find start / end of previous content
-        startIndex = -1
-        endIndex = -1
-        for i in contentList:
-            if i == startLine:
-                startIndex = contentList.index(i)
-            if i == endLine:
-                endIndex = contentList.index(i)
+    elif before:
+        startIndex = collectIndex(searchList, before, mode=matchMode)
+        if not startIndex:
+            print "Cannot find After Line. Aborting"
+            return
+        endIndex = startIndex-1
 
-        if ((startIndex == -1) and (endIndex != -1)) or ((startIndex != -1) and (endIndex == -1)):
-            raise Exception("Cannot edit %s. Edit it manually" % file)
-        del contentList[startIndex: endIndex + 1]
-        dumpList = contentList + newContentList
-        _dumpContent(file, dumpList)
-
+    if searchDirection == "backward":
+        injectedContent = contentList[:-endIndex] + newContentList + contentList[-startIndex - 1:]
+        # print "start:", contentList[-startIndex-1]
+        # print "end:", contentList[-endIndex]
     else:
-        _dumpContent(file, newContentList)
+        injectedContent = contentList[:startIndex] + newContentList + contentList[endIndex + 1:]
+        # print "start:", contentList[:startIndex]
+        # print "end:", contentList[endIndex+1]
+
+
+    _dumpContent(file, injectedContent)
+    return True
+
+
+# def createOrReplace(file, newContentList, startLine="# start Scene Manager\n", endLine="# end Scene Manager\n"):
+#     # if there is no file
+#     if os.path.isfile(file):
+#         contentList = _loadContent(file)
+#
+#         # if the file is empty ->
+#         if not contentList:
+#             _dumpContent(file, newContentList)
+#             return
+#
+#         # make sure last line ends with a break line
+#         if "\n" not in contentList[-1] and contentList[-1] is not "":
+#             contentList[-1] = "%s\n" % (contentList[-1])
+#         # find start / end of previous content
+#         startIndex = -1
+#         endIndex = -1
+#         for i in contentList:
+#             if i == startLine:
+#                 startIndex = contentList.index(i)
+#             if i == endLine:
+#                 endIndex = contentList.index(i)
+#
+#         if ((startIndex == -1) and (endIndex != -1)) or ((startIndex != -1) and (endIndex == -1)):
+#             raise Exception("Cannot edit %s. Edit it manually" % file)
+#         del contentList[startIndex: endIndex + 1]
+#         dumpList = contentList + newContentList
+#         _dumpContent(file, dumpList)
+#
+#     else:
+#         _dumpContent(file, newContentList)
 
 def mayaSetup(prompt=True):
     # Check file integrity
@@ -156,7 +270,8 @@ def mayaSetup(prompt=True):
         "maya.utils.executeDeferred('SMid = OpenMaya.MSceneMessage.addCallback(OpenMaya.MSceneMessage.kAfterSave, smUpdate)')\n",
         "# end Scene Manager\n"
     ]
-    createOrReplace(userSetupFile, newUserSetupContent)
+    # createOrReplace(userSetupFile, newUserSetupContent)
+    inject(userSetupFile, newUserSetupContent, between=("# start Scene Manager\n", "# end Scene Manager\n"))
     print "userSetup updated at: %s" %(userSetupFile)
 
     ## SHELF
@@ -424,7 +539,8 @@ SmHoudini.HoudiniManager().createPreview()]]></script>
         # create the directory if does not exist
         folderCheck(scriptsFolder)
         sScriptFile = os.path.join(scriptsFolder, "456.py")
-        createOrReplace(sScriptFile, sScriptContent)
+        # createOrReplace(sScriptFile, sScriptContent)
+        inject(sScriptFile, sScriptContent, between=("# start Scene Manager\n", "# end Scene Manager\n"))
 
         print "Path config appended to %s" %sScriptFile
 
@@ -455,6 +571,7 @@ def maxSetup(prompt=True):
     # "C:\Users\kutlu\AppData\Local\Autodesk\3dsMax\2017 - 64bit\ENU\usermacros"
 
     networkDir = os.path.dirname(os.path.abspath(__file__))
+    upNetworkDir = os.path.abspath(os.path.join(networkDir, os.pardir))
     fileList = ["__init__.pyc",
                 "_version.pyc",
                 "pyseq.pyc",
@@ -463,6 +580,7 @@ def maxSetup(prompt=True):
                 "SubmitMayaToDeadlineCustom.mel",
                 "adminPass.psw"
                 ]
+
     for file in fileList:
         if not os.path.isfile(os.path.join(networkDir, file)):
             # if the extension is pyc give it another chance
@@ -476,6 +594,12 @@ def maxSetup(prompt=True):
                 raw_input("Press Enter to continue...")
                 return
 
+    # check for running instances
+    state = checkRuninngInstances("3dsmax")
+    if state == -1:
+        print "Installation Aborted by User"
+        return # user aborts
+
     userHomeDir = os.path.normpath(os.path.join(os.path.expanduser("~")))
     userMaxDir = os.path.join(userHomeDir, "AppData", "Local", "Autodesk", "3dsMax")
 
@@ -485,17 +609,17 @@ def maxSetup(prompt=True):
     pack_24a = os.path.join(networkDir, "icons", "SceneManager_24a.bmp").replace("\\", "\\\\")
     pack_24i = os.path.join(networkDir, "icons", "SceneManager_24i.bmp").replace("\\", "\\\\")
 
-    workSpaceInjection ="""<Window name="findThisBar" type="T" rank="0" subRank="2" hidden="0" dPanel="1" tabbed="0" curTab="-1" cType="1" toolbarRows="1" toolbarType="3">
-            <FRect left="828" top="213" right="937" bottom="287" />
+    workSpaceInjection ="""        <Window name="sceneManager" type="T" rank="0" subRank="2" hidden="0" dPanel="1" tabbed="0" curTab="-1" cType="1" toolbarRows="1" toolbarType="3">
+            <FRect left="503" top="452" right="612" bottom="526" />
             <DRect left="1395" top="53" right="1504" bottom="92" />
             <DRectPref left="2147483647" top="2147483647" right="-2147483648" bottom="-2147483648" />
             <CurPos left="1395" top="53" right="1504" bottom="92" floating="0" panelID="1" />
             <Items>
-                <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" imageID="-1" imageName="" actionID="manager`SceneManager" tip="Scene Manager" label="Scene Manager" />
-                <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" imageID="-1" imageName="" actionID="saveVersion`SceneManager" tip="Scene Manager - Version Save" label="Save Version" />
-                <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" imageID="-1" imageName="" actionID="makePreview`SceneManager" tip="Scene Manager - Make Preview" label="Make Preview" />
+                <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="manager`SceneManager" tip="Scene Manager" label="Scene Manager" />
+                <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="saveVersion`SceneManager" tip="Scene Manager - Version Save" label="Save Version" />
+                <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="makePreview`SceneManager" tip="Scene Manager - Make Preview" label="Make Preview" />
             </Items>
-        </Window>"""
+        </Window>\n"""
 
     print "Finding 3ds Max Versions..."
     maxVersions = [x for x in os.listdir(userMaxDir)]
@@ -519,24 +643,70 @@ def maxSetup(prompt=True):
         folderCheck(workspaceDir)
         workspaceFile = os.path.join(workspaceDir, "Workspace1__usersave__.cuix")\
 
-        workSpaceContentList = _loadContent(workspaceFile)
+        # workSpaceContentList = _loadContent(workspaceFile)
 
-        startLine = None
-        for line in workSpaceContentList:
-            if "findThisBar" in line:
-                print "found"
-                startLine = workSpaceContentList.index(line)
-                print "line", startLine
-                break
+        print "Creating Callback and path initialization startup script"
+        startupScriptContent = """
+python.Execute "import sys"
+python.Execute "import os"
+python.Execute "import MaxPlus"
+python.Execute "sys.path.append(os.path.normpath('{0}'))"
+python.Execute "def smUpdate(*args):\\n	from tik_manager import Sm3dsMax\\n	m = Sm3dsMax.MaxManager()\\n	m.saveCallback()"
+python.Execute "MaxPlus.NotificationManager.Register(14, smUpdate)"
+""".format(upNetworkDir.replace("\\", "//"))
 
-        if startLine:
-            for line in workSpaceContentList[startLine:]:
-                print line
-                if "</Window>" in line:
-                    endLine = workSpaceContentList.index(line)
-                    break
+        _dumpContent(os.path.join(sScriptsDir, "smManagerCallback.ms"), startupScriptContent)
 
-        # TODO : Write an inject function
+
+        print "Creating Macroscripts"
+        manager = """
+macroScript TIK_sm3dsMax
+category: "Tik Works"
+tooltip: "Scene Manager"
+ButtonText: "SM"
+icon: #("SceneManager",1)
+(
+	python.Execute "from tik_manager import Sm3dsMax"
+	python.Execute "Sm3dsMax.MainUI().show()"
+)
+"""
+        saveVersion = """
+macroScript TIK_smSaveVersion
+category: "Tik Works"
+tooltip: "Scene Manager - Save Version"
+ButtonText: "SM_SaveV"
+icon: #("SceneManager",2)
+(
+	python.Execute "from tik_manager import Sm3dsMax"
+	python.Execute "Sm3dsMax.MainUI().saveAsVersionDialog()"
+)"""
+        makePreview = """
+macroScript makePreview
+category: "SceneManager"
+tooltip: "Scene Manager - Make Preview"
+ButtonText: "Make Preview"
+icon: #("SceneManager",5)
+(
+	python.Execute "from tik_manager import Sm3dsMax"
+	python.Execute "reload(Sm3dsMax)"
+	python.Execute "Sm3dsMax.MaxManager().createPreview()"
+)"""
+        _dumpContent(os.path.join(macrosDir, "Tik Works-TIK_sm3dsMax.mcr"), manager)
+        _dumpContent(os.path.join(macrosDir, "Tik Works-TIK_smSaveVersion.mcr"), saveVersion)
+        _dumpContent(os.path.join(macrosDir, "Tik Works-TIK_smPreview.mcr"), makePreview)
+
+        searchLines = ['"sceneManager"', "</Window>"]
+        print "Injecting the Scene Manager toolbar to the workspace"
+        state = inject(workspaceFile, workSpaceInjection, between=searchLines , matchMode="includes", force=False)
+        if not state: # fresh install
+            state = inject(workspaceFile, workSpaceInjection, before="</CUIWindows>", matchMode="includes")
+            if not state:
+                print "Toolbar cannot be injected to the workplace, you can set toolbar manually within 3ds max\nFailed => 3ds Max Setup\n"
+                return
+
+
+        # TODO What about fresh install"
+
 
 
 
