@@ -2099,10 +2099,13 @@ class MainUI(QtGui.QMainWindow):
     def _initUsers(self):
         self.user_comboBox.blockSignals(True)
 
+        manager = self._getManager()
+        if not manager:
+            return
         # init users
         self.user_comboBox.clear()
-        self.user_comboBox.addItems(self.masterManager.getUsers())
-        index = self.user_comboBox.findText(self.masterManager.currentUser, QtCore.Qt.MatchFixedString)
+        self.user_comboBox.addItems(manager.getUsers())
+        index = self.user_comboBox.findText(manager.currentUser, QtCore.Qt.MatchFixedString)
         if index >= 0:
             self.user_comboBox.setCurrentIndex(index)
 

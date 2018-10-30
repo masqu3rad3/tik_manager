@@ -226,7 +226,6 @@ class RootManager(object):
     def currentUser(self, name):
         """Sets the current user"""
         # logger.debug("Func: currentUser/setter")
-
         if name not in self._usersDict.keys():
             msg="%s is not in the user list" %name
             # raise Exception([101, msg])
