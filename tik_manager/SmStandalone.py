@@ -6,7 +6,7 @@ from PyQt4 import QtCore, QtGui, Qt
 import IvStandalone
 import _version
 import subprocess
-import json
+# import json
 import sys, os
 import pprint
 import logging
@@ -1283,11 +1283,11 @@ class MainUI(QtGui.QMainWindow):
 
             if command == "folder":
                 index = self.folders_tableView.currentIndex()
-                self.projectsRoot = os.path.normpath((self.setPmodel.filePath(index)))
+                self.projectsRoot = os.path.normpath(str(self.setPmodel.filePath(index)))
                 self.browser.addData(self.projectsRoot)
 
             if command == "lineEnter":
-                dir = self.lookIn_lineEdit.text()
+                dir = str(self.lookIn_lineEdit.text())
                 if os.path.isdir(dir):
                     self.projectsRoot = dir
                     self.browser.addData(self.projectsRoot)

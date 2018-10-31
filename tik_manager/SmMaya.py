@@ -810,6 +810,7 @@ class MayaManager(RootManager):
         cmds.confirmDialog(title=self.errorCodeDict[code], message=msg, button=['Ok'])
 
     def _getTimelineRanges(self):
+        # TODO : Make sure the time ranges are INTEGERS
         R_ast = cmds.playbackOptions(q=True, ast=True)
         R_min = cmds.playbackOptions(q=True, min=True)
         R_max = cmds.playbackOptions(q=True, max=True)
@@ -818,6 +819,7 @@ class MayaManager(RootManager):
 
     def _setTimelineRanges(self, rangeList):
         """Sets the timeline ranges [AnimationStart, Min, Max, AnimationEnd]"""
+        # TODO : Make sure the time ranges are INTEGERS
         cmds.playbackOptions(ast=rangeList[0], min=rangeList[1], max=rangeList[2], aet=rangeList[3])
 
 
