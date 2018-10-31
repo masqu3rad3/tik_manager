@@ -939,6 +939,29 @@ class RootManager(object):
         self._categories = curCategories
         return
 
+    def moveCategory(self, categoryName, direction):
+        # TODO : NOT TESTED
+        if direction == "left" or direction == "down":
+            dir = -1
+        if direction == "right" or direction == "up":
+            dir = 1
+
+        curCategories = self._loadCategories()
+
+        index = curCategories.index(categoryName)
+        newindex= index+dir
+        if not (0 <= newindex <= len(curCategories)):
+            return
+
+        itemAtNewIndex = curCategories[newindex]
+
+        curCategories[newindex] = categoryName
+        curCategories[index] = itemAtNewIndex
+
+        self._dumpJson(curCategories, self._pathsDict["categoriesFile"])
+        self._categories = curCategories
+        return
+
 
     def removeCategory(self, categoryName):
         # TODO // TEST IT
@@ -1249,8 +1272,9 @@ class RootManager(object):
 
     def _exception(self, code, msg):
 
-        logger.debug("Exception %s" %self.errorCodeDict[code])
-        logger.debug(msg)
+        logger.error("Exception %s" %self.errorCodeDict[code])
+        logger.error(msg)
+        raise Exception (code, msg)
 
     def _checkRequirements(self):
         """
@@ -1348,15 +1372,19 @@ class RootManager(object):
                     return data
             except ValueError:
                 msg = "Corrupted JSON file => %s" % file
-                logger.error(msg)
-                return -2 # code for corrupted json file
+                # logger.error(msg)
+                self._exception(200, msg)
+                # return -2 # code for corrupted json file
         else:
             return None
 
     def _dumpJson(self, data, file):
         """Saves the data to the json file"""
-        with open(file, "w") as f:
+        name, ext = os.path.splitext(file)
+        tempFile = "{0}_TMP{1}".format(name, ext)
+        with open(tempFile, "w") as f:
             json.dump(data, f, indent=4)
+        shutil.copyfile(tempFile, file)
 
     def _loadProjectSettings(self):
         """Loads Project Settings from file"""

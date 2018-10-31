@@ -2,9 +2,6 @@ import sys
 import os
 import shutil
 import psutil
-# import win32ui
-# import win32con
-
 
 def checkRuninngInstances(sw):
     running = True
@@ -126,11 +123,9 @@ def inject(file, newContentList, between=None, after=None, before=None, matchMod
         startLine = between[0]
         endLine = between[1]
         startIndex = collectIndex(searchList, startLine, mode=matchMode)
-        print "startIndex", startIndex
-        if startIndex:
+        if not startIndex == None:
             endIndex = collectIndex(searchList, endLine, beginFrom=startIndex, mode=matchMode)
-            print "endIndex", endIndex
-        if not startIndex or not endIndex:
+        if startIndex == None or not endIndex:
             if force:
                 "Cannot find Start Line. Just appending to the file"
                 _dumpContent(file, (contentList + newContentList))
@@ -154,12 +149,9 @@ def inject(file, newContentList, between=None, after=None, before=None, matchMod
 
     if searchDirection == "backward":
         injectedContent = contentList[:-endIndex] + newContentList + contentList[-startIndex - 1:]
-        # print "start:", contentList[-startIndex-1]
-        # print "end:", contentList[-endIndex]
     else:
         injectedContent = contentList[:startIndex] + newContentList + contentList[endIndex + 1:]
-        # print "start:", contentList[:startIndex]
-        # print "end:", contentList[endIndex+1]
+
 
 
     _dumpContent(file, injectedContent)
@@ -216,9 +208,9 @@ def mayaSetup(prompt=True):
     for file in fileList:
         if not os.path.isfile(os.path.join(networkDir, file)):
             # if the extension is pyc give it another chance
-            if os.path.splitext(file)[1] == "py":
+            if os.path.splitext(file)[1] == ".py":
                 if not os.path.isfile(os.path.join(networkDir, "%sc" %file)): # make the extension pyc
-                    print "Missing file:\nCannot find %s" % file
+                    print "Missing file:\nCannot find %s or %sc" % (file, file)
                     raw_input("Press Enter to continue...")
                     return
             else:
@@ -450,9 +442,9 @@ def houdiniSetup(prompt=True):
     for file in fileList:
         if not os.path.isfile(os.path.join(networkDir, file)):
             # if the extension is pyc give it another chance
-            if os.path.splitext(file)[1] == "py":
+            if os.path.splitext(file)[1] == ".py":
                 if not os.path.isfile(os.path.join(networkDir, "%sc" %file)): # make the extension pyc
-                    print "Missing file:\nCannot find %s" % file
+                    print "Missing file:\nCannot find %s or %sc" % (file, file)
                     raw_input("Press Enter to continue...")
                     return
             else:
@@ -558,20 +550,12 @@ SmHoudini.HoudiniManager().createPreview()]]></script>
 
     print "\nInside Houdini, Scene Manager shelf should be enabled for the desired shelf set by clicking to '+' icon and selecting 'shelves' sub menu."
 
-    print "Successfull => Maya Setup"
+    print "Successfull => Houdini Setup"
 
     if prompt:
         raw_input("Press Enter to continue...")
 
 def maxSetup(prompt=True):
-
-    #WIP
-    # "C:\Program Files\Autodesk\3ds Max 2017\scripts\startup"
-    # "C:\Program Files\Autodesk\3ds Max 2017\scripts"
-    # "C:\Users\kutlu\AppData\Local\Autodesk\3dsMax\2017 - 64bit\ENU\scripts"
-    # "C:\Users\kutlu\AppData\Local\Autodesk\3dsMax\2017 - 64bit\ENU\scripts\startup"
-    # "C:\Users\kutlu\AppData\Local\Autodesk\3dsMax\2017 - 64bit\ENU\usericons"
-    # "C:\Users\kutlu\AppData\Local\Autodesk\3dsMax\2017 - 64bit\ENU\usermacros"
 
     networkDir = os.path.dirname(os.path.abspath(__file__))
     upNetworkDir = os.path.abspath(os.path.join(networkDir, os.pardir))
@@ -587,9 +571,9 @@ def maxSetup(prompt=True):
     for file in fileList:
         if not os.path.isfile(os.path.join(networkDir, file)):
             # if the extension is pyc give it another chance
-            if os.path.splitext(file)[1] == "py":
+            if os.path.splitext(file)[1] == ".py":
                 if not os.path.isfile(os.path.join(networkDir, "%sc" %file)): # make the extension pyc
-                    print "Missing file:\nCannot find %s" % file
+                    print "Missing file:\nCannot find %s or %sc" % (file, file)
                     raw_input("Press Enter to continue...")
                     return
             else:
@@ -707,17 +691,6 @@ icon: #("SceneManager",5)
                 print "Toolbar cannot be injected to the workplace, you can set toolbar manually within 3ds max\nFailed => 3ds Max Setup\n"
                 return
 
-
-        # TODO What about fresh install"
-
-
-
-
-
-
-
-
-
     print "Successfull => 3ds Max Setup"
 
     if prompt:
@@ -726,17 +699,13 @@ icon: #("SceneManager",5)
 def installAll():
     mayaSetup(prompt=False)
     houdiniSetup(prompt=False)
-    maxSetup()
+    maxSetup(prompt=False)
+    raw_input("Setup Completed. Press Enter to Exit...")
+    sys.exit()
 
 def folderCheck(folder):
     if not os.path.isdir(folder):
         os.makedirs(os.path.normpath(folder))
-# checkIntegrity()
-# houdiniSetup()
-
-# runCode = True
-# def terminate():
-#     runCode = False
 
 
 header = """
@@ -746,11 +715,6 @@ Scene Manager Setup
 
 Choose the software you want to setup Scene Manager:"""
 
-# colors = {
-#         'blue': '\033[94m',
-#         'pink': '\033[1;35m',
-#         'green': '\033[92m',
-#         }
 
 menuItems = [
     { "Maya": mayaSetup },
@@ -760,8 +724,6 @@ menuItems = [
     { "Exit": sys.exit}
 ]
 
-# def message():
-#     print "Setup Cannot Continue"
 
 def okCancel(msg):
     reply = str(raw_input(msg+' (y/n): ')).lower().strip()
@@ -775,13 +737,8 @@ def okCancel(msg):
 
 def main():
     while True:
-        # os.system('cls')
-        # Print some badass ascii art header here !
-        # print colorize(header, 'green')
         print (header)
-        # print colorize('version 0.1\n', 'green')
         for item in menuItems:
-            # print colorize("[" + str(menuItems.index(item)) + "] ", 'blue') + item.keys()[0]
             print ("[" + str(menuItems.index(item)) + "] ") + item.keys()[0]
         choice = raw_input(">> ")
         try:
@@ -794,12 +751,6 @@ def main():
         except (ValueError, IndexError):
             pass
 
-# def colorize(string, color):
-#     if not color in colors: return string
-#     return colors[color] + string + '\033[0m'
 
-# Main Program
-# main()
 if __name__ == "__main__":
     main()
-    # maxSetup()

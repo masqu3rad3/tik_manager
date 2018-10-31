@@ -29,43 +29,43 @@ logging.basicConfig()
 logger = logging.getLogger('smStandalone')
 logger.setLevel(logging.DEBUG)
 
-def excepthook(excType, excValue, tracebackobj):
-    """Overrides sys.excepthook for gui feedback"""
-
-    errorCodeDict = {200: "Corrupted File",
-                     201: "Missing File",
-                     202: "Read/Write Error",
-                     203: "Delete Error",
-                     210: "OS Not Supported",
-                     101: "Out of range",
-                     102: "Missing Override",
-                     340: "Naming Error",
-                     341: "Mandatory fields are not filled",
-                     360: "Action not permitted"}
-
-
-    errorCode = excValue[0][0]
-    errorMsg = excValue[0][1]
-
-    if errorCode == 200: # question box for this
-        q = QtGui.QMessageBox()
-        q.setStandardButtons(QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-        q.setText(errorMsg)
-        q.setWindowTitle(errorCodeDict[errorCode])
-        ret = q.exec_()
-        if ret == QtGui.QMessageBox.Yes:
-            os.startfile(excValue[0][2])
-        elif ret == QtGui.QMessageBox.No:
-            pass
-            # print "no"
-
-    else:
-        errorbox = QtGui.QMessageBox()
-        errorbox.setText(errorMsg)
-        errorbox.setWindowTitle(errorCodeDict[errorCode])
-        errorbox.exec_()
-
-sys.excepthook = excepthook
+# def excepthook(excType, excValue, tracebackobj):
+#     """Overrides sys.excepthook for gui feedback"""
+#
+#     errorCodeDict = {200: "Corrupted File",
+#                      201: "Missing File",
+#                      202: "Read/Write Error",
+#                      203: "Delete Error",
+#                      210: "OS Not Supported",
+#                      101: "Out of range",
+#                      102: "Missing Override",
+#                      340: "Naming Error",
+#                      341: "Mandatory fields are not filled",
+#                      360: "Action not permitted"}
+#
+#
+#     errorCode = excValue[0][0]
+#     errorMsg = excValue[0][1]
+#
+#     if errorCode == 200: # question box for this
+#         q = QtGui.QMessageBox()
+#         q.setStandardButtons(QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+#         q.setText(errorMsg)
+#         q.setWindowTitle(errorCodeDict[errorCode])
+#         ret = q.exec_()
+#         if ret == QtGui.QMessageBox.Yes:
+#             os.startfile(excValue[0][2])
+#         elif ret == QtGui.QMessageBox.No:
+#             pass
+#             # print "no"
+#
+#     else:
+#         errorbox = QtGui.QMessageBox()
+#         errorbox.setText(errorMsg)
+#         errorbox.setWindowTitle(errorCodeDict[errorCode])
+#         errorbox.exec_()
+#
+# sys.excepthook = excepthook
 
 class SwViewer(RootManager):
     def __init__(self, swDict, projectDir):
@@ -222,8 +222,31 @@ class SwViewer(RootManager):
 
         # command = "{0} {1}".format(os.path.normpath(exePath), os.path.normpath(self.currentScenePath))
 
+    def _exception(self, code, msg):
+        """OVERRIDEN"""
+        logger.error("Exception %s" %self.errorCodeDict[code])
+        logger.error(msg)
 
-    # def setProject(self, path):
+        errorCodeDict = {200: "Corrupted File",
+                         201: "Missing File",
+                         202: "Read/Write Error",
+                         203: "Delete Error",
+                         210: "OS Not Supported",
+                         101: "Out of range",
+                         102: "Missing Override",
+                         340: "Naming Error",
+                         341: "Mandatory fields are not filled",
+                         360: "Action not permitted"}
+
+
+        errorbox = QtGui.QMessageBox()
+        errorbox.setModal(True)
+        errorbox.setText(msg)
+        errorbox.setWindowTitle(errorCodeDict[code])
+        errorbox.exec_()
+
+        if (200 >= code < 210):
+            raise Exception(code, msg)
 
 
 class StandaloneManager(RootManager):
@@ -388,6 +411,33 @@ class StandaloneManager(RootManager):
 
     # def getSoftwareList(self):
     #     return self.swList
+
+    def _exception(self, code, msg):
+        """OVERRIDEN"""
+        logger.error("Exception %s" %self.errorCodeDict[code])
+        logger.error(msg)
+
+        errorCodeDict = {200: "Corrupted File",
+                         201: "Missing File",
+                         202: "Read/Write Error",
+                         203: "Delete Error",
+                         210: "OS Not Supported",
+                         101: "Out of range",
+                         102: "Missing Override",
+                         340: "Naming Error",
+                         341: "Mandatory fields are not filled",
+                         360: "Action not permitted"}
+
+
+        errorbox = QtGui.QMessageBox()
+        errorbox.setModal(True)
+        errorbox.setText(msg)
+        errorbox.setWindowTitle(errorCodeDict[code])
+        errorbox.exec_()
+
+        if (200 >= code < 210):
+            raise Exception(code, msg)
+
 
     def _loadUserPrefs(self):
         """OVERRIDEN FUNCTION Load Last CategoryIndex, SubProject Index,
@@ -1462,6 +1512,10 @@ class MainUI(QtGui.QMainWindow):
         passw, ok = QtGui.QInputDialog.getText(self, "Password Query",
                                                "Enter Admin Password:", QtGui.QLineEdit.Password)
 
+        manager = self._getManager()
+        if not manager:
+            return
+
         if ok:
             if self.masterManager.checkPassword(passw):
                 pass
@@ -1504,14 +1558,14 @@ class MainUI(QtGui.QMainWindow):
 
         deletecategory_groupBox = QtGui.QGroupBox(categories_dialog)
         deletecategory_groupBox.setGeometry(QtCore.QRect(10, 110, 321, 51))
-        deletecategory_groupBox.setTitle(("Delete category"))
+        deletecategory_groupBox.setTitle(("Delete and Change Order"))
         deletecategory_groupBox.setObjectName(("deletecategory_groupBox"))
 
         self.selectcategory_comboBox = QtGui.QComboBox(deletecategory_groupBox)
         self.selectcategory_comboBox.setGeometry(QtCore.QRect(10, 20, 231, 22))
         self.selectcategory_comboBox.setObjectName(("selectcategory_comboBox"))
 
-        self.selectcategory_comboBox.addItems(self.masterManager._categories)
+        self.selectcategory_comboBox.addItems(manager._categories)
 
         deletecategory_pushButton = QtGui.QPushButton(deletecategory_groupBox)
         deletecategory_pushButton.setGeometry(QtCore.QRect(250, 20, 61, 21))
@@ -1520,7 +1574,7 @@ class MainUI(QtGui.QMainWindow):
 
 
         def onAddCategory():
-            self.masterManager.addCategory(self.categoryName_lineEdit.text())
+            manager.addCategory(str(self.categoryName_lineEdit.text()))
 
 
             preTab = QtGui.QWidget()
@@ -1531,9 +1585,9 @@ class MainUI(QtGui.QMainWindow):
             self.categoryName_lineEdit.setText("")
 
         def onRemoveCategory():
-            self.masterManager.removeCategory(self.selectcategory_comboBox.currentText())
+            manager.removeCategory(str(self.selectcategory_comboBox.currentText()))
             self.selectcategory_comboBox.clear()
-            self.selectcategory_comboBox.addItems(self.masterManager.getCategories())
+            self.selectcategory_comboBox.addItems(manager.getCategories())
 
             self._initCategories()
 
