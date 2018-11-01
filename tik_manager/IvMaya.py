@@ -475,12 +475,8 @@ class MainUI(QtWidgets.QMainWindow):
     def setRaidPath(self, dir):
         tLocationFile = os.path.normpath(os.path.join(self.databaseDir, "tLocation.json"))
         self.tLocation = str(dir)
-        self._dumpJson(tLocationFile, dir)
+        self._dumpJson(self.tLocation, tLocationFile)
         self.raidFolder_lineEdit.setText(self.tLocation)
-        # dir = str(dir)
-        # setTlocation(os.path.normpath(dir))
-        # self.tLocation = dir
-        # self.raidFolder_lineEdit.setText(dir)
 
     def onCheckbox(self, extensions, state):
         if state:

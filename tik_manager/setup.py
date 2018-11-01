@@ -237,6 +237,7 @@ def mayaSetup(prompt=True):
         print "Found Maya Versions: %s " % str(mayaVersions)
     else:
         print "No Maya version can be found, try manual installation"
+        raw_input("Press Enter to continue...")
         return
 
     newUserSetupContent = [
@@ -254,8 +255,8 @@ def mayaSetup(prompt=True):
         "    sys.path.append(targetFolder)\n",
         "\n",
         "def smUpdate(*args):\n",
-        "    from tik_manager import manager\n",
-        "    m = manager.TikManager()\n",
+        "    from tik_manager import SmMaya\n",
+        "    m = SmMaya.TikManager()\n",
         "    m.regularSaveUpdate()\n",
         "\n",
         "initFolder('{0}')\n".format((upNetworkDir.replace("\\", "//"))),
@@ -468,6 +469,7 @@ def houdiniSetup(prompt=True):
         print "Found Houdini Versions: %s " % str(houdiniVersions)
     else:
         print "No Houdini version can be found, try manual installation"
+        raw_input("Press Enter to continue...")
         return
     # ICON PATHS
     managerIcon = os.path.join(networkDir, "icons", "manager_ICON.png").replace("\\", "\\\\")
@@ -610,6 +612,13 @@ def maxSetup(prompt=True):
 
     print "Finding 3ds Max Versions..."
     maxVersions = [x for x in os.listdir(userMaxDir)]
+    if maxVersions:
+        print "Found 3ds Max Versions: %s " % str(maxVersions)
+    else:
+        print "No 3ds Max version can be found, try manual installation"
+        raw_input("Press Enter to continue...")
+        return
+
 
     for v in maxVersions:
         print "Setup for version %s" %v

@@ -89,61 +89,98 @@ class SwViewer(RootManager):
         """Overriden function"""
         return ""
 
-    def getExecutables(self):
+    def getExecutables(self, sw):
         if self.currentPlatform is not "Windows":
             logger.warning("Currently only windows executables are supported")
             return
         programFiles32 = os.environ["PROGRAMFILES(X86)"]
         programFiles64 = os.environ["PROGRAMFILES"]
 
-        # GET 3DS MAX VERSIONS
-        # --------------------
-        maxVersionsDict = {"3ds Max 2014": {}, "3ds Max 2015": {}, "3ds Max 2016": {}, "3ds Max 2017": {}, "3ds Max 2018": {}, "3ds Max 2019": {}}
 
-        for item in maxVersionsDict:
-            path32bit = os.path.join(programFiles32, "Autodesk", item, "3dsmax.exe")
-            if os.path.isfile(path32bit):
-                maxVersionsDict[item]["32bit"]=path32bit
-            else:
-                maxVersionsDict[item]["32bit"]=""
+        if sw == "Sm3dsMaxV02_sceneFile":
+            # GET 3DS MAX VERSIONS
+            # --------------------
+            maxVersionsDict = {"3ds Max 2014": {}, "3ds Max 2015": {}, "3ds Max 2016": {}, "3ds Max 2017": {}, "3ds Max 2018": {}, "3ds Max 2019": {}}
 
-            path64bit = os.path.join(programFiles64, "Autodesk", item, "3dsmax.exe")
-            if os.path.isfile(path64bit):
-                maxVersionsDict[item]["64bit"]=path64bit
-            else:
-                maxVersionsDict[item]["64bit"]=""
+            for item in maxVersionsDict:
+                path32bit = os.path.join(programFiles32, "Autodesk", item, "3dsmax.exe")
+                if os.path.isfile(path32bit):
+                    maxVersionsDict[item]["32bit"]=path32bit
+                else:
+                    maxVersionsDict[item]["32bit"]=""
 
-        # GET MAYA VERSIONS
-        # -----------------
+                path64bit = os.path.join(programFiles64, "Autodesk", item, "3dsmax.exe")
+                if os.path.isfile(path64bit):
+                    maxVersionsDict[item]["64bit"]=path64bit
+                else:
+                    maxVersionsDict[item]["64bit"]=""
 
-        mayaVersionsDict = {"Maya2014": {}, "Maya2015":{}, "Maya2016": {}, "Maya2016.5": {}, "Maya2017": {}, "Maya2018": {}, "Maya2019": {}}
-        for item in mayaVersionsDict:
-            path32bit = os.path.join(programFiles32, "Autodesk", item, "bin", "maya.exe")
-            if os.path.isfile(path32bit):
-                mayaVersionsDict[item]["32bit"]=path32bit
-            else:
-                mayaVersionsDict[item]["32bit"]=""
+            return maxVersionsDict
 
-            path64bit = os.path.join(programFiles64, "Autodesk", item, "bin", "maya.exe")
-            if os.path.isfile(path64bit):
-                mayaVersionsDict[item]["64bit"]=path64bit
-            else:
-                mayaVersionsDict[item]["64bit"]=""
+        elif sw == "SmMayaV02_sceneFile":
+            # GET MAYA VERSIONS
+            # -----------------
 
-        executablesDict = {"Maya": mayaVersionsDict, "3dsMax": maxVersionsDict}
+            mayaVersionsDict = {"Maya2014": {}, "Maya2015":{}, "Maya2016": {}, "Maya2016.5": {}, "Maya2017": {}, "Maya2018": {}, "Maya2019": {}}
+            for item in mayaVersionsDict:
+                path32bit = os.path.join(programFiles32, "Autodesk", item, "bin", "maya.exe")
+                if os.path.isfile(path32bit):
+                    mayaVersionsDict[item]["32bit"]=path32bit
+                else:
+                    mayaVersionsDict[item]["32bit"]=""
 
-        # GET HOUDINI VERSIONS
-        # --------------------
+                path64bit = os.path.join(programFiles64, "Autodesk", item, "bin", "maya.exe")
+                if os.path.isfile(path64bit):
+                    mayaVersionsDict[item]["64bit"]=path64bit
+                else:
+                    mayaVersionsDict[item]["64bit"]=""
+
+            return mayaVersionsDict
+            # executablesDict = {"Maya": mayaVersionsDict, "3dsMax": maxVersionsDict}
+
+
+        elif sw == "SmHoudiniV02_sceneFile":
+            # GET HOUDINI VERSIONS
+            # --------------------
+
+            side32 = os.path.join(programFiles32, "Side Effects Software")
+            side64 = os.path.join(programFiles64, "Side Effects Software")
+
+            # get 32bit folders
+            houdiniVersionsDict = {}
+            if os.path.isdir(side32):
+                for dir in os.listdir(side32):
+                    houExePath = os.path.join(side32, dir, "bin", "houdini.exe")
+                    if os.path.isfile(houExePath):
+                        try:
+                            houdiniVersionsDict[dir]["32bit"] = houExePath
+                        except KeyError:
+                            houdiniVersionsDict[dir]={}
+                            houdiniVersionsDict[dir]["32bit"] = houExePath
+
+            # get 64bit folders
+            if os.path.isdir(side64):
+                houdiniVersionsDict = {}
+                for dir in os.listdir(side64):
+                    houExePath = os.path.join(side64, dir, "bin", "houdini.exe")
+                    if os.path.isfile(houExePath):
+                        try:
+                            houdiniVersionsDict[dir]["64bit"] = houExePath
+                        except KeyError:
+                            houdiniVersionsDict[dir]={}
+                            houdiniVersionsDict[dir]["64bit"] = houExePath
+            return houdiniVersionsDict
+
         # search the houdini.exe under \\Side Effects Software\\(for everyfolder in here)\\bin
         # if it exists, create a dict item in houdiniVersionsDict as "16.5.378" : "\\absolute\\path\\to\\exe"
 
-        return executablesDict
 
     def executeScene(self):
         # if not self._currentSceneInfo:
         #     return
         ID = self._currentSceneInfo["ID"]
-        exeDict = self.getExecutables()
+        print ID
+        exeDict = self.getExecutables(ID)
 
 
         if ID.startswith("SmMaya"):
@@ -181,7 +218,8 @@ class SwViewer(RootManager):
             try:
                 versionName = versionDict[self._currentSceneInfo["MayaVersion"]]
             except KeyError:
-                logger.warning("maya version cannot resolved")
+                msg = "Maya version cannot resolved"
+                self._exception(360, msg)
                 return
 
             try:
@@ -190,7 +228,9 @@ class SwViewer(RootManager):
                 else:
                     exePath = exeDict["Maya"][versionName]["32bit"]
             except KeyError:
-                logger.warning("Maya %s is not installed on this workstation" %versionName)
+                msg = "Maya %s is not installed on this workstation" %versionName
+                self._exception(360, msg)
+                return
 
             subprocess.check_call([exePath, "-file", self.currentScenePath], shell=True)
 
@@ -204,7 +244,8 @@ class SwViewer(RootManager):
             try:
                 versionName = versionDict[self._currentSceneInfo["3dsMaxVersion"][0]]
             except KeyError:
-                logger.warning("3dsmax version cannot resolved")
+                msg = "3ds Max version cannot resolved"
+                self._exception(360, msg)
                 return
 
             try:
@@ -213,36 +254,38 @@ class SwViewer(RootManager):
                 else:
                     exePath = exeDict["3dsMax"][versionName]["32bit"]
             except KeyError:
-                logger.warning("Maya %s is not installed on this workstation" %versionName)
-
+                msg = "%s is not installed on this workstation" %versionName
+                self._exception(360, msg)
+                return
             subprocess.check_call([exePath, self.currentScenePath], shell=True)
 
+        elif ID.startswith("SmHoudini"):
+            # print exeDict
+            print "registeredV", self._currentSceneInfo["HoudiniVersion"]
+            # print "ASDF", exeDict.keys()
+            for v in exeDict.keys():
+                versionNumber = v.split()[1]
+                versionAsList = [int(s) for s in versionNumber.split(".") if s.isdigit()]
+                print versionAsList
+
+
+
         else:
+            msg = "This Action is not possible for this Base Scene"
+            self._exception(360, msg)
             return
 
         # command = "{0} {1}".format(os.path.normpath(exePath), os.path.normpath(self.currentScenePath))
 
     def _exception(self, code, msg):
         """OVERRIDEN"""
-        logger.error("Exception %s" %self.errorCodeDict[code])
-        logger.error(msg)
-
-        errorCodeDict = {200: "Corrupted File",
-                         201: "Missing File",
-                         202: "Read/Write Error",
-                         203: "Delete Error",
-                         210: "OS Not Supported",
-                         101: "Out of range",
-                         102: "Missing Override",
-                         340: "Naming Error",
-                         341: "Mandatory fields are not filled",
-                         360: "Action not permitted"}
-
+        # logger.error("Exception %s" %self.errorCodeDict[code])
+        # logger.error(msg)
 
         errorbox = QtGui.QMessageBox()
         errorbox.setModal(True)
         errorbox.setText(msg)
-        errorbox.setWindowTitle(errorCodeDict[code])
+        errorbox.setWindowTitle(self.errorCodeDict[code])
         errorbox.exec_()
 
         if (200 >= code < 210):
@@ -1004,7 +1047,7 @@ class MainUI(QtGui.QMainWindow):
             dlg.setFileMode(QtGui.QFileDialog.Directory)
 
             if dlg.exec_():
-                selectedroot = os.path.normpath(dlg.selectedFiles()[0])
+                selectedroot = os.path.normpath(str(dlg.selectedFiles()[0]))
                 self.projectroot_lineEdit.setText(selectedroot)
                 resolve()
 

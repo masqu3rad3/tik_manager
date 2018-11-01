@@ -18,7 +18,9 @@ Minors
 * Houdini playblast options
 * setup should work well when run as admin
 * Image viewer connection for all softwares
-
+* Standalone Manager scene open function can be improved
+* Improve exception informations
+* Color Codes for sub-projects?
 
 
 

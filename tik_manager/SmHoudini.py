@@ -37,43 +37,6 @@ logger = logging.getLogger('smMaya')
 logger.setLevel(logging.WARNING)
 
 
-# def excepthook(excType, excValue, tracebackobj):
-#     """Overrides sys.excepthook for gui feedback"""
-#     parent = getMayaMainWindow()
-#     errorCodeDict = {200: "Corrupted File",
-#                      201: "Missing File",
-#                      202: "Read/Write Error",
-#                      203: "Delete Error",
-#                      210: "OS Not Supported",
-#                      101: "Out of range",
-#                      102: "Missing Override",
-#                      340: "Naming Error",
-#                      341: "Mandatory fields are not filled",
-#                      360: "Action not permitted"}
-#
-#     errorCode = excValue[0][0]
-#     errorMsg = excValue[0][1]
-#
-#     if errorCode == 200: # question box for this
-#         q = QtWidgets.QMessageBox(parent = parent)
-#         q.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
-#         q.setText(errorMsg)
-#         q.setWindowTitle(errorCodeDict[errorCode])
-#         ret = q.exec_()
-#         if ret == QtWidgets.QMessageBox.Yes:
-#             os.startfile(excValue[0][2])
-#         elif ret == QtWidgets.QMessageBox.No:
-#             pass
-#             # print "no"
-#
-#     else:
-#         errorbox = QtWidgets.QMessageBox(parent = parent)
-#         errorbox.setText(errorMsg)
-#         errorbox.setWindowTitle(errorCodeDict[errorCode])
-#         errorbox.exec_()
-#
-# sys.excepthook = excepthook
-
 
 class HoudiniManager(RootManager):
     def __init__(self):
@@ -699,6 +662,8 @@ class HoudiniManager(RootManager):
         """Overriden Function"""
 
         hou.ui.displayMessage(msg, title=self.errorCodeDict[code])
+        if (200 >= code < 210):
+            raise Exception(code, msg)
 
     def _getTimelineRanges(self):
         pass

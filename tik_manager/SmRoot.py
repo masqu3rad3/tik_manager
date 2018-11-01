@@ -1376,15 +1376,17 @@ class RootManager(object):
                 self._exception(200, msg)
                 # return -2 # code for corrupted json file
         else:
-            return None
+            msg = "File cannot be found => %s" % file
+            self._exception(201, msg)
 
     def _dumpJson(self, data, file):
         """Saves the data to the json file"""
         name, ext = os.path.splitext(file)
-        tempFile = "{0}_TMP{1}".format(name, ext)
+        tempFile = "{0}.tmp".format(name)
         with open(tempFile, "w") as f:
             json.dump(data, f, indent=4)
         shutil.copyfile(tempFile, file)
+        os.remove(tempFile)
 
     def _loadProjectSettings(self):
         """Loads Project Settings from file"""
@@ -1487,7 +1489,7 @@ class RootManager(object):
                 return -2
         else:
             settingsData = {"currentTabIndex": 0, "currentSubIndex": 0, "currentUser": self._usersDict.keys()[0],
-                            "currentMode": False}
+                            "currentMode": True}
             self._dumpJson(settingsData, self._pathsDict["currentsFile"])
         return settingsData
 

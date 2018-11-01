@@ -323,7 +323,7 @@ class MainUI(QtGui.QMainWindow):
     def setRaidPath(self, dir):
         tLocationFile = os.path.normpath(os.path.join(self.databaseDir, "tLocation.json"))
         self.tLocation = str(dir)
-        self._dumpJson(tLocationFile, dir)
+        self._dumpJson(self.tLocation, tLocationFile)
         self.raidFolder_lineEdit.setText(self.tLocation)
 
     def onCheckbox(self, extensions, state):
@@ -434,8 +434,27 @@ class MainUI(QtGui.QMainWindow):
         except StopIteration:
             self.stop()  # Iteration has finshed, kill the timer
 
+    # def _loadJson(self, file):
+    #     """Loads the given json file"""
+    #     if os.path.isfile(file):
+    #         try:
+    #             with open(file, 'r') as f:
+    #                 data = json.load(f)
+    #                 return data
+    #         except ValueError:
+    #             msg = "Corrupted JSON file => %s" % file
+    #             logger.error(msg)
+    #             return -2 # code for corrupted json file
+    #     else:
+    #         return None
+    #
+    # def _dumpJson(self, data, file):
+    #     """Saves the data to the json file"""
+    #     with open(file, "w") as f:
+    #         json.dump(data, f, indent=4)
     def _loadJson(self, file):
         """Loads the given json file"""
+        # TODO : Is it paranoid checking?
         if os.path.isfile(file):
             try:
                 with open(file, 'r') as f:
@@ -443,15 +462,22 @@ class MainUI(QtGui.QMainWindow):
                     return data
             except ValueError:
                 msg = "Corrupted JSON file => %s" % file
-                logger.error(msg)
-                return -2 # code for corrupted json file
+                # logger.error(msg)
+                self._exception(200, msg)
+                # return -2 # code for corrupted json file
         else:
-            return None
+            msg = "File cannot be found => %s" % file
+            self._exception(201, msg)
 
     def _dumpJson(self, data, file):
         """Saves the data to the json file"""
-        with open(file, "w") as f:
+        name, ext = os.path.splitext(file)
+        tempFile = "{0}.tmp".format(name)
+        with open(tempFile, "w") as f:
             json.dump(data, f, indent=4)
+        copyfile(tempFile, file)
+        os.remove(tempFile)
+
 
 class DropLineEdit(QtGui.QLineEdit):
     dropped = QtCore.pyqtSignal(str)

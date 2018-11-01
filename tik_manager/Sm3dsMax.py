@@ -1,5 +1,5 @@
 import os
-import sys
+# import sys
 # import ctypes
 import SmRoot
 reload(SmRoot)
@@ -40,45 +40,6 @@ SM_Version = "Scene Manager 3ds Max v%s" %_version.__version__
 logging.basicConfig()
 logger = logging.getLogger('sm3dsMax')
 logger.setLevel(logging.WARNING)
-
-def excepthook(excType, excValue, tracebackobj):
-    """Overrides sys.excepthook for gui feedback"""
-
-    errorCodeDict = {200: "Corrupted File",
-                     201: "Missing File",
-                     202: "Read/Write Error",
-                     203: "Delete Error",
-                     210: "OS Not Supported",
-                     101: "Out of range",
-                     102: "Missing Override",
-                     340: "Naming Error",
-                     341: "Mandatory fields are not filled",
-                     360: "Action not permitted"}
-
-
-    errorCode = excValue[0][0]
-    errorMsg = excValue[0][1]
-
-    if errorCode == 200: # question box for this
-        q = QtGui.QMessageBox()
-        q.setStandardButtons(QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-        q.setText(errorMsg)
-        q.setWindowTitle(errorCodeDict[errorCode])
-        ret = q.exec_()
-        if ret == QtGui.QMessageBox.Yes:
-            os.startfile(excValue[0][2])
-        elif ret == QtGui.QMessageBox.No:
-            pass
-            # print "no"
-
-    else:
-        errorbox = QtGui.QMessageBox()
-        errorbox.setText(errorMsg)
-        errorbox.setWindowTitle(errorCodeDict[errorCode])
-        errorbox.exec_()
-
-sys.excepthook = excepthook
-
 
 class MaxManager(RootManager):
     def __init__(self):
@@ -685,11 +646,8 @@ class MaxManager(RootManager):
     def getFormatsAndCodecs(self):
         """Returns the codecs which can be used in current workstation"""
         # TODO : Write Get Formats and Codecs for 3ds max (if applicable)
-        logger.warning ("getFormatsAndCodecs Function not written yet")
-        # formatList = cmds.playblast(query=True, format=True)
-        # codecsDictionary = dict(
-        #     (item, mel.eval('playblast -format "{0}" -q -compression;'.format(item))) for item in formatList)
-        # return codecsDictionary
+        logger.warning ("getFormatsAndCodecs Function not yet implemented")
+
 
     def preSaveChecklist(self):
         """Checks the scene for inconsistencies"""
@@ -708,8 +666,8 @@ class MaxManager(RootManager):
         """Overriden Function"""
 
         rt.messageBox(msg, title=self.errorCodeDict[code])
-        # logger.debug("Exception %s" %errorCodeDict[code])
-        # logger.debug(msg)
+        if (200 >= code < 210):
+            raise Exception(code, msg)
 
     def _getTimelineRanges(self):
         R_ast = int(rt.animationRange.start)
@@ -722,19 +680,11 @@ class MaxManager(RootManager):
         """Sets the timeline ranges [AnimationStart, Min, Max, AnimationEnd]"""
         rt.animationRange = rt.interval(rangeList[0], rangeList[-1])
 
-    rt.animationRange = rt.interval(4, 12)
-
     def _createCallbacks(self, handler):
-        logger.warning("_createCallbacks Function not written yet")
-        # callbackIDList=[]
-        # callbackIDList.append(cmds.scriptJob(e=["workspaceChanged", "%s.initMainUI()" % handler], replacePrevious=True, parent=SM_Version))
-        # return callbackIDList
+        logger.warning("_createCallbacks Function yet implemented")
 
     def _killCallbacks(self, callbackIDList):
-        logger.warning("_killCallbacks Function not written yet")
-        # for x in callbackIDList:
-        #     if cmds.scriptJob(ex=x):
-        #         cmds.scriptJob(kill=x)
+        logger.warning("_killCallbacks Function not yet implemented")
 
 class _GCProtector(object):
     widgets = []
@@ -759,6 +709,14 @@ class MainUI(QtGui.QMainWindow):
         parent = QtGui.QWidget(MaxPlus.GetQMaxWindow())
         super(MainUI, self).__init__(parent=parent)
         # super(MainUI, self).__init__(parent=None)
+
+        # Set Stylesheet
+        # dirname = os.path.dirname(os.path.abspath(__file__))
+        # stylesheetFile = os.path.join(dirname, "CSS", "darkorange.stylesheet")
+        #
+        # with open(stylesheetFile, "r") as fh:
+        #     self.setStyleSheet(fh.read())
+
         self.manager = MaxManager()
         problem, msg = self.manager._checkRequirements()
         if problem:
@@ -946,6 +904,7 @@ class MainUI(QtGui.QMainWindow):
 
         self.scenes_listWidget = QtGui.QListWidget(self.splitter)
         self.scenes_listWidget.setObjectName(("listWidget"))
+        self.scenes_listWidget.setStyleSheet("background-color: rgb(100,100,100); border-style: solid; border-width: 2px; border-color: grey;")
 
         self.frame = QtGui.QFrame(self.splitter)
         self.frame.setFrameShape(QtGui.QFrame.StyledPanel)
@@ -2711,10 +2670,15 @@ class MainUI(QtGui.QMainWindow):
 
         if self.load_radioButton.isChecked():
             self.loadScene_pushButton.setText("Load Scene")
-            self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: grey;")
+            # self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: grey;")
+            self.scenes_listWidget.setStyleSheet("background-color: rgb(100,100,100); border-style: solid; border-width: 2px; border-color: grey;")
         else:
             self.loadScene_pushButton.setText("Reference Scene")
-            self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: cyan;")
+            # self.scenes_listWidget.setStyleSheet("background-color: rgb(100,100,100);")
+            self.scenes_listWidget.setStyleSheet("background-color: rgb(80,120,120); border-style: solid ; border-width: 2px; border-color: cyan;")
+
+
+
 
         self.manager.currentMode = self.load_radioButton.isChecked()
         self.populateBaseScenes()
