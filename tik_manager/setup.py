@@ -565,7 +565,6 @@ def maxSetup(prompt=True):
                 "_version.pyc",
                 "pyseq.pyc",
                 "SmRoot.pyc",
-                "SmStandalone.pyc",
                 "SubmitMayaToDeadlineCustom.mel",
                 "adminPass.psw"
                 ]
@@ -630,10 +629,10 @@ def maxSetup(prompt=True):
         folderCheck(macrosDir)
         print "Copying Icon sets..."
         print iconsDir
-        shutil.copy(pack_16a, os.path.join(iconsDir, "SceneManager_16a.bmp"))
-        shutil.copy(pack_16i, os.path.join(iconsDir, "SceneManager_16i.bmp"))
-        shutil.copy(pack_24a, os.path.join(iconsDir, "SceneManager_24a.bmp"))
-        shutil.copy(pack_24i, os.path.join(iconsDir, "SceneManager_24i.bmp"))
+        shutil.copy(pack_16a, os.path.normpath(os.path.join(iconsDir, "SceneManager_16a.bmp")))
+        shutil.copy(pack_16i, os.path.normpath(os.path.join(iconsDir, "SceneManager_16i.bmp")))
+        shutil.copy(pack_24a, os.path.normpath(os.path.join(iconsDir, "SceneManager_24a.bmp")))
+        shutil.copy(pack_24i, os.path.normpath(os.path.join(iconsDir, "SceneManager_24i.bmp")))
 
         workspaceDir =  os.path.join(userMaxDir, v, "ENU", "en-US", "UI", "Workspaces", "usersave")
         folderCheck(workspaceDir)
