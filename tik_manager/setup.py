@@ -656,7 +656,7 @@ python.Execute "MaxPlus.NotificationManager.Register(14, smUpdate)"
         print "Creating Macroscripts"
         manager = """
 macroScript TIK_sm3dsMax
-category: "Tik Works"
+category: "SceneManager"
 tooltip: "Scene Manager"
 ButtonText: "SM"
 icon: #("SceneManager",1)
@@ -667,7 +667,7 @@ icon: #("SceneManager",1)
 """
         saveVersion = """
 macroScript TIK_smSaveVersion
-category: "Tik Works"
+category: "SceneManager"
 tooltip: "Scene Manager - Save Version"
 ButtonText: "SM_SaveV"
 icon: #("SceneManager",2)
