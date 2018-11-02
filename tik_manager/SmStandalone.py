@@ -105,13 +105,11 @@ class SwViewer(RootManager):
                 self._exception(360, msg)
                 return
         for v in versionRoots:
-            print v
             exeDir = os.path.join(rootPath, v, relativePath)
             for exe in executableList:
                 exePath = os.path.join(exeDir, exe)
                 if os.path.isfile(exePath):
                     yield [v, exePath]
-
 
     def executeScene(self):
         if self.currentPlatform is not "Windows":
@@ -271,208 +269,11 @@ class SwViewer(RootManager):
             for v in exeGen64Bit:
                 versionNumber = v[0].split()[1]
                 versionAsList = [int(s) for s in versionNumber.split(".") if s.isdigit()]
+                print v
                 print versionAsList
+                print "database", self._currentSceneInfo["HoudiniVersion"]
 
-            return
-
-
-        #
-        #
-        #
-        # else:
-        #     msg = "This Action is not possible for this Base Scene"
-        #     self._exception(360, msg)
-        #     return
-
-        # command = "{0} {1}".format(os.path.normpath(exePath), os.path.normpath(self.currentScenePath))
-
-
-    # def getExecutables(self, sw):
-    #     if self.currentPlatform is not "Windows":
-    #         logger.warning("Currently only windows executables are supported")
-    #         return
-    #     programFiles32 = os.environ["PROGRAMFILES(X86)"]
-    #     programFiles64 = os.environ["PROGRAMFILES"]
-    #
-    #
-    #     if sw == "Sm3dsMaxV02_sceneFile":
-    #         # GET 3DS MAX VERSIONS
-    #         # --------------------
-    #         maxVersionsDict = {"3ds Max 2014": {}, "3ds Max 2015": {}, "3ds Max 2016": {}, "3ds Max 2017": {}, "3ds Max 2018": {}, "3ds Max 2019": {}}
-    #
-    #         for item in maxVersionsDict:
-    #             path32bit = os.path.join(programFiles32, "Autodesk", item, "3dsmax.exe")
-    #             if os.path.isfile(path32bit):
-    #                 maxVersionsDict[item]["32bit"]=path32bit
-    #             else:
-    #                 maxVersionsDict[item]["32bit"]=""
-    #
-    #             path64bit = os.path.join(programFiles64, "Autodesk", item, "3dsmax.exe")
-    #             if os.path.isfile(path64bit):
-    #                 maxVersionsDict[item]["64bit"]=path64bit
-    #             else:
-    #                 maxVersionsDict[item]["64bit"]=""
-    #
-    #         return maxVersionsDict
-    #
-    #     elif sw == "SmMayaV02_sceneFile":
-    #         # GET MAYA VERSIONS
-    #         # -----------------
-    #
-    #         mayaVersionsDict = {"Maya2014": {}, "Maya2015":{}, "Maya2016": {}, "Maya2016.5": {}, "Maya2017": {}, "Maya2018": {}, "Maya2019": {}}
-    #         for item in mayaVersionsDict:
-    #             path32bit = os.path.join(programFiles32, "Autodesk", item, "bin", "maya.exe")
-    #             if os.path.isfile(path32bit):
-    #                 mayaVersionsDict[item]["32bit"]=path32bit
-    #             else:
-    #                 mayaVersionsDict[item]["32bit"]=""
-    #
-    #             path64bit = os.path.join(programFiles64, "Autodesk", item, "bin", "maya.exe")
-    #             if os.path.isfile(path64bit):
-    #                 mayaVersionsDict[item]["64bit"]=path64bit
-    #             else:
-    #                 mayaVersionsDict[item]["64bit"]=""
-    #
-    #         return mayaVersionsDict
-    #         # executablesDict = {"Maya": mayaVersionsDict, "3dsMax": maxVersionsDict}
-    #
-    #     elif sw == "SmHoudiniV02_sceneFile":
-    #         # GET HOUDINI VERSIONS
-    #         # --------------------
-    #
-    #         side32 = os.path.join(programFiles32, "Side Effects Software")
-    #         side64 = os.path.join(programFiles64, "Side Effects Software")
-    #
-    #         # get 32bit folders
-    #         houdiniVersionsDict = {}
-    #         if os.path.isdir(side32):
-    #             for dir in os.listdir(side32):
-    #                 houExePath = os.path.join(side32, dir, "bin", "houdini.exe")
-    #                 if os.path.isfile(houExePath):
-    #                     try:
-    #                         houdiniVersionsDict[dir]["32bit"] = houExePath
-    #                     except KeyError:
-    #                         houdiniVersionsDict[dir]={}
-    #                         houdiniVersionsDict[dir]["32bit"] = houExePath
-    #
-    #         # get 64bit folders
-    #         if os.path.isdir(side64):
-    #             houdiniVersionsDict = {}
-    #             for dir in os.listdir(side64):
-    #                 houExePath = os.path.join(side64, dir, "bin", "houdini.exe")
-    #                 if os.path.isfile(houExePath):
-    #                     try:
-    #                         houdiniVersionsDict[dir]["64bit"] = houExePath
-    #                     except KeyError:
-    #                         houdiniVersionsDict[dir]={}
-    #                         houdiniVersionsDict[dir]["64bit"] = houExePath
-    #         return houdiniVersionsDict
-    #
-    #     # search the houdini.exe under \\Side Effects Software\\(for everyfolder in here)\\bin
-    #     # if it exists, create a dict item in houdiniVersionsDict as "16.5.378" : "\\absolute\\path\\to\\exe"
-    #
-
-    # def executeScene(self):
-    #     # if not self._currentSceneInfo:
-    #     #     return
-    #     ID = self._currentSceneInfo["ID"]
-    #     print ID
-    #     exeDict = self.getExecutables(ID)
-    #
-    #
-    #     if ID.startswith("SmMaya"):
-    #         versionDict = {201400: "Maya2014",
-    #                        201450: "Maya2014",
-    #                        201451: "Maya2014",
-    #                        201459: "Maya2014",
-    #                        201402: "Maya2014",
-    #                        201404: "Maya2014",
-    #                        201406: "Maya2014",
-    #                        201500: "Maya2015",
-    #                        201506: "Maya2015",
-    #                        201507: "Maya2015",
-    #                        201501: "Maya2015",
-    #                        201502: "Maya2015",
-    #                        201505: "Maya2015",
-    #                        201506: "Maya2015",
-    #                        201507: "Maya2015",
-    #                        201600: "Maya2016",
-    #                        201650: "Maya2016.5",
-    #                        201651: "Maya2016.5",
-    #                        201653: "Maya2016.5",
-    #                        201605: "Maya2016",
-    #                        201607: "Maya2016",
-    #                        201650: "Maya2016.5",
-    #                        201651: "Maya2016.5",
-    #                        201653: "Maya2016.5",
-    #                        201605: "Maya2016",
-    #                        201607: "Maya2016",
-    #                        201700: "Maya2017",
-    #                        201701: "Maya2017",
-    #                        201720: "Maya2017",
-    #                        201740: "Maya2017",
-    #                        20180000: "Maya2018"}
-    #         try:
-    #             versionName = versionDict[self._currentSceneInfo["MayaVersion"]]
-    #         except KeyError:
-    #             msg = "Maya version cannot resolved"
-    #             self._exception(360, msg)
-    #             return
-    #
-    #         try:
-    #             if exeDict["Maya"][versionName]["64bit"]:
-    #                 exePath = exeDict["Maya"][versionName]["64bit"]
-    #             else:
-    #                 exePath = exeDict["Maya"][versionName]["32bit"]
-    #         except KeyError:
-    #             msg = "Maya %s is not installed on this workstation" %versionName
-    #             self._exception(360, msg)
-    #             return
-    #
-    #         subprocess.check_call([exePath, "-file", self.currentScenePath], shell=True)
-    #
-    #     elif ID.startswith("Sm3dsMax"):
-    #         versionDict = {16000: "3ds Max 2014",
-    #                        17000: "3ds Max 2015",
-    #                        18000: "3ds Max 2016",
-    #                        19000: "3ds Max 2017",
-    #                        20000: "3ds Max 2018"
-    #                        }
-    #         try:
-    #             versionName = versionDict[self._currentSceneInfo["3dsMaxVersion"][0]]
-    #         except KeyError:
-    #             msg = "3ds Max version cannot resolved"
-    #             self._exception(360, msg)
-    #             return
-    #
-    #         try:
-    #             if exeDict["3dsMax"][versionName]["64bit"]:
-    #                 exePath = exeDict["3dsMax"][versionName]["64bit"]
-    #             else:
-    #                 exePath = exeDict["3dsMax"][versionName]["32bit"]
-    #         except KeyError:
-    #             msg = "%s is not installed on this workstation" %versionName
-    #             self._exception(360, msg)
-    #             return
-    #         subprocess.check_call([exePath, self.currentScenePath], shell=True)
-    #
-    #     elif ID.startswith("SmHoudini"):
-    #         # print exeDict
-    #         print "registeredV", self._currentSceneInfo["HoudiniVersion"]
-    #         # print "ASDF", exeDict.keys()
-    #         for v in exeDict.keys():
-    #             versionNumber = v.split()[1]
-    #             versionAsList = [int(s) for s in versionNumber.split(".") if s.isdigit()]
-    #             print versionAsList
-    #
-    #
-    #
-    #     else:
-    #         msg = "This Action is not possible for this Base Scene"
-    #         self._exception(360, msg)
-    #         return
-    #
-    #     # command = "{0} {1}".format(os.path.normpath(exePath), os.path.normpath(self.currentScenePath))
+            # return
 
     def _exception(self, code, msg):
         """OVERRIDEN"""

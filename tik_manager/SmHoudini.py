@@ -108,7 +108,7 @@ class HoudiniManager(RootManager):
 
         self._setEnvVariable('JOB', path)
 
-    def saveBaseScene(self, categoryName, baseName, subProjectIndex=0, makeReference=True, versionNotes="", sceneFormat="hip", *args, **kwargs):
+    def saveBaseScene(self, categoryName, baseName, subProjectIndex=0, makeReference=False, versionNotes="", sceneFormat="hip", *args, **kwargs):
         """
         Saves the scene with formatted name and creates a json file for the scene
         Args:
@@ -125,6 +125,8 @@ class HoudiniManager(RootManager):
         Returns: Scene DB Dictionary
 
         """
+        if hou.isApprentice():
+            sceneFormat="hipnc"
         logger.debug("Func: saveBaseScene")
 
         now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
@@ -213,7 +215,7 @@ class HoudiniManager(RootManager):
         self._dumpJson(jsonInfo, jsonFile)
         return jsonInfo
 
-    def saveVersion(self, makeReference=True, versionNotes="", sceneFormat="hip", *args, **kwargs):
+    def saveVersion(self, makeReference=False, versionNotes="", sceneFormat="hip", *args, **kwargs):
         """
         Saves a version for the predefined scene. The scene json file must be present at the /data/[Category] folder.
         Args:
@@ -228,7 +230,8 @@ class HoudiniManager(RootManager):
         """
         logger.debug("Func: saveVersion")
 
-
+        if hou.isApprentice():
+            sceneFormat="hipnc"
 
         now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
         completeNote = "[%s] on %s\n%s\n" % (self.currentUser, now, versionNotes)
@@ -2372,8 +2375,8 @@ class MainUI(QtWidgets.QMainWindow):
             self.sdCategory_comboBox.setItemText(i, (self.manager._categories[i]))
         self.sdCategory_comboBox.setCurrentIndex(self.category_tabWidget.currentIndex())
 
-        self.sdMakeReference_checkbox = QtWidgets.QCheckBox("Make it Reference", self.save_Dialog)
-        self.sdMakeReference_checkbox.setGeometry(QtCore.QRect(130, 150, 151, 22))
+        # self.sdMakeReference_checkbox = QtWidgets.QCheckBox("Make it Reference", self.save_Dialog)
+        # self.sdMakeReference_checkbox.setGeometry(QtCore.QRect(130, 150, 151, 22))
 
         self.sd_buttonBox = QtWidgets.QDialogButtonBox(self.save_Dialog)
         self.sd_buttonBox.setGeometry(QtCore.QRect(20, 190, 220, 32))
@@ -2393,10 +2396,10 @@ class MainUI(QtWidgets.QMainWindow):
             category = self.sdCategory_comboBox.currentText()
             name = self.sdName_lineEdit.text()
             subIndex = self.sdSubP_comboBox.currentIndex()
-            makeReference = self.sdMakeReference_checkbox.checkState()
+            # makeReference = self.sdMakeReference_checkbox.checkState()
             notes = self.sdNotes_textEdit.toPlainText()
             sceneFormat = "hip"
-            self.manager.saveBaseScene(category, name, subIndex, makeReference, notes, sceneFormat)
+            self.manager.saveBaseScene(category, name, subIndex, notes, sceneFormat)
             self.populateBaseScenes()
             self.manager.getOpenSceneInfo()
             self._initOpenScene()
@@ -2435,9 +2438,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.svNotes_textEdit.setGeometry(QtCore.QRect(15, 40, 215, 170))
         self.svNotes_textEdit.setObjectName(("sdNotes_textEdit"))
 
-        self.svMakeReference_checkbox = QtWidgets.QCheckBox("Make it Reference", saveV_Dialog)
-        self.svMakeReference_checkbox.setGeometry(QtCore.QRect(130, 215, 151, 22))
-        self.svMakeReference_checkbox.setChecked(False)
+        # self.svMakeReference_checkbox = QtWidgets.QCheckBox("Make it Reference", saveV_Dialog)
+        # self.svMakeReference_checkbox.setGeometry(QtCore.QRect(130, 215, 151, 22))
+        # self.svMakeReference_checkbox.setChecked(False)
 
         sv_buttonBox = QtWidgets.QDialogButtonBox(saveV_Dialog)
         sv_buttonBox.setGeometry(QtCore.QRect(20, 250, 220, 32))
@@ -2460,7 +2463,7 @@ class MainUI(QtWidgets.QMainWindow):
                 else:
                     self.manager.errorLogger(title = "Disregarded warning" , errorMessage=msg)
 
-            sceneInfo = self.manager.saveVersion(makeReference=self.svMakeReference_checkbox.checkState(),
+            sceneInfo = self.manager.saveVersion(makeReference=False,
                                                  versionNotes=self.svNotes_textEdit.toPlainText())
 
             if not sceneInfo == -1:
