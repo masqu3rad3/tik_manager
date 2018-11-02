@@ -130,7 +130,7 @@ def inject(file, newContentList, between=None, after=None, before=None, matchMod
                 "Cannot find Start Line. Just appending to the file"
                 _dumpContent(file, (contentList + newContentList))
             else:
-                print "Cannot find Start Line. Aborting"
+                print "Cannot find Start Line. Skipping replace injection"
                 return
 
     elif after:
@@ -151,7 +151,6 @@ def inject(file, newContentList, between=None, after=None, before=None, matchMod
         injectedContent = contentList[:-endIndex] + newContentList + contentList[-startIndex - 1:]
     else:
         injectedContent = contentList[:startIndex] + newContentList + contentList[endIndex + 1:]
-
 
 
     _dumpContent(file, injectedContent)
@@ -598,10 +597,10 @@ def maxSetup(prompt=True):
     pack_24i = os.path.join(networkDir, "icons", "SceneManager_24i.bmp").replace("\\", "\\\\")
 
     workSpaceInjection ="""        <Window name="sceneManager" type="T" rank="0" subRank="2" hidden="0" dPanel="1" tabbed="0" curTab="-1" cType="1" toolbarRows="1" toolbarType="3">
-            <FRect left="503" top="452" right="612" bottom="526" />
+            <FRect left="198" top="125" right="310" bottom="199" />
             <DRect left="1395" top="53" right="1504" bottom="92" />
             <DRectPref left="2147483647" top="2147483647" right="-2147483648" bottom="-2147483648" />
-            <CurPos left="1395" top="53" right="1504" bottom="92" floating="0" panelID="1" />
+            <CurPos left="198" top="125" right="310" bottom="199" floating="1" panelID="16" />
             <Items>
                 <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="manager`SceneManager" tip="Scene Manager" label="Scene Manager" />
                 <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="saveVersion`SceneManager" tip="Scene Manager - Version Save" label="Save Version" />
@@ -676,7 +675,7 @@ icon: #("SceneManager",2)
 	python.Execute "Sm3dsMax.MainUI().saveAsVersionDialog()"
 )"""
         makePreview = """
-macroScript makePreview
+macroScript TIK_makePreview
 category: "SceneManager"
 tooltip: "Scene Manager - Make Preview"
 ButtonText: "Make Preview"

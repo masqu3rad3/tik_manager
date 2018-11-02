@@ -91,10 +91,19 @@ class SwViewer(RootManager):
 
     def getExecutables(self, rootPath, relativePath, executableList, searchword=None):
         if searchword:
-            versionRoots = [x for x in os.listdir(rootPath) if
-                            x.startswith(searchword) and os.path.isdir(os.path.join(rootPath, x))]
+            try:
+                versionRoots = [x for x in os.listdir(rootPath) if x.startswith(searchword) and os.path.isdir(os.path.join(rootPath, x))]
+            except WindowsError:
+                msg = "Cannot resolve executable paths"
+                self._exception(360, msg)
+                return
         else:
-            versionRoots = [x for x in os.listdir(rootPath) if os.path.isdir(os.path.join(rootPath, x))]
+            try:
+                versionRoots = [x for x in os.listdir(rootPath) if os.path.isdir(os.path.join(rootPath, x))]
+            except WindowsError:
+                msg = "Cannot resolve executable paths"
+                self._exception(360, msg)
+                return
         for v in versionRoots:
             print v
             exeDir = os.path.join(rootPath, v, relativePath)
@@ -107,42 +116,55 @@ class SwViewer(RootManager):
     def executeScene(self):
         if self.currentPlatform is not "Windows":
             logger.warning("Currently only windows executables are supported")
-            return
+            return None
 
         ID = self._currentSceneInfo["ID"]
+
+        if ID.startswith("SmMaya"):
+            swID = "SmMaya"
+        elif ID.startswith("Sm3dsmax"):
+            swID = "Sm3dsmax"
+        elif ID.startswith("SmHoudini"):
+            swID = "SmHoudini"
+        else:
+            msg = "Cannot resolve software version from database"
+            self._exception(360, msg)
+            return
+
+
 
         # resolve executables
         programFiles32 = os.environ["PROGRAMFILES(X86)"]
         programFiles64 = os.environ["PROGRAMFILES"]
 
-        pDict={"SmMayaV02_sceneFile":
+        pDict={"SmMaya":
                     {
                         "root": "Autodesk",
                         "relPath": "bin",
                         "exeList": ["maya.exe"],
                         "searchWord": "Maya"
                      },
-                "Sm3dsmaxV02_sceneFile":
+                "Sm3dsmax":
                     {
                         "root": "Autodesk",
                         "relPath": "",
                         "exeList": ["3dsmax.exe"],
                         "searchWord": "3ds"
                     },
-                "SmHoudiniV02_sceneFile":
+                "SmHoudini":
                     {
-                        "root": "Side Effect Software",
+                        "root": "Side Effects Software",
                         "relPath": "bin",
                         "exeList": ["houdini.exe", "houdinifx.exe"],
                         "searchWord": "Hou"
                     }
 
                 }
-        exeGen32Bit = self.getExecutables(os.path.join(programFiles32, pDict[ID]["root"]), pDict[ID]["relPath"],
-                                           pDict[ID]["exeList"], searchword=pDict[ID]["searchWord"])
+        exeGen32Bit = self.getExecutables(os.path.join(programFiles32, pDict[swID]["root"]), pDict[swID]["relPath"],
+                                           pDict[swID]["exeList"], searchword=pDict[swID]["searchWord"])
 
-        exeGen64Bit = self.getExecutables(os.path.join(programFiles64, pDict[ID]["root"]), pDict[ID]["relPath"],
-                                           pDict[ID]["exeList"], searchword=pDict[ID]["searchWord"])
+        exeGen64Bit = self.getExecutables(os.path.join(programFiles64, pDict[swID]["root"]), pDict[swID]["relPath"],
+                                           pDict[swID]["exeList"], searchword=pDict[swID]["searchWord"])
 
         # for x in exeGen64Bit:
         #     print x
@@ -156,7 +178,7 @@ class SwViewer(RootManager):
         #----
         #MAYA
         #----
-        if ID.startswith("SmMaya"):
+        if swID == "SmMaya":
             versionDict = {201400: "Maya2014",
                            201450: "Maya2014",
                            201451: "Maya2014",
@@ -209,9 +231,11 @@ class SwViewer(RootManager):
                 msg = "%s is not installed on this workstation" %versionName
                 self._exception(360, msg)
                 return
-            subprocess.check_call([exePath, "-file", self.currentScenePath], shell=True)
+            # subprocess.check_call([exePath, "-file", self.currentScenePath], shell=True)
+            subprocess.Popen([exePath, "-file", self.currentScenePath], shell=True)
+            return
 
-        elif ID.startswith("Sm3dsMax"):
+        elif swID == "Sm3dsMax":
             versionDict = {16000: "3ds Max 2014",
                            17000: "3ds Max 2015",
                            18000: "3ds Max 2016",
@@ -239,13 +263,19 @@ class SwViewer(RootManager):
                 msg = "%s is not installed on this workstation" % versionName
                 self._exception(360, msg)
                 return
-            subprocess.check_call([exePath, "-file", self.currentScenePath], shell=True)
+            # subprocess.check_call([exePath, "-file", self.currentScenePath], shell=True)
+            subprocess.Popen([exePath, "-file", self.currentScenePath], shell=True)
+            return
 
-        elif ID.startswith("SmHoudini"):
+        elif swID == "SmHoudini":
             for v in exeGen64Bit:
                 versionNumber = v[0].split()[1]
                 versionAsList = [int(s) for s in versionNumber.split(".") if s.isdigit()]
                 print versionAsList
+
+            return
+
+
         #
         #
         #
