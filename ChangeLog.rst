@@ -13,6 +13,7 @@ Scene Manager Version History
 * **Update.1:** added hashed password check and change password menu
 * **Fix.11:** Fixed callback crash in 3ds max
 * **Fix.11:** User update bug with Standalone version
+* **Fix.12:** Various fixes and SmStandalone Houdini connection
 
 1.93
 ----

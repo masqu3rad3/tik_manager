@@ -266,12 +266,21 @@ class SwViewer(RootManager):
             return
 
         elif swID == "SmHoudini":
+            dbVersion = self._currentSceneInfo["HoudiniVersion"][0]
+            dbIsApprentice = self._currentSceneInfo["HoudiniVersion"][1]
             for v in exeGen64Bit:
                 versionNumber = v[0].split()[1]
                 versionAsList = [int(s) for s in versionNumber.split(".") if s.isdigit()]
-                print v
-                print versionAsList
-                print "database", self._currentSceneInfo["HoudiniVersion"]
+                exePath = v[1]
+                if dbVersion == versionAsList:
+                    if dbIsApprentice:
+                        subprocess.Popen([exePath, "-apprentice", self.currentScenePath], shell=True)
+                    else:
+                        subprocess.Popen([exePath, self.currentScenePath], shell=True)
+                    return
+            msg = "Houdini %s is not installed on this workstation" % dbVersion
+            self._exception(360, msg)
+            return
 
             # return
 
