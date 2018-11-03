@@ -686,13 +686,13 @@ class MaxManager(RootManager):
     def _killCallbacks(self, callbackIDList):
         logger.warning("_killCallbacks Function not yet implemented")
 
-class _GCProtector(object):
-    widgets = []
-
-# noinspection PyArgumentList
-app = QtGui.QApplication.instance()
-if not app:
-    app = QtGui.QApplication([])
+# class _GCProtector(object):
+#     widgets = []
+#
+# # noinspection PyArgumentList
+# app = QtGui.QApplication.instance()
+# if not app:
+#     app = QtGui.QApplication([])
 
 
 class MainUI(QtGui.QMainWindow):

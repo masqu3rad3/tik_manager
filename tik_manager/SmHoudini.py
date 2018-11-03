@@ -30,7 +30,7 @@ __maintainer__ = "Arda Kutlu"
 __email__ = "ardakutlu@gmail.com"
 __status__ = "Development"
 
-SM_Version = "Scene Manager Maya v%s" %_version.__version__
+SM_Version = "Scene Manager Houdini v%s" %_version.__version__
 
 logging.basicConfig()
 logger = logging.getLogger('smMaya')

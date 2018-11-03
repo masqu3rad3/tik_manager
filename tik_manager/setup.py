@@ -558,6 +558,8 @@ SmHoudini.HoudiniManager().createPreview()]]></script>
 
 def maxSetup(prompt=True):
 
+    # TODO Prevent installation for unsupported versions
+
     networkDir = os.path.dirname(os.path.abspath(__file__))
     upNetworkDir = os.path.abspath(os.path.join(networkDir, os.pardir))
     fileList = ["__init__.pyc",
@@ -654,7 +656,7 @@ python.Execute "MaxPlus.NotificationManager.Register(14, smUpdate)"
 
         print "Creating Macroscripts"
         manager = """
-macroScript TIK_sm3dsMax
+macroScript manager
 category: "SceneManager"
 tooltip: "Scene Manager"
 ButtonText: "SM"
@@ -665,7 +667,7 @@ icon: #("SceneManager",1)
 )
 """
         saveVersion = """
-macroScript TIK_smSaveVersion
+macroScript saveVersion
 category: "SceneManager"
 tooltip: "Scene Manager - Save Version"
 ButtonText: "SM_SaveV"
@@ -675,7 +677,7 @@ icon: #("SceneManager",2)
 	python.Execute "Sm3dsMax.MainUI().saveAsVersionDialog()"
 )"""
         makePreview = """
-macroScript TIK_makePreview
+macroScript makePreview
 category: "SceneManager"
 tooltip: "Scene Manager - Make Preview"
 ButtonText: "Make Preview"
@@ -685,9 +687,9 @@ icon: #("SceneManager",5)
 	python.Execute "reload(Sm3dsMax)"
 	python.Execute "Sm3dsMax.MaxManager().createPreview()"
 )"""
-        _dumpContent(os.path.join(macrosDir, "Tik Works-TIK_sm3dsMax.mcr"), manager)
-        _dumpContent(os.path.join(macrosDir, "Tik Works-TIK_smSaveVersion.mcr"), saveVersion)
-        _dumpContent(os.path.join(macrosDir, "Tik Works-TIK_smPreview.mcr"), makePreview)
+        _dumpContent(os.path.join(macrosDir, "SceneManager-manager.mcr"), manager)
+        _dumpContent(os.path.join(macrosDir, "SceneManager-saveVersion.mcr"), saveVersion)
+        _dumpContent(os.path.join(macrosDir, "SceneManager-makePreview.mcr"), makePreview)
 
         searchLines = ['"sceneManager"', "</Window>"]
         print "Injecting the Scene Manager toolbar to the workspace"
