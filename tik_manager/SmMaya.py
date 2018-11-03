@@ -3250,8 +3250,6 @@ class MainUI(QtWidgets.QMainWindow):
             elif ret == QtWidgets.QMessageBox.No:
                 return "no"
 
-
-
 class ImageWidget(QtWidgets.QLabel):
     """Custom class for thumbnail section. Keeps the aspect ratio when resized."""
     def __init__(self, parent=None):
