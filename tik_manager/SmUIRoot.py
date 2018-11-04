@@ -3,9 +3,12 @@ import os
 import _version
 import pprint
 
+import ImageViewer
+
+from tik_manager.CSS import darkorange
+
 import Qt
 from Qt import QtWidgets, QtCore, QtGui
-
 
 
 __author__ = "Arda Kutlu"
@@ -21,7 +24,8 @@ __status__ = "Development"
 
 BoilerDict = {"Environment":"Standalone",
               "MainWindow":None,
-              "WindowTitle":"Scene Manager Standalone v%s" %_version.__version__}
+              "WindowTitle":"Scene Manager Standalone v%s" %_version.__version__,
+              "Stylesheet":"mayaDark.stylesheet"}
 # Get Environment
 try:
     from maya import OpenMayaUI as omui
@@ -109,6 +113,24 @@ class MainUI(QtWidgets.QMainWindow):
         #         self.close()
         #         self.deleteLater()
 
+        # Set Stylesheet
+        dirname = os.path.dirname(os.path.abspath(__file__))
+        # stylesheetFile = os.path.join(dirname, "CSS", "darkorange.stylesheet")
+        # stylesheetFile = os.path.join(dirname, "CSS", BoilerDict["Stylesheet"])
+
+        # with open(stylesheetFile, "r") as fh:
+        #     self.setStyleSheet(fh.read())
+
+        self.setStyleSheet(darkorange.getStyleSheet())
+
+
+        # self.initMainUI(newborn=True)
+
+
+        # super(MainUI, self).closeEvent(event)
+
+    def buildUI(self):
+
         self.setObjectName(BoilerDict["WindowTitle"])
         self.resize(680, 600)
         self.setWindowTitle(BoilerDict["WindowTitle"])
@@ -118,22 +140,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
-        self.buildUI()
+        # self.buildUI()
         self.setCentralWidget(self.centralwidget)
-
-        self.callbackIDList=[]
-        if self.isCallback:
-            self.callbackIDList = self.manager._createCallbacks(self.isCallback)
-
-        # self.initMainUI(newborn=True)
-
-    def closeEvent(self, event):
-        if self.isCallback:
-            self.manager._killCallbacks(self.callbackIDList)
-
-        # super(MainUI, self).closeEvent(event)
-
-    def buildUI(self):
 
         self.main_gridLayout = QtWidgets.QGridLayout(self.centralwidget)
         self.main_gridLayout.setObjectName(("main_gridLayout"))
@@ -387,7 +395,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         # MENU BAR / STATUS BAR
         # ---------------------
-        file = self.menubar.addMenu("File")
+        self.fileMenu = self.menubar.addMenu("File")
         createProject_fm = QtWidgets.QAction("&Create Project", self)
         saveVersion_fm = QtWidgets.QAction("&Save Version", self)
         saveBaseScene_fm = QtWidgets.QAction("&Save Base Scene", self)
@@ -401,7 +409,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         projectSettings_fm = QtWidgets.QAction("&Project Settings", self)
 
-        # TODO : ref
         changeAdminPass_fm = QtWidgets.QAction("&Change Admin Password", self)
 
 
@@ -412,42 +419,41 @@ class MainUI(QtWidgets.QMainWindow):
         checkReferences_fm = QtWidgets.QAction("&Check References", self)
 
         #save
-        file.addAction(createProject_fm)
-        file.addAction(saveVersion_fm)
-        file.addAction(saveBaseScene_fm)
+        self.fileMenu.addAction(createProject_fm)
+        self.fileMenu.addAction(saveVersion_fm)
+        self.fileMenu.addAction(saveBaseScene_fm)
 
         #load
-        file.addSeparator()
-        file.addAction(loadReferenceScene_fm)
+        self.fileMenu.addSeparator()
+        self.fileMenu.addAction(loadReferenceScene_fm)
 
         #settings
-        file.addSeparator()
-        file.addAction(add_remove_users_fm)
-        file.addAction(add_remove_categories_fm)
-        file.addAction(pb_settings_fm)
-        file.addAction(projectSettings_fm)
-        # TODO : ref
-        file.addAction(changeAdminPass_fm)
+        self.fileMenu.addSeparator()
+        self.fileMenu.addAction(add_remove_users_fm)
+        self.fileMenu.addAction(add_remove_categories_fm)
+        self.fileMenu.addAction(pb_settings_fm)
+        self.fileMenu.addAction(projectSettings_fm)
+        self.fileMenu.addAction(changeAdminPass_fm)
 
 
         #delete
-        file.addSeparator()
-        file.addAction(deleteFile_fm)
-        file.addAction(deleteReference_fm)
+        self.fileMenu.addSeparator()
+        self.fileMenu.addAction(deleteFile_fm)
+        self.fileMenu.addAction(deleteReference_fm)
 
         #misc
-        file.addSeparator()
-        file.addAction(projectReport_fm)
-        file.addAction(checkReferences_fm)
+        self.fileMenu.addSeparator()
+        self.fileMenu.addAction(projectReport_fm)
+        self.fileMenu.addAction(checkReferences_fm)
 
-        tools = self.menubar.addMenu("Tools")
-        imanager = QtWidgets.QAction("&Image Manager", self)
+        self.toolsMenu = self.menubar.addMenu("Tools")
+        # imanager = QtWidgets.QAction("&Image Manager", self)
         iviewer = QtWidgets.QAction("&Image Viewer", self)
-        createPB = QtWidgets.QAction("&Create PlayBlast", self)
+        createPB = QtWidgets.QAction("&Create Preview", self)
 
-        tools.addAction(imanager)
-        tools.addAction(iviewer)
-        tools.addAction(createPB)
+        # self.toolsMenu.addAction(imanager)
+        self.toolsMenu.addAction(iviewer)
+        self.toolsMenu.addAction(createPB)
 
         # RIGHT CLICK MENUS
         # -----------------
@@ -461,11 +467,11 @@ class MainUI(QtWidgets.QMainWindow):
         self.popMenu_scenes.addAction(self.scenes_rcItem_0)
         self.scenes_rcItem_0.triggered.connect(lambda: self.rcAction_scenes("importScene"))
 
-        self.scenes_rcItem_1 = QtWidgets.QAction('Show Maya Folder in Explorer', self)
+        self.scenes_rcItem_1 = QtWidgets.QAction('Show %s Folder in Explorer' %BoilerDict["Environment"], self)
         self.popMenu_scenes.addAction(self.scenes_rcItem_1)
         self.scenes_rcItem_1.triggered.connect(lambda: self.rcAction_scenes("showInExplorerMaya"))
 
-        self.scenes_rcItem_2 = QtWidgets.QAction('Show Playblast Folder in Explorer', self)
+        self.scenes_rcItem_2 = QtWidgets.QAction('Show Preview Folder in Explorer', self)
         self.popMenu_scenes.addAction(self.scenes_rcItem_2)
         self.scenes_rcItem_2.triggered.connect(lambda: self.rcAction_scenes("showInExplorerPB"))
 
@@ -514,7 +520,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         projectSettings_fm.triggered.connect(self.projectSettingsUI)
 
-        # TODO : ref
         changeAdminPass_fm.triggered.connect(self.changePasswordUI)
 
 
@@ -525,9 +530,9 @@ class MainUI(QtWidgets.QMainWindow):
 
         checkReferences_fm.triggered.connect(lambda: self.populateBaseScenes(deepCheck=True))
 
-        imanager.triggered.connect(self.onImanager)
+        # imanager.triggered.connect(self.onImanager)
         iviewer.triggered.connect(self.onIviewer)
-        # createPB.triggered.connect(self.manager.createPreview)
+        createPB.triggered.connect(self.onCreatePreview)
 
 
         self.statusBar().showMessage("Status | Idle")
@@ -1971,6 +1976,11 @@ class MainUI(QtWidgets.QMainWindow):
 
     def initMainUI(self, newborn=False):
 
+        self.load_radioButton.setChecked(self.manager.currentMode)
+        self.reference_radioButton.setChecked(not self.manager.currentMode)
+        self.category_tabWidget.setCurrentIndex(self.manager.currentTabIndex)
+
+
         if not newborn:
             self.manager.init_paths()
             self.manager.init_database()
@@ -2042,7 +2052,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         if command == "viewRender":
             imagePath = os.path.join(self.manager.projectDir, "images", self.manager.currentBaseSceneName)
-            IvMaya.MainUI(self.manager.projectDir, relativePath=imagePath, recursive=True).show()
+            ImageViewer.MainUI(self.manager.projectDir, relativePath=imagePath, recursive=True).show()
 
     def rcAction_thumb(self, command):
         # print "comm: ", command
@@ -2290,17 +2300,22 @@ class MainUI(QtWidgets.QMainWindow):
             self.populateBaseScenes()
             self.statusBar().showMessage("Status | Reference of %s is deleted" % name)
 
-    def onImanager(self):
-        # if self.isCallback:
-        #     callback = "%s.imageManagerINS" %(self.isCallback)
-        # else:
-        #     callback = None
-        #
-        # self.imageManagerINS = ImMaya.MainUI(callback=callback)
-        e = ImMaya.MainUI()
+    # def onImanager(self):
+    #     # if self.isCallback:
+    #     #     callback = "%s.imageManagerINS" %(self.isCallback)
+    #     # else:
+    #     #     callback = None
+    #     #
+    #     # self.imageManagerINS = ImMaya.MainUI(callback=callback)
+    #     e = ImMaya.MainUI()
 
     def onIviewer(self):
-        IvMaya.MainUI(self.manager.projectDir).show()
+        ImageViewer.MainUI(self.manager.projectDir).show()
+
+    def onCreatePreview(self):
+        self.statusBar().showMessage("Creating Preview...")
+        self.manager.createPreview()
+        self.statusBar().showMessage("Status | Idle")
 
     def _initSubProjects(self):
 

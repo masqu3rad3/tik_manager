@@ -3,11 +3,16 @@ reload(SmRoot)
 from SmRoot import RootManager
 from PyQt4 import QtCore, QtGui, Qt
 
-import IvStandalone
+# import IvStandalone
+import sys, os
+os.environ["QT_PREFERRED_BINDING"] = os.pathsep.join(["PyQt4", "PySide2", "PySide", "PyQt5"])
+os.environ["QT_VERBOSE"]="True"
+import ImageViewer
+reload(ImageViewer)
 import _version
 import subprocess
 # import json
-import sys, os
+
 import pprint
 import logging
 
@@ -1928,7 +1933,8 @@ class MainUI(QtGui.QMainWindow):
 
         if command == "viewRender":
             imagePath = os.path.join(self.masterManager.projectDir, "images", manager.currentBaseSceneName)
-            IvStandalone.MainUI(self.masterManager.projectDir, relativePath=imagePath, recursive=True).show()
+            # IvStandalone.MainUI(self.masterManager.projectDir, relativePath=imagePath, recursive=True).show()
+            ImageViewer.MainUI(self.masterManager.projectDir, relativePath=imagePath, recursive=True).show()
 
     def onProjectChange(self):
         self.initMainUI(newborn=True)
@@ -2158,7 +2164,8 @@ class MainUI(QtGui.QMainWindow):
         self.scenes_listWidget.blockSignals(False)
 
     def onIviewer(self):
-        IvStandalone.MainUI(self.masterManager.projectDir).show()
+        # IvStandalone.MainUI(self.masterManager.projectDir).show()
+        ImageViewer.MainUI(self.masterManager.projectDir).show()
 
     def _initSoftwares(self):
         self.software_comboBox.blockSignals(True)
