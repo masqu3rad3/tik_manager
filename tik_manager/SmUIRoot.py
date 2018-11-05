@@ -10,7 +10,6 @@ from tik_manager.CSS import darkorange
 import Qt
 from Qt import QtWidgets, QtCore, QtGui
 
-
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Scene Manager UI Boilerplate"
 __credits__ = []
@@ -21,16 +20,20 @@ __status__ = "Development"
 
 # SM_Version = "Scene Manager Maya v%s" %_version.__version__
 
-
+# Below is the standard dictionary for Scene Manager Standalone
 BoilerDict = {"Environment":"Standalone",
               "MainWindow":None,
               "WindowTitle":"Scene Manager Standalone v%s" %_version.__version__,
-              "Stylesheet":"mayaDark.stylesheet"}
-# Get Environment
+              "Stylesheet":"mayaDark.stylesheet",
+              "SceneFormats":None
+              }
+
+# Get Environment and edit the dictionary according to the Environment
 try:
     from maya import OpenMayaUI as omui
     BoilerDict["Environment"] = "Maya"
     BoilerDict["WindowTitle"] = "Scene Manager Maya v%s" %_version.__version__
+    BoilerDict["SceneFormats"] = ["ma", "mb"]
     if Qt.__binding__ == "PySide":
         from shiboken import wrapInstance
     elif Qt.__binding__.startswith('PyQt'):
@@ -44,6 +47,7 @@ try:
     import MaxPlus
     BoilerDict["Environment"] = "3dsMax"
     BoilerDict["WindowTitle"] = "Scene Manager 3ds Max v%s" %_version.__version__
+    BoilerDict["SceneFormats"] = ["max"]
 except ImportError:
     pass
 
@@ -51,6 +55,7 @@ try:
     import hou
     BoilerDict["Environment"] = "Houdini"
     BoilerDict["WindowTitle"] = "Scene Manager Houdini v%s" %_version.__version__
+    BoilerDict["SceneFormats"] = ["hip"]
 except ImportError:
     pass
 
@@ -58,6 +63,7 @@ try:
     import nuke
     BoilerDict["Environment"] = "Nuke"
     BoilerDict["WindowTitle"] = "Scene Manager Nuke v%s" % _version.__version__
+    BoilerDict["SceneFormats"] = ["nk"]
 except ImportError:
     pass
 
@@ -1950,6 +1956,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.sdMakeReference_checkbox = QtWidgets.QCheckBox("Make it Reference", self.save_Dialog)
         self.sdMakeReference_checkbox.setGeometry(QtCore.QRect(130, 150, 120, 22))
 
+        # for format in BoilerDict["SceneFormats"]:
+        #     radioButton = QtWidgets.QRadioButton(self.save_Dialog)
+
         mb_radioButton = QtWidgets.QRadioButton(self.save_Dialog)
         mb_radioButton.setGeometry(QtCore.QRect(20, 150, 50, 22))
         mb_radioButton.setText(("mb"))
@@ -2001,6 +2010,11 @@ class MainUI(QtWidgets.QMainWindow):
         self.sd_buttonBox.rejected.connect(self.save_Dialog.reject)
         # QtCore.QMetaObject.connectSlotsByName(self.save_Dialog)
 
+        # there is no referencing for Houdini andNuke
+        if BoilerDict["Environment"] == "Houdini" or "Nuke":
+            self.sdMakeReference_checkbox.setChecked(False)
+            self.sdMakeReference_checkbox.setVisible(False)
+
         self.save_Dialog.show()
 
     def saveAsVersionDialog(self):
@@ -2013,7 +2027,7 @@ class MainUI(QtWidgets.QMainWindow):
         saveV_Dialog.setWindowTitle(("Save As Version"))
 
         svNotes_label = QtWidgets.QLabel(saveV_Dialog)
-        svNotes_label.setGeometry(QtCore.QRect(15, 15, 61, 20))
+        svNotes_label.setGeometry(QtCore.QRect(15, 15, 100, 20))
         svNotes_label.setText(("Version Notes"))
         svNotes_label.setObjectName(("sdNotes_label"))
 

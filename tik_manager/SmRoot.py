@@ -1285,11 +1285,11 @@ class RootManager(object):
         logger.debug("Func: _checkRequirements")
 
         ## check platform
-        currentOs = platform.system()
-        if currentOs != "Linux" and currentOs != "Windows":
-            self._exception(210, "Operating System is not supported\nCurrently only Windows and Linux supported")
-            return -1, ["OS Error", "Operating System is not supported",
-                        "Scene Manager only supports Windows and Linux Operating Systems"]
+        # currentOs = platform.system()
+        # if currentOs != "Linux" and currentOs != "Windows":
+        #     self._exception(210, "Operating System is not supported\nCurrently only Windows and Linux supported")
+        #     return -1, ["OS Error", "Operating System is not supported",
+        #                 "Scene Manager only supports Windows and Linux Operating Systems"]
         ## check admin rights
         try:
             is_admin = os.getuid() == 0

@@ -1,12 +1,17 @@
+## This version is not working with Pyinstaller compile because of the Qt module
+
 import SmRoot
 reload(SmRoot)
 from SmRoot import RootManager
 from SmUIRoot import MainUI as baseUI
 import Qt
 from Qt import QtWidgets, QtCore, QtGui
+
+
+
 import sys, os
 import ImageViewer
-reload(ImageViewer)
+# reload(ImageViewer)
 import _version
 import subprocess
 # import json

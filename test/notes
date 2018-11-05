@@ -2,10 +2,17 @@ pyinstaller flags:
 
 python -OO -m PyInstaller setup.py --onefile
 
+
 Alternative: (Needs external Upx file)
 python -OO -m PyInstaller setup.py --onefile --upx-dir "C:\Users\kutlu\Documents\maya\scripts\tik_manager\upx"
 
 
+python -OO -m PyInstaller SmStandaloneV3.py
 
-# INSTALL pyqt5
+
+# INSTALL pyqt5 => Pyinstaller is not working.. (?)
 conda install -c conda-forge pyqt
+
+
+# Back to PyQt4 => This one is compatible with pyinstaller
+conda install pyqt=4

@@ -773,7 +773,6 @@ class MainUI(baseUI):
         self.reference_radioButton.setChecked(False)
         self.reference_radioButton.setVisible(False)
         self.makeReference_pushButton.setVisible(False)
-
         # idk why this became necessary for houdini..
         self.category_tabWidget.setMaximumSize(QtCore.QSize(16777215, 30))
 
