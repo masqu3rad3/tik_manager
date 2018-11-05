@@ -109,7 +109,7 @@ def getProject():
         return os.path.normpath((hou.hscript('echo $JOB')[0])[:-1]) # [:-1] is for the extra \n
     elif BoilerDict["Environment"] == "Nuke":
         # TODO // Needs a project getter for nuke
-        return None
+        return os.path.normpath(os.path.join(os.path.expanduser("~")))
     else:
         return os.path.normpath(os.path.join(os.path.expanduser("~")))
 
@@ -129,7 +129,8 @@ class MainUI(QtWidgets.QMainWindow):
             except AttributeError:
                 pass
         parent = getMainWindow()
-        super(MainUI, self).__init__(parent=parent)
+        # super(MainUI, self).__init__(parent=parent)
+        super(MainUI, self).__init__()
 
         # Set Stylesheet
         # dirname = os.path.dirname(os.path.abspath(__file__))
@@ -150,20 +151,22 @@ class MainUI(QtWidgets.QMainWindow):
             self.rootPath = os.path.join(self.projectPath, str(relativePath))
         else:
             self.rootPath = os.path.join(self.projectPath, "images")
+            if not os.path.isdir(self.rootPath):
+                self.rootPath = self.projectPath
 
         self.databaseDir = os.path.normpath(os.path.join(self.projectPath, "smDatabase"))
 
         if not os.path.isdir(self.databaseDir):
             msg=["Nothing to view", "No Scene Manager Database",
              "There is no Scene Manager Database Folder in this project path"]
-            q = QtGui.QMessageBox()
-            q.setIcon(QtGui.QMessageBox.Information)
+            q = QtWidgets.QMessageBox()
+            q.setIcon(QtWidgets.QMessageBox.Information)
             q.setText(msg[0])
             q.setInformativeText(msg[1])
             q.setWindowTitle(msg[2])
-            q.setStandardButtons(QtGui.QMessageBox.Ok)
+            q.setStandardButtons(QtWidgets.QMessageBox.Ok)
             ret = q.exec_()
-            if ret == QtGui.QMessageBox.Ok:
+            if ret == QtWidgets.QMessageBox.Ok:
                 self.close()
                 self.deleteLater()
 
@@ -755,5 +758,3 @@ class SeqCopyProgress(QtWidgets.QWidget):
             logger.removeHandler(i)
             i.flush()
             i.close()
-
-

@@ -5,3 +5,7 @@ python -OO -m PyInstaller setup.py --onefile
 Alternative: (Needs external Upx file)
 python -OO -m PyInstaller setup.py --onefile --upx-dir "C:\Users\kutlu\Documents\maya\scripts\tik_manager\upx"
 
+
+
+# INSTALL pyqt5
+conda install -c conda-forge pyqt

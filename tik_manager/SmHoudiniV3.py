@@ -21,7 +21,7 @@ from glob import glob
 import subprocess
 import platform
 
-from PySide2 import QtCore
+from Qt import QtCore
 # from PySide2 import QtWidgets
 # from PySide2 import QtGui
 

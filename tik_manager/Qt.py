@@ -1035,7 +1035,6 @@ def _install():
     }
 
     _log("Order: '%s'" % "', '".join(order))
-    print order
     found_binding = False
     for name in order:
         _log("Trying %s" % name)
