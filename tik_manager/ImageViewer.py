@@ -5,11 +5,21 @@ Meaning all the sequence under the selected folder will be listed
 recursively.
 Double clicking on the seguence will execute the file on the defined application
 """
+import os
 import _version
+# import pprint
+
+# PyInstaller and Standalone version compatibility
+FORCE_QT4 = bool(os.getenv("FORCE_QT4"))
+if FORCE_QT4:
+    from PyQt4 import QtCore, Qt
+    from PyQt4 import QtGui as QtWidgets
+else:
+    import Qt
+    from Qt import QtWidgets, QtCore, QtGui
+
+
 import pyseq as seq
-
-
-
 
 import json
 import datetime
@@ -22,12 +32,8 @@ from tik_manager.CSS import darkorange
 
 
 
-import os
-import _version
-import pprint
 
-import Qt
-from Qt import QtWidgets, QtCore, QtGui
+
 
 
 __author__ = "Arda Kutlu"
@@ -543,7 +549,12 @@ class MainUI(QtWidgets.QMainWindow):
             json.dump(data, f, indent=4)
 
 class DropLineEdit(QtWidgets.QLineEdit):
-    dropped = Qt.QtCore.Signal(str)
+    # PyInstaller and Standalone version compatibility
+    if FORCE_QT4:
+        dropped = QtCore.pyqtSignal(str)
+    else:
+        dropped = Qt.QtCore.Signal(str)
+
     def __init__(self, type, parent=None):
         super(DropLineEdit, self).__init__(parent)
         self.setAcceptDrops(True)
@@ -569,8 +580,11 @@ class DropLineEdit(QtWidgets.QLineEdit):
 
 
 class DeselectableTreeView(QtWidgets.QTreeView):
-    # deselected = QtCore.pyqtSignal(bool)
-    deselected = Qt.QtCore.Signal(bool)
+    # PyInstaller and Standalone version compatibility
+    if FORCE_QT4:
+        deselected = QtCore.pyqtSignal(bool)
+    else:
+        deselected = QtCore.Signal(bool)
     def mousePressEvent(self, event):
         index = self.indexAt(event.pos()) # returns  -1 if click is outside
         if index.row() == -1:

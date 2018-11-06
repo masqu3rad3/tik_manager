@@ -1,18 +1,39 @@
+------------------
 pyinstaller flags:
+------------------
 
+Compile Setup
+-------------
 python -OO -m PyInstaller setup.py --onefile
 
 
 Alternative: (Needs external Upx file)
 python -OO -m PyInstaller setup.py --onefile --upx-dir "C:\Users\kutlu\Documents\maya\scripts\tik_manager\upx"
 
+Compile Standalone
+------------------
+python -OO -m PyInstaller SmStandaloneP4.py -w
 
-python -OO -m PyInstaller SmStandaloneV3.py
+python -OO -m PyInstaller SmStandalone.py -w -i "icons/manager_icon_bhg_icon.ico"
 
+### DONT FORGET TO COPY CSS FOLDER UNDER THE DISTRO
+
+
+
+----------------
+Library versions
+----------------
 
 # INSTALL pyqt5 => Pyinstaller is not working.. (?)
 conda install -c conda-forge pyqt
 
-
 # Back to PyQt4 => This one is compatible with pyinstaller
 conda install pyqt=4
+
+
+# Current Versions for Standalone
+cryptography =>  2.3.1-py27hcfb25f9_2
+jpeg => 8d-vc9_2
+libtiff => 4.0.6-vc9_2
+PyQt => 4.11.4-py27_7
+qt => 4.8.7_vc9_6

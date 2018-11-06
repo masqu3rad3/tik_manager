@@ -1,16 +1,23 @@
-## This version is not working with Pyinstaller compile because of the Qt module
+
+import sys, os
+
+# Set the force pyqt environment variable to tell the other modulea not to use Qt.py module
+os.environ["FORCE_QT4"]="True"
+
+from PyQt4 import QtCore, Qt
+from PyQt4 import QtGui as QtWidgets
 
 import SmRoot
 reload(SmRoot)
 from SmRoot import RootManager
 from SmUIRoot import MainUI as baseUI
-import Qt
-from Qt import QtWidgets, QtCore, QtGui
+# import Qt
+# from Qt import QtWidgets, QtCore, QtGui
 
 
 
-import sys, os
-import ImageViewer
+
+# import ImageViewer
 # reload(ImageViewer)
 import _version
 import subprocess
@@ -323,6 +330,8 @@ class StandaloneManager(RootManager):
 
         self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
 
+
+
         self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
 
 
@@ -349,7 +358,10 @@ class StandaloneManager(RootManager):
         # get the project defined in the database file
         try:
             norm_p_path = projectsDict["StandaloneProject"]
-            return norm_p_path
+            if norm_p_path: #some error can save it as None
+                return norm_p_path
+            else:
+                return os.path.normpath(os.path.expanduser("~"))
         except KeyError:
             norm_p_path = os.path.normpath(os.path.expanduser("~"))
             projectsDict = {"StandaloneProject": norm_p_path}
@@ -495,8 +507,9 @@ class MainUI(baseUI):
         self.modify()
         self.initMainUI(newborn=True)
 
-
     def extraMenus(self):
+        """Adds extra menu and widgets to the base UI"""
+
         self.software_comboBox = QtWidgets.QComboBox(self.centralwidget)
         self.software_comboBox.setMinimumSize(QtCore.QSize(150, 30))
         self.software_comboBox.setMaximumSize(QtCore.QSize(16777215, 30))
@@ -505,6 +518,8 @@ class MainUI(baseUI):
         self.software_comboBox.activated.connect(self.onSoftwareChange)
 
     def modify(self):
+        """Modifications to the base UI"""
+
         # make sure load mode is checked and hidden
         self.load_radioButton.setChecked(True)
         self.load_radioButton.setVisible(False)
@@ -520,9 +535,11 @@ class MainUI(baseUI):
         self.saveVersion_fm.setVisible(False)
         self.saveBaseScene_pushButton.setVisible(False)
         self.saveBaseScene_fm.setVisible(False)
+        self.scenes_rcItem_0.setVisible(False)
 
 
     def initMainUI(self, newborn=False):
+        """OVERRIDEN METHOD"""
 
         if not newborn:
             self.manager.init_paths()
@@ -545,6 +562,7 @@ class MainUI(baseUI):
         self._vEnableDisable()
 
     def _getManager(self):
+        """OVERRIDEN to select different software managers"""
         swList = self.manager.swList
         swIndex = self.software_comboBox.currentIndex()
         try:
@@ -554,6 +572,7 @@ class MainUI(baseUI):
         return manager
 
     def _initSoftwares(self):
+        """Gets the softwares available in the project and updated the UI"""
         self.software_comboBox.blockSignals(True)
 
         self.software_comboBox.clear()
@@ -564,295 +583,8 @@ class MainUI(baseUI):
 
         self.software_comboBox.blockSignals(False)
 
-    def addRemoveCategoryUI(self):
-
-        passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query",
-                                               "Enter Admin Password:", QtWidgets.QLineEdit.Password)
-
-        manager = self._getManager()
-        if not manager:
-            return
-
-        if ok:
-            if self.manager.checkPassword(passw):
-                pass
-            else:
-                self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
-                return
-        else:
-            return
-
-
-        categories_dialog = QtWidgets.QDialog(parent=self)
-        categories_dialog.setModal(True)
-        categories_dialog.setObjectName(("category_Dialog"))
-        categories_dialog.setMinimumSize(QtCore.QSize(342, 177))
-        categories_dialog.setMaximumSize(QtCore.QSize(342, 177))
-        categories_dialog.setWindowTitle(("Add/Remove Categories"))
-        categories_dialog.setFocus()
-
-        addnewcategory_groupbox = QtWidgets.QGroupBox(categories_dialog)
-        addnewcategory_groupbox.setGeometry(QtCore.QRect(10, 10, 321, 81))
-        addnewcategory_groupbox.setTitle(("Add New Category"))
-        addnewcategory_groupbox.setObjectName(("addnewcategory_groupBox"))
-
-        categoryName_label = QtWidgets.QLabel(addnewcategory_groupbox)
-        categoryName_label.setGeometry(QtCore.QRect(10, 30, 81, 21))
-        categoryName_label.setLayoutDirection(QtCore.Qt.LeftToRight)
-        categoryName_label.setText(("Category Name:"))
-        categoryName_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        categoryName_label.setObjectName(("categoryName_label"))
-
-        self.categoryName_lineEdit= QtWidgets.QLineEdit(addnewcategory_groupbox)
-        self.categoryName_lineEdit.setGeometry(QtCore.QRect(105, 30, 135, 20))
-        self.categoryName_lineEdit.setPlaceholderText(("e.g \"Look Dev\""))
-        self.categoryName_lineEdit.setObjectName(("categoryName_lineEdit"))
-
-        addnewcategory_pushButton = QtWidgets.QPushButton(addnewcategory_groupbox)
-        addnewcategory_pushButton.setGeometry(QtCore.QRect(250, 28, 61, 26))
-        addnewcategory_pushButton.setText(("Add"))
-        addnewcategory_pushButton.setObjectName(("addnewcategory_pushButton"))
-
-        deletecategory_groupBox = QtWidgets.QGroupBox(categories_dialog)
-        deletecategory_groupBox.setGeometry(QtCore.QRect(10, 110, 321, 51))
-        deletecategory_groupBox.setTitle(("Delete and Change Order"))
-        deletecategory_groupBox.setObjectName(("deletecategory_groupBox"))
-
-        self.selectcategory_comboBox = QtWidgets.QComboBox(deletecategory_groupBox)
-        self.selectcategory_comboBox.setGeometry(QtCore.QRect(10, 20, 231, 22))
-        self.selectcategory_comboBox.setObjectName(("selectcategory_comboBox"))
-
-        self.selectcategory_comboBox.addItems(manager._categories)
-
-        deletecategory_pushButton = QtWidgets.QPushButton(deletecategory_groupBox)
-        deletecategory_pushButton.setGeometry(QtCore.QRect(250, 20, 61, 21))
-        deletecategory_pushButton.setText(("Delete"))
-        deletecategory_pushButton.setObjectName(("deletecategory_pushButton"))
-
-
-        def onAddCategory():
-            manager.addCategory(str(self.categoryName_lineEdit.text()))
-
-
-            preTab = QtWidgets.QWidget()
-            preTab.setObjectName(self.categoryName_lineEdit.text())
-            self.category_tabWidget.addTab(preTab, self.categoryName_lineEdit.text())
-            self.selectcategory_comboBox.addItem(self.categoryName_lineEdit.text())
-
-            self.categoryName_lineEdit.setText("")
-
-        def onRemoveCategory():
-            manager.removeCategory(str(self.selectcategory_comboBox.currentText()))
-            self.selectcategory_comboBox.clear()
-            self.selectcategory_comboBox.addItems(manager.getCategories())
-
-            self._initCategories()
-
-
-        addnewcategory_pushButton.clicked.connect(onAddCategory)
-        deletecategory_pushButton.clicked.connect(onRemoveCategory)
-
-        self.categoryName_lineEdit.textChanged.connect(
-            lambda: self._checkValidity(self.categoryName_lineEdit.text(), addnewcategory_pushButton,
-                                        self.categoryName_lineEdit))
-
-
-        categories_dialog.show()
-
-        def projectSettingsUI(self):
-            passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query", "Enter Admin Password:",
-                                                       QtWidgets.QLineEdit.Password)
-
-            if ok:
-                if self.manager.checkPassword(passw):
-                    pass
-                else:
-                    self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
-                    return
-            else:
-                return
-
-            projectSettingsDB = self.manager._loadProjectSettings()
-
-            projectSettings_Dialog = QtWidgets.QDialog(parent=self)
-            projectSettings_Dialog.setObjectName("projectSettings_Dialog")
-            projectSettings_Dialog.resize(270, 120)
-            projectSettings_Dialog.setMinimumSize(QtCore.QSize(270, 120))
-            projectSettings_Dialog.setMaximumSize(QtCore.QSize(270, 120))
-            projectSettings_Dialog.setWindowTitle("Project Settings")
-
-            gridLayout = QtWidgets.QGridLayout(projectSettings_Dialog)
-            gridLayout.setObjectName(("gridLayout"))
-
-            buttonBox = QtWidgets.QDialogButtonBox(projectSettings_Dialog)
-            sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
-            sizePolicy.setHorizontalStretch(0)
-            sizePolicy.setVerticalStretch(0)
-            buttonBox.setMaximumSize(QtCore.QSize(16777215, 30))
-            buttonBox.setOrientation(QtCore.Qt.Horizontal)
-            buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Save)
-            buttonBox.setObjectName("buttonBox")
-
-            gridLayout.addWidget(buttonBox, 1, 0, 1, 1)
-
-            formLayout = QtWidgets.QFormLayout()
-            formLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
-            formLayout.setLabelAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-            formLayout.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
-            formLayout.setObjectName("formLayout")
-
-            resolution_label = QtWidgets.QLabel(projectSettings_Dialog)
-            resolution_label.setText("Resolution:")
-            resolution_label.setObjectName("resolution_label")
-            formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, resolution_label)
-
-            horizontalLayout = QtWidgets.QHBoxLayout()
-            horizontalLayout.setObjectName("horizontalLayout")
-
-            resolutionX_spinBox = QtWidgets.QSpinBox(projectSettings_Dialog)
-            resolutionX_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-            resolutionX_spinBox.setObjectName("resolutionX_spinBox")
-            horizontalLayout.addWidget(resolutionX_spinBox)
-            resolutionX_spinBox.setRange(1, 99999)
-            resolutionX_spinBox.setValue(projectSettingsDB["Resolution"][0])
-
-            resolutionY_spinBox = QtWidgets.QSpinBox(projectSettings_Dialog)
-            resolutionY_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-            resolutionY_spinBox.setObjectName("resolutionY_spinBox")
-            horizontalLayout.addWidget(resolutionY_spinBox)
-            resolutionY_spinBox.setRange(1, 99999)
-            resolutionY_spinBox.setValue(projectSettingsDB["Resolution"][1])
-
-            formLayout.setLayout(0, QtWidgets.QFormLayout.FieldRole, horizontalLayout)
-            fps_label = QtWidgets.QLabel(projectSettings_Dialog)
-            fps_label.setText("FPS")
-            fps_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-            fps_label.setObjectName("fps_label")
-            formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, fps_label)
-
-            fps_comboBox = QtWidgets.QComboBox(projectSettings_Dialog)
-            fps_comboBox.setMaximumSize(QtCore.QSize(60, 16777215))
-            fps_comboBox.setObjectName("fps_comboBox")
-            formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, fps_comboBox)
-            fps_comboBox.addItems(self.manager.fpsList)
-            try:
-                index = self.manager.fpsList.index(str(projectSettingsDB["FPS"]))
-            except:
-                index = 2
-            fps_comboBox.setCurrentIndex(index)
-            gridLayout.addLayout(formLayout, 0, 0, 1, 1)
-
-            # SIGNALS
-            # -------
-            def onAccepted():
-                projectSettingsDB = {"Resolution": [resolutionX_spinBox.value(), resolutionY_spinBox.value()],
-                                     "FPS": int(fps_comboBox.currentText())}
-                self.manager._saveProjectSettings(projectSettingsDB)
-                projectSettings_Dialog.close()
-
-            buttonBox.accepted.connect(onAccepted)
-            buttonBox.rejected.connect(projectSettings_Dialog.reject)
-
-            projectSettings_Dialog.show()
-
-    def addNoteDialog(self):
-        manager = self._getManager()
-        if not manager:
-            return
-        row = self.scenes_listWidget.currentRow()
-        if row == -1:
-            return
-
-        addNotes_Dialog = QtWidgets.QDialog(parent=self)
-        addNotes_Dialog.setModal(True)
-        addNotes_Dialog.setObjectName(("addNotes_Dialog"))
-        addNotes_Dialog.resize(255, 290)
-        addNotes_Dialog.setMinimumSize(QtCore.QSize(255, 290))
-        addNotes_Dialog.setMaximumSize(QtCore.QSize(255, 290))
-        addNotes_Dialog.setWindowTitle(("Add Notes"))
-
-        addNotes_label = QtWidgets.QLabel(addNotes_Dialog)
-        addNotes_label.setGeometry(QtCore.QRect(15, 15, 100, 20))
-        addNotes_label.setText(("Additional Notes"))
-        addNotes_label.setObjectName(("addNotes_label"))
-
-        addNotes_textEdit = QtWidgets.QTextEdit(addNotes_Dialog)
-        addNotes_textEdit.setGeometry(QtCore.QRect(15, 40, 215, 170))
-        addNotes_textEdit.setObjectName(("addNotes_textEdit"))
-
-        addNotes_buttonBox = QtWidgets.QDialogButtonBox(addNotes_Dialog)
-        addNotes_buttonBox.setGeometry(QtCore.QRect(20, 250, 220, 32))
-        addNotes_buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        addNotes_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Save | QtWidgets.QDialogButtonBox.Cancel)
-
-        buttonS = addNotes_buttonBox.button(QtWidgets.QDialogButtonBox.Save)
-        buttonS.setText('Add Notes')
-        buttonC = addNotes_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel)
-        buttonC.setText('Cancel')
-
-        addNotes_buttonBox.setObjectName(("addNotes_buttonBox"))
-        addNotes_buttonBox.accepted.connect(lambda: manager.addNote(addNotes_textEdit.toPlainText()))
-        addNotes_buttonBox.accepted.connect(self.onVersionChange)
-        addNotes_buttonBox.accepted.connect(addNotes_Dialog.accept)
-
-        addNotes_buttonBox.rejected.connect(addNotes_Dialog.reject)
-        QtCore.QMetaObject.connectSlotsByName(addNotes_Dialog)
-
-        addNotes_Dialog.show()
-
-    def onContextMenu_scenes(self, point):
-        # show context menu
-        row = self.scenes_listWidget.currentRow()
-        if row == -1:
-            return
-        # check paths
-        manager = self._getManager()
-        self.scenes_rcItem_1.setEnabled(os.path.isdir(manager.currentBaseScenePath))
-        self.scenes_rcItem_2.setEnabled(os.path.isdir(manager.currentPreviewPath))
-        self.scenes_rcItem_5.setEnabled(os.path.isdir(os.path.join(self.manager.projectDir, "images", manager.currentBaseSceneName)))
-        self.popMenu_scenes.exec_(self.scenes_listWidget.mapToGlobal(point))
-
-    def rcAction_scenes(self, command):
-        manager = self._getManager()
-        if not manager:
-            return
-
-        if command == "showInExplorerMaya":
-            manager.showInExplorer(manager.currentBaseScenePath)
-
-        if command == "showInExplorerPB":
-            manager.showInExplorer(manager.currentPreviewPath)
-
-        if command == "showInExplorerData":
-            filePath = manager._baseScenesInCategory[manager.currentBaseSceneName]
-            dirPath = os.path.dirname(filePath)
-            manager.showInExplorer(dirPath)
-
-        if command == "showSceneInfo":
-            textInfo = pprint.pformat(manager._currentSceneInfo)
-            self.messageDialog = QtWidgets.QDialog()
-            self.messageDialog.setWindowTitle("Scene Info")
-            self.messageDialog.resize(800, 700)
-            self.messageDialog.show()
-            messageLayout = QtWidgets.QVBoxLayout(self.messageDialog)
-            messageLayout.setContentsMargins(0, 0, 0, 0)
-            helpText = QtWidgets.QTextEdit()
-            helpText.setReadOnly(True)
-            helpText.setStyleSheet("background-color: rgb(255, 255, 255);")
-            helpText.setStyleSheet(""
-                                   "border: 20px solid black;"
-                                   "background-color: black;"
-                                   "font-size: 16px"
-                                   "")
-            helpText.setText(textInfo)
-            messageLayout.addWidget(helpText)
-
-        if command == "viewRender":
-            imagePath = os.path.join(self.manager.projectDir, "images", manager.currentBaseSceneName)
-            ImageViewer.MainUI(self.manager.projectDir, relativePath=imagePath, recursive=True).show()
-
     def onSoftwareChange(self):
-
+        """Method to redirect manager when software selection changed by user"""
         self.manager.currentSwIndex = self.software_comboBox.currentIndex()
         #
         self._initCategories()
@@ -867,75 +599,8 @@ class MainUI(baseUI):
         else:
             self.makeReference_pushButton.setVisible(True)
 
-    def onSubProjectChange(self):
-        manager = self._getManager()
-
-
-        manager.currentSubIndex = self.subProject_comboBox.currentIndex()
-        self.onCategoryChange()
-
-    def onCategoryChange(self):
-        manager = self._getManager()
-
-
-        manager.currentTabIndex = self.category_tabWidget.currentIndex()
-        self.populateBaseScenes()
-        self.onBaseSceneChange()
-
-    def onUserChange(self):
-        manager = self._getManager()
-        manager.currentUser = str(self.user_comboBox.currentText())
-
-    def onBaseSceneChange(self):
-        self.version_comboBox.blockSignals(True)
-
-        manager = self._getManager()
-        #clear version_combobox
-        self.version_comboBox.clear()
-
-        row = self.scenes_listWidget.currentRow()
-        if row == -1:
-            manager.currentBaseSceneName = ""
-
-        else:
-            manager.currentBaseSceneName = str(self.scenes_listWidget.currentItem().text())
-
-        self._vEnableDisable()
-        #get versions and add it to the combobox
-        versionData = manager.getVersions()
-        for num in range(len(versionData)):
-            self.version_comboBox.addItem("v{0}".format(str(num + 1).zfill(3)))
-        self.version_comboBox.setCurrentIndex(manager.currentVersionIndex-1)
-        self.onVersionChange()
-
-        self.version_comboBox.blockSignals(False)
-
-    def onVersionChange(self):
-
-        manager = self._getManager()
-        self.version_comboBox.blockSignals(True)
-
-        if self.version_comboBox.currentIndex() is not -1:
-            manager.currentVersionIndex = self.version_comboBox.currentIndex() + 1
-
-        # clear Notes and verison combobox
-        self.notes_textEdit.clear()
-
-        # update notes
-        self.notes_textEdit.setPlainText(manager.getNotes())
-
-        # update thumb
-        self.tPixmap = QtGui.QPixmap(manager.getThumbnail())
-        self.thumbnail_label.setPixmap(self.tPixmap)
-
-        if manager.currentVersionIndex != len(manager.getVersions()) and manager.currentVersionIndex != -1:
-            self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: yellow")
-        else:
-            self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
-
-        self.version_comboBox.blockSignals(False)
-
     def onLoadScene(self):
+        """OVERRIDEN METHOD"""
         if self.scenes_listWidget.currentRow() == -1:
             return
         manager = self._getManager()
@@ -943,152 +608,8 @@ class MainUI(baseUI):
             return
         manager.executeScene()
 
-    def onMakeReference(self):
-        manager = self._getManager()
-
-        manager.makeReference()
-        self.onVersionChange()
-        self.statusBar().showMessage(
-            "Status | Version {1} is the new reference of {0}".format(manager.currentBaseSceneName, manager.currentVersionIndex))
-        currentRow = self.scenes_listWidget.currentRow()
-        self.populateBaseScenes()
-        self.scenes_listWidget.setCurrentRow(currentRow)
-
-    def onShowPreview(self):
-        row = self.scenes_listWidget.currentRow()
-        if row == -1:
-            return
-
-        manager = self._getManager()
-
-        cameraList = manager.getPreviews()
-        if len(manager.getPreviews()) == 1:
-            manager.playPreview(cameraList[0])
-        else:
-            zortMenu = QtWidgets.QMenu()
-            for z in cameraList:
-                tempAction = QtWidgets.QAction(z, self)
-                zortMenu.addAction(tempAction)
-                tempAction.triggered.connect(lambda item=z: manager.playPreview(item)) ## Take note about the usage of lambda "item=pbDict[z]" makes it possible using the loop
-
-            zortMenu.exec_((QtGui.QCursor.pos()))
-
-    def onDeleteBaseScene(self):
-        passw, ok = QtWidgets.QInputDialog.getText(self, "!!!DELETING BASE SCENE!!! %s\n\nAre you absolutely sure?", "Enter Admin Password:", QtWidgets.QLineEdit.Password)
-
-        if ok:
-            if self.manager.checkPassword(passw):
-                pass
-            else:
-                self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
-                return
-        else:
-            return
-
-        manager = self._getManager()
-
-        name = manager.currentBaseSceneName
-
-        row = self.scenes_listWidget.currentRow()
-        if not row == -1:
-            manager.deleteBasescene(manager.currentDatabasePath)
-            self.populateBaseScenes()
-            self.statusBar().showMessage("Status | Scene Deleted => %s" % name)
-
-    def onDeleteReference(self):
-        passw, ok = QtWidgets.QInputDialog.getText(self, "DELETING Reference File of %s\n\nAre you sure?", "Enter Admin Password:", QtWidgets.QLineEdit.Password)
-
-        if ok:
-            if self.manager.checkPassword(passw):
-                pass
-            else:
-                self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
-                return
-        else:
-            return
-
-
-        manager = self._getManager()
-
-        name = manager.currentBaseSceneName
-
-        row = self.scenes_listWidget.currentRow()
-        if not row == -1:
-            manager.deleteReference(manager.currentDatabasePath)
-            self.populateBaseScenes()
-            self.statusBar().showMessage("Status | Reference of %s is deleted" % name)
-
-    def populateBaseScenes(self, deepCheck=False):
-        self.scenes_listWidget.blockSignals(True)
-
-        manager = self._getManager()
-        if not manager:
-            return
-
-        self.scenes_listWidget.clear()
-        baseScenesDict = manager.getBaseScenesInCategory()
-
-        codeDict = {-1: QtGui.QColor(255, 0, 0, 255), 1: QtGui.QColor(0, 255, 0, 255),
-                    0: QtGui.QColor(255, 255, 0, 255), -2: QtGui.QColor(20, 20, 20, 255)}  # dictionary for color codes red, green, yellow
-                    # gray for the corrupted database file
-
-        for key in sorted(baseScenesDict):
-            retCode = manager.checkReference(baseScenesDict[key], deepCheck=deepCheck) # returns -1, 0, 1 or -2 for color ref
-            color = codeDict[retCode]
-            listItem = QtWidgets.QListWidgetItem()
-            listItem.setText(key)
-            listItem.setForeground(color)
-            self.scenes_listWidget.addItem(listItem)
-        self.scenes_listWidget.blockSignals(False)
-
-    def _initCategories(self):
-        self.category_tabWidget.blockSignals(True)
-
-
-        manager = self._getManager()
-        if not manager:
-            return
-
-        self.category_tabWidget.clear()
-
-        for i in manager._categories:
-            self.preTab = QtWidgets.QWidget()
-            self.preTab.setObjectName((i))
-            self.category_tabWidget.addTab(self.preTab, (i))
-
-        self.category_tabWidget.setCurrentIndex(manager.currentTabIndex)
-        self.category_tabWidget.blockSignals(False)
-
-    def _initUsers(self):
-        self.user_comboBox.blockSignals(True)
-
-        manager = self._getManager()
-        if not manager:
-            return
-        # init users
-        self.user_comboBox.clear()
-        self.user_comboBox.addItems(manager.getUsers())
-        index = self.user_comboBox.findText(manager.currentUser, QtCore.Qt.MatchFixedString)
-        if index >= 0:
-            self.user_comboBox.setCurrentIndex(index)
-
-        self.user_comboBox.blockSignals(False)
-
-    def _initSubProjects(self):
-
-        self.subProject_comboBox.blockSignals(True)
-
-        manager = self._getManager()
-        if not manager:
-            return
-
-        self.subProject_comboBox.clear()
-        self.subProject_comboBox.addItems(manager.getSubProjects())
-        self.subProject_comboBox.setCurrentIndex(manager.currentSubIndex)
-
-        self.subProject_comboBox.blockSignals(False)
-
     def _vEnableDisable(self):
+        """OVERRIDEN METHOD"""
         manager = self._getManager()
         if not manager:
             return
@@ -1109,9 +630,6 @@ class MainUI(baseUI):
             self.makeReference_pushButton.setEnabled(False)
             self.addNote_pushButton.setEnabled(False)
             self.version_label.setEnabled(False)
-
-
-
 
 if __name__ == '__main__':
     selfLoc = os.path.dirname(os.path.abspath(__file__))

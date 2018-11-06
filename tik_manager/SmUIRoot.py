@@ -1,14 +1,29 @@
 import os
 
+# PyInstaller and Standalone version compatibility
+FORCE_QT4 = bool(os.getenv("FORCE_QT4"))
+
+if FORCE_QT4:
+    from PyQt4 import QtCore, Qt
+    from PyQt4 import QtGui as QtWidgets
+else:
+    import Qt
+    from Qt import QtWidgets, QtCore, QtGui
+
 import _version
 import pprint
 
 import ImageViewer
 
 from tik_manager.CSS import darkorange
+reload(darkorange)
+import logging
 
-import Qt
-from Qt import QtWidgets, QtCore, QtGui
+# import Qt
+# from Qt import QtWidgets, QtCore, QtGui
+
+
+# from PyQt4 import QtWidgets, QtCore, QtGui, Qt
 
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Scene Manager UI Boilerplate"
@@ -18,7 +33,10 @@ __maintainer__ = "Arda Kutlu"
 __email__ = "ardakutlu@gmail.com"
 __status__ = "Development"
 
-# SM_Version = "Scene Manager Maya v%s" %_version.__version__
+logging.basicConfig()
+logger = logging.getLogger('sm3dsMax')
+logger.setLevel(logging.WARNING)
+
 
 # Below is the standard dictionary for Scene Manager Standalone
 BoilerDict = {"Environment":"Standalone",
@@ -33,7 +51,7 @@ try:
     from maya import OpenMayaUI as omui
     BoilerDict["Environment"] = "Maya"
     BoilerDict["WindowTitle"] = "Scene Manager Maya v%s" %_version.__version__
-    BoilerDict["SceneFormats"] = ["ma", "mb"]
+    BoilerDict["SceneFormats"] = ["mb", "ma"]
     if Qt.__binding__ == "PySide":
         from shiboken import wrapInstance
     elif Qt.__binding__.startswith('PyQt'):
@@ -197,12 +215,10 @@ class MainUI(QtWidgets.QMainWindow):
         self.load_radioButton = QtWidgets.QRadioButton(self.centralwidget)
         self.load_radioButton.setText(("Load Mode"))
         self.load_radioButton.setObjectName(("load_radioButton"))
-        # self.load_radioButton.setChecked(self.manager.currentMode)
         self.r2_gridLayout.addWidget(self.load_radioButton, 0, 0, 1, 1)
 
         self.reference_radioButton = QtWidgets.QRadioButton(self.centralwidget)
         self.reference_radioButton.setText(("Reference Mode"))
-        # self.reference_radioButton.setChecked(not self.manager.currentMode)
         self.reference_radioButton.setObjectName(("reference_radioButton"))
         self.r2_gridLayout.addWidget(self.reference_radioButton, 0, 1, 1, 1)
 
@@ -284,8 +300,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.category_tabWidget.setUsesScrollButtons(False)
         self.category_tabWidget.setObjectName(("tabWidget"))
 
-        # self.category_tabWidget.setCurrentIndex(self.manager.currentTabIndex)
-
         self.main_gridLayout.addWidget(self.category_tabWidget, 2, 0, 1, 1)
 
         self.splitter = QtWidgets.QSplitter(self.centralwidget)
@@ -320,7 +334,12 @@ class MainUI(QtWidgets.QMainWindow):
         self.notes_textEdit.setReadOnly(True)
         self.verticalLayout.addWidget(self.notes_textEdit)
 
-        self.tPixmap = QtGui.QPixmap("")
+        # PyInstaller and Standalone version compatibility
+        if FORCE_QT4:
+            self.tPixmap = QtWidgets.QPixmap("")
+        else:
+            self.tPixmap = QtGui.QPixmap("")
+        # self.tPixmap = QtGui.QPixmap("")
         self.thumbnail_label = ImageWidget(self.frame)
         self.thumbnail_label.setPixmap(self.tPixmap)
 
@@ -458,11 +477,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.fileMenu.addAction(checkReferences_fm)
 
         self.toolsMenu = self.menubar.addMenu("Tools")
-        # imanager = QtWidgets.QAction("&Image Manager", self)
         iviewer = QtWidgets.QAction("&Image Viewer", self)
         self.createPB = QtWidgets.QAction("&Create Preview", self)
 
-        # self.toolsMenu.addAction(imanager)
         self.toolsMenu.addAction(iviewer)
         self.toolsMenu.addAction(self.createPB)
 
@@ -517,7 +534,12 @@ class MainUI(QtWidgets.QMainWindow):
 
         # SHORTCUTS
         # ---------
-        shortcutRefresh = QtWidgets.QShortcut(QtGui.QKeySequence("F5"), self, self.refresh)
+
+        # PyInstaller and Standalone version compatibility
+        if FORCE_QT4:
+            shortcutRefresh = Qt.QShortcut(QtWidgets.QKeySequence("F5"), self, self.refresh)
+        else:
+            shortcutRefresh = QtWidgets.QShortcut(QtGui.QKeySequence("F5"), self, self.refresh)
 
         # SIGNAL CONNECTIONS
         # ------------------
@@ -541,7 +563,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         checkReferences_fm.triggered.connect(lambda: self.populateBaseScenes(deepCheck=True))
 
-        # imanager.triggered.connect(self.onImanager)
         iviewer.triggered.connect(self.onIviewer)
         self.createPB.triggered.connect(self.onCreatePreview)
 
@@ -586,6 +607,7 @@ class MainUI(QtWidgets.QMainWindow):
 
     def createSubProjectUI(self):
 
+        # This method is NOT Software Specific
         newSub, ok = QtWidgets.QInputDialog.getText(self, "Create New Sub-Project", "Enter an unique Sub-Project name:")
         if ok:
             if self.manager._nameCheck(newSub):
@@ -600,6 +622,7 @@ class MainUI(QtWidgets.QMainWindow):
 
     def createProjectUI(self):
 
+        # This method is NOT Software Specific
         self.createproject_Dialog = QtWidgets.QDialog(parent=self)
         self.createproject_Dialog.setObjectName(("createproject_Dialog"))
         self.createproject_Dialog.resize(419, 300)
@@ -759,7 +782,12 @@ class MainUI(QtWidgets.QMainWindow):
 
     def setProjectUI(self):
 
-        iconFont = QtGui.QFont()
+        # This method is NOT Software Specific
+        if FORCE_QT4:
+            iconFont = QtWidgets.QFont()
+        else:
+            iconFont = QtGui.QFont()
+        # iconFont = QtGui.QFont()
         iconFont.setPointSize(12)
         iconFont.setBold(True)
         iconFont.setWeight(75)
@@ -867,7 +895,11 @@ class MainUI(QtWidgets.QMainWindow):
         M2_S2_verticalLayout.setObjectName(("M2_S2_verticalLayout"))
 
         favorites_label = QtWidgets.QLabel(verticalLayoutWidget)
-        font = QtGui.QFont()
+        if FORCE_QT4:
+            font = QtWidgets.QFont()
+        else:
+            font = QtGui.QFont()
+        # font = QtGui.QFont()
         font.setPointSize(10)
         font.setBold(True)
         font.setWeight(75)
@@ -1030,7 +1062,7 @@ class MainUI(QtWidgets.QMainWindow):
             onDragAndDrop(fullPath)
 
         def onDragAndDrop(path):
-            normPath = os.path.normpath(path)
+            normPath = os.path.normpath(str(path))
 
             path, fName = os.path.split(normPath)
             if [fName, normPath] in self.favList:
@@ -1052,7 +1084,7 @@ class MainUI(QtWidgets.QMainWindow):
             # block the signal to prevent unwanted cycle
             self.favorites_listWidget.blockSignals(True)
             index = self.folders_tableView.currentIndex()
-            self.spActiveProjectPath = os.path.normpath((self.setPmodel.filePath(index)))
+            self.spActiveProjectPath = os.path.normpath(str(self.setPmodel.filePath(index)))
 
 
             # clear the selection in favorites view
@@ -1095,12 +1127,15 @@ class MainUI(QtWidgets.QMainWindow):
         self.setProject_Dialog.show()
 
     def pbSettingsMayaUI(self):
+        # This method iS Software Specific
         if BoilerDict["Environment"]=="Standalone":
-            manager=self._getManager()
+            # manager=self._getManager()
             formatFlag = False
         else:
-            manager = self.manager
+            # manager = self.manager
             formatFlag = True
+
+        manager = self._getManager()
 
         passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query",
                                                "Enter Admin Password:", QtWidgets.QLineEdit.Password)
@@ -1365,10 +1400,13 @@ class MainUI(QtWidgets.QMainWindow):
         self.pbSettings_dialog.show()
 
     def pbSettingsMaxUI(self):
-        if BoilerDict["Environment"]=="Standalone":
-            manager=self._getManager()
-        else:
-            manager = self.manager
+        # This method iS Software Specific
+
+        # if BoilerDict["Environment"]=="Standalone":
+        #     manager=self._getManager()
+        # else:
+        #     manager = self.manager
+        manager = self._getManager()
 
         passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query",
                                                "Enter Admin Password:", QtWidgets.QLineEdit.Password)
@@ -1400,7 +1438,7 @@ class MainUI(QtWidgets.QMainWindow):
                              "WireOnShaded": self.wireonshaded_checkBox.isChecked(),
                              "UseDefaultMaterial": "N/A"
                              }
-            self.manager._savePBSettings(newPbSettings)
+            manager._savePBSettings(newPbSettings)
             self.statusBar().showMessage("Status | Playblast Settings Saved")
             self.pbSettings_dialog.accept()
 
@@ -1503,7 +1541,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.pbSettings_dialog.show()
 
     def addRemoveUserUI(self):
-
+        # This method is NOT Software Specific
         passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query",
                                                "Enter Admin Password:", QtWidgets.QLineEdit.Password)
 
@@ -1582,7 +1620,7 @@ class MainUI(QtWidgets.QMainWindow):
 
 
         def onAddUser():
-            ret, msg = self.manager.addUser(self.fullname_lineEdit.text(), self.initials_lineEdit.text())
+            ret, msg = self.manager.addUser(str(self.fullname_lineEdit.text()), str(self.initials_lineEdit.text()))
             if ret == -1:
                 self.infoPop(textTitle="Cannot Add User", textHeader=msg)
                 return
@@ -1600,7 +1638,7 @@ class MainUI(QtWidgets.QMainWindow):
             pass
 
         def onRemoveUser():
-            self.manager.removeUser(self.selectuser_comboBox.currentText())
+            self.manager.removeUser(str(self.selectuser_comboBox.currentText()))
             self.manager.currentUser = self.manager._usersDict.keys()[0]
             self._initUsers()
             userListSorted = sorted(self.manager._usersDict.keys())
@@ -1623,18 +1661,26 @@ class MainUI(QtWidgets.QMainWindow):
         users_Dialog.show()
 
     def addRemoveCategoryUI(self):
+        # This method IS Software Specific
+        manager = self._getManager()
 
         passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query",
                                                "Enter Admin Password:", QtWidgets.QLineEdit.Password)
 
         if ok:
-            if self.manager.checkPassword(passw):
+            if manager.checkPassword(passw):
                 pass
             else:
                 self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
                 return
         else:
             return
+
+
+        # if BoilerDict["Environment"]=="Standalone":
+        #     manager=self._getManager()
+        # else:
+        #     manager = self.manager
 
 
         categories_dialog = QtWidgets.QDialog(parent=self)
@@ -1676,8 +1722,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.selectcategory_comboBox.setGeometry(QtCore.QRect(10, 20, 231, 22))
         self.selectcategory_comboBox.setObjectName(("selectcategory_comboBox"))
 
-        self.selectcategory_comboBox.addItems(self.manager._categories)
-        # userListSorted = self.manager._categories
+        self.selectcategory_comboBox.addItems(manager._categories)
+        # userListSorted = manager._categories
         # for num in range(len(userListSorted)):
         #     self.selectuser_comboBox.addItem((userListSorted[num]))
         #     self.selectuser_comboBox.setItemText(num, (userListSorted[num]))
@@ -1689,7 +1735,7 @@ class MainUI(QtWidgets.QMainWindow):
 
 
         def onAddCategory():
-            self.manager.addCategory(self.categoryName_lineEdit.text())
+            manager.addCategory(str(self.categoryName_lineEdit.text()))
 
 
             preTab = QtWidgets.QWidget()
@@ -1700,9 +1746,9 @@ class MainUI(QtWidgets.QMainWindow):
             self.categoryName_lineEdit.setText("")
 
         def onRemoveCategory():
-            self.manager.removeCategory(self.selectcategory_comboBox.currentText())
+            manager.removeCategory(str(self.selectcategory_comboBox.currentText()))
             self.selectcategory_comboBox.clear()
-            self.selectcategory_comboBox.addItems(self.manager.getCategories())
+            self.selectcategory_comboBox.addItems(manager.getCategories())
 
             self._initCategories()
 
@@ -1718,6 +1764,7 @@ class MainUI(QtWidgets.QMainWindow):
         categories_dialog.show()
 
     def projectSettingsUI(self):
+        # This method is NOT Software Specific
         passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query",
                                                "Enter Admin Password:", QtWidgets.QLineEdit.Password)
 
@@ -1815,8 +1862,7 @@ class MainUI(QtWidgets.QMainWindow):
         projectSettings_Dialog.show()
 
     def changePasswordUI(self):
-        # TODO : ref
-
+        # This method is NOT Software Specific
         changePassword_Dialog = QtWidgets.QDialog(parent=self)
         changePassword_Dialog.setObjectName("projectSettings_Dialog")
         changePassword_Dialog.resize(270, 120)
@@ -1896,86 +1942,115 @@ class MainUI(QtWidgets.QMainWindow):
         changePassword_Dialog.show()
 
     def saveBaseSceneDialog(self):
-        self.save_Dialog = QtWidgets.QDialog(parent=self)
-        self.save_Dialog.setModal(True)
-        self.save_Dialog.setObjectName(("save_Dialog"))
-        self.save_Dialog.resize(500, 240)
-        self.save_Dialog.setMinimumSize(QtCore.QSize(500, 240))
-        self.save_Dialog.setMaximumSize(QtCore.QSize(500, 240))
-        self.save_Dialog.setWindowTitle(("Save New Base Scene"))
+        # This method IS Software Specific
+        saveBaseScene_Dialog = QtWidgets.QDialog(parent=self)
+        saveBaseScene_Dialog.setModal(True)
+        saveBaseScene_Dialog.setObjectName(("save_Dialog"))
 
-        self.sdNotes_label = QtWidgets.QLabel(self.save_Dialog)
-        self.sdNotes_label.setGeometry(QtCore.QRect(260, 15, 61, 20))
-        self.sdNotes_label.setText(("Notes"))
-        self.sdNotes_label.setObjectName(("sdNotes_label"))
+        horizontalLayout = QtWidgets.QHBoxLayout(saveBaseScene_Dialog)
 
-        self.sdNotes_textEdit = QtWidgets.QTextEdit(self.save_Dialog)
-        self.sdNotes_textEdit.setGeometry(QtCore.QRect(260, 40, 210, 185))
-        self.sdNotes_textEdit.setObjectName(("sdNotes_textEdit"))
+        splitter = QtWidgets.QSplitter(saveBaseScene_Dialog)
+        splitter.setFrameShape(QtWidgets.QFrame.NoFrame)
+        splitter.setOrientation(QtCore.Qt.Horizontal)
 
-        self.sdSubP_label = QtWidgets.QLabel(self.save_Dialog)
-        self.sdSubP_label.setGeometry(QtCore.QRect(20, 30, 61, 20))
-        self.sdSubP_label.setFrameShape(QtWidgets.QFrame.Box)
-        self.sdSubP_label.setText(("Sub-Project"))
-        self.sdSubP_label.setObjectName(("sdSubP_label"))
+        verticalLayoutWidget_2 = QtWidgets.QWidget(splitter)
 
-        self.sdSubP_comboBox = QtWidgets.QComboBox(self.save_Dialog)
-        self.sdSubP_comboBox.setFocus()
-        self.sdSubP_comboBox.setGeometry(QtCore.QRect(90, 30, 151, 22))
-        self.sdSubP_comboBox.setObjectName(("sdCategory_comboBox"))
-        self.sdSubP_comboBox.addItems((self.manager._subProjectsList))
-        self.sdSubP_comboBox.setCurrentIndex(self.subProject_comboBox.currentIndex())
+        left_verticalLayout = QtWidgets.QVBoxLayout(verticalLayoutWidget_2)
 
-        self.sdName_label = QtWidgets.QLabel(self.save_Dialog)
-        self.sdName_label.setGeometry(QtCore.QRect(20, 70, 61, 20))
-        self.sdName_label.setFrameShape(QtWidgets.QFrame.Box)
-        self.sdName_label.setText(("Name"))
-        self.sdName_label.setObjectName(("sdName_label"))
+        left_verticalLayout.setContentsMargins(0, -1, 12, 10)
 
-        self.sdName_lineEdit = QtWidgets.QLineEdit(self.save_Dialog)
-        self.sdName_lineEdit.setGeometry(QtCore.QRect(90, 70, 151, 20))
-        self.sdName_lineEdit.setCursorPosition(0)
-        self.sdName_lineEdit.setPlaceholderText(("Choose an unique name"))
-        self.sdName_lineEdit.setObjectName(("sdName_lineEdit"))
+        formLayout = QtWidgets.QFormLayout()
+        formLayout.setContentsMargins(12, 20, 0, 12)
+        formLayout.setHorizontalSpacing(16)
+        formLayout.setVerticalSpacing(20)
 
-        self.sdCategory_label = QtWidgets.QLabel(self.save_Dialog)
-        self.sdCategory_label.setGeometry(QtCore.QRect(20, 110, 61, 20))
-        self.sdCategory_label.setFrameShape(QtWidgets.QFrame.Box)
-        self.sdCategory_label.setText(("Category"))
-        self.sdCategory_label.setObjectName(("sdCategory_label"))
+        subProject_label = QtWidgets.QLabel(verticalLayoutWidget_2)
+        subProject_label.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        subProject_label.setText(("Sub-Proect "))
+        formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, subProject_label)
 
-        self.sdCategory_comboBox = QtWidgets.QComboBox(self.save_Dialog)
-        self.sdCategory_comboBox.setFocus()
-        self.sdCategory_comboBox.setGeometry(QtCore.QRect(90, 110, 151, 22))
-        self.sdCategory_comboBox.setObjectName(("sdCategory_comboBox"))
-        for i in range(len(self.manager._categories)):
-            self.sdCategory_comboBox.addItem((self.manager._categories[i]))
-            self.sdCategory_comboBox.setItemText(i, (self.manager._categories[i]))
-        self.sdCategory_comboBox.setCurrentIndex(self.category_tabWidget.currentIndex())
+        subProject_comboBox = QtWidgets.QComboBox(verticalLayoutWidget_2)
+        subProject_comboBox.setMinimumSize(QtCore.QSize(150, 20))
+        subProject_comboBox.addItems((self.manager._subProjectsList))
+        subProject_comboBox.setCurrentIndex(self.subProject_comboBox.currentIndex())
+        formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, subProject_comboBox)
 
-        self.sdMakeReference_checkbox = QtWidgets.QCheckBox("Make it Reference", self.save_Dialog)
-        self.sdMakeReference_checkbox.setGeometry(QtCore.QRect(130, 150, 120, 22))
+        name_label = QtWidgets.QLabel(verticalLayoutWidget_2)
+        name_label.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        name_label.setText(("Name          "))
+        formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, name_label)
 
-        # for format in BoilerDict["SceneFormats"]:
-        #     radioButton = QtWidgets.QRadioButton(self.save_Dialog)
+        lineEdit = QtWidgets.QLineEdit(verticalLayoutWidget_2)
+        lineEdit.setPlaceholderText(("Choose an unique name"))
+        formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, lineEdit)
 
-        mb_radioButton = QtWidgets.QRadioButton(self.save_Dialog)
-        mb_radioButton.setGeometry(QtCore.QRect(20, 150, 50, 22))
-        mb_radioButton.setText(("mb"))
-        mb_radioButton.setObjectName(("mb_radioButton"))
-        mb_radioButton.setChecked(True)
+        category_label = QtWidgets.QLabel(verticalLayoutWidget_2)
+        category_label.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        category_label.setText(("Category    "))
+        formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, category_label)
 
-        ma_radioButton = QtWidgets.QRadioButton(self.save_Dialog)
-        ma_radioButton.setGeometry(QtCore.QRect(70, 150, 50, 22))
-        ma_radioButton.setText(("ma"))
-        ma_radioButton.setChecked(False)
-        ma_radioButton.setObjectName(("ma_radioButton"))
+        category_comboBox = QtWidgets.QComboBox(verticalLayoutWidget_2)
+        category_comboBox.setMinimumSize(QtCore.QSize(150, 20))
+        category_comboBox.addItems((self.manager._categories))
+        category_comboBox.setCurrentIndex(self.category_tabWidget.currentIndex())
+        formLayout.setWidget(2, QtWidgets.QFormLayout.FieldRole, category_comboBox)
 
-        self.sd_buttonBox = QtWidgets.QDialogButtonBox(self.save_Dialog)
-        self.sd_buttonBox.setGeometry(QtCore.QRect(20, 190, 220, 32))
-        self.sd_buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.sd_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
-        self.sd_buttonBox.setObjectName(("sd_buttonBox"))
+        makeReference_checkBox = QtWidgets.QCheckBox(verticalLayoutWidget_2)
+        makeReference_checkBox.setLayoutDirection(QtCore.Qt.LeftToRight)
+        makeReference_checkBox.setCheckable(True)
+        makeReference_checkBox.setText("Make Reference")
+        formLayout.setWidget(4, QtWidgets.QFormLayout.FieldRole, makeReference_checkBox)
+
+        if BoilerDict["Environment"] == "Houdini" or "Nuke":
+            makeReference_checkBox.setVisible(False)
+
+        formats_horizontalLayout = QtWidgets.QHBoxLayout()
+
+        # If there are multiple formats create radio buttons for each
+        radioButtonList = []
+        for format in BoilerDict["SceneFormats"]:
+            radioButton = QtWidgets.QRadioButton(verticalLayoutWidget_2)
+            radioButton.setText(format)
+            formats_horizontalLayout.addWidget(radioButton)
+            radioButtonList.append(radioButton)
+
+        # select the first radio button
+        radioButtonList[0].setChecked(True)
+
+        # hide radiobutton if only one format exists
+        if len(radioButtonList) == 1:
+            radioButtonList[0].setVisible(False)
+
+        spacerItem = QtWidgets.QSpacerItem(80, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+
+        formats_horizontalLayout.addItem(spacerItem)
+        formLayout.setLayout(3, QtWidgets.QFormLayout.FieldRole, formats_horizontalLayout)
+        left_verticalLayout.addLayout(formLayout)
+
+        buttonBox = QtWidgets.QDialogButtonBox(verticalLayoutWidget_2)
+        buttonBox.setLayoutDirection(QtCore.Qt.LeftToRight)
+        buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
+        buttonBox.setCenterButtons(False)
+        left_verticalLayout.addWidget(buttonBox)
+
+        verticalLayoutWidget = QtWidgets.QWidget(splitter)
+
+        right_verticalLayout = QtWidgets.QVBoxLayout(verticalLayoutWidget)
+        right_verticalLayout.setContentsMargins(-1, -1, 10, 10)
+        right_verticalLayout.setSpacing(6)
+
+        notes_label = QtWidgets.QLabel(verticalLayoutWidget)
+        notes_label.setText(("Notes"))
+        right_verticalLayout.addWidget(notes_label)
+
+        notes_plainTextEdit = QtWidgets.QPlainTextEdit(verticalLayoutWidget)
+        notes_plainTextEdit.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        right_verticalLayout.addWidget(notes_plainTextEdit)
+
+        horizontalLayout.addWidget(splitter)
+
+        ######
 
         def saveCommand():
             checklist = self.manager.preSaveChecklist()
@@ -1985,39 +2060,160 @@ class MainUI(QtWidgets.QMainWindow):
                     return
                 else:
                     self.manager.errorLogger(title = "Disregarded warning" , errorMessage=msg)
-            category = self.sdCategory_comboBox.currentText()
-            name = self.sdName_lineEdit.text()
-            subIndex = self.sdSubP_comboBox.currentIndex()
-            makeReference = self.sdMakeReference_checkbox.checkState()
-            notes = self.sdNotes_textEdit.toPlainText()
-            sceneFormat = "mb" if mb_radioButton.isChecked() else "ma"
+            category = category_comboBox.currentText()
+            name = lineEdit.text()
+            subIndex = subProject_comboBox.currentIndex()
+            makeReference = makeReference_checkBox.checkState()
+            notes = notes_plainTextEdit.toPlainText()
+            for button in radioButtonList:
+                if button.isChecked():
+                    sceneFormat = button.text()
+                    break
+            AssertionError(sceneFormat)
             self.manager.saveBaseScene(category, name, subIndex, makeReference, notes, sceneFormat)
             self.populateBaseScenes()
             self.manager.getOpenSceneInfo()
             self._initOpenScene()
-            self.save_Dialog.accept()
-
+            saveBaseScene_Dialog.accept()
 
         # SIGNALS
         # -------
-        self.sdName_lineEdit.textChanged.connect(
-            lambda: self._checkValidity(self.sdName_lineEdit.text(), self.sd_buttonBox, self.sdName_lineEdit))
+        lineEdit.textChanged.connect(
+            lambda: self._checkValidity(lineEdit.text(), buttonBox, lineEdit))
 
-        self.sd_buttonBox.accepted.connect(saveCommand)
+        buttonBox.accepted.connect(saveCommand)
 
 
         # self.sd_buttonBox.accepted.connect(self.save_Dialog.accept)
-        self.sd_buttonBox.rejected.connect(self.save_Dialog.reject)
+        buttonBox.rejected.connect(saveBaseScene_Dialog.reject)
         # QtCore.QMetaObject.connectSlotsByName(self.save_Dialog)
 
-        # there is no referencing for Houdini andNuke
-        if BoilerDict["Environment"] == "Houdini" or "Nuke":
-            self.sdMakeReference_checkbox.setChecked(False)
-            self.sdMakeReference_checkbox.setVisible(False)
+        saveBaseScene_Dialog.show()
 
-        self.save_Dialog.show()
+    # def saveBaseSceneDialog_DEPR(self):
+    #     self.save_Dialog = QtWidgets.QDialog(parent=self)
+    #     self.save_Dialog.setModal(True)
+    #     self.save_Dialog.setObjectName(("save_Dialog"))
+    #     self.save_Dialog.resize(500, 240)
+    #     self.save_Dialog.setMinimumSize(QtCore.QSize(500, 240))
+    #     self.save_Dialog.setMaximumSize(QtCore.QSize(500, 240))
+    #     self.save_Dialog.setWindowTitle(("Save New Base Scene"))
+    #
+    #     self.sdNotes_label = QtWidgets.QLabel(self.save_Dialog)
+    #     self.sdNotes_label.setGeometry(QtCore.QRect(260, 15, 61, 20))
+    #     self.sdNotes_label.setText(("Notes"))
+    #     self.sdNotes_label.setObjectName(("sdNotes_label"))
+    #
+    #     self.sdNotes_textEdit = QtWidgets.QTextEdit(self.save_Dialog)
+    #     self.sdNotes_textEdit.setGeometry(QtCore.QRect(260, 40, 210, 185))
+    #     self.sdNotes_textEdit.setObjectName(("sdNotes_textEdit"))
+    #
+    #     self.sdSubP_label = QtWidgets.QLabel(self.save_Dialog)
+    #     self.sdSubP_label.setGeometry(QtCore.QRect(20, 30, 61, 20))
+    #     self.sdSubP_label.setFrameShape(QtWidgets.QFrame.Box)
+    #     self.sdSubP_label.setText(("Sub-Project"))
+    #     self.sdSubP_label.setObjectName(("sdSubP_label"))
+    #
+    #     self.sdSubP_comboBox = QtWidgets.QComboBox(self.save_Dialog)
+    #     self.sdSubP_comboBox.setFocus()
+    #     self.sdSubP_comboBox.setGeometry(QtCore.QRect(90, 30, 151, 22))
+    #     self.sdSubP_comboBox.setObjectName(("sdCategory_comboBox"))
+    #     self.sdSubP_comboBox.addItems((self.manager._subProjectsList))
+    #     self.sdSubP_comboBox.setCurrentIndex(self.subProject_comboBox.currentIndex())
+    #
+    #     self.sdName_label = QtWidgets.QLabel(self.save_Dialog)
+    #     self.sdName_label.setGeometry(QtCore.QRect(20, 70, 61, 20))
+    #     self.sdName_label.setFrameShape(QtWidgets.QFrame.Box)
+    #     self.sdName_label.setText(("Name"))
+    #     self.sdName_label.setObjectName(("sdName_label"))
+    #
+    #     self.sdName_lineEdit = QtWidgets.QLineEdit(self.save_Dialog)
+    #     self.sdName_lineEdit.setGeometry(QtCore.QRect(90, 70, 151, 20))
+    #     self.sdName_lineEdit.setCursorPosition(0)
+    #     self.sdName_lineEdit.setPlaceholderText(("Choose an unique name"))
+    #     self.sdName_lineEdit.setObjectName(("sdName_lineEdit"))
+    #
+    #     self.sdCategory_label = QtWidgets.QLabel(self.save_Dialog)
+    #     self.sdCategory_label.setGeometry(QtCore.QRect(20, 110, 61, 20))
+    #     self.sdCategory_label.setFrameShape(QtWidgets.QFrame.Box)
+    #     self.sdCategory_label.setText(("Category"))
+    #     self.sdCategory_label.setObjectName(("sdCategory_label"))
+    #
+    #     self.sdCategory_comboBox = QtWidgets.QComboBox(self.save_Dialog)
+    #     self.sdCategory_comboBox.setFocus()
+    #     self.sdCategory_comboBox.setGeometry(QtCore.QRect(90, 110, 151, 22))
+    #     self.sdCategory_comboBox.setObjectName(("sdCategory_comboBox"))
+    #     for i in range(len(self.manager._categories)):
+    #         self.sdCategory_comboBox.addItem((self.manager._categories[i]))
+    #         self.sdCategory_comboBox.setItemText(i, (self.manager._categories[i]))
+    #     self.sdCategory_comboBox.setCurrentIndex(self.category_tabWidget.currentIndex())
+    #
+    #     self.sdMakeReference_checkbox = QtWidgets.QCheckBox("Make it Reference", self.save_Dialog)
+    #     self.sdMakeReference_checkbox.setGeometry(QtCore.QRect(130, 150, 120, 22))
+    #
+    #     # for format in BoilerDict["SceneFormats"]:
+    #     #     radioButton = QtWidgets.QRadioButton(self.save_Dialog)
+    #
+    #     mb_radioButton = QtWidgets.QRadioButton(self.save_Dialog)
+    #     mb_radioButton.setGeometry(QtCore.QRect(20, 150, 50, 22))
+    #     mb_radioButton.setText(("mb"))
+    #     mb_radioButton.setObjectName(("mb_radioButton"))
+    #     mb_radioButton.setChecked(True)
+    #
+    #     ma_radioButton = QtWidgets.QRadioButton(self.save_Dialog)
+    #     ma_radioButton.setGeometry(QtCore.QRect(70, 150, 50, 22))
+    #     ma_radioButton.setText(("ma"))
+    #     ma_radioButton.setChecked(False)
+    #     ma_radioButton.setObjectName(("ma_radioButton"))
+    #
+    #     self.sd_buttonBox = QtWidgets.QDialogButtonBox(self.save_Dialog)
+    #     self.sd_buttonBox.setGeometry(QtCore.QRect(20, 190, 220, 32))
+    #     self.sd_buttonBox.setOrientation(QtCore.Qt.Horizontal)
+    #     self.sd_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+    #     self.sd_buttonBox.setObjectName(("sd_buttonBox"))
+    #
+    #     def saveCommand():
+    #         checklist = self.manager.preSaveChecklist()
+    #         for msg in checklist:
+    #             q = self.queryPop(type="yesNo", textTitle="Checklist", textHeader=msg)
+    #             if q == "no":
+    #                 return
+    #             else:
+    #                 self.manager.errorLogger(title = "Disregarded warning" , errorMessage=msg)
+    #         category = self.sdCategory_comboBox.currentText()
+    #         name = self.sdName_lineEdit.text()
+    #         subIndex = self.sdSubP_comboBox.currentIndex()
+    #         makeReference = self.sdMakeReference_checkbox.checkState()
+    #         notes = self.sdNotes_textEdit.toPlainText()
+    #         sceneFormat = "mb" if mb_radioButton.isChecked() else "ma"
+    #         self.manager.saveBaseScene(category, name, subIndex, makeReference, notes, sceneFormat)
+    #         self.populateBaseScenes()
+    #         self.manager.getOpenSceneInfo()
+    #         self._initOpenScene()
+    #         self.save_Dialog.accept()
+    #
+    #
+    #     # SIGNALS
+    #     # -------
+    #     self.sdName_lineEdit.textChanged.connect(
+    #         lambda: self._checkValidity(self.sdName_lineEdit.text(), self.sd_buttonBox, self.sdName_lineEdit))
+    #
+    #     self.sd_buttonBox.accepted.connect(saveCommand)
+    #
+    #
+    #     # self.sd_buttonBox.accepted.connect(self.save_Dialog.accept)
+    #     self.sd_buttonBox.rejected.connect(self.save_Dialog.reject)
+    #     # QtCore.QMetaObject.connectSlotsByName(self.save_Dialog)
+    #
+    #     # there is no referencing for Houdini andNuke
+    #     if BoilerDict["Environment"] == "Houdini" or "Nuke":
+    #         self.sdMakeReference_checkbox.setChecked(False)
+    #         self.sdMakeReference_checkbox.setVisible(False)
+    #
+    #     self.save_Dialog.show()
 
     def saveAsVersionDialog(self):
+        # This method IS Software Specific
         saveV_Dialog = QtWidgets.QDialog(parent=self)
         saveV_Dialog.setModal(True)
         saveV_Dialog.setObjectName(("saveV_Dialog"))
@@ -2038,6 +2234,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.svMakeReference_checkbox = QtWidgets.QCheckBox("Make it Reference", saveV_Dialog)
         self.svMakeReference_checkbox.setGeometry(QtCore.QRect(130, 215, 151, 22))
         self.svMakeReference_checkbox.setChecked(False)
+
+        if BoilerDict["Environment"] == "Houdini" or "Nuke":
+            self.svMakeReference_checkbox.setVisible(False)
 
         sv_buttonBox = QtWidgets.QDialogButtonBox(saveV_Dialog)
         sv_buttonBox.setGeometry(QtCore.QRect(20, 250, 220, 32))
@@ -2090,6 +2289,13 @@ class MainUI(QtWidgets.QMainWindow):
                          textHeader="Current Scene is not a Base Scene. Only versions of Base Scenes can be saved", textTitle="Not a Base File", type="C")
 
     def addNoteDialog(self):
+        # This method IS Software Specific
+        manager = self._getManager()
+        # if BoilerDict["Environment"]=="Standalone":
+        #     manager=self._getManager()
+        # else:
+        #     manager = self.manager
+
         row = self.scenes_listWidget.currentRow()
         if row == -1:
             return
@@ -2122,7 +2328,7 @@ class MainUI(QtWidgets.QMainWindow):
         buttonC.setText('Cancel')
 
         addNotes_buttonBox.setObjectName(("addNotes_buttonBox"))
-        addNotes_buttonBox.accepted.connect(lambda: self.manager.addNote(addNotes_textEdit.toPlainText()))
+        addNotes_buttonBox.accepted.connect(lambda: manager.addNote(addNotes_textEdit.toPlainText()))
         addNotes_buttonBox.accepted.connect(self.onVersionChange)
         addNotes_buttonBox.accepted.connect(addNotes_Dialog.accept)
 
@@ -2139,8 +2345,8 @@ class MainUI(QtWidgets.QMainWindow):
         """
 
         # logger.debug("callbackRefresh called")
-        oldProject = self.manager.projectDir
-        newProject = self.manager.getProjectDir()
+        oldProject = manager.projectDir
+        newProject = manager.getProjectDir()
         if not oldProject == newProject:
             # logger.debug("callbackRefresh - project changed")
             self.initMainUI()
@@ -2149,6 +2355,7 @@ class MainUI(QtWidgets.QMainWindow):
             return
 
     def initMainUI(self, newborn=False):
+        """Initialization Method for MainUI. Needs to be overriden for Standalone Version"""
 
         self.load_radioButton.setChecked(self.manager.currentMode)
         self.reference_radioButton.setChecked(not self.manager.currentMode)
@@ -2190,23 +2397,30 @@ class MainUI(QtWidgets.QMainWindow):
         self.populateBaseScenes()
 
     def rcAction_scenes(self, command):
+        # This method IS Software Specific
+        manager = self._getManager()
+        # if BoilerDict["Environment"]=="Standalone":
+        #     manager=self._getManager()
+        # else:
+        #     manager = self.manager
+
         if command == "importScene":
-            self.manager.importBaseScene()
+            manager.importBaseScene()
 
         if command == "showInExplorerMaya":
-            self.manager.showInExplorer(self.manager.currentBaseScenePath)
+            manager.showInExplorer(manager.currentBaseScenePath)
 
         if command == "showInExplorerPB":
-            self.manager.showInExplorer(self.manager.currentPreviewPath)
+            manager.showInExplorer(manager.currentPreviewPath)
 
         if command == "showInExplorerData":
-            filePath = self.manager._baseScenesInCategory[self.manager.currentBaseSceneName]
+            filePath = manager._baseScenesInCategory[manager.currentBaseSceneName]
             dirPath = os.path.dirname(filePath)
-            self.manager.showInExplorer(dirPath)
+            manager.showInExplorer(dirPath)
 
         if command == "showSceneInfo":
-            textInfo = pprint.pformat(self.manager._currentSceneInfo)
-            print self.manager._currentSceneInfo
+            textInfo = pprint.pformat(manager._currentSceneInfo)
+            print manager._currentSceneInfo
             self.messageDialog = QtWidgets.QDialog()
             self.messageDialog.setWindowTitle("Scene Info")
             self.messageDialog.resize(800, 700)
@@ -2225,13 +2439,15 @@ class MainUI(QtWidgets.QMainWindow):
             messageLayout.addWidget(helpText)
 
         if command == "viewRender":
-            imagePath = os.path.join(self.manager.projectDir, "images", self.manager.currentBaseSceneName)
-            ImageViewer.MainUI(self.manager.projectDir, relativePath=imagePath, recursive=True).show()
+            imagePath = os.path.join(manager.projectDir, "images", manager.currentBaseSceneName)
+            ImageViewer.MainUI(manager.projectDir, relativePath=imagePath, recursive=True).show()
 
     def rcAction_thumb(self, command):
+        # This method IS Software Specific
+        manager = self._getManager()
         # print "comm: ", command
         if command == "file":
-            fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', self.manager.projectDir,"Image files (*.jpg *.gif)")[0]
+            fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', manager.projectDir,"Image files (*.jpg *.gif)")[0]
             if not fname: # if dialog is canceled
                 return
 
@@ -2241,21 +2457,29 @@ class MainUI(QtWidgets.QMainWindow):
         else:
             return
 
-        self.manager.replaceThumbnail(filePath=fname)
+        manager.replaceThumbnail(filePath=fname)
         self.onVersionChange()
 
     def onContextMenu_scenes(self, point):
+        # This method IS Software Specific
         row = self.scenes_listWidget.currentRow()
         if row == -1:
             return
+
+        manager = self._getManager()
+        # if BoilerDict["Environment"]=="Standalone":
+        #     manager=self._getManager()
+        # else:
+        #     manager = self.manager
         # check paths
-        self.scenes_rcItem_1.setEnabled(os.path.isdir(self.manager.currentBaseScenePath))
-        self.scenes_rcItem_2.setEnabled(os.path.isdir(self.manager.currentPreviewPath))
+        self.scenes_rcItem_1.setEnabled(os.path.isdir(manager.currentBaseScenePath))
+        self.scenes_rcItem_2.setEnabled(os.path.isdir(manager.currentPreviewPath))
         # show context menu
-        self.scenes_rcItem_5.setEnabled(os.path.isdir(os.path.join(self.manager.projectDir, "images", self.manager.currentBaseSceneName)))
+        self.scenes_rcItem_5.setEnabled(os.path.isdir(os.path.join(manager.projectDir, "images", manager.currentBaseSceneName)))
 
         self.popMenu_scenes.exec_(self.scenes_listWidget.mapToGlobal(point))
     def onContextMenu_thumbnail(self, point):
+        # This method is NOT Software Specific
         row = self.scenes_listWidget.currentRow()
         if row == -1:
             return
@@ -2263,9 +2487,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.popMenu_thumbnail.exec_(self.thumbnail_label.mapToGlobal(point))
 
     def onPbSettings(self, env=None):
+        """This function acts as a software switcher for PB settings"""
         if not env:
             env = BoilerDict["Environment"]
-        print "ASDFtttt", env
         if env == "Maya":
             self.pbSettingsMayaUI()
             return
@@ -2280,29 +2504,31 @@ class MainUI(QtWidgets.QMainWindow):
             self.onPbSettings(env=manager.niceName)
 
     def onProjectChange(self):
+        # This method is NOT Software Specific
         self.initMainUI()
-        # print "asjsjsjsjs"
-        # self.onSubProjectChange()
-        # self.onCategoryChange()
-        # self.onBaseSceneChange()
-        # self.onVersionChange()
-        # self.onPreviewChange()
+
 
     def onSubProjectChange(self):
-        self.manager.currentSubIndex = self.subProject_comboBox.currentIndex()
+        # This method IS Software Specific
+        manager = self._getManager()
+        manager.currentSubIndex = self.subProject_comboBox.currentIndex()
         self.onCategoryChange()
 
     def onCategoryChange(self):
-        # logger.debug("onCategoryChange %s" %self.category_tabWidget.currentIndex())
-        self.manager.currentTabIndex = self.category_tabWidget.currentIndex()
+        # This method IS Software Specific
+        manager = self._getManager()
+        manager.currentTabIndex = self.category_tabWidget.currentIndex()
         self.populateBaseScenes()
         self.onBaseSceneChange()
 
     def onUserChange(self):
-        self.manager.currentUser = self.user_comboBox.currentText()
+        # This method IS Software Specific
+        manager = self._getManager()
+        manager.currentUser = self.user_comboBox.currentText()
         print self.manager.currentUser
 
     def onModeChange(self):
+        # This method is NOT Software Specific
 
         self._vEnableDisable()
 
@@ -2317,46 +2543,53 @@ class MainUI(QtWidgets.QMainWindow):
         self.populateBaseScenes()
 
     def onBaseSceneChange(self):
+        # This method IS Software Specific
+        manager = self._getManager()
         self.version_comboBox.blockSignals(True)
         #clear version_combobox
         self.version_comboBox.clear()
 
         row = self.scenes_listWidget.currentRow()
         if row == -1:
-            self.manager.currentBaseSceneName = ""
+            manager.currentBaseSceneName = ""
         else:
-            self.manager.currentBaseSceneName = self.scenes_listWidget.currentItem().text()
+            manager.currentBaseSceneName = str(self.scenes_listWidget.currentItem().text())
 
         self._vEnableDisable()
         #get versions and add it to the combobox
-        versionData = self.manager.getVersions()
+        versionData = manager.getVersions()
         for num in range(len(versionData)):
             self.version_comboBox.addItem("v{0}".format(str(num + 1).zfill(3)))
-        self.version_comboBox.setCurrentIndex(self.manager.currentVersionIndex-1)
+        self.version_comboBox.setCurrentIndex(manager.currentVersionIndex-1)
         self.onVersionChange()
 
         self.version_comboBox.blockSignals(False)
 
 
     def onVersionChange(self):
-
+        # This method IS Software Specific
+        manager = self._getManager()
         self.version_comboBox.blockSignals(True)
 
         if self.version_comboBox.currentIndex() is not -1:
-            self.manager.currentVersionIndex = self.version_comboBox.currentIndex() + 1
+            manager.currentVersionIndex = self.version_comboBox.currentIndex() + 1
 
         # clear Notes and verison combobox
         self.notes_textEdit.clear()
 
         # update notes
-        self.notes_textEdit.setPlainText(self.manager.getNotes())
+        self.notes_textEdit.setPlainText(manager.getNotes())
 
 
         # update thumb
-        self.tPixmap = QtGui.QPixmap(self.manager.getThumbnail())
+        if FORCE_QT4:
+            self.tPixmap = QtWidgets.QPixmap(manager.getThumbnail())
+        else:
+            self.tPixmap = QtGui.QPixmap(manager.getThumbnail())
+        # self.tPixmap = QtGui.QPixmap(self.manager.getThumbnail())
         self.thumbnail_label.setPixmap(self.tPixmap)
 
-        if self.manager.currentVersionIndex != len(self.manager.getVersions()) and self.manager.currentVersionIndex != -1:
+        if manager.currentVersionIndex != len(manager.getVersions()) and manager.currentVersionIndex != -1:
             self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: yellow")
         else:
             self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
@@ -2364,21 +2597,27 @@ class MainUI(QtWidgets.QMainWindow):
         self.version_comboBox.blockSignals(False)
 
     def populateBaseScenes(self, deepCheck=False):
-        self.scenes_listWidget.blockSignals(True)
+        # This method IS Software Specific
+        manager = self._getManager()
 
+        self.scenes_listWidget.blockSignals(True)
         self.scenes_listWidget.clear()
         # logger.debug("populateBaseScenes")
-        baseScenesDict = self.manager.getBaseScenesInCategory()
+        baseScenesDict = manager.getBaseScenesInCategory()
         if self.reference_radioButton.isChecked():
             for key in baseScenesDict:
-                if self.manager.checkReference(baseScenesDict[key]) == 1:
+                if manager.checkReference(baseScenesDict[key]) == 1:
                     self.scenes_listWidget.addItem(key)
         else:
-            codeDict = {-1: QtGui.QColor(255, 0, 0, 255), 1: QtGui.QColor(0, 255, 0, 255),
-                        0: QtGui.QColor(255, 255, 0, 255), -2: QtGui.QColor(20, 20, 20, 255)}  # dictionary for color codes red, green, yellow
+            if BoilerDict["Environment"] == "Standalone":
+                codeDict = {-1: QtWidgets.QColor(255, 0, 0, 255), 1: QtWidgets.QColor(0, 255, 0, 255),
+                            0: QtWidgets.QColor(255, 255, 0, 255), -2: QtWidgets.QColor(20, 20, 20, 255)}
+            else:
+                codeDict = {-1: QtGui.QColor(255, 0, 0, 255), 1: QtGui.QColor(0, 255, 0, 255),
+                            0: QtGui.QColor(255, 255, 0, 255), -2: QtGui.QColor(20, 20, 20, 255)}  # dictionary for color codes red, green, yellow
 
             for key in sorted(baseScenesDict):
-                retCode = self.manager.checkReference(baseScenesDict[key], deepCheck=deepCheck) # returns -1, 0 or 1 for color ref
+                retCode = manager.checkReference(baseScenesDict[key], deepCheck=deepCheck) # returns -1, 0 or 1 for color ref
                 color = codeDict[retCode]
                 listItem = QtWidgets.QListWidgetItem()
                 listItem.setText(key)
@@ -2387,6 +2626,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.scenes_listWidget.blockSignals(False)
 
     def onLoadScene(self):
+        # This method IS Software Specific. BUT overriding it is better, so it is not selecting manager
+
         row = self.scenes_listWidget.currentRow()
         if row == -1:
             return
@@ -2425,32 +2666,42 @@ class MainUI(QtWidgets.QMainWindow):
             self.statusBar().showMessage("Status | Scene Referenced => %s" % self.manager.currentBaseSceneName)
 
     def onMakeReference(self):
-        self.manager.makeReference()
+        # This method IS Software Specific.
+        manager = self._getManager()
+
+        manager.makeReference()
         self.onVersionChange()
         self.statusBar().showMessage(
-            "Status | Version {1} is the new reference of {0}".format(self.manager.currentBaseSceneName, self.manager.currentVersionIndex))
+            "Status | Version {1} is the new reference of {0}".format(manager.currentBaseSceneName, manager.currentVersionIndex))
         currentRow = self.scenes_listWidget.currentRow()
         self.populateBaseScenes()
         self.scenes_listWidget.setCurrentRow(currentRow)
 
     def onShowPreview(self):
-        # TODO // TEST IT
+        # This method IS Software Specific.
+        manager = self._getManager()
+
         row = self.scenes_listWidget.currentRow()
         if row == -1:
             return
-        cameraList = self.manager.getPreviews()
-        if len(self.manager.getPreviews()) == 1:
-            self.manager.playPreview(cameraList[0])
+        cameraList = manager.getPreviews()
+        if len(manager.getPreviews()) == 1:
+            manager.playPreview(cameraList[0])
         else:
             zortMenu = QtWidgets.QMenu()
             for z in cameraList:
                 tempAction = QtWidgets.QAction(z, self)
                 zortMenu.addAction(tempAction)
-                tempAction.triggered.connect(lambda item=z: self.manager.playPreview(item)) ## Take note about the usage of lambda "item=pbDict[z]" makes it possible using the loop
+                tempAction.triggered.connect(lambda item=z: manager.playPreview(item)) ## Take note about the usage of lambda "item=pbDict[z]" makes it possible using the loop
 
-            zortMenu.exec_((QtGui.QCursor.pos()))
+            if BoilerDict["Environment"] == "Standalone":
+                zortMenu.exec_((QtWidgets.QCursor.pos()))
+            else:
+                zortMenu.exec_((QtGui.QCursor.pos()))
 
     def onDeleteBaseScene(self):
+        # This method IS Software Specific.
+
         passw, ok = QtWidgets.QInputDialog.getText(self, "!!!DELETING BASE SCENE!!! %s\n\nAre you absolutely sure?", "Enter Admin Password:", QtWidgets.QLineEdit.Password)
 
         if ok:
@@ -2462,16 +2713,20 @@ class MainUI(QtWidgets.QMainWindow):
         else:
             return
 
-        name = self.manager.currentBaseSceneName
+        manager = self._getManager()
+
+        name = manager.currentBaseSceneName
 
         row = self.scenes_listWidget.currentRow()
         if not row == -1:
-            self.manager.deleteBasescene(self.manager.currentDatabasePath)
+            manager.deleteBasescene(manager.currentDatabasePath)
             self.populateBaseScenes()
             self.statusBar().showMessage("Status | Scene Deleted => %s" % name)
 
 
     def onDeleteReference(self):
+        # This method IS Software Specific.
+
         passw, ok = QtWidgets.QInputDialog.getText(self, "DELETING Reference File of %s\n\nAre you sure?", "Enter Admin Password:", QtWidgets.QLineEdit.Password)
 
         if ok:
@@ -2483,24 +2738,18 @@ class MainUI(QtWidgets.QMainWindow):
         else:
             return
 
-        name = self.manager.currentBaseSceneName
+        manager = self._getManager()
+
+        name = manager.currentBaseSceneName
 
         row = self.scenes_listWidget.currentRow()
         if not row == -1:
-            self.manager.deleteReference(self.manager.currentDatabasePath)
+            manager.deleteReference(manager.currentDatabasePath)
             self.populateBaseScenes()
             self.statusBar().showMessage("Status | Reference of %s is deleted" % name)
 
-    # def onImanager(self):
-    #     # if self.isCallback:
-    #     #     callback = "%s.imageManagerINS" %(self.isCallback)
-    #     # else:
-    #     #     callback = None
-    #     #
-    #     # self.imageManagerINS = ImMaya.MainUI(callback=callback)
-    #     e = ImMaya.MainUI()
-
     def onIviewer(self):
+        # This method is NOT Software Specific.
         ImageViewer.MainUI(self.manager.projectDir).show()
 
     def onCreatePreview(self):
@@ -2508,27 +2757,40 @@ class MainUI(QtWidgets.QMainWindow):
         self.manager.createPreview()
         self.statusBar().showMessage("Status | Idle")
 
+    def _getManager(self):
+        """Returns current manager"""
+        return self.manager
+
+
     def _initSubProjects(self):
+        # This method IS Software Specific.
+        manager = self._getManager()
+        if not manager:
+            return
 
         self.subProject_comboBox.blockSignals(True)
 
         self.subProject_comboBox.clear()
-        self.subProject_comboBox.addItems(self.manager.getSubProjects())
-        self.subProject_comboBox.setCurrentIndex(self.manager.currentSubIndex)
+        self.subProject_comboBox.addItems(manager.getSubProjects())
+        self.subProject_comboBox.setCurrentIndex(manager.currentSubIndex)
 
         self.subProject_comboBox.blockSignals(False)
 
     def _initCategories(self):
+        # This method IS Software Specific.
+        manager = self._getManager()
+        if not manager:
+            return
 
         self.category_tabWidget.blockSignals(True)
         self.category_tabWidget.clear()
 
-        for i in self.manager._categories:
+        for i in manager._categories:
             self.preTab = QtWidgets.QWidget()
             self.preTab.setObjectName((i))
             self.category_tabWidget.addTab(self.preTab, (i))
 
-        self.category_tabWidget.setCurrentIndex(self.manager.currentTabIndex)
+        self.category_tabWidget.setCurrentIndex(manager.currentTabIndex)
         self.category_tabWidget.blockSignals(False)
 
     def _initUsers(self):
@@ -2667,7 +2929,14 @@ class ImageWidget(QtWidgets.QLabel):
 
 class DropListWidget(QtWidgets.QListWidget):
     """Custom List Widget which accepts drops"""
-    dropped = Qt.QtCore.Signal(str)
+    # dropped = Qt.QtCore.Signal(str)
+    # dropped = QtCore.Signal(str)
+    # PyInstaller and Standalone version compatibility
+    if FORCE_QT4:
+        dropped = QtCore.pyqtSignal(str)
+    else:
+        dropped = QtCore.Signal(str)
+
     def __init__(self, type, parent=None):
         super(DropListWidget, self).__init__(parent)
         self.setAcceptDrops(True)

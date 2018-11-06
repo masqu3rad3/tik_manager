@@ -796,7 +796,7 @@ class MayaManager(RootManager):
                 logger.warning("Cannot rename the old database folder because of windows bullshit")
 
 class MainUI(baseUI):
-    def __init__(self):
+    def __init__(self, callback=None):
         super(MainUI, self).__init__()
 
         self.manager = MayaManager()
