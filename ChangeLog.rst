@@ -1,6 +1,11 @@
 =============================
 Scene Manager Version History
 =============================
+2.1
+---
+* **Update.0:** Boilerplate UI for all modules
+* **Fix.0:** Various bug fixes on all modules
+* **Update.0:** Various UI updates
 
 2.0
 ---

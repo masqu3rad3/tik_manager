@@ -1,5 +1,5 @@
-"""Creates a tree structure for image sequences
-
+"""Global Module for all Sm softwares
+Creates a tree structure for image sequences
 Image sequences can be listed recursively if the checkbox is checked.
 Meaning all the sequence under the selected folder will be listed
 recursively.
@@ -18,23 +18,15 @@ else:
     import Qt
     from Qt import QtWidgets, QtCore, QtGui
 
-
 import pyseq as seq
 
 import json
 import datetime
 from shutil import copyfile
 
-
 import logging
 
 from tik_manager.CSS import darkorange
-
-
-
-
-
-
 
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Scene Manager for Maya Project"
@@ -44,12 +36,14 @@ __maintainer__ = "Arda Kutlu"
 __email__ = "ardakutlu@gmail.com"
 __status__ = "Development"
 
-
 BoilerDict = {"Environment":"Standalone",
               "MainWindow":None,
               "WindowTitle":"Image Viewer Standalone v%s" %_version.__version__,
               "Stylesheet": "mayaDark.stylesheet"}
-# Get Environment
+
+# ---------------
+# GET ENVIRONMENT
+# ---------------
 try:
     from maya import OpenMayaUI as omui
     import maya.cmds as cmds
@@ -107,6 +101,7 @@ def getMainWindow():
         return None
 
 def getProject():
+    """Returns the project folder"""
     if BoilerDict["Environment"] == "Maya":
         return os.path.normpath(cmds.workspace(q=1, rd=1))
     elif BoilerDict["Environment"] == "3dsMax":
@@ -122,11 +117,13 @@ def getProject():
 
 
 def folderCheck(folder):
+    """Checks if the folder exists, creates it if it doesnt"""
     if not os.path.isdir(os.path.normpath(folder)):
         os.makedirs(os.path.normpath(folder))
 
 
 class MainUI(QtWidgets.QMainWindow):
+    """Main UI function"""
     def __init__(self, projectPath=None, relativePath=None, recursive=False):
         for entry in QtWidgets.QApplication.allWidgets():
             try:
@@ -205,6 +202,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.setCentralWidget(self.centralwidget)
 
     def buildUI(self):
+        """Elements of the Main UI"""
         self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
         self.gridLayout.setObjectName(("gridLayout"))
 
@@ -379,18 +377,22 @@ class MainUI(QtWidgets.QMainWindow):
 
 
     def deselectTree(self):
+        """Method for clearing the selection"""
         self.directories_treeView.setCurrentIndex(self.model.index(self.rootPath))
         self.populate()
 
     def selectAll(self):
+        """Checks all checkboxes"""
         for c in self.checkboxes:
             c.setChecked(True)
 
     def selectNone(self):
+        """Clears all checkboxes"""
         for c in self.checkboxes:
             c.setChecked(False)
 
     def setRootPath(self, dir):
+        """Declares the given directory as the root of the tree view"""
         dir = str(dir)
         self.rootPath = dir
         self.directories_treeView.reset()
@@ -400,6 +402,10 @@ class MainUI(QtWidgets.QMainWindow):
         self.sequences_listWidget.clear()
 
     def getRaidPath(self):
+        """
+        Returns the absolute path of remote transfer location from database file
+        If data base file does not exists, creates it
+        """
         tLocationFile = os.path.normpath(os.path.join(self.databaseDir, "tLocation.json"))
         if os.path.isfile(tLocationFile):
             tLocation = self._loadJson(tLocationFile)
@@ -409,12 +415,14 @@ class MainUI(QtWidgets.QMainWindow):
         return tLocation
 
     def setRaidPath(self, dir):
+        """Updates the Remote Location Folder database"""
         tLocationFile = os.path.normpath(os.path.join(self.databaseDir, "tLocation.json"))
         self.tLocation = str(dir)
         self._dumpJson(self.tLocation, tLocationFile)
         self.raidFolder_lineEdit.setText(self.tLocation)
 
     def onCheckbox(self, extensions, state):
+        """adds and removes the extensions according to the checkbox state"""
         if state:
             self.filterList += extensions
         else:
@@ -424,11 +432,13 @@ class MainUI(QtWidgets.QMainWindow):
 
     # @Qt.QtCore.pyqtSlot("QItemSelection, QItemSelection")
     def onContextMenu_images(self, point):
+        """Method to pop the menu at the position of the mouse cursor"""
         # print se
         if not self.sequences_listWidget.currentRow() is -1:
             self.popMenu.exec_(self.sequences_listWidget.mapToGlobal(point))
 
     def onBrowse(self):
+        """Opens a directory select menu to define it as the root path"""
         dir = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory"))
         if dir:
             self.setRootPath(dir)
@@ -436,13 +446,14 @@ class MainUI(QtWidgets.QMainWindow):
             return
 
     def onBrowseRaid(self):
+        """Opens a directory select menu to define it as the remote location path"""
         path = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory", self.tLocation))
         if path:
             self.setRaidPath(path)
             return
 
-
     def onTransferFiles(self):
+        """Transfer sequences to the remote location"""
         if self.tLocation == "N/A":
             raise Exception ([341], "Raid Location not defined")
             return
@@ -461,6 +472,7 @@ class MainUI(QtWidgets.QMainWindow):
 
 
     def onShowInExplorer(self):
+        """Open the folder of sequence in explorer"""
         row = self.sequences_listWidget.currentRow()
         if row == -1:
             return
@@ -468,9 +480,12 @@ class MainUI(QtWidgets.QMainWindow):
 
 
     def populate(self):
-        self.sequences_listWidget.clear()
+        """Search for sequences"""
+
+        self.sequences_listWidget.clear() # fresh page
         self.sequenceData=[] # clear the custom list
-        index = self.directories_treeView.currentIndex()
+
+        # if no filter extension selected, stop iterating through folders
         if not self.filterList:
             self.stop()
             return
@@ -487,8 +502,9 @@ class MainUI(QtWidgets.QMainWindow):
         else:
             rec=1
 
-        # gen = seq.walk(fullPath, level=rec, includes=self.filterList)
+        # convert filterList to tuple
         filter = (f for f in self.filterList)
+        # create a generator
         gen = seq.walk(fullPath, level=rec, includes=filter)
         self.stop() # Stop any existing Timer
         self._generator = self.listingLoop(gen) # start the loop
@@ -496,6 +512,7 @@ class MainUI(QtWidgets.QMainWindow):
 
 
     def listingLoop(self, gen):
+        """Add found sequences to the List widget"""
         for x in gen:
             for i in x[2]:
                 QtWidgets.QApplication.processEvents(QtCore.QEventLoop.ExcludeUserInputEvents)
@@ -509,12 +526,15 @@ class MainUI(QtWidgets.QMainWindow):
                 yield
 
     def onRunItem(self):
+        """Execute the sequence"""
+        # TODO // Make it compatible with Linux
         row = self.sequences_listWidget.currentRow()
         item = self.sequenceData[row]
         firstImagePath = os.path.join(os.path.normpath(item.dirname), item.name)
         os.startfile(firstImagePath)
 
     def stop(self):  # Connect to Stop-button clicked()
+        """Stops the search progress for sequences"""
         if self._timerId is not None:
             self.killTimer(self._timerId)
         self._generator = None
@@ -545,10 +565,18 @@ class MainUI(QtWidgets.QMainWindow):
 
     def _dumpJson(self, data, file):
         """Saves the data to the json file"""
-        with open(file, "w") as f:
+        # with open(file, "w") as f:
+        #     json.dump(data, f, indent=4)
+        name, ext = os.path.splitext(file)
+        tempFile = "{0}.tmp".format(name)
+        with open(tempFile, "w") as f:
             json.dump(data, f, indent=4)
+        copyfile(tempFile, file)
+        os.remove(tempFile)
+
 
 class DropLineEdit(QtWidgets.QLineEdit):
+    """Custom LineEdit Class accepting drops"""
     # PyInstaller and Standalone version compatibility
     if FORCE_QT4:
         dropped = QtCore.pyqtSignal(str)
@@ -580,6 +608,7 @@ class DropLineEdit(QtWidgets.QLineEdit):
 
 
 class DeselectableTreeView(QtWidgets.QTreeView):
+    """Custom Deselectable TreeView Class"""
     # PyInstaller and Standalone version compatibility
     if FORCE_QT4:
         deselected = QtCore.pyqtSignal(bool)
@@ -593,7 +622,7 @@ class DeselectableTreeView(QtWidgets.QTreeView):
         QtWidgets.QTreeView.mousePressEvent(self, event)
 
 class SeqCopyProgress(QtWidgets.QWidget):
-
+    """Custom Widget for visualizing progress of file transfer"""
     def __init__(self, src=None, dest=None):
         super(SeqCopyProgress, self).__init__()
         self.logger = None
@@ -680,14 +709,17 @@ class SeqCopyProgress(QtWidgets.QWidget):
         self.msgDialog.show()
 
     def onShowInExplorer(self, path):
+        """Open the folder in explorer"""
+        # TODO // Make it compatible with Linux
         os.startfile(path)
         pass
 
-
     def closeEvent(self, *args, **kwargs):
+        """Override close behaviour"""
         self.terminated = True
 
     def terminate(self, all=False):
+        """Terminate the progress"""
         self.terminated = True
         self.cancelAll = all
 
@@ -722,7 +754,16 @@ class SeqCopyProgress(QtWidgets.QWidget):
                 break
 
     def copysequence(self, sequenceData, selectionList, destination, logPath, root):
-
+        """
+        Copies the sequences to the destination
+        :param sequenceData: (List) list of sequences - Usually all found sequences
+        :param selectionList: (List) Index list of selected sequences to iterate
+        :param destination: (String) Absolute Path of remote destination
+        :param logPath: (String) Absolute folder Path for log file
+        :param root: (String) Root path of the images. Difference between sequence file folder
+                        and root path will be used as the folder structure at remote location
+        :return:
+        """
         now = datetime.datetime.now()
         logName = "fileTransferLog_{0}.txt".format(now.strftime("%Y.%m.%d.%H.%M"))
         logFile = os.path.join(logPath, logName)
@@ -761,6 +802,7 @@ class SeqCopyProgress(QtWidgets.QWidget):
         pass
 
     def setupLogger(self, handlerPath):
+        """Prepares logger to write into log file"""
         logger = logging.getLogger('imageViewer')
         file_logger = logging.FileHandler(handlerPath)
         logger.addHandler(file_logger)
@@ -768,6 +810,7 @@ class SeqCopyProgress(QtWidgets.QWidget):
         return logger
 
     def deleteLogger(self, logger):
+        """Deletes the looger object once the logging into file finishes"""
         for i in logger.handlers:
             logger.removeHandler(i)
             i.flush()
