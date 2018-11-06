@@ -45,6 +45,13 @@ logger = logging.getLogger('smStandalone')
 logger.setLevel(logging.DEBUG)
 
 class SwViewer(RootManager):
+    """
+    Helper class for StandaloneManager. Views and opens Scenes.
+    swDict must contain:
+    "niceName", "databaseDir", "scenesDir", "pbSettingsFile", "categoriesFile", "userSettingsDir"
+    This dictionary(s) defined in the StandaloneManager class
+    """
+
     def __init__(self, swDict, projectDir):
         super(SwViewer, self).__init__()
         self.swDict = swDict
@@ -66,7 +73,8 @@ class SwViewer(RootManager):
         """Overriden function"""
         return ""
 
-    def getExecutables(self, rootPath, relativePath, executableList, searchword=None):
+    def _getExecutables(self, rootPath, relativePath, executableList, searchword=None):
+
         if searchword:
             try:
                 versionRoots = [x for x in os.listdir(rootPath) if x.startswith(searchword) and os.path.isdir(os.path.join(rootPath, x))]
@@ -89,6 +97,11 @@ class SwViewer(RootManager):
                     yield [v, exePath]
 
     def executeScene(self):
+        """
+        Executes the scene at cursor position
+        Tries to open the scene with the same version of the appropeiate Software
+        which is defined at the Base Scene database
+        """
         if self.currentPlatform is not "Windows":
             logger.warning("Currently only windows executables are supported")
             return None
@@ -104,7 +117,6 @@ class SwViewer(RootManager):
             msg = "Cannot resolve software version from database"
             self._exception(360, msg)
             return
-
 
         # resolve executables
         programFiles32 = os.environ["PROGRAMFILES(X86)"]
@@ -133,11 +145,11 @@ class SwViewer(RootManager):
                     }
                 }
 
-        exeGen32Bit = self.getExecutables(os.path.join(programFiles32, pDict[swID]["root"]), pDict[swID]["relPath"],
+        exeGen32Bit = self._getExecutables(os.path.join(programFiles32, pDict[swID]["root"]), pDict[swID]["relPath"],
                                            pDict[swID]["exeList"], searchword=pDict[swID]["searchWord"])
 
 
-        exeGen64Bit = self.getExecutables(os.path.join(programFiles64, pDict[swID]["root"]), pDict[swID]["relPath"],
+        exeGen64Bit = self._getExecutables(os.path.join(programFiles64, pDict[swID]["root"]), pDict[swID]["relPath"],
                                            pDict[swID]["exeList"], searchword=pDict[swID]["searchWord"])
 
         # for x in exeGen64Bit:
@@ -262,8 +274,6 @@ class SwViewer(RootManager):
 
     def _exception(self, code, msg):
         """OVERRIDEN"""
-        # logger.error("Exception %s" %self.errorCodeDict[code])
-        # logger.error(msg)
 
         errorbox = QtWidgets.QMessageBox()
         errorbox.setModal(True)
@@ -276,9 +286,11 @@ class SwViewer(RootManager):
 
 
 class StandaloneManager(RootManager):
+    """Command Class. Inherits SmRoot.py"""
     def __init__(self):
         super(StandaloneManager, self).__init__()
 
+        # Dictionary with items for each software supported by Scene Manager
         self.swDictList = [{"niceName": "3dsMax",
                             "databaseDir": "maxDB",
                             "scenesDir": "scenes_3dsMax",
@@ -302,7 +314,6 @@ class StandaloneManager(RootManager):
 
                            ]
 
-        # self.validSoftwares = []
         self.swList = []
         self.init_paths()
         self.init_database()
@@ -330,22 +341,19 @@ class StandaloneManager(RootManager):
 
         self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
 
-
-
         self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
-
 
         self._pathsDict["generalSettingsDir"] = os.path.dirname(os.path.abspath(__file__))
         self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerUsers.json"))
 
     def init_database(self):
-        """Overriden function"""
+        """OVERRIDEN FUNCTION"""
 
         self._usersDict = self._loadUsers()
         self._currentsDict = self._loadUserPrefs()
 
     def getProjectDir(self):
-        """Overriden function"""
+        """OVERRIDEN FUNCTION"""
         # get the projects file for standalone manager
         projectsDict = self._loadProjects()
 
@@ -492,6 +500,7 @@ class StandaloneManager(RootManager):
     #         json.dump(data, f, indent=4)
 
 class MainUI(baseUI):
+    """Main UI Class. Inherits SmUIRoot.py"""
     def __init__(self):
         super(MainUI, self).__init__()
 
@@ -640,5 +649,4 @@ if __name__ == '__main__':
         app.setStyleSheet(fh.read())
     window = MainUI()
     window.show()
-    # window.changePasswordUI()
     sys.exit(app.exec_())

@@ -3,7 +3,7 @@ Scene Manager Version History
 =============================
 
 2.0
------
+---
 * **New.0:** 3ds Max support added
 * **New.0:** Houdini support added
 * **New.0:** Standalone Module added

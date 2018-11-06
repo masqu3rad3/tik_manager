@@ -12,6 +12,8 @@ V2.5 Goals
     * will have a seperate database to track information such as where they come from and their intended usage
 * Nuke Version
 * Better Linux support
+* Tool to view and track Client References
+* Tool to view and track progresses, milestones, presentations etc.
 
 Minors
 ------
@@ -22,5 +24,15 @@ Minors
 * Improve exception informations
 * Color Codes for sub-projects?
 
+Ideas
+-----
+* A ticket system to assign tasks to the users
+    * A seperate folder based database in the project
+    * When tasks are created;
+        * They will be stored as a database item
+        * Corresponding user may be notified via mail(?)
+    * Once user opens the software;
+        * a callback may search the db for new tasks
+        * User may manually search (e.g 'Search Task' button)
 
 

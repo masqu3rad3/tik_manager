@@ -21,6 +21,7 @@ logger.setLevel(logging.WARNING)
 # TODO : Make a project settings feature (Resolution, FPS, etc.)
 
 class RootManager(object):
+    """Base of all Scene Manager Command Classes"""
     def __init__(self):
         # super(RootManager, self).__init__()
 
@@ -45,6 +46,7 @@ class RootManager(object):
 
 
     def init_paths(self):
+        """Initializes all the necessary paths"""
         logger.debug("Func: init_paths")
         # all paths in here must be absolute paths
         _softwarePathsDict = self.getSoftwarePaths()
@@ -104,6 +106,7 @@ class RootManager(object):
         return -1
 
     def init_database(self):
+        """Initializes all databases"""
         logger.debug("Func: init_database")
 
         # self.currentPlatform = platform.system()
@@ -143,6 +146,7 @@ class RootManager(object):
 
     @projectDir.setter
     def projectDir(self, path):
+        """Sets the Scene Manager Project directory to given path"""
         logger.debug("Func: projectDir/setter")
         self._pathsDict["projectDir"] = path
         # self.init_paths()
@@ -150,7 +154,7 @@ class RootManager(object):
 
     @property
     def subProject(self):
-        """Returns the name of the current sub-project"""
+        """Returns the name of the active sub-project"""
         logger.debug("Func: subProject/getter")
         return self._subProjectsList[self.currentSubIndex]
 
@@ -339,6 +343,7 @@ class RootManager(object):
 
     @property
     def currentVersionIndex(self):
+        """Returns the index number of Version at cursor position"""
         logger.debug("Func: currentVersionIndex/getter")
 
         """Returns current Version index at cursor position"""
@@ -405,6 +410,7 @@ class RootManager(object):
 
     @property
     def currentDatabasePath(self):
+        """Returns absolute path of database file of the scene at cursor position"""
         logger.debug("Func: currentDatabasePath/getter")
 
         if not self._currentSceneInfo:
@@ -526,11 +532,6 @@ class RootManager(object):
         self.scanBaseScenes()
         # return sorted(self._baseScenesInCategory.keys())
         return self._baseScenesInCategory
-
-    # def getBaseScenesInCategory(self):
-    #     """Returns list of nice base scene names under the category at cursor position"""
-    #     self.scanBaseScenes()
-    #     return self._baseScenesInCategory
 
     def getVersions(self):
         """Returns Versions List of base scene at cursor position"""
@@ -729,6 +730,7 @@ class RootManager(object):
         return resolvedPath
 
     def createSubproject(self, nameOfSubProject):
+        """Creates a Scene Manager Sub-project"""
         logger.debug("Func: createSubproject")
 
         if nameOfSubProject in self._subProjectsList:
@@ -748,25 +750,14 @@ class RootManager(object):
         """Opens the path in Windows Explorer(Windows) or Nautilus(Linux)"""
         logger.debug("Func: showInExplorer")
 
-        # raise Exception (200, "cok fena exception")
-        # raise RuntimeError ((0,"cok fena RuntimeError"))
-
-        # if not path or not os.path.isdir(path):
-        #     logger.error("path is not a directory path or does not exist")
-        #     return
         if self.currentPlatform == "Windows":
             os.startfile(path)
         elif self.currentPlatform == "Linux":
             os.system('nautilus %s' % path)
         else:
             msg = "%s is not supported" %self.currentPlatform
-            # logger.warning(msg)
-            # raise Exception([210, msg])
             self._exception(210, msg)
             return
-
-    # def scanBaseScenes(self, categoryAs=None, subProjectAs=None):
-
 
     def scanBaseScenes(self, categoryAs=None, subProjectAs=None):
         """Returns the basescene database files in current category"""
@@ -810,13 +801,6 @@ class RootManager(object):
         # self._baseScenesInCategory = {self._niceName(file): self.filterReferenced(file) for file in glob(os.path.join(searchDir, '*.json'))}
         # self._currentBaseScenes = [os.path.join(searchDir, file) for file in os.listdir(searchDir) if file.endswith('.json')]
         return self._baseScenesInCategory # dictionary of json files
-
-    # def filterReferenced(self, jsonFile):
-    #     jInfo = self._loadJson(jsonFile)
-    #     if jInfo["ReferenceFile"]:
-    #         return [jsonFile, True]
-    #     else:
-    #         return [jsonFile, False]
 
     # def getProjectReport(self):
     #     # TODO This function should be re-written considering all possible softwares
@@ -875,16 +859,9 @@ class RootManager(object):
     #     logger.info("Report has been logged => %s" %filePath)
     #     return report
 
-
-
-
-
     def addNote(self, note):
         """Adds a note to the version at current position"""
         logger.debug("Func: addNote")
-
-        # assert (not self._currentBaseSceneName), [101, "No Base Scene file selected"]
-        # assert (self._currentVersionIndex == -1), [101, "No Version selected"]
 
         if not self._currentBaseSceneName:
             logger.warning("No Base Scene file selected")
@@ -898,6 +875,12 @@ class RootManager(object):
         self._dumpJson(self._currentSceneInfo, self._baseScenesInCategory[self._currentBaseSceneName])
 
     def addUser(self, fullName, initials):
+        """
+        Adds a new user to the database
+        :param fullName: (String)
+        :param initials: (String)
+        :return: None
+        """
         logger.debug("Func: addUser")
 
         # old Name
@@ -916,6 +899,7 @@ class RootManager(object):
         return None, None
 
     def removeUser(self, fullName):
+        """Removes the user from database"""
         logger.debug("Func: removeUser")
 
         # old Name removeUser
@@ -926,6 +910,7 @@ class RootManager(object):
         return None, None
 
     def addCategory(self, categoryName):
+        """Adds a new category to the database"""
         curCategories = self._loadCategories()
         if categoryName in curCategories:
             msg = "Duplicate Category names are not allowed"
@@ -940,6 +925,7 @@ class RootManager(object):
         return
 
     def moveCategory(self, categoryName, direction):
+        """Moves the category index one step towards given direction"""
         # TODO : NOT TESTED
         if direction == "left" or direction == "down":
             dir = -1
@@ -964,7 +950,7 @@ class RootManager(object):
 
 
     def removeCategory(self, categoryName):
-        # TODO // TEST IT
+        """Removes the category from database"""
         curCategories = self._loadCategories()
         if len(curCategories) == 1:
             # Last category cannot be removed
@@ -1024,6 +1010,7 @@ class RootManager(object):
         return
 
     def removePreview(self):
+        """Deletes the preview file and removes it from the database"""
         logger.debug("Func: removePreview")
 
         if self._currentPreviewCamera:
@@ -1040,6 +1027,12 @@ class RootManager(object):
 
 
     def deleteBasescene(self, databaseFile):
+        """
+        Deletes the given Base Scene and ALL its versions. Removes it from the database completely
+        !!!USE WITH CAUTION!!!
+        :param databaseFile: (String) Absolute path of the database file
+        :return: None
+        """
         logger.debug("Func: deleteBasescene")
 
         #ADMIN ACCESS
@@ -1090,6 +1083,12 @@ class RootManager(object):
         self.errorLogger(title="Deleted Base Scene", errorMessage=msg)
 
     def deleteReference(self, databaseFile):
+        """
+        Deletes the Reference file of the given Base Scene (If exists).
+        Basically this is opposite of what "makeReference"  method does.
+        :param databaseFile: (String) Absolute path of the database file
+        :return: None
+        """
         logger.debug("Func: deleteReference")
 
         #ADMIN ACCESS
@@ -1162,13 +1161,22 @@ class RootManager(object):
                     except:
                         pass
 
-    def checkReference(self, jsonFile, deepCheck=False):
+    def checkReference(self, databaseFile, deepCheck=False):
+        """
+        Checks the Reference integrity of the base scene
+        :param databaseFile: (String) Absolute path of the database file of the Base Scene
+        :param deepCheck: (Bool) If True, iterates an additional checksum test. May be time
+        consuming for large files or on systems with slow network speed.
+        :return: Integer Codes: -2 => Error code for corrupted database file
+                                -1 => Code Red : Reference File does not exist or checksum mismatch
+                                0 => Code Yellow : No reference file found on database file
+                                1 => Code Green : Checked without error
+        """
         logger.debug("Func: checkReference")
 
-        sceneInfo = self._loadJson(jsonFile)
+        sceneInfo = self._loadJson(databaseFile)
         # assert (sceneInfo == -2)
         if sceneInfo == -2:
-            # raise AssertionError(200, "cok fena exception")
             return -2 # Corrupted database file
 
         if sceneInfo["ReferenceFile"]:
@@ -1196,6 +1204,12 @@ class RootManager(object):
             return 0 # code yellow
 
     def errorLogger(self, title="", errorMessage=""):
+        """
+        Logs the error message
+        :param title: (String) Title of the message
+        :param errorMessage: (String) Body of the error message
+        :return:
+        """
         #
         logger = logging.getLogger('SceneManager')
         filePath = os.path.join(self._pathsDict["masterDir"], "sm_logs.log")
@@ -1207,11 +1221,7 @@ class RootManager(object):
         timeInfo = now.strftime("%d.%m.%Y - %H:%M")
         userInfo = self.currentUser
         machineInfo = socket.gethostname()
-
         ## stuff
-
-
-
         logMessage = "-----------------------------------------\n" \
                      "{0} - {1}\n" \
                      "-----------------------------------------\n" \
@@ -1220,15 +1230,14 @@ class RootManager(object):
                      "User: {3}\n" \
                      "Workstation: {4}\n".format(title, timeInfo, errorMessage, userInfo, machineInfo)
 
-
         logger.debug(logMessage)
-
 
         logger.removeHandler(file_logger)
         file_logger.flush()
         file_logger.close()
 
     def checkPassword(self, password):
+        """Compares the given password with the hashed password file. Returns True if matches else False"""
         # get the hash
         pswFile = os.path.join(os.path.dirname(os.path.abspath(__file__)), "adminPass.psw")
         if os.path.isfile(pswFile):
@@ -1238,20 +1247,24 @@ class RootManager(object):
             else:
                 return None
             f.close()
+        ## use the default password hash if there is no password file
         else:
             hashedPass="7110eda4d09e062aa5e4a390b0a572ac0d2c0220"
 
         passToCheck = (hashlib.sha1(str(password).encode('utf-8')).hexdigest())
 
         if passToCheck == hashedPass:
-            print "passed"
             return True
-
         else:
-            print "failed"
             return False
 
     def changePassword(self, oldPassword, newPassword):
+        """
+        Changes the password and saves the hash
+        :param oldPassword: (String)
+        :param newPassword: (String)
+        :return: (bool) True if successfull
+        """
         if self.checkPassword(oldPassword):
             pswFile = os.path.join(os.path.dirname(os.path.abspath(__file__)), "adminPass.psw")
             tempFile = os.path.join(os.path.dirname(os.path.abspath(__file__)), "adminPassTmp.psw")
@@ -1266,11 +1279,8 @@ class RootManager(object):
         else:
             return False
 
-
-
-
-
     def _exception(self, code, msg):
+        """Exception report function. Throws a log error and raises an exception"""
 
         logger.error("Exception %s" %self.errorCodeDict[code])
         logger.error(msg)
@@ -1280,16 +1290,15 @@ class RootManager(object):
         """
         Checks the requirements for platform and administrator rights. Returns [None, None] if passes both
         Returns: (List) [ErrorCode, ErrorMessage]
-
         """
         logger.debug("Func: _checkRequirements")
 
-        ## check platform
-        # currentOs = platform.system()
-        # if currentOs != "Linux" and currentOs != "Windows":
-        #     self._exception(210, "Operating System is not supported\nCurrently only Windows and Linux supported")
-        #     return -1, ["OS Error", "Operating System is not supported",
-        #                 "Scene Manager only supports Windows and Linux Operating Systems"]
+        # check platform
+        currentOs = platform.system()
+        if currentOs != "Linux" and currentOs != "Windows":
+            self._exception(210, "Operating System is not supported\nCurrently only Windows and Linux supported")
+            return -1, ["OS Error", "Operating System is not supported",
+                        "Scene Manager only supports Windows and Linux Operating Systems"]
         ## check admin rights
         try:
             is_admin = os.getuid() == 0
@@ -1302,22 +1311,11 @@ class RootManager(object):
         return None, None
 
     def _folderCheck(self, folder):
+        """Checks if the folder exists, creates it if doesnt"""
         logger.debug("Func: _folderCheck")
 
         if not os.path.isdir(os.path.normpath(folder)):
             os.makedirs(os.path.normpath(folder))
-
-    # def _nameCheck(self, text):
-    #     """Checks the text for illegal characters, Returns:  corrected Text or -1 for Error """
-    #     text = text.replace("|", "__")
-    #     if re.match("^[A-Za-z0-9_-]*$", text):
-    #         if text == "":
-    #             return -1
-    #         text = text.replace(" ", "_")
-    #         # text = text.replace("|", "__")
-    #         return text
-    #     else:
-    #         return -1
 
     def _nameCheck(self, text, allowSpaces=False):
         """Checks the text for illegal characters, Returns:  corrected Text or -1 for Error """
@@ -1342,6 +1340,7 @@ class RootManager(object):
         return os.path.splitext(basename)[0]
 
     def _resolveProjectPath(self, projectRoot, projectName, brandName, client):
+        """Parses the info to the absolute project folder path"""
         logger.debug("Func: _resolveProjectPath")
 
         if projectName == "" or client == "" or projectRoot == "":
@@ -1404,6 +1403,7 @@ class RootManager(object):
             return projectSettingsDB
 
     def _saveProjectSettings(self, data):
+        """Dumps the data to the project settings database file"""
         try:
             self._dumpJson(data, self._pathsDict["projectSettingsFile"])
             msg = ""
@@ -1442,6 +1442,12 @@ class RootManager(object):
         return bookmarksData
 
     def _addToFavorites(self, shortName, absPath):
+        """
+        Adds the given project info to the favorites database
+        :param shortName: (String) Name of the project
+        :param absPath: (String) Absolute path of the project folder
+        :return: (List) [Favorites Data]
+        """
         logger.debug("Func: _addToFavorites")
 
         # old Name userFavoritesAdd
@@ -1451,6 +1457,7 @@ class RootManager(object):
         return bookmarksData
 
     def _removeFromFavorites(self, index):
+        """Removes the data from the Favorites database. Accepts index number of the Favorites list"""
         logger.debug("Func: _removeFromFavorites")
 
         # old Name userFavoritesRemove
@@ -1545,6 +1552,8 @@ class RootManager(object):
         self._dumpJson(data, self._pathsDict["projectsFile"])
 
     def _loadPBSettings(self):
+        """Loads the preview settings data"""
+        # TODO // NEEDS to be IMPROVED and compatible with all softwares (Nuke and Houdini)
         logger.debug("Func: _loadPBSettings")
 
         # old Name getPBsettings
@@ -1578,6 +1587,7 @@ class RootManager(object):
             return pbSettings
 
     def _savePBSettings(self, pbSettings):
+        """Dumps the Preview settings data to the database"""
         logger.debug("Func: _savePBSettings")
 
         # old Name setPBsettings
