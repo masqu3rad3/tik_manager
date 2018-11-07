@@ -196,9 +196,10 @@ def mayaSetup(prompt=True):
     fileList = ["__init__.py",
                 "_version.py",
                 "ImMaya.py",
-                "IvMaya.py",
+                "ImageViewer.py",
                 "pyseq.py",
                 "Qt.py",
+                "SmUIRoot.py",
                 "SmMaya.py",
                 "SmRoot.py",
                 "SubmitMayaToDeadlineCustom.mel",
@@ -436,6 +437,8 @@ def houdiniSetup(prompt=True):
                 "_version.py",
                 "pyseq.py",
                 "SmHoudini.py",
+                "ImageViewer.py",
+                "SmUIRoot.py",
                 "SmRoot.py",
                 "adminPass.psw"
                 ]
@@ -562,10 +565,13 @@ def maxSetup(prompt=True):
 
     networkDir = os.path.dirname(os.path.abspath(__file__))
     upNetworkDir = os.path.abspath(os.path.join(networkDir, os.pardir))
-    fileList = ["__init__.pyc",
-                "_version.pyc",
-                "pyseq.pyc",
-                "SmRoot.pyc",
+    fileList = ["__init__.py",
+                "_version.py",
+                "pyseq.py",
+                "ImageViewer.py",
+                "SmUIRoot.py",
+                "SmRoot.py",
+                "Sm3dsMax.py",
                 "SubmitMayaToDeadlineCustom.mel",
                 "adminPass.psw"
                 ]
