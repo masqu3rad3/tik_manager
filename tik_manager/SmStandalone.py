@@ -44,31 +44,48 @@ logging.basicConfig()
 logger = logging.getLogger('smStandalone')
 logger.setLevel(logging.DEBUG)
 
+# hard coded software dictionary for getting executables and creating viewer objects
 softwareDictionary = {
-    "SmMaya":{
+    "Maya":{
         "niceName": "Maya",
         "root": "Autodesk",
         "relPath": "bin",
         "exeList": ["maya.exe"],
-        "searchWord": "Maya"
+        "searchWord": "Maya",
+        "databaseDir": "mayaDB",
+        "scenesDir": "scenes",
+        "pbSettingsFile": "pbSettings.json",
+        "categoriesFile": "categoriesMaya.json",
+        "userSettingsDir": "Documents\\SceneManager\\Maya"
     },
-    "Sm3dsMax":
+    "3dsMax":
         {
             "niceName": "3dsMax",
             "root": "Autodesk",
             "relPath": "",
             "exeList": ["3dsmax.exe"],
-            "searchWord": "3ds"
+            "searchWord": "3ds",
+            "databaseDir": "maxDB",
+            "scenesDir": "scenes_3dsMax",
+            "pbSettingsFile": "pbSettings_3dsMax.json",
+            "categoriesFile": "categories3dsMax.json",
+            "userSettingsDir": "Documents\\SceneManager\\3dsMax"
         },
-    "SmHoudini":
+    "Houdini":
         {
             "niceName": "Houdini",
             "root": "Side Effects Software",
             "relPath": "bin",
             "exeList": ["houdini.exe", "houdinifx.exe"],
-            "searchWord": "Hou"
+            "searchWord": "Hou",
+            "databaseDir": "houdiniDB",
+            "scenesDir": "scenes_houdini",
+            "pbSettingsFile": "pbSettings_houdini.json",
+            "categoriesFile": "categoriesHoudini.json",
+            "userSettingsDir": "Documents\\SceneManager\\Houdini"
         }
 }
+
 
 class SwViewer(RootManager):
     """
@@ -105,15 +122,15 @@ class SwViewer(RootManager):
             try:
                 versionRoots = [x for x in os.listdir(rootPath) if x.startswith(searchword) and os.path.isdir(os.path.join(rootPath, x))]
             except WindowsError:
-                msg = "Cannot resolve executable paths"
-                self._exception(360, msg)
+                # msg = "Cannot resolve executable paths"
+                # self._exception(360, msg)
                 return
         else:
             try:
                 versionRoots = [x for x in os.listdir(rootPath) if os.path.isdir(os.path.join(rootPath, x))]
             except WindowsError:
-                msg = "Cannot resolve executable paths"
-                self._exception(360, msg)
+                # msg = "Cannot resolve executable paths"
+                # self._exception(360, msg)
                 return
         for v in versionRoots:
             exeDir = os.path.join(rootPath, v, relativePath)
@@ -154,8 +171,14 @@ class SwViewer(RootManager):
             # software dictionary inside exeDict
             exeDict[sw[1]["niceName"]]={}
             # turn generators into lists and put them into 32 and 64 bit keys
-            exeDict[sw[1]["niceName"]]["32Bit"]=[exe for exe in exeGen32Bit]
-            exeDict[sw[1]["niceName"]]["64Bit"]=[exe for exe in exeGen64Bit]
+            list32Bit = [exe for exe in exeGen32Bit]
+            list64Bit = [exe for exe in exeGen64Bit]
+            if list32Bit == [] and list64Bit == []:
+                msg = "Cannot find any executable"
+                self._exception(360, msg)
+                return
+            exeDict[sw[1]["niceName"]]["32Bit"] = list32Bit
+            exeDict[sw[1]["niceName"]]["64Bit"] = list64Bit
 
         return exeDict
 
@@ -172,25 +195,24 @@ class SwViewer(RootManager):
 
         ID = self._currentSceneInfo["ID"]
         if ID.startswith("SmMaya"):
-            swID = "SmMaya"
+            swID = "Maya"
         elif ID.startswith("Sm3dsMax"):
-            swID = "Sm3dsMax"
+            swID = "3dsMax"
         elif ID.startswith("SmHoudini"):
-            swID = "SmHoudini"
+            swID = "Houdini"
         else:
             msg = "Cannot resolve software version from database"
             self._exception(360, msg)
             return
 
         executables = self.getAvailableExecutables(software=swID)
-        # print executables
         # return
 
         # ------------
         # MAYA VERSION
         # ------------
 
-        if swID == "SmMaya":
+        if swID == "Maya":
             versionDict = {201400: "Maya2014",
                            201450: "Maya2014",
                            201451: "Maya2014",
@@ -246,7 +268,7 @@ class SwViewer(RootManager):
             subprocess.Popen([exePath, "-file", self.currentScenePath], shell=True)
             return
 
-        elif swID == "Sm3dsMax":
+        elif swID == "3dsMax":
             versionDict = {16000: "3ds Max 2014",
                            17000: "3ds Max 2015",
                            18000: "3ds Max 2016",
@@ -278,7 +300,7 @@ class SwViewer(RootManager):
             subprocess.Popen([exePath, "-file", self.currentScenePath], shell=True)
             return
 
-        elif swID == "SmHoudini":
+        elif swID == "Houdini":
             dbVersion = self._currentSceneInfo["HoudiniVersion"][0]
             dbIsApprentice = self._currentSceneInfo["HoudiniVersion"][1]
             for v in executables["Houdini"]["64Bit"]:
@@ -296,171 +318,6 @@ class SwViewer(RootManager):
             self._exception(360, msg)
             return
 
-        # ID = self._currentSceneInfo["ID"]
-        # if ID.startswith("SmMaya"):
-        #     swID = "SmMaya"
-        # elif ID.startswith("Sm3dsMax"):
-        #     swID = "Sm3dsMax"
-        # elif ID.startswith("SmHoudini"):
-        #     swID = "SmHoudini"
-        # else:
-        #     msg = "Cannot resolve software version from database"
-        #     self._exception(360, msg)
-        #     return
-        #
-        # # resolve executables
-        # programFiles32 = os.environ["PROGRAMFILES(X86)"]
-        # programFiles64 = os.environ["PROGRAMFILES"]
-        #
-        # pDict={"SmMaya":
-        #             {
-        #                 "root": "Autodesk",
-        #                 "relPath": "bin",
-        #                 "exeList": ["maya.exe"],
-        #                 "searchWord": "Maya"
-        #              },
-        #         "Sm3dsMax":
-        #             {
-        #                 "root": "Autodesk",
-        #                 "relPath": "",
-        #                 "exeList": ["3dsmax.exe"],
-        #                 "searchWord": "3ds"
-        #             },
-        #         "SmHoudini":
-        #             {
-        #                 "root": "Side Effects Software",
-        #                 "relPath": "bin",
-        #                 "exeList": ["houdini.exe", "houdinifx.exe"],
-        #                 "searchWord": "Hou"
-        #             }
-        #         }
-        #
-        # exeGen32Bit = self._findExecutables(os.path.join(programFiles32, pDict[swID]["root"]), pDict[swID]["relPath"],
-        #                                    pDict[swID]["exeList"], searchword=pDict[swID]["searchWord"])
-        #
-        #
-        # exeGen64Bit = self._findExecutables(os.path.join(programFiles64, pDict[swID]["root"]), pDict[swID]["relPath"],
-        #                                    pDict[swID]["exeList"], searchword=pDict[swID]["searchWord"])
-        #
-        # # for x in exeGen64Bit:
-        # #     print x
-        # if not exeGen32Bit and exeGen64Bit:
-        #     msg = "Cannot resolve executable paths"
-        #     self._exception(360, msg)
-        #     return
-
-        # resolve versions
-
-        #----
-        #MAYA
-        #----
-        # if swID == "SmMaya":
-        #     versionDict = {201400: "Maya2014",
-        #                    201450: "Maya2014",
-        #                    201451: "Maya2014",
-        #                    201459: "Maya2014",
-        #                    201402: "Maya2014",
-        #                    201404: "Maya2014",
-        #                    201406: "Maya2014",
-        #                    201500: "Maya2015",
-        #                    201506: "Maya2015",
-        #                    201507: "Maya2015",
-        #                    201501: "Maya2015",
-        #                    201502: "Maya2015",
-        #                    201505: "Maya2015",
-        #                    201506: "Maya2015",
-        #                    201507: "Maya2015",
-        #                    201600: "Maya2016",
-        #                    201650: "Maya2016.5",
-        #                    201651: "Maya2016.5",
-        #                    201653: "Maya2016.5",
-        #                    201605: "Maya2016",
-        #                    201607: "Maya2016",
-        #                    201650: "Maya2016.5",
-        #                    201651: "Maya2016.5",
-        #                    201653: "Maya2016.5",
-        #                    201605: "Maya2016",
-        #                    201607: "Maya2016",
-        #                    201700: "Maya2017",
-        #                    201701: "Maya2017",
-        #                    201720: "Maya2017",
-        #                    201740: "Maya2017",
-        #                    20180000: "Maya2018"}
-        #     try:
-        #         versionName = versionDict[self._currentSceneInfo["MayaVersion"]]
-        #     except KeyError:
-        #         msg = "Maya version cannot resolved"
-        #         self._exception(360, msg)
-        #         return
-        #
-        #     exePath = None
-        #     for v in exeGen64Bit:
-        #         if v[0] == versionName:
-        #             exePath = v[1]
-        #             break
-        #     for v in exeGen32Bit:
-        #         if v[0] == versionName:
-        #             exePath = v[1]
-        #             break
-        #
-        #     if not exePath:
-        #         msg = "%s is not installed on this workstation" %versionName
-        #         self._exception(360, msg)
-        #         return
-        #     # subprocess.check_call([exePath, "-file", self.currentScenePath], shell=True)
-        #     subprocess.Popen([exePath, "-file", self.currentScenePath], shell=True)
-        #     return
-        #
-        # elif swID == "Sm3dsMax":
-        #     versionDict = {16000: "3ds Max 2014",
-        #                    17000: "3ds Max 2015",
-        #                    18000: "3ds Max 2016",
-        #                    19000: "3ds Max 2017",
-        #                    20000: "3ds Max 2018"
-        #                    }
-        #     try:
-        #         versionName = versionDict[self._currentSceneInfo["3dsMaxVersion"][0]]
-        #     except KeyError:
-        #         msg = "3ds Max version cannot resolved"
-        #         self._exception(360, msg)
-        #         return
-        #
-        #     exePath = None
-        #     for v in exeGen64Bit:
-        #         if v[0] == versionName:
-        #             exePath = v[1]
-        #             break
-        #     for v in exeGen32Bit:
-        #         if v[0] == versionName:
-        #             exePath = v[1]
-        #             break
-        #
-        #     if not exePath:
-        #         msg = "%s is not installed on this workstation" % versionName
-        #         self._exception(360, msg)
-        #         return
-        #     # subprocess.check_call([exePath, "-file", self.currentScenePath], shell=True)
-        #     subprocess.Popen([exePath, "-file", self.currentScenePath], shell=True)
-        #     return
-        #
-        # elif swID == "SmHoudini":
-        #     dbVersion = self._currentSceneInfo["HoudiniVersion"][0]
-        #     dbIsApprentice = self._currentSceneInfo["HoudiniVersion"][1]
-        #     for v in exeGen64Bit:
-        #         versionNumber = v[0].split()[1]
-        #         versionAsList = [int(s) for s in versionNumber.split(".") if s.isdigit()]
-        #         exePath = v[1]
-        #         if dbVersion == versionAsList:
-        #             if dbIsApprentice:
-        #                 subprocess.Popen([exePath, "-apprentice", self.currentScenePath], shell=True)
-        #             else:
-        #                 subprocess.Popen([exePath, self.currentScenePath], shell=True)
-        #             return
-        #     msg = "Houdini %s is not installed on this workstation" % dbVersion
-        #     self._exception(360, msg)
-        #     return
-
-            # return
 
     def _exception(self, code, msg):
         """OVERRIDEN"""
@@ -481,28 +338,27 @@ class StandaloneManager(RootManager):
         super(StandaloneManager, self).__init__()
 
         # Dictionary with items for each software supported by Scene Manager
-        self.swDictList = [{"niceName": "3dsMax",
-                            "databaseDir": "maxDB",
-                            "scenesDir": "scenes_3dsMax",
-                            "pbSettingsFile": "pbSettings_3dsMax.json",
-                            "categoriesFile": "categories3dsMax.json",
-                            "userSettingsDir": "Documents\\SceneManager\\3dsMax"},
-
-                           {"niceName": "Maya",
-                            "databaseDir": "mayaDB",
-                            "scenesDir": "scenes",
-                            "pbSettingsFile": "pbSettings.json",
-                            "categoriesFile": "categoriesMaya.json",
-                            "userSettingsDir": "Documents\\SceneManager\\Maya"},
-
-                           {"niceName": "Houdini",
-                            "databaseDir": "houdiniDB",
-                            "scenesDir": "scenes_houdini",
-                            "pbSettingsFile": "pbSettings_houdini.json",
-                            "categoriesFile": "categoriesHoudini.json",
-                            "userSettingsDir": "Documents\\SceneManager\\Houdini"}
-
-                           ]
+        # self.swDictList = [{"niceName": "3dsMax",
+        #                     "databaseDir": "maxDB",
+        #                     "scenesDir": "scenes_3dsMax",
+        #                     "pbSettingsFile": "pbSettings_3dsMax.json",
+        #                     "categoriesFile": "categories3dsMax.json",
+        #                     "userSettingsDir": "Documents\\SceneManager\\3dsMax"},
+        #
+        #                    {"niceName": "Maya",
+        #                     "databaseDir": "mayaDB",
+        #                     "scenesDir": "scenes",
+        #                     "pbSettingsFile": "pbSettings.json",
+        #                     "categoriesFile": "categoriesMaya.json",
+        #                     "userSettingsDir": "Documents\\SceneManager\\Maya"},
+        #
+        #                    {"niceName": "Houdini",
+        #                     "databaseDir": "houdiniDB",
+        #                     "scenesDir": "scenes_houdini",
+        #                     "pbSettingsFile": "pbSettings_houdini.json",
+        #                     "categoriesFile": "categoriesHoudini.json",
+        #                     "userSettingsDir": "Documents\\SceneManager\\Houdini"}
+        #                    ]
 
         self.swList = []
         self.init_paths()
@@ -587,10 +443,17 @@ class StandaloneManager(RootManager):
         if not os.path.isdir(dbFolder):
             self.swList = [] # empty software list
             return self.swList#this is not a sceneManager project
-        for swDict in self.swDictList:
-            searchPath = (os.path.join(self.projectDir, "smDatabase", swDict["databaseDir"]))
+        # for swDict in self.swDictList:
+        #     searchPath = (os.path.join(self.projectDir, "smDatabase", swDict["databaseDir"]))
+        #     if os.path.isdir(searchPath):
+        #         self.swList.append(SwViewer(swDict, self.projectDir))
+        for swDict in softwareDictionary.items():
+            searchPath = (os.path.join(self.projectDir, "smDatabase", swDict[1]["databaseDir"]))
             if os.path.isdir(searchPath):
-                self.swList.append(SwViewer(swDict, self.projectDir))
+                # create a new software viewer object with the accessed project path
+                # and append it to the list of valid softwares for the current project
+                self.swList.append(SwViewer(swDict[1], self.projectDir))
+
         return self.swList
 
     @property
@@ -634,7 +497,7 @@ class StandaloneManager(RootManager):
                          360: "Action not permitted"}
 
 
-        errorbox = QtGui.QMessageBox()
+        errorbox = QtWidgets.QMessageBox()
         errorbox.setModal(True)
         errorbox.setText(msg)
         errorbox.setWindowTitle(errorCodeDict[code])
@@ -743,17 +606,17 @@ class MainUI(baseUI):
     def initMainUI(self, newborn=False):
         """OVERRIDEN METHOD"""
 
-        print self.manager.swList
-        if self.manager.swList == []:
-            self._zero()
-            return
-
         if not newborn:
             self.manager.init_paths()
             self.manager.init_database()
         # init softwares
         self.manager.initSoftwares()
         self._initSoftwares()
+
+
+        if self.manager.swList == []:
+            self._zero()
+            return
 
         self._initCategories()
         # init project

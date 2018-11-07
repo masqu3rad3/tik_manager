@@ -1027,7 +1027,7 @@ class MainUI(QtWidgets.QMainWindow):
 
             if command == "folder":
                 index = self.folders_tableView.currentIndex()
-                self.projectsRoot = os.path.normpath((self.setPmodel.filePath(index)))
+                self.projectsRoot = os.path.normpath(str(self.setPmodel.filePath(index)))
                 self.browser.addData(self.projectsRoot)
 
             if command == "lineEnter":
