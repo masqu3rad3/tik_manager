@@ -6,6 +6,8 @@ Scene Manager Version History
 * **Update.0:** Boilerplate UI for all modules
 * **Fix.0:** Various bug fixes on all modules
 * **Update.0:** Various UI updates
+* **New.01:** Added "Show Project Folder" right click menu
+* **Fix.01:** Standalone Manager bug with emtpy scenes fixed
 
 2.0
 ---

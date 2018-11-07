@@ -507,6 +507,10 @@ class MainUI(QtWidgets.QMainWindow):
         self.popMenu_scenes.addAction(self.scenes_rcItem_3)
         self.scenes_rcItem_3.triggered.connect(lambda: self.rcAction_scenes("showInExplorerData"))
 
+        self.scenes_rcItem_6 = QtWidgets.QAction('Show Project Folder in Explorer', self)
+        self.popMenu_scenes.addAction(self.scenes_rcItem_6)
+        self.scenes_rcItem_6.triggered.connect(lambda: self.rcAction_scenes("showInExplorerProject"))
+
         self.popMenu_scenes.addSeparator()
         self.scenes_rcItem_4 = QtWidgets.QAction('Scene Info', self)
         self.popMenu_scenes.addAction(self.scenes_rcItem_4)
@@ -516,6 +520,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.scenes_rcItem_5 = QtWidgets.QAction('View Rendered Images', self)
         self.popMenu_scenes.addAction(self.scenes_rcItem_5)
         self.scenes_rcItem_5.triggered.connect(lambda: self.rcAction_scenes("viewRender"))
+
+
 
         # Thumbnail Right Click Menu
         self.thumbnail_label.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -2418,6 +2424,9 @@ class MainUI(QtWidgets.QMainWindow):
             dirPath = os.path.dirname(filePath)
             manager.showInExplorer(dirPath)
 
+        if command == "showInExplorerProject":
+            manager.showInExplorer(manager.projectDir)
+
         if command == "showSceneInfo":
             textInfo = pprint.pformat(manager._currentSceneInfo)
             print manager._currentSceneInfo
@@ -2462,22 +2471,28 @@ class MainUI(QtWidgets.QMainWindow):
 
     def onContextMenu_scenes(self, point):
         # This method IS Software Specific
+        manager = self._getManager()
+
         row = self.scenes_listWidget.currentRow()
         if row == -1:
-            return
 
-        manager = self._getManager()
-        # if BoilerDict["Environment"]=="Standalone":
-        #     manager=self._getManager()
-        # else:
-        #     manager = self.manager
-        # check paths
-        self.scenes_rcItem_1.setEnabled(os.path.isdir(manager.currentBaseScenePath))
-        self.scenes_rcItem_2.setEnabled(os.path.isdir(manager.currentPreviewPath))
-        # show context menu
-        self.scenes_rcItem_5.setEnabled(os.path.isdir(os.path.join(manager.projectDir, "images", manager.currentBaseSceneName)))
+            self.scenes_rcItem_1.setEnabled(False)
+            self.scenes_rcItem_2.setEnabled(False)
+            self.scenes_rcItem_3.setEnabled(False)
+            self.scenes_rcItem_4.setEnabled(False)
+            self.scenes_rcItem_5.setEnabled(False)
+            self.scenes_rcItem_6.setEnabled(True)
+        else:
+            self.scenes_rcItem_1.setEnabled(os.path.isdir(manager.currentBaseScenePath))
+            self.scenes_rcItem_2.setEnabled(os.path.isdir(manager.currentPreviewPath))
+            self.scenes_rcItem_3.setEnabled(True)
+            self.scenes_rcItem_4.setEnabled(True)
+            # show context menu
+            self.scenes_rcItem_5.setEnabled(os.path.isdir(os.path.join(manager.projectDir, "images", manager.currentBaseSceneName)))
+            self.scenes_rcItem_6.setEnabled(True)
 
         self.popMenu_scenes.exec_(self.scenes_listWidget.mapToGlobal(point))
+
     def onContextMenu_thumbnail(self, point):
         # This method is NOT Software Specific
         row = self.scenes_listWidget.currentRow()
@@ -2522,10 +2537,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.onBaseSceneChange()
 
     def onUserChange(self):
-        # This method IS Software Specific
-        manager = self._getManager()
-        manager.currentUser = self.user_comboBox.currentText()
-        print self.manager.currentUser
+        # This method is NOT Software Specific
+        # manager = self._getManager()
+        self.manager.currentUser = str(self.user_comboBox.currentText())
 
     def onModeChange(self):
         # This method is NOT Software Specific
@@ -2599,6 +2613,8 @@ class MainUI(QtWidgets.QMainWindow):
     def populateBaseScenes(self, deepCheck=False):
         # This method IS Software Specific
         manager = self._getManager()
+        if not manager:
+            return
 
         self.scenes_listWidget.blockSignals(True)
         self.scenes_listWidget.clear()

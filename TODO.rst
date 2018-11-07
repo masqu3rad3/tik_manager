@@ -23,6 +23,7 @@ Minors
 * Standalone Manager scene open function can be improved
 * Improve exception informations
 * Color Codes for sub-projects?
+* Force Open option for SmStandalone
 
 Ideas
 -----

@@ -44,6 +44,32 @@ logging.basicConfig()
 logger = logging.getLogger('smStandalone')
 logger.setLevel(logging.DEBUG)
 
+softwareDictionary = {
+    "SmMaya":{
+        "niceName": "Maya",
+        "root": "Autodesk",
+        "relPath": "bin",
+        "exeList": ["maya.exe"],
+        "searchWord": "Maya"
+    },
+    "Sm3dsMax":
+        {
+            "niceName": "3dsMax",
+            "root": "Autodesk",
+            "relPath": "",
+            "exeList": ["3dsmax.exe"],
+            "searchWord": "3ds"
+        },
+    "SmHoudini":
+        {
+            "niceName": "Houdini",
+            "root": "Side Effects Software",
+            "relPath": "bin",
+            "exeList": ["houdini.exe", "houdinifx.exe"],
+            "searchWord": "Hou"
+        }
+}
+
 class SwViewer(RootManager):
     """
     Helper class for StandaloneManager. Views and opens Scenes.
@@ -73,7 +99,7 @@ class SwViewer(RootManager):
         """Overriden function"""
         return ""
 
-    def _getExecutables(self, rootPath, relativePath, executableList, searchword=None):
+    def _findExecutables(self, rootPath, relativePath, executableList, searchword=None):
 
         if searchword:
             try:
@@ -95,6 +121,44 @@ class SwViewer(RootManager):
                 exePath = os.path.join(exeDir, exe)
                 if os.path.isfile(exePath):
                     yield [v, exePath]
+
+    def getAvailableExecutables(self, software = None):
+        # searched the default locations to get the available executables
+        if self.currentPlatform is not "Windows":
+            logger.warning("Currently only windows executables are supported")
+            return None
+
+        programFiles32 = os.environ["PROGRAMFILES(X86)"]
+        programFiles64 = os.environ["PROGRAMFILES"]
+
+        # empty dictionary to hold findings
+        exeDict = {}
+
+        if software:
+            try:
+                lookupDict = {software: softwareDictionary[software]}
+            except KeyError:
+                self._exception(360, "Incorrect Software name")
+                return
+
+
+
+        for sw in lookupDict.items():
+            exeGen32Bit = self._findExecutables(os.path.join(programFiles32, sw[1]["root"]),
+                                                sw[1]["relPath"],
+                                                sw[1]["exeList"], searchword=sw[1]["searchWord"])
+
+            exeGen64Bit = self._findExecutables(os.path.join(programFiles64, sw[1]["root"]),
+                                                sw[1]["relPath"],
+                                                sw[1]["exeList"], searchword=sw[1]["searchWord"])
+            # software dictionary inside exeDict
+            exeDict[sw[1]["niceName"]]={}
+            # turn generators into lists and put them into 32 and 64 bit keys
+            exeDict[sw[1]["niceName"]]["32Bit"]=[exe for exe in exeGen32Bit]
+            exeDict[sw[1]["niceName"]]["64Bit"]=[exe for exe in exeGen64Bit]
+
+        return exeDict
+
 
     def executeScene(self):
         """
@@ -118,52 +182,14 @@ class SwViewer(RootManager):
             self._exception(360, msg)
             return
 
-        # resolve executables
-        programFiles32 = os.environ["PROGRAMFILES(X86)"]
-        programFiles64 = os.environ["PROGRAMFILES"]
+        executables = self.getAvailableExecutables(software=swID)
+        # print executables
+        # return
 
-        pDict={"SmMaya":
-                    {
-                        "root": "Autodesk",
-                        "relPath": "bin",
-                        "exeList": ["maya.exe"],
-                        "searchWord": "Maya"
-                     },
-                "Sm3dsMax":
-                    {
-                        "root": "Autodesk",
-                        "relPath": "",
-                        "exeList": ["3dsmax.exe"],
-                        "searchWord": "3ds"
-                    },
-                "SmHoudini":
-                    {
-                        "root": "Side Effects Software",
-                        "relPath": "bin",
-                        "exeList": ["houdini.exe", "houdinifx.exe"],
-                        "searchWord": "Hou"
-                    }
-                }
+        # ------------
+        # MAYA VERSION
+        # ------------
 
-        exeGen32Bit = self._getExecutables(os.path.join(programFiles32, pDict[swID]["root"]), pDict[swID]["relPath"],
-                                           pDict[swID]["exeList"], searchword=pDict[swID]["searchWord"])
-
-
-        exeGen64Bit = self._getExecutables(os.path.join(programFiles64, pDict[swID]["root"]), pDict[swID]["relPath"],
-                                           pDict[swID]["exeList"], searchword=pDict[swID]["searchWord"])
-
-        # for x in exeGen64Bit:
-        #     print x
-        if not exeGen32Bit and exeGen64Bit:
-            msg = "Cannot resolve executable paths"
-            self._exception(360, msg)
-            return
-
-        # resolve versions
-
-        #----
-        #MAYA
-        #----
         if swID == "SmMaya":
             versionDict = {201400: "Maya2014",
                            201450: "Maya2014",
@@ -204,20 +230,19 @@ class SwViewer(RootManager):
                 return
 
             exePath = None
-            for v in exeGen64Bit:
+            for v in executables["Maya"]["64Bit"]:
                 if v[0] == versionName:
                     exePath = v[1]
                     break
-            for v in exeGen32Bit:
-                if v[0] == versionName:
-                    exePath = v[1]
-                    break
-
-            if not exePath:
+            if not exePath: # take a look for 32 bit versions
+                for v in executables["Maya"]["32Bit"]:
+                    if v[0] == versionName:
+                        exePath = v[1]
+                        break
+            if not exePath: # if still no match
                 msg = "%s is not installed on this workstation" %versionName
                 self._exception(360, msg)
                 return
-            # subprocess.check_call([exePath, "-file", self.currentScenePath], shell=True)
             subprocess.Popen([exePath, "-file", self.currentScenePath], shell=True)
             return
 
@@ -236,39 +261,204 @@ class SwViewer(RootManager):
                 return
 
             exePath = None
-            for v in exeGen64Bit:
+            for v in executables["3dsMax"]["64Bit"]:
                 if v[0] == versionName:
                     exePath = v[1]
                     break
-            for v in exeGen32Bit:
-                if v[0] == versionName:
-                    exePath = v[1]
-                    break
-
-            if not exePath:
-                msg = "%s is not installed on this workstation" % versionName
+            if not exePath: # take a look for 32 bit versions
+                for v in executables["3dsMax"]["32Bit"]:
+                    if v[0] == versionName:
+                        exePath = v[1]
+                        break
+            if not exePath: # if still no match
+                msg = "%s is not installed on this workstation" %versionName
                 self._exception(360, msg)
                 return
-            # subprocess.check_call([exePath, "-file", self.currentScenePath], shell=True)
+
             subprocess.Popen([exePath, "-file", self.currentScenePath], shell=True)
             return
 
         elif swID == "SmHoudini":
             dbVersion = self._currentSceneInfo["HoudiniVersion"][0]
             dbIsApprentice = self._currentSceneInfo["HoudiniVersion"][1]
-            for v in exeGen64Bit:
+            for v in executables["Houdini"]["64Bit"]:
                 versionNumber = v[0].split()[1]
                 versionAsList = [int(s) for s in versionNumber.split(".") if s.isdigit()]
                 exePath = v[1]
                 if dbVersion == versionAsList:
                     if dbIsApprentice:
                         subprocess.Popen([exePath, "-apprentice", self.currentScenePath], shell=True)
+                        return
                     else:
                         subprocess.Popen([exePath, self.currentScenePath], shell=True)
-                    return
+                        return
             msg = "Houdini %s is not installed on this workstation" % dbVersion
             self._exception(360, msg)
             return
+
+        # ID = self._currentSceneInfo["ID"]
+        # if ID.startswith("SmMaya"):
+        #     swID = "SmMaya"
+        # elif ID.startswith("Sm3dsMax"):
+        #     swID = "Sm3dsMax"
+        # elif ID.startswith("SmHoudini"):
+        #     swID = "SmHoudini"
+        # else:
+        #     msg = "Cannot resolve software version from database"
+        #     self._exception(360, msg)
+        #     return
+        #
+        # # resolve executables
+        # programFiles32 = os.environ["PROGRAMFILES(X86)"]
+        # programFiles64 = os.environ["PROGRAMFILES"]
+        #
+        # pDict={"SmMaya":
+        #             {
+        #                 "root": "Autodesk",
+        #                 "relPath": "bin",
+        #                 "exeList": ["maya.exe"],
+        #                 "searchWord": "Maya"
+        #              },
+        #         "Sm3dsMax":
+        #             {
+        #                 "root": "Autodesk",
+        #                 "relPath": "",
+        #                 "exeList": ["3dsmax.exe"],
+        #                 "searchWord": "3ds"
+        #             },
+        #         "SmHoudini":
+        #             {
+        #                 "root": "Side Effects Software",
+        #                 "relPath": "bin",
+        #                 "exeList": ["houdini.exe", "houdinifx.exe"],
+        #                 "searchWord": "Hou"
+        #             }
+        #         }
+        #
+        # exeGen32Bit = self._findExecutables(os.path.join(programFiles32, pDict[swID]["root"]), pDict[swID]["relPath"],
+        #                                    pDict[swID]["exeList"], searchword=pDict[swID]["searchWord"])
+        #
+        #
+        # exeGen64Bit = self._findExecutables(os.path.join(programFiles64, pDict[swID]["root"]), pDict[swID]["relPath"],
+        #                                    pDict[swID]["exeList"], searchword=pDict[swID]["searchWord"])
+        #
+        # # for x in exeGen64Bit:
+        # #     print x
+        # if not exeGen32Bit and exeGen64Bit:
+        #     msg = "Cannot resolve executable paths"
+        #     self._exception(360, msg)
+        #     return
+
+        # resolve versions
+
+        #----
+        #MAYA
+        #----
+        # if swID == "SmMaya":
+        #     versionDict = {201400: "Maya2014",
+        #                    201450: "Maya2014",
+        #                    201451: "Maya2014",
+        #                    201459: "Maya2014",
+        #                    201402: "Maya2014",
+        #                    201404: "Maya2014",
+        #                    201406: "Maya2014",
+        #                    201500: "Maya2015",
+        #                    201506: "Maya2015",
+        #                    201507: "Maya2015",
+        #                    201501: "Maya2015",
+        #                    201502: "Maya2015",
+        #                    201505: "Maya2015",
+        #                    201506: "Maya2015",
+        #                    201507: "Maya2015",
+        #                    201600: "Maya2016",
+        #                    201650: "Maya2016.5",
+        #                    201651: "Maya2016.5",
+        #                    201653: "Maya2016.5",
+        #                    201605: "Maya2016",
+        #                    201607: "Maya2016",
+        #                    201650: "Maya2016.5",
+        #                    201651: "Maya2016.5",
+        #                    201653: "Maya2016.5",
+        #                    201605: "Maya2016",
+        #                    201607: "Maya2016",
+        #                    201700: "Maya2017",
+        #                    201701: "Maya2017",
+        #                    201720: "Maya2017",
+        #                    201740: "Maya2017",
+        #                    20180000: "Maya2018"}
+        #     try:
+        #         versionName = versionDict[self._currentSceneInfo["MayaVersion"]]
+        #     except KeyError:
+        #         msg = "Maya version cannot resolved"
+        #         self._exception(360, msg)
+        #         return
+        #
+        #     exePath = None
+        #     for v in exeGen64Bit:
+        #         if v[0] == versionName:
+        #             exePath = v[1]
+        #             break
+        #     for v in exeGen32Bit:
+        #         if v[0] == versionName:
+        #             exePath = v[1]
+        #             break
+        #
+        #     if not exePath:
+        #         msg = "%s is not installed on this workstation" %versionName
+        #         self._exception(360, msg)
+        #         return
+        #     # subprocess.check_call([exePath, "-file", self.currentScenePath], shell=True)
+        #     subprocess.Popen([exePath, "-file", self.currentScenePath], shell=True)
+        #     return
+        #
+        # elif swID == "Sm3dsMax":
+        #     versionDict = {16000: "3ds Max 2014",
+        #                    17000: "3ds Max 2015",
+        #                    18000: "3ds Max 2016",
+        #                    19000: "3ds Max 2017",
+        #                    20000: "3ds Max 2018"
+        #                    }
+        #     try:
+        #         versionName = versionDict[self._currentSceneInfo["3dsMaxVersion"][0]]
+        #     except KeyError:
+        #         msg = "3ds Max version cannot resolved"
+        #         self._exception(360, msg)
+        #         return
+        #
+        #     exePath = None
+        #     for v in exeGen64Bit:
+        #         if v[0] == versionName:
+        #             exePath = v[1]
+        #             break
+        #     for v in exeGen32Bit:
+        #         if v[0] == versionName:
+        #             exePath = v[1]
+        #             break
+        #
+        #     if not exePath:
+        #         msg = "%s is not installed on this workstation" % versionName
+        #         self._exception(360, msg)
+        #         return
+        #     # subprocess.check_call([exePath, "-file", self.currentScenePath], shell=True)
+        #     subprocess.Popen([exePath, "-file", self.currentScenePath], shell=True)
+        #     return
+        #
+        # elif swID == "SmHoudini":
+        #     dbVersion = self._currentSceneInfo["HoudiniVersion"][0]
+        #     dbIsApprentice = self._currentSceneInfo["HoudiniVersion"][1]
+        #     for v in exeGen64Bit:
+        #         versionNumber = v[0].split()[1]
+        #         versionAsList = [int(s) for s in versionNumber.split(".") if s.isdigit()]
+        #         exePath = v[1]
+        #         if dbVersion == versionAsList:
+        #             if dbIsApprentice:
+        #                 subprocess.Popen([exePath, "-apprentice", self.currentScenePath], shell=True)
+        #             else:
+        #                 subprocess.Popen([exePath, self.currentScenePath], shell=True)
+        #             return
+        #     msg = "Houdini %s is not installed on this workstation" % dbVersion
+        #     self._exception(360, msg)
+        #     return
 
             # return
 
@@ -457,6 +647,7 @@ class StandaloneManager(RootManager):
     def _loadUserPrefs(self):
         """OVERRIDEN FUNCTION Load Last CategoryIndex, SubProject Index,
         User name and Access mode from file as dictionary"""
+
         if os.path.isfile(self._pathsDict["currentsFile"]):
             settingsData = self._loadJson(self._pathsDict["currentsFile"])
             if settingsData == -2:
@@ -546,9 +737,16 @@ class MainUI(baseUI):
         self.saveBaseScene_fm.setVisible(False)
         self.scenes_rcItem_0.setVisible(False)
 
+    def rcAction_load(self):
+        pass
 
     def initMainUI(self, newborn=False):
         """OVERRIDEN METHOD"""
+
+        print self.manager.swList
+        if self.manager.swList == []:
+            self._zero()
+            return
 
         if not newborn:
             self.manager.init_paths()
@@ -569,6 +767,19 @@ class MainUI(baseUI):
         # # disable the version related stuff
         self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
         self._vEnableDisable()
+
+    def _zero(self):
+        self.project_lineEdit.setText(self.manager.projectDir)
+        self.category_tabWidget.blockSignals(True)
+        self.category_tabWidget.clear()
+        self.software_comboBox.clear()
+        self.subProject_comboBox.clear()
+        self.scenes_listWidget.clear()
+        self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.swColorDict[str(self.software_comboBox.currentText())])
+
+        self._vEnableDisable()
+        self.category_tabWidget.blockSignals(False)
+
 
     def _getManager(self):
         """OVERRIDEN to select different software managers"""
@@ -620,10 +831,10 @@ class MainUI(baseUI):
     def _vEnableDisable(self):
         """OVERRIDEN METHOD"""
         manager = self._getManager()
-        if not manager:
-            return
+        # if not manager:
+        #     return
 
-        if  manager.currentBaseSceneName:
+        if  manager and manager.currentBaseSceneName:
             self.version_comboBox.setEnabled(True)
             if manager.getPreviews():
                 self.showPreview_pushButton.setEnabled(True)

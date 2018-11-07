@@ -1505,7 +1505,6 @@ class RootManager(object):
     def _saveUserPrefs(self, settingsData):
         """Save Last CategoryIndex, SubProject Index, User name and Access mode to file as dictionary"""
         logger.debug("Func: _saveUserPrefs")
-
         try:
             self._dumpJson(settingsData, self._pathsDict["currentsFile"])
             msg = ""
