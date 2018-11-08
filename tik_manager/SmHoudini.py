@@ -617,10 +617,10 @@ class HoudiniManager(RootManager):
         vTup = hou.applicationVersion()
         vIsApprentice = hou.isApprentice()
         currentVersion = float("%s.%s%s" % (vTup[0], vTup[1], vTup[2]))
+
         dbVersionAsTuple = self._currentSceneInfo["HoudiniVersion"][0]
         dbIsApprentice = self._currentSceneInfo["HoudiniVersion"][1]
         baseSceneVersion = float("%s.%s%s" % (dbVersionAsTuple[0], dbVersionAsTuple[1], dbVersionAsTuple[2]))
-
 
         messageList = []
 
@@ -644,7 +644,14 @@ class HoudiniManager(RootManager):
             messageList.append(message)
 
         # old or corrupted databasek       return 0, ""  # skip
-        return messageList
+        message=""
+        for x in messageList:
+            message = message + "\n" + str(x)
+
+        if messageList == []:
+            return 0, message
+        else:
+            return -1, message
 
 
     def isSceneModified(self):

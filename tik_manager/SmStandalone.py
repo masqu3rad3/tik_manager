@@ -158,8 +158,6 @@ class SwViewer(RootManager):
                 self._exception(360, "Incorrect Software name")
                 return
 
-
-
         for sw in lookupDict.items():
             exeGen32Bit = self._findExecutables(os.path.join(programFiles32, sw[1]["root"]),
                                                 sw[1]["relPath"],

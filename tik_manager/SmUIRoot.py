@@ -138,14 +138,14 @@ class MainUI(QtWidgets.QMainWindow):
         #         self.deleteLater()
 
         # Set Stylesheet
-        # dirname = os.path.dirname(os.path.abspath(__file__))
-        # stylesheetFile = os.path.join(dirname, "CSS", "darkorange.stylesheet")
+        dirname = os.path.dirname(os.path.abspath(__file__))
+        stylesheetFile = os.path.join(dirname, "CSS", "darkorange.stylesheet")
         # stylesheetFile = os.path.join(dirname, "CSS", BoilerDict["Stylesheet"])
 
-        # with open(stylesheetFile, "r") as fh:
-        #     self.setStyleSheet(fh.read())
-
-        self.setStyleSheet(darkorange.getStyleSheet())
+        with open(stylesheetFile, "r") as fh:
+            self.setStyleSheet(fh.read())
+        #
+        # self.setStyleSheet(darkorange.getStyleSheet())
 
 
         self.swColorDict = {"Maya": "rgb(81, 230, 247, 255)",
@@ -724,6 +724,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.createproject_buttonBox.setOrientation(QtCore.Qt.Horizontal)
         self.createproject_buttonBox.setStandardButtons(
             QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
+        self.createproject_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
+        self.createproject_buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setMinimumSize(QtCore.QSize(100, 30))
         self.createproject_buttonBox.setObjectName(("buttonBox"))
 
         self.cp_button = self.createproject_buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
@@ -1049,7 +1051,6 @@ class MainUI(QtWidgets.QMainWindow):
         def onRemoveFavs():
 
             row = self.favorites_listWidget.currentRow()
-            print row
             if row == -1:
                 return
             # item = self.favList[row]
@@ -1203,6 +1204,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.pbsettings_buttonBox.setOrientation(QtCore.Qt.Horizontal)
         self.pbsettings_buttonBox.setStandardButtons(
             QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Save)
+        self.pbsettings_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
+        self.pbsettings_buttonBox.button(QtWidgets.QDialogButtonBox.Save).setMinimumSize(QtCore.QSize(100, 30))
         self.pbsettings_buttonBox.setObjectName(("pbsettings_buttonBox"))
 
         self.videoproperties_groupBox = QtWidgets.QGroupBox(self.pbSettings_dialog)
@@ -1462,6 +1465,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.pbsettings_buttonBox.setOrientation(QtCore.Qt.Horizontal)
         self.pbsettings_buttonBox.setStandardButtons(
             QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Save)
+        self.pbsettings_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
+        self.pbsettings_buttonBox.button(QtWidgets.QDialogButtonBox.Save).setMinimumSize(QtCore.QSize(100, 30))
         self.pbsettings_buttonBox.setObjectName(("pbsettings_buttonBox"))
 
         self.videoproperties_groupBox = QtWidgets.QGroupBox(self.pbSettings_dialog)
@@ -1803,6 +1808,8 @@ class MainUI(QtWidgets.QMainWindow):
         buttonBox.setMaximumSize(QtCore.QSize(16777215, 30))
         buttonBox.setOrientation(QtCore.Qt.Horizontal)
         buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Save)
+        buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
+        buttonBox.button(QtWidgets.QDialogButtonBox.Save).setMinimumSize(QtCore.QSize(100, 30))
         buttonBox.setObjectName("buttonBox")
 
         gridLayout.addWidget(buttonBox, 1, 0, 1, 1)
@@ -1886,6 +1893,8 @@ class MainUI(QtWidgets.QMainWindow):
         buttonBox.setMaximumSize(QtCore.QSize(16777215, 30))
         buttonBox.setOrientation(QtCore.Qt.Horizontal)
         buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Save)
+        buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
+        buttonBox.button(QtWidgets.QDialogButtonBox.Save).setMinimumSize(QtCore.QSize(100, 30))
         buttonBox.setObjectName("buttonBox")
 
         gridLayout.addWidget(buttonBox, 1, 0, 1, 1)
@@ -2038,6 +2047,9 @@ class MainUI(QtWidgets.QMainWindow):
         buttonBox.setOrientation(QtCore.Qt.Horizontal)
         buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
         buttonBox.setCenterButtons(False)
+        buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
+        buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setMinimumSize(QtCore.QSize(100, 30))
+
         left_verticalLayout.addWidget(buttonBox)
 
         verticalLayoutWidget = QtWidgets.QWidget(splitter)
@@ -2248,6 +2260,8 @@ class MainUI(QtWidgets.QMainWindow):
         sv_buttonBox.setGeometry(QtCore.QRect(20, 250, 220, 32))
         sv_buttonBox.setOrientation(QtCore.Qt.Horizontal)
         sv_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Save | QtWidgets.QDialogButtonBox.Cancel)
+        sv_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
+        sv_buttonBox.button(QtWidgets.QDialogButtonBox.Save).setMinimumSize(QtCore.QSize(100, 30))
 
         buttonS = sv_buttonBox.button(QtWidgets.QDialogButtonBox.Save)
         buttonS.setText('Save As Version')
@@ -2327,6 +2341,8 @@ class MainUI(QtWidgets.QMainWindow):
         addNotes_buttonBox.setGeometry(QtCore.QRect(20, 250, 220, 32))
         addNotes_buttonBox.setOrientation(QtCore.Qt.Horizontal)
         addNotes_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Save | QtWidgets.QDialogButtonBox.Cancel)
+        addNotes_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
+        addNotes_buttonBox.button(QtWidgets.QDialogButtonBox.Save).setMinimumSize(QtCore.QSize(100, 30))
 
         buttonS = addNotes_buttonBox.button(QtWidgets.QDialogButtonBox.Save)
         buttonS.setText('Add Notes')
@@ -2349,7 +2365,7 @@ class MainUI(QtWidgets.QMainWindow):
         when a scene saved it also triggers "workspaceChanged" scriptjob event.
         To prevent unnecessary initialization, this functions acts as a buffer
         """
-
+        manager = self._getManager()
         # logger.debug("callbackRefresh called")
         oldProject = manager.projectDir
         newProject = manager.getProjectDir()
@@ -2429,7 +2445,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         if command == "showSceneInfo":
             textInfo = pprint.pformat(manager._currentSceneInfo)
-            print manager._currentSceneInfo
             self.messageDialog = QtWidgets.QDialog()
             self.messageDialog.setWindowTitle("Scene Info")
             self.messageDialog.resize(800, 700)
@@ -2583,10 +2598,12 @@ class MainUI(QtWidgets.QMainWindow):
     def onVersionChange(self):
         # This method IS Software Specific
         manager = self._getManager()
-        self.version_comboBox.blockSignals(True)
+
 
         if self.version_comboBox.currentIndex() is not -1:
             manager.currentVersionIndex = self.version_comboBox.currentIndex() + 1
+
+        # self.version_comboBox.blockSignals(True)
 
         # clear Notes and verison combobox
         self.notes_textEdit.clear()
@@ -2608,7 +2625,9 @@ class MainUI(QtWidgets.QMainWindow):
         else:
             self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
 
-        self.version_comboBox.blockSignals(False)
+        # self.version_comboBox.blockSignals(False)
+        self._vEnableDisable()
+
 
     def populateBaseScenes(self, deepCheck=False):
         # This method IS Software Specific
@@ -2840,13 +2859,13 @@ class MainUI(QtWidgets.QMainWindow):
             button.setEnabled(False)
 
     def _vEnableDisable(self):
-
-        if self.load_radioButton.isChecked() and self.manager.currentBaseSceneName:
+        manager = self._getManager()
+        if self.load_radioButton.isChecked() and manager.currentBaseSceneName:
             self.version_comboBox.setEnabled(True)
-            if self.manager.getPreviews():
-                self.showPreview_pushButton.setEnabled(True)
-            else:
-                self.showPreview_pushButton.setEnabled(False)
+            # if manager.getPreviews() is not []:
+            #     self.showPreview_pushButton.setEnabled(True)
+            # else:
+            #     self.showPreview_pushButton.setEnabled(False)
             self.makeReference_pushButton.setEnabled(True)
             self.addNote_pushButton.setEnabled(True)
             self.version_label.setEnabled(True)
@@ -2856,6 +2875,11 @@ class MainUI(QtWidgets.QMainWindow):
             self.makeReference_pushButton.setEnabled(False)
             self.addNote_pushButton.setEnabled(False)
             self.version_label.setEnabled(False)
+
+        if manager.getPreviews():
+            self.showPreview_pushButton.setEnabled(True)
+        else:
+            self.showPreview_pushButton.setEnabled(False)
 
     def infoPop(self, textTitle="info", textHeader="", textInfo="", type="I"):
         self.msg = QtWidgets.QMessageBox(parent=self)

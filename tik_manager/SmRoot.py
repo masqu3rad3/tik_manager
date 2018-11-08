@@ -375,6 +375,7 @@ class RootManager(object):
         self._currentVersionIndex = indexData
         self._currentNotes = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["Note"]
         self._currentPreviewsDict = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["Preview"]
+        # print self._currentPreviewsDict
         if not self._currentPreviewsDict.keys():
             self._currentPreviewCamera = ""
         else:
@@ -551,7 +552,8 @@ class RootManager(object):
     def getPreviews(self):
         """returns (list) nice preview names of version on cursor position"""
         logger.debug("Func: getPreviews")
-
+        
+        # return "ASDFASDF"
         return sorted(self._currentPreviewsDict.keys())
 
     def getThumbnail(self):
@@ -998,7 +1000,6 @@ class RootManager(object):
     def playPreview(self, camera):
         """Runs the playblast at cursor position"""
         logger.debug("Func: playPreview")
-
         # absPath = os.path.join(self.projectDir, self._currentPreviewsDict[self._currentPreviewCamera])
         absPath = os.path.join(self.projectDir, self._currentPreviewsDict[camera])
         if self.currentPlatform == "Windows":
@@ -1300,14 +1301,14 @@ class RootManager(object):
             return -1, ["OS Error", "Operating System is not supported",
                         "Scene Manager only supports Windows and Linux Operating Systems"]
         ## check admin rights
-        try:
-            is_admin = os.getuid() == 0
-        except AttributeError:
-            is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
-        if not is_admin:
-            self._exception(360, "Admin Rights Needed\nSoftware needs to be run as administrator in order to work with Scene Manager")
-            return -1, ["Admin Rights", "You dont have the administrator rights",
-                        "You need to run the Software as administrator to work with Scene Manager"]
+        # try:
+        #     is_admin = os.getuid() == 0
+        # except AttributeError:
+        #     is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
+        # if not is_admin:
+        #     self._exception(360, "Admin Rights Needed\nSoftware needs to be run as administrator in order to work with Scene Manager")
+        #     return -1, ["Admin Rights", "You dont have the administrator rights",
+        #                 "You need to run the Software as administrator to work with Scene Manager"]
         return None, None
 
     def _folderCheck(self, folder):

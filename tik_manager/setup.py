@@ -380,7 +380,7 @@ def mayaSetup(prompt=True):
         -style "iconOnly" 
         -marginWidth 1
         -marginHeight 1
-        -command "\\nfrom tik_manager import IvMaya\\ntik_imageViewer = IvMaya.MainUI().show()\\n" 
+        -command "\\nfrom tik_manager import ImageViewer\\ntik_imageViewer = ImageViewer.MainUI().show()\\n" 
         -sourceType "python" 
         -commandRepeatable 1
         -flat 1
@@ -522,9 +522,10 @@ SmHoudini.MainUI().saveAsVersionDialog()]]></script>
   </tool>
 
   <tool name="imageViewer" label="Images" icon="%s">
-    <script scriptType="python"><![CDATA[hou.ui.displayMessage("Not Yet Implemented")]]></script>
+    <script scriptType="python"><![CDATA[from tik_manager import ImageViewer
+tik_imageViewer = ImageViewer.MainUI().show()]]></script>
   </tool>
-
+  
   <tool name="takePreview" label="Preview" icon="%s">
     <script scriptType="python"><![CDATA[from tik_manager import SmHoudini
 SmHoudini.HoudiniManager().createPreview()]]></script>
@@ -605,13 +606,14 @@ def maxSetup(prompt=True):
     pack_24i = os.path.join(networkDir, "icons", "SceneManager_24i.bmp").replace("\\", "\\\\")
 
     workSpaceInjection ="""        <Window name="sceneManager" type="T" rank="0" subRank="2" hidden="0" dPanel="1" tabbed="0" curTab="-1" cType="1" toolbarRows="1" toolbarType="3">
-            <FRect left="198" top="125" right="310" bottom="199" />
+            <FRect left="198" top="125" right="350" bottom="199" />
             <DRect left="1395" top="53" right="1504" bottom="92" />
             <DRectPref left="2147483647" top="2147483647" right="-2147483648" bottom="-2147483648" />
             <CurPos left="198" top="125" right="310" bottom="199" floating="1" panelID="16" />
             <Items>
                 <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="manager`SceneManager" tip="Scene Manager" label="Scene Manager" />
                 <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="saveVersion`SceneManager" tip="Scene Manager - Version Save" label="Save Version" />
+                <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="imageViewer`SceneManager" tip="Scene Manager - Image Viewer" label="Image Viewer" />
                 <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="makePreview`SceneManager" tip="Scene Manager - Make Preview" label="Make Preview" />
             </Items>
         </Window>\n"""
@@ -682,6 +684,16 @@ icon: #("SceneManager",2)
 	python.Execute "from tik_manager import Sm3dsMax"
 	python.Execute "Sm3dsMax.MainUI().saveAsVersionDialog()"
 )"""
+        imageViewer = """
+macroScript imageViewer
+category: "SceneManager"
+tooltip: "Scene Manager - Image Viewer"
+ButtonText: "ImageViewer"
+icon: #("SceneManager",4)
+(
+    python.Execute "from tik_manager import ImageViewer"
+    python.Execute "tik_imageViewer = ImageViewer.MainUI().show()"
+)"""
         makePreview = """
 macroScript makePreview
 category: "SceneManager"
@@ -695,6 +707,7 @@ icon: #("SceneManager",5)
 )"""
         _dumpContent(os.path.join(macrosDir, "SceneManager-manager.mcr"), manager)
         _dumpContent(os.path.join(macrosDir, "SceneManager-saveVersion.mcr"), saveVersion)
+        _dumpContent(os.path.join(macrosDir, "SceneManager-imageViewer.mcr"), imageViewer)
         _dumpContent(os.path.join(macrosDir, "SceneManager-makePreview.mcr"), makePreview)
 
         searchLines = ['"sceneManager"', "</Window>"]

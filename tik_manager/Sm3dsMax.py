@@ -681,3 +681,16 @@ class MainUI(baseUI):
     def extraMenus(self):
         pass
 
+    def onModeChange(self):
+        """OVERRIDEN METHOD - This method is overriden to make the color changing compatible with 3ds max"""
+        self._vEnableDisable()
+
+        if self.load_radioButton.isChecked():
+            self.loadScene_pushButton.setText("Load Scene")
+            # self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: grey;")
+            self.scenes_listWidget.setStyleSheet("background-color: rgb(100,100,100); border-style: solid; border-width: 2px; border-color: grey;")
+        else:
+            self.loadScene_pushButton.setText("Reference Scene")
+            # self.scenes_listWidget.setStyleSheet("background-color: rgb(100,100,100);")
+            self.scenes_listWidget.setStyleSheet("background-color: rgb(80,120,120); border-style: solid ; border-width: 2px; border-color: cyan;")
+

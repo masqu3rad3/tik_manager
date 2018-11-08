@@ -132,8 +132,8 @@ class MainUI(QtWidgets.QMainWindow):
             except AttributeError:
                 pass
         parent = getMainWindow()
-        # super(MainUI, self).__init__(parent=parent)
-        super(MainUI, self).__init__()
+        super(MainUI, self).__init__(parent=parent)
+        # super(MainUI, self).__init__()
 
         # Set Stylesheet
         # dirname = os.path.dirname(os.path.abspath(__file__))
