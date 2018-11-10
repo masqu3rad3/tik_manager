@@ -13,11 +13,14 @@ else:
     import Qt
     from Qt import QtWidgets, QtCore, QtGui
 
+from SmRoot import RootManager
+
 import pyseq as seq
 
 import json
 import datetime
-from shutil import copyfile
+# from shutil import copyfile
+import shutil
 
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Scene Manager - Project materials"
@@ -89,21 +92,143 @@ def getMainWindow():
 
     else:
         return None
+#
+# def getProject():
+#     """Returns the project folder"""
+#     if BoilerDict["Environment"] == "Maya":
+#         return os.path.normpath(cmds.workspace(q=1, rd=1))
+#     elif BoilerDict["Environment"] == "3dsMax":
+#         return os.path.normpath(MaxPlus.PathManager.GetProjectFolderDir())
+#     elif BoilerDict["Environment"] == "Houdini":
+#         return os.path.normpath((hou.hscript('echo $JOB')[0])[:-1]) # [:-1] is for the extra \n
+#     elif BoilerDict["Environment"] == "Nuke":
+#         # TODO // Needs a project getter for nuke
+#         return os.path.normpath(os.path.join(os.path.expanduser("~")))
+#     else:
+#         return os.path.normpath(os.path.join(os.path.expanduser("~")))
 
-def getProject():
-    """Returns the project folder"""
-    if BoilerDict["Environment"] == "Maya":
-        return os.path.normpath(cmds.workspace(q=1, rd=1))
-    elif BoilerDict["Environment"] == "3dsMax":
-        return os.path.normpath(MaxPlus.PathManager.GetProjectFolderDir())
-    elif BoilerDict["Environment"] == "Houdini":
-        return os.path.normpath((hou.hscript('echo $JOB')[0])[:-1]) # [:-1] is for the extra \n
-    elif BoilerDict["Environment"] == "Nuke":
-        # TODO // Needs a project getter for nuke
-        return os.path.normpath(os.path.join(os.path.expanduser("~")))
-    else:
-        return os.path.normpath(os.path.join(os.path.expanduser("~")))
+class ProjectMaterials(object):
+    def __init__(self):
+        super(ProjectMaterials, self).__init__()
 
+        self.projectDir = self.getProject()
+        self.databaseDir = ""
+        self.stbDir = ""
+        self.briefDir = ""
+        self.artworkDir = ""
+        self.footageDir = ""
+        self.otherDir = ""
+
+        if self.checkDatabase():
+            self.getMaterialFolders()
+
+
+    def getProject(self):
+        """Returns the project folder"""
+        # if BoilerDict["Environment"] == "Maya":
+        #     return os.path.normpath(cmds.workspace(q=1, rd=1))
+        # elif BoilerDict["Environment"] == "3dsMax":
+        #     return os.path.normpath(MaxPlus.PathManager.GetProjectFolderDir())
+        # elif BoilerDict["Environment"] == "Houdini":
+        #     return os.path.normpath((hou.hscript('echo $JOB')[0])[:-1])  # [:-1] is for the extra \n
+        # elif BoilerDict["Environment"] == "Nuke":
+        #     # TODO // Needs a project getter for nuke
+        #     return os.path.normpath(os.path.join(os.path.expanduser("~")))
+        # else:
+        #     return os.path.normpath(os.path.join(os.path.expanduser("~")))
+
+        # ---------
+        # TEMPORARY
+        # ---------
+
+        tempPath = os.path.normpath("E:\\SceneManager_Projects\\SceneManager_DemoProject_None_181101")
+        return tempPath
+
+    def checkDatabase(self):
+        smDatabase = os.path.join(self.projectDir, "SmDatabase")
+        if os.path.isdir(smDatabase):
+            self.databaseDir = os.path.join(smDatabase, "projectMaterialsDB")
+            self._folderCheck(self.databaseDir)
+            return True
+        else:
+            return False
+
+    def getMaterialFolders(self):
+
+        self.stbDir = os.path.join(self.projectDir, "_REF", "storyboard")
+        self.briefDir = os.path.join(self.projectDir, "_REF", "brief")
+        self.artworkDir = os.path.join(self.projectDir, "_REF", "artwork")
+        self.footageDir = os.path.join(self.projectDir, "sourceimages", "_FOOTAGE")
+        self.otherDir = os.path.join(self.projectDir, "_REF", "other")
+
+    def saveStb(self, pathList):
+        # accepts folder or file
+        pass
+
+    def saveBrief(self, pathList):
+        #accepts folder or file
+        pass
+
+    def saveArtwork(self, pathList):
+        #accepts folder or file
+        pass
+
+    def saveFootage(self, pathList):
+        #accepts folder or file
+        pass
+
+    def saveOther(self, pathList):
+        #accepts folder or file
+        pass
+
+    def _copyInside(self, path, targetRoot):
+        """copies the file or folder into the project directory. If already inside the project directory, moves"""
+        dateDir = datetime.datetime.now().strftime("%y%m%d")
+        targetLocation = os.path.join(targetRoot, dateDir)
+        # TODO // HERE
+        if self.projectDir in path:
+            return True
+        else:
+            False
+
+
+    def _checkFileOrFolder(self, pathList):
+        dirs = [path for path in pathList if os.path.isdir(path)]
+        files = [path for path in pathList if os.path.isfile(path)]
+
+        if len(dirs) > 0 and len(files) > 0:
+            return "mixed"
+        if len(dirs) > 0:
+            return "folder"
+        if len(files) > 0:
+            return "file"
+
+    def _loadJson(self, file):
+        """Loads the given json file"""
+        try:
+            with open(file, 'r') as f:
+                data = json.load(f)
+                return data
+        except ValueError:
+            msg = "Corrupted JSON file => %s" % file
+            # logger.error(msg)
+            # self._exception(200, msg)
+            raise Exception(msg)
+            # return -2 # code for corrupted json file
+
+    def _dumpJson(self, data, file):
+        """Saves the data to the json file"""
+        name, ext = os.path.splitext(file)
+        tempFile = "{0}.tmp".format(name)
+        with open(tempFile, "w") as f:
+            json.dump(data, f, indent=4)
+        shutil.copyfile(tempFile, file)
+        os.remove(tempFile)
+
+    def _folderCheck(self, folder):
+        """Checks if the folder exists, creates it if doesnt"""
+        if not os.path.isdir(os.path.normpath(folder)):
+            os.makedirs(os.path.normpath(folder))
 
 class MainUI(QtWidgets.QMainWindow):
     """Main UI function"""
@@ -126,11 +251,12 @@ class MainUI(QtWidgets.QMainWindow):
         # with open(stylesheetFile, "r") as fh:
         #     self.setStyleSheet(fh.read())
 
+        self.promat = ProjectMaterials()
 
         if projectPath:
             self.projectPath=str(projectPath)
         else:
-            self.projectPath = getProject()
+            self.projectPath = self.promat.getProject()
 
         if relativePath:
             self.rootPath = os.path.join(self.projectPath, str(relativePath))
@@ -138,6 +264,20 @@ class MainUI(QtWidgets.QMainWindow):
             self.rootPath = os.path.join(self.projectPath, "images")
             if not os.path.isdir(self.rootPath):
                 self.rootPath = self.projectPath
+
+        if not self.promat.checkDatabase():
+            msg=["Nothing to view", "No Scene Manager Database",
+                 "There is no Scene Manager Database Folder in this project path"]
+            q = QtWidgets.QMessageBox()
+            q.setIcon(QtWidgets.QMessageBox.Information)
+            q.setText(msg[0])
+            q.setInformativeText(msg[1])
+            q.setWindowTitle(msg[2])
+            q.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            ret = q.exec_()
+            if ret == QtWidgets.QMessageBox.Ok:
+                self.close()
+                self.deleteLater()
 
         # self.databaseDir = os.path.normpath(os.path.join(self.projectPath, "smDatabase"))
         #
@@ -233,7 +373,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.stb_tableWidget.horizontalHeader().setStretchLastSection(True)
         self.horizontalLayout.addWidget(self.stb_tableWidget)
         self.verticalLayout_5.addLayout(self.horizontalLayout)
-        self.addStb_pushButton = QtWidgets.QPushButton(self.stb_tab)
+        self.addStb_pushButton = DropPushButton(self.stb_tab)
         self.addStb_pushButton.setMinimumSize(QtCore.QSize(0, 40))
         self.addStb_pushButton.setToolTip((""))
         self.addStb_pushButton.setStatusTip((""))
@@ -286,7 +426,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.brief_tableWidget.horizontalHeader().setStretchLastSection(True)
         self.horizontalLayout_2.addWidget(self.brief_tableWidget)
         self.verticalLayout_4.addLayout(self.horizontalLayout_2)
-        self.addBrief_pushButton = QtWidgets.QPushButton(self.brief_tab)
+        self.addBrief_pushButton = DropPushButton(self.brief_tab)
         self.addBrief_pushButton.setMinimumSize(QtCore.QSize(0, 40))
         self.addBrief_pushButton.setText(("Add New Document"))
         self.addBrief_pushButton.setObjectName(("addBrief_pushButton"))
@@ -326,7 +466,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.artwork_tableWidget.setHorizontalHeaderItem(2, item)
         self.artwork_tableWidget.horizontalHeader().setStretchLastSection(True)
         self.verticalLayout_3.addWidget(self.artwork_tableWidget)
-        self.addArtwork_pushButton = QtWidgets.QPushButton(self.artwork_tab)
+        self.addArtwork_pushButton = DropPushButton(self.artwork_tab)
         self.addArtwork_pushButton.setMinimumSize(QtCore.QSize(0, 40))
         self.addArtwork_pushButton.setToolTip((""))
         self.addArtwork_pushButton.setStatusTip((""))
@@ -372,7 +512,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.footage_tableWidget.setHorizontalHeaderItem(2, item)
         self.footage_tableWidget.horizontalHeader().setStretchLastSection(True)
         self.verticalLayout_2.addWidget(self.footage_tableWidget)
-        self.addFootage_pushButton = QtWidgets.QPushButton(self.footage_tab)
+        self.addFootage_pushButton = DropPushButton(self.footage_tab)
         self.addFootage_pushButton.setMinimumSize(QtCore.QSize(0, 40))
         self.addFootage_pushButton.setToolTip((""))
         self.addFootage_pushButton.setStatusTip((""))
@@ -424,7 +564,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.other_tableWidget.verticalHeader().setMinimumSectionSize(19)
         self.other_tableWidget.verticalHeader().setStretchLastSection(False)
         self.verticalLayout.addWidget(self.other_tableWidget)
-        self.addOther_pushButton = QtWidgets.QPushButton(self.other_tab)
+        self.addOther_pushButton = DropPushButton(self.other_tab)
         self.addOther_pushButton.setMinimumSize(QtCore.QSize(0, 40))
         self.addOther_pushButton.setToolTip((""))
         self.addOther_pushButton.setStatusTip((""))
@@ -458,8 +598,64 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.tabWidget.setCurrentIndex(1)
 
-if __name__ == '__main__':
+        self.addStb_pushButton.dropped.connect(self.droppedPath)
+        self.addBrief_pushButton.dropped.connect(self.droppedPath)
+        self.addFootage_pushButton.dropped.connect(self.droppedPath)
+        self.addArtwork_pushButton.dropped.connect(self.droppedPath)
+        self.addOther_pushButton.dropped.connect(self.droppedPath)
 
+    def droppedPath(self, path):
+        print path
+
+class DropPushButton(QtWidgets.QPushButton):
+    """Custom LineEdit Class accepting drops"""
+    # PyInstaller and Standalone version compatibility
+    if FORCE_QT4:
+        dropped = QtCore.pyqtSignal(list)
+    else:
+        dropped = Qt.QtCore.Signal(list)
+
+    def __init__(self, type, parent=None):
+        super(DropPushButton, self).__init__(parent)
+        self.oldText=""
+        self.setAcceptDrops(True)
+
+
+    def dragEnterEvent(self, event):
+        # if event.mimeData().hasFormat('text/uri-list'):
+        if event.mimeData().hasUrls():
+            event.accept()
+            self.oldText = (self.text())
+            self.setText("Drop to add")
+        else:
+            event.ignore()
+
+    def dragLeaveEvent(self, event):
+        self.setText(self.oldText)
+
+    def dragMoveEvent(self, event):
+        # if event.mimeData().hasFormat('text/uri-list'):
+
+        if event.mimeData().hasUrls:
+
+            event.setDropAction(QtCore.Qt.CopyAction)
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        # rawPath = event.mimeData().data('text/uri-list').__str__()
+        # path = rawPath.replace("file:///", "").splitlines()[0]
+        # self.dropped.emit(path)
+        links = []
+
+        for url in event.mimeData().urls():
+            links.append(str(url.toLocalFile()))
+        self.dropped.emit(links)
+        # self.addItem(path)
+
+if __name__ == '__main__':
+    os.environ["FORCE_QT4"] = "True"
     app = QtWidgets.QApplication(sys.argv)
     selfLoc = os.path.dirname(os.path.abspath(__file__))
     stylesheetFile = os.path.join(selfLoc, "CSS", "darkorange.stylesheet")
