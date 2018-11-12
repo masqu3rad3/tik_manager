@@ -269,8 +269,9 @@ class CopyProgress(QtWidgets.QWidget):
         return copiedPathList
 
     def copyFolder(self, src, dst):
-        src = os.path.normpath(src)
-        dst = os.path.normpath(dst)
+        print "ananinami", dst
+        src = os.path.normpath(src.replace(" ", "_"))
+        dst = os.path.normpath(dst.replace(" ", "_"))
 
         self.pb.setValue(0)
         self.terminated = False # reset the termination status
@@ -305,6 +306,7 @@ class CopyProgress(QtWidgets.QWidget):
                     # self.safeLog("FAILED - skipped by user")
                     return None
                     # break
+
         return dst
 
     def copyItem(self, src, dst):
@@ -407,20 +409,49 @@ class ProjectMaterials(RootManager):
     def __init__(self):
         super(ProjectMaterials, self).__init__()
 
-        self.projectDir = self.getProjectDir()
-        self.databaseDir = ""
+        # self.init_paths()
+        # self.projectDir = self.getProjectDir()
+        # self.databaseDir = ""
         # self.stbDir = ""
         # self.briefDir = ""
         # self.artworkDir = ""
         # self.footageDir = ""
         # self.otherDir = ""
 
-        if self.checkDatabase():
-            self.matPaths = self.getMaterialFolders()
+        # if self.checkDatabase():
+        #     self.matPaths = self.getMaterialFolders()
 
+    def init_paths(self):
+        """OVERRIDEN FUNCTION - Initializes necessary paths for project materials module"""
+        # all paths in here must be absolute paths
+
+        self._pathsDict["projectDir"] = self.getProjectDir()
+
+        self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
+        if not os.path.isdir(self._pathsDict["masterDir"]):
+            return False
+
+        self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
+
+        self._pathsDict["databaseDir"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectMaterialsDB"))
+
+
+        self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "subPdata.json"))
+
+        self._pathsDict["generalSettingsDir"] = os.path.dirname(os.path.abspath(__file__))
+        self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerUsers.json"))
+
+        #project material specific
+        self._pathsDict["storyboard"] = os.path.join(self.projectDir, "_REF", "storyboard")
+        self._pathsDict["brief"] = os.path.join(self.projectDir, "_REF", "brief")
+        self._pathsDict["artwork"] = os.path.join(self.projectDir, "_REF", "artwork")
+        self._pathsDict["footage"] = os.path.join(self.projectDir, "sourceimages", "_FOOTAGE")
+        self._pathsDict["other"] = os.path.join(self.projectDir, "_REF", "other")
+
+        return True
 
     def getProjectDir(self):
-        """Returns the project folder"""
+        """OVERRIDEN FUNCTION Returns the project folder according to the environment"""
         # if BoilerDict["Environment"] == "Maya":
         #     return os.path.normpath(cmds.workspace(q=1, rd=1))
         # elif BoilerDict["Environment"] == "3dsMax":
@@ -442,13 +473,16 @@ class ProjectMaterials(RootManager):
         return tempPath
 
     def checkDatabase(self):
-        smDatabase = os.path.join(self.projectDir, "SmDatabase")
-        if os.path.isdir(smDatabase):
-            self.databaseDir = os.path.join(smDatabase, "projectMaterialsDB")
-            self._folderCheck(self.databaseDir)
-            return True
-        else:
-            return False
+        pass
+        # smDatabase = os.path.join(self.projectDir, "SmDatabase")
+        # if os.path.isdir(smDatabase):
+        #         #     self.databaseDir = os.path.join(smDatabase, "projectMaterialsDB")
+        #         #     self._folderCheck(self.databaseDir)
+        #         #     return True
+        #         # else:
+        #         #     return False
+
+
 
     def getMaterialFolders(self):
 
@@ -471,25 +505,26 @@ class ProjectMaterials(RootManager):
     def saveMaterial(self, pathList, materialType):
         copier = CopyProgress()
         dateDir = datetime.datetime.now().strftime("%y%m%d")
-        targetLocation = os.path.join(self.matPaths[materialType], dateDir)
-        databaseDir = os.path.join(self.databaseDir, materialType, dateDir)
-        self._folderCheck(databaseDir)
+        targetLocation = os.path.join(self._pathsDict[materialType], dateDir)
+        matDatabaseDir = os.path.join(self._pathsDict["databaseDir"], materialType, dateDir)
+        self._folderCheck(matDatabaseDir)
 
         # copy the files and collect returned absolute paths in a list
         absPaths = copier.masterCopy(pathList, targetLocation)
 
         for item in absPaths:
             # build a dictionary
+            print "item", item
             baseName = os.path.basename(item)
             niceName = os.path.splitext(baseName)[0]
-            relativePath = os.path.relpath(item, self.projectDir)
+            relativePath = os.path.relpath(item, self._pathsDict["projectDir"])
             dictItem = {
                 "niceName": niceName,
                 "relativePath": relativePath,
                 "materialType": materialType,
                         }
-            databaseFile = os.path.join(databaseDir, "%s.json" %niceName)
-            self._dumpJson(dictItem, databaseFile)
+            matDatabaseFile = os.path.join(matDatabaseDir, "%s.json" %niceName)
+            self._dumpJson(dictItem, matDatabaseFile)
 
     # def saveStb(self, pathList):
     #     # accepts folder or file
@@ -642,7 +677,9 @@ class MainUI(QtWidgets.QMainWindow):
             if not os.path.isdir(self.rootPath):
                 self.rootPath = self.projectPath
 
-        if not self.promat.checkDatabase():
+        # if not self.promat.checkDatabase():
+        pStatus = self.promat.init_paths()
+        if not pStatus:
             msg=["Nothing to view", "No Scene Manager Database",
                  "There is no Scene Manager Database Folder in this project path"]
             q = QtWidgets.QMessageBox()
