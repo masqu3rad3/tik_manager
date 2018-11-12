@@ -8,6 +8,7 @@ Scene Manager Version History
 * **Update.0:** Various UI updates
 * **New.01:** Added "Show Project Folder" right click menu
 * **Fix.01:** Standalone Manager bug with emtpy scenes fixed
+* **Update.02:** Sub-projects database file moved to the Database root. It is now common for all softwares
 
 2.0
 ---
