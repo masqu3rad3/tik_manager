@@ -403,11 +403,11 @@ class CopyProgress(QtWidgets.QWidget):
             pass
 
 
-class ProjectMaterials(object):
+class ProjectMaterials(RootManager):
     def __init__(self):
         super(ProjectMaterials, self).__init__()
 
-        self.projectDir = self.getProject()
+        self.projectDir = self.getProjectDir()
         self.databaseDir = ""
         # self.stbDir = ""
         # self.briefDir = ""
@@ -419,7 +419,7 @@ class ProjectMaterials(object):
             self.matPaths = self.getMaterialFolders()
 
 
-    def getProject(self):
+    def getProjectDir(self):
         """Returns the project folder"""
         # if BoilerDict["Environment"] == "Maya":
         #     return os.path.normpath(cmds.workspace(q=1, rd=1))
@@ -437,7 +437,8 @@ class ProjectMaterials(object):
         # TEMPORARY
         # ---------
 
-        tempPath = os.path.normpath("E:\\SceneManager_Projects\\SceneManager_DemoProject_None_181101")
+        # tempPath = os.path.normpath("E:\\SceneManager_Projects\\SceneManager_DemoProject_None_181101")
+        tempPath = os.path.normpath("D:\\PROJECT_AND_ARGE\\V3Test_V3Test_V3Test_181106")
         return tempPath
 
     def checkDatabase(self):
@@ -534,76 +535,74 @@ class ProjectMaterials(object):
     #     #accepts folder or file
     #     pass
 
-    def _copyIn(self, path, targetRoot):
-        """
-        copies the file or folder into the project directory. If already inside the project directory,
-        moves the content instead of copy
-        """
-        copier = CopyProgress()
-        dateDir = datetime.datetime.now().strftime("%y%m%d")
-        targetLocation = os.path.join(targetRoot, dateDir)
-        self._folderCheck(targetLocation)
-        # TODO // HERE
-        if self.projectDir in path:
-            # Move => materials are already inside the project
-            shutil.move(path, targetLocation)
-            return True
-        else:
-            # Copy => materials are outside ot the project folder
-            if os.path.isdir(path):
-                # re-define target location with foldername
-                targetLocation = os.path.join(targetLocation, os.path.basename(path))
-                if os.path.exists(targetLocation):
-                    msg = "The item already exists"
-                    print msg
-                    return False
-                shutil.copytree(path, targetLocation)
-                return True
-            else:
-                copier.copyFiles(path, targetLocation)
-                # copier.copyTest(path, targetLocation)
-                # shutil.copy(path, targetLocation)
-                return True
+    # def _copyIn(self, path, targetRoot):
+    #     """
+    #     copies the file or folder into the project directory. If already inside the project directory,
+    #     moves the content instead of copy
+    #     """
+    #     copier = CopyProgress()
+    #     dateDir = datetime.datetime.now().strftime("%y%m%d")
+    #     targetLocation = os.path.join(targetRoot, dateDir)
+    #     self._folderCheck(targetLocation)
+    #     # TODO // HERE
+    #     if self.projectDir in path:
+    #         # Move => materials are already inside the project
+    #         shutil.move(path, targetLocation)
+    #         return True
+    #     else:
+    #         # Copy => materials are outside ot the project folder
+    #         if os.path.isdir(path):
+    #             # re-define target location with foldername
+    #             targetLocation = os.path.join(targetLocation, os.path.basename(path))
+    #             if os.path.exists(targetLocation):
+    #                 msg = "The item already exists"
+    #                 print msg
+    #                 return False
+    #             shutil.copytree(path, targetLocation)
+    #             return True
+    #         else:
+    #             copier.copyFiles(path, targetLocation)
+    #             # copier.copyTest(path, targetLocation)
+    #             # shutil.copy(path, targetLocation)
+    #             return True
 
+    # def _checkFileOrFolder(self, pathList):
+    #     dirs = [path for path in pathList if os.path.isdir(path)]
+    #     files = [path for path in pathList if os.path.isfile(path)]
+    #
+    #     if len(dirs) > 0 and len(files) > 0:
+    #         return "mixed"
+    #     if len(dirs) > 0:
+    #         return "folder"
+    #     if len(files) > 0:
+    #         return "file"
 
+    # def _loadJson(self, file):
+    #     """Loads the given json file"""
+    #     try:
+    #         with open(file, 'r') as f:
+    #             data = json.load(f)
+    #             return data
+    #     except ValueError:
+    #         msg = "Corrupted JSON file => %s" % file
+    #         # logger.error(msg)
+    #         # self._exception(200, msg)
+    #         raise Exception(msg)
+    #         # return -2 # code for corrupted json file
 
-    def _checkFileOrFolder(self, pathList):
-        dirs = [path for path in pathList if os.path.isdir(path)]
-        files = [path for path in pathList if os.path.isfile(path)]
+    # def _dumpJson(self, data, file):
+    #     """Saves the data to the json file"""
+    #     name, ext = os.path.splitext(file)
+    #     tempFile = "{0}.tmp".format(name)
+    #     with open(tempFile, "w") as f:
+    #         json.dump(data, f, indent=4)
+    #     shutil.copyfile(tempFile, file)
+    #     os.remove(tempFile)
 
-        if len(dirs) > 0 and len(files) > 0:
-            return "mixed"
-        if len(dirs) > 0:
-            return "folder"
-        if len(files) > 0:
-            return "file"
-
-    def _loadJson(self, file):
-        """Loads the given json file"""
-        try:
-            with open(file, 'r') as f:
-                data = json.load(f)
-                return data
-        except ValueError:
-            msg = "Corrupted JSON file => %s" % file
-            # logger.error(msg)
-            # self._exception(200, msg)
-            raise Exception(msg)
-            # return -2 # code for corrupted json file
-
-    def _dumpJson(self, data, file):
-        """Saves the data to the json file"""
-        name, ext = os.path.splitext(file)
-        tempFile = "{0}.tmp".format(name)
-        with open(tempFile, "w") as f:
-            json.dump(data, f, indent=4)
-        shutil.copyfile(tempFile, file)
-        os.remove(tempFile)
-
-    def _folderCheck(self, folder):
-        """Checks if the folder exists, creates it if doesnt"""
-        if not os.path.isdir(os.path.normpath(folder)):
-            os.makedirs(os.path.normpath(folder))
+    # def _folderCheck(self, folder):
+    #     """Checks if the folder exists, creates it if doesnt"""
+    #     if not os.path.isdir(os.path.normpath(folder)):
+    #         os.makedirs(os.path.normpath(folder))
 
 
 
@@ -634,7 +633,7 @@ class MainUI(QtWidgets.QMainWindow):
         if projectPath:
             self.projectPath=str(projectPath)
         else:
-            self.projectPath = self.promat.getProject()
+            self.projectPath = self.promat.getProjectDir()
 
         if relativePath:
             self.rootPath = os.path.join(self.projectPath, str(relativePath))
