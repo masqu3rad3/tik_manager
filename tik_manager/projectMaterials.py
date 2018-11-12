@@ -21,6 +21,7 @@ import json
 import datetime
 # from shutil import copyfile
 import shutil
+import logging
 
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Scene Manager - Project materials"
@@ -107,20 +108,315 @@ def getMainWindow():
 #     else:
 #         return os.path.normpath(os.path.join(os.path.expanduser("~")))
 
+class CopyProgress(QtWidgets.QWidget):
+    """Custom Widget for visualizing progress of file transfer"""
+    def __init__(self, logPath = None):
+        super(CopyProgress, self).__init__()
+        self.logPath = logPath
+        self.logger = None
+        # self.src = src
+        # self.dest = dest
+        self.build_ui()
+        self.terminated = False
+        self.cancelAll = False
+        self.errorFlag = False
+        # self.copyfileobj(src=self.src, dst=self.dest)
+
+
+    def build_ui(self):
+
+        hbox = QtWidgets.QVBoxLayout()
+
+        vbox = QtWidgets.QHBoxLayout()
+
+        lbl_src = QtWidgets.QLabel('Source: ')
+        lbl_dest = QtWidgets.QLabel('Destination: ')
+        lbl_overall = QtWidgets.QLabel('Overall Progress:')
+        self.pb = QtWidgets.QProgressBar()
+        self.pbOverall = QtWidgets.QProgressBar()
+        self.cancelButton = QtWidgets.QPushButton("Cancel")
+        self.cancelAllButton = QtWidgets.QPushButton("Cancel All")
+
+        self.pb.setMinimum(0)
+        self.pb.setMaximum(100)
+        self.pb.setValue(0)
+
+        self.pbOverall.setMinimum(0)
+        self.pbOverall.setMaximum(100)
+        self.pbOverall.setValue(0)
+
+        hbox.addWidget(lbl_src)
+        hbox.addWidget(lbl_dest)
+        hbox.addWidget(self.pb)
+        hbox.addWidget(lbl_overall)
+        hbox.addWidget(self.pbOverall)
+        vbox.addWidget(self.cancelButton)
+        vbox.addWidget(self.cancelAllButton)
+        hbox.addLayout(vbox)
+        self.setLayout(hbox)
+        self.setWindowTitle('File copy')
+        self.cancelButton.clicked.connect(self.terminate)
+        self.cancelAllButton.clicked.connect(lambda: self.terminate(all=True))
+        self.show()
+
+    def results_ui(self, status, color="white", logPath=None, destPath = None):
+
+        self.msgDialog = QtWidgets.QDialog(parent=self)
+        self.msgDialog.setModal(True)
+        self.msgDialog.setObjectName("Result_Dialog")
+        self.msgDialog.setWindowTitle("Transfer Results")
+        self.msgDialog.resize(300,120)
+        layoutMain = QtWidgets.QVBoxLayout()
+        self.msgDialog.setLayout(layoutMain)
+
+        infoHeader = QtWidgets.QLabel(status)
+
+        infoHeader.setStyleSheet(""
+                               "border: 18px solid black;"
+                               "background-color: black;"
+                               "font-size: 14px;"
+                               "color: {0}"
+                               "".format(color))
+
+        layoutMain.addWidget(infoHeader)
+        layoutH = QtWidgets.QHBoxLayout()
+        layoutMain.addLayout(layoutH)
+        if logPath:
+            showLogButton = QtWidgets.QPushButton("Show Log File")
+            layoutH.addWidget(showLogButton)
+            showLogButton.clicked.connect(lambda x=logPath: os.startfile(x))
+        showInExplorer = QtWidgets.QPushButton("Show in Explorer")
+        layoutH.addWidget(showInExplorer)
+        okButton = QtWidgets.QPushButton("OK")
+        layoutH.addWidget(okButton)
+
+        showInExplorer.clicked.connect(lambda x=destPath: self.onShowInExplorer(destPath))
+
+        okButton.clicked.connect(self.msgDialog.close)
+
+        self.msgDialog.show()
+
+    def onShowInExplorer(self, path):
+        """Open the folder in explorer"""
+        # TODO // Make it compatible with Linux
+        os.startfile(os.path.normpath(path))
+        pass
+
+    def closeEvent(self, *args, **kwargs):
+        """Override close behaviour"""
+        self.terminated = True
+
+    def terminate(self, all=False):
+        """Terminate the progress"""
+        self.terminated = True
+        self.cancelAll = all
+
+    def safeLog(self, msg):
+        try:
+            self.logger.debug(msg)
+        except:
+            pass
+
+    def masterCopy(self, srcList, dst):
+        # logName = "fileTransferLog_{0}.txt".format(now.strftime("%Y.%m.%d.%H.%M"))
+        # logFile = os.path.join(logPath, logName)
+        # self.logger = self.setupLogger(logFile)
+        totalCount = len(srcList)
+        current = 0
+        copiedPathList = []
+        for sel in srcList:
+            if self.cancelAll:
+                # self.safeLog("ALL CANCELED")
+                break
+            # self.logger.debug(
+            #     "---------------------------------------------\n"
+            #     "Copy Progress - {0}\n"
+            #     "---------------------------------------------".format(
+            #         sequenceData[sel]))
+            percent = (100 * current) / totalCount
+            self.pbOverall.setValue(percent)
+            current += 1
+            # tFilesList = [i.path for i in sequenceData[sel]]
+            # subPath = os.path.split(os.path.relpath(tFilesList[0], root))[0]  ## get the relative path
+            # currentDate = now.strftime("%y%m%d")
+            # targetPath = os.path.join(destination, currentDate, subPath)
+
+
+            if os.path.isdir(sel):
+                # re-define dst starting from the folder name
+                newDst = os.path.join(dst, os.path.basename(sel))
+                if not os.path.isdir(os.path.normpath(newDst)):
+                    os.makedirs(os.path.normpath(newDst))
+
+
+                copiedPathList.append(self.copyFolder(src=sel, dst=newDst))
+
+            else:
+                if not os.path.isdir(os.path.normpath(dst)):
+                    os.makedirs(os.path.normpath(dst))
+
+                copiedPathList.append(self.copyItem(src=sel, dst=dst))
+
+        # self.deleteLogger(self.logger)
+
+        self.close()
+        if self.cancelAll:
+            self.results_ui("Canceled by user", logPath=self.logPath, destPath=dst)
+        elif self.errorFlag:
+            self.results_ui("Finished with Error(s)", color="red", logPath=self.logPath, destPath=dst)
+        else:
+            self.results_ui("Transfer Successfull", logPath=self.logPath, destPath=dst)
+        return copiedPathList
+
+    def copyFolder(self, src, dst):
+        src = os.path.normpath(src)
+        dst = os.path.normpath(dst)
+
+        self.pb.setValue(0)
+        self.terminated = False # reset the termination status
+        totalCount = self.countFiles(src)
+        current = 0
+
+        for path, dirs, filenames in os.walk(src):
+            for directory in dirs:
+                destDir = path.replace(src, dst)
+                targetDir = os.path.join(destDir, directory)
+                if not os.path.isdir(targetDir):
+                    os.makedirs(targetDir)
+
+            for sfile in filenames:
+                srcFile = os.path.join(path, sfile)
+
+                destFile = os.path.join(path.replace(src, dst), sfile)
+                # shutil.copy(srcFile, destFile)
+                try:
+                    shutil.copy(srcFile, destFile)
+                except:
+                    self.errorFlag = True
+                #     # self.safeLog("FAILED - unknown error")
+                    return None
+                percent = (100 * current) / totalCount
+                self.pb.setValue(percent)
+                current += 1
+                QtWidgets.QApplication.processEvents()
+                # self.safeLog("Success - {0}".format(targetPath))
+                if self.terminated or self.cancelAll:
+                    self.errorFlag = True
+                    # self.safeLog("FAILED - skipped by user")
+                    return None
+                    # break
+        return dst
+
+    def copyItem(self, src, dst):
+        src = os.path.normpath(src)
+        dst = os.path.normpath(dst)
+
+        self.pb.setValue(0)
+        self.terminated = False # reset the termination status
+        totalCount = self.countFiles(src)
+        current = 0
+
+        try:
+            fileLocation = os.path.join(dst, os.path.basename(src))
+            shutil.copyfile(src, fileLocation)
+            return fileLocation
+        except:
+            self.errorFlag = True
+            # self.safeLog("FAILED - unknown error")
+            return None
+
+
+    def countFiles(self, directory):
+        files = []
+
+        if os.path.isdir(directory):
+            for path, dirs, filenames in os.walk(directory):
+                files.extend(filenames)
+            return len(files)
+        else:
+            return 1
+
+    # def copysequence(self, sequenceData, selectionList, destination, logPath, root):
+    #     """
+    #     Copies the sequences to the destination
+    #     :param sequenceData: (List) list of sequences - Usually all found sequences
+    #     :param selectionList: (List) Index list of selected sequences to iterate
+    #     :param destination: (String) Absolute Path of remote destination
+    #     :param logPath: (String) Absolute folder Path for log file
+    #     :param root: (String) Root path of the images. Difference between sequence file folder
+    #                     and root path will be used as the folder structure at remote location
+    #     :return:
+    #     """
+    #     now = datetime.datetime.now()
+    #     logName = "fileTransferLog_{0}.txt".format(now.strftime("%Y.%m.%d.%H.%M"))
+    #     logFile = os.path.join(logPath, logName)
+    #     self.logger = self.setupLogger(logFile)
+    #     totalCount = len(selectionList)
+    #     current = 0
+    #     for sel in selectionList:
+    #         if self.cancelAll:
+    #             self.safeLog("ALL CANCELED")
+    #             break
+    #         self.logger.debug(
+    #             "---------------------------------------------\n"
+    #             "Copy Progress - {0}\n"
+    #             "---------------------------------------------".format(
+    #                 sequenceData[sel]))
+    #         percent = (100 * current) / totalCount
+    #         self.pbOverall.setValue(percent)
+    #         current += 1
+    #         tFilesList = [i.path for i in sequenceData[sel]]
+    #         subPath = os.path.split(os.path.relpath(tFilesList[0], root))[0]  ## get the relative path
+    #         currentDate = now.strftime("%y%m%d")
+    #         targetPath = os.path.join(destination, currentDate, subPath)
+    #         if not os.path.isdir(os.path.normpath(targetPath)):
+    #             os.makedirs(os.path.normpath(targetPath))
+    #         self.copyfileobj(src=tFilesList, dst=targetPath)
+    #
+    #     self.deleteLogger(self.logger)
+    #
+    #     self.close()
+    #     if self.cancelAll:
+    #         self.results_ui("Canceled by user", logPath=logFile, destPath=destination)
+    #     elif self.errorFlag:
+    #         self.results_ui("Check log file for errors", color="red", logPath=logFile, destPath=destination)
+    #     else:
+    #         self.results_ui("Transfer Successfull", logPath=logFile, destPath=destination)
+    #     pass
+
+    def setupLogger(self, handlerPath):
+        """Prepares logger to write into log file"""
+        logger = logging.getLogger('imageViewer')
+        file_logger = logging.FileHandler(handlerPath)
+        logger.addHandler(file_logger)
+        logger.setLevel(logging.DEBUG)
+        return logger
+
+    def deleteLogger(self, logger):
+        """Deletes the looger object once the logging into file finishes"""
+        try:
+            for i in logger.handlers:
+                logger.removeHandler(i)
+                i.flush()
+                i.close()
+        except:
+            pass
+
+
 class ProjectMaterials(object):
     def __init__(self):
         super(ProjectMaterials, self).__init__()
 
         self.projectDir = self.getProject()
         self.databaseDir = ""
-        self.stbDir = ""
-        self.briefDir = ""
-        self.artworkDir = ""
-        self.footageDir = ""
-        self.otherDir = ""
+        # self.stbDir = ""
+        # self.briefDir = ""
+        # self.artworkDir = ""
+        # self.footageDir = ""
+        # self.otherDir = ""
 
         if self.checkDatabase():
-            self.getMaterialFolders()
+            self.matPaths = self.getMaterialFolders()
 
 
     def getProject(self):
@@ -155,41 +451,120 @@ class ProjectMaterials(object):
 
     def getMaterialFolders(self):
 
-        self.stbDir = os.path.join(self.projectDir, "_REF", "storyboard")
-        self.briefDir = os.path.join(self.projectDir, "_REF", "brief")
-        self.artworkDir = os.path.join(self.projectDir, "_REF", "artwork")
-        self.footageDir = os.path.join(self.projectDir, "sourceimages", "_FOOTAGE")
-        self.otherDir = os.path.join(self.projectDir, "_REF", "other")
+        folderDict = {
+            "storyboard": os.path.join(self.projectDir, "_REF", "storyboard"),
+            "brief": os.path.join(self.projectDir, "_REF", "brief"),
+            "artwork": os.path.join(self.projectDir, "_REF", "artwork"),
+            "footage": os.path.join(self.projectDir, "sourceimages", "_FOOTAGE"),
+            "other": os.path.join(self.projectDir, "_REF", "other")
+        }
 
-    def saveStb(self, pathList):
-        # accepts folder or file
-        pass
+        # self.stbDir = os.path.join(self.projectDir, "_REF", "storyboard")
+        # self.briefDir = os.path.join(self.projectDir, "_REF", "brief")
+        # self.artworkDir = os.path.join(self.projectDir, "_REF", "artwork")
+        # self.footageDir = os.path.join(self.projectDir, "sourceimages", "_FOOTAGE")
+        # self.otherDir = os.path.join(self.projectDir, "_REF", "other")
 
-    def saveBrief(self, pathList):
-        #accepts folder or file
-        pass
+        return folderDict
 
-    def saveArtwork(self, pathList):
-        #accepts folder or file
-        pass
+    def saveMaterial(self, pathList, materialType):
+        copier = CopyProgress()
+        dateDir = datetime.datetime.now().strftime("%y%m%d")
+        targetLocation = os.path.join(self.matPaths[materialType], dateDir)
+        databaseDir = os.path.join(self.databaseDir, materialType, dateDir)
+        self._folderCheck(databaseDir)
 
-    def saveFootage(self, pathList):
-        #accepts folder or file
-        pass
+        # copy the files and collect returned absolute paths in a list
+        absPaths = copier.masterCopy(pathList, targetLocation)
 
-    def saveOther(self, pathList):
-        #accepts folder or file
-        pass
+        for item in absPaths:
+            # build a dictionary
+            baseName = os.path.basename(item)
+            niceName = os.path.splitext(baseName)[0]
+            relativePath = os.path.relpath(item, self.projectDir)
+            dictItem = {
+                "niceName": niceName,
+                "relativePath": relativePath,
+                "materialType": materialType,
+                        }
+            databaseFile = os.path.join(databaseDir, "%s.json" %niceName)
+            self._dumpJson(dictItem, databaseFile)
 
-    def _copyInside(self, path, targetRoot):
-        """copies the file or folder into the project directory. If already inside the project directory, moves"""
+    # def saveStb(self, pathList):
+    #     # accepts folder or file
+    #
+    #     ## TESTING
+    #     # for path in pathList:
+    #     #     self._copyIn(os.path.normpath(path), self.stbDir)
+    #     copier = CopyProgress()
+    #     dateDir = datetime.datetime.now().strftime("%y%m%d")
+    #     targetLocation = os.path.join(self.stbDir, dateDir)
+    #     databaseDir = os.path.join(self.databaseDir, "storyboard", dateDir)
+    #     self._folderCheck(databaseDir)
+    #
+    #     # copy the files and collect returned absolute paths in a list
+    #     absPaths = copier.masterCopy(pathList, targetLocation)
+    #
+    #     for item in absPaths:
+    #         # build a dictionary
+    #         baseName = os.path.basename(item)
+    #         niceName = os.path.splitext(baseName)[0]
+    #         relativePath = os.path.relpath(item, self.projectDir)
+    #         dictItem = {
+    #             "niceName": niceName,
+    #             "relativePath": relativePath,
+    #             "materialType": "storyboard",
+    #                     }
+    #         databaseFile = os.path.join(databaseDir, "%s.json" %niceName)
+    #         self._dumpJson(dictItem, databaseFile)
+    #
+    # def saveBrief(self, pathList):
+    #     #accepts folder or file
+    #     pass
+    #
+    # def saveArtwork(self, pathList):
+    #     #accepts folder or file
+    #     pass
+    #
+    # def saveFootage(self, pathList):
+    #     #accepts folder or file
+    #     pass
+    #
+    # def saveOther(self, pathList):
+    #     #accepts folder or file
+    #     pass
+
+    def _copyIn(self, path, targetRoot):
+        """
+        copies the file or folder into the project directory. If already inside the project directory,
+        moves the content instead of copy
+        """
+        copier = CopyProgress()
         dateDir = datetime.datetime.now().strftime("%y%m%d")
         targetLocation = os.path.join(targetRoot, dateDir)
+        self._folderCheck(targetLocation)
         # TODO // HERE
         if self.projectDir in path:
+            # Move => materials are already inside the project
+            shutil.move(path, targetLocation)
             return True
         else:
-            False
+            # Copy => materials are outside ot the project folder
+            if os.path.isdir(path):
+                # re-define target location with foldername
+                targetLocation = os.path.join(targetLocation, os.path.basename(path))
+                if os.path.exists(targetLocation):
+                    msg = "The item already exists"
+                    print msg
+                    return False
+                shutil.copytree(path, targetLocation)
+                return True
+            else:
+                copier.copyFiles(path, targetLocation)
+                # copier.copyTest(path, targetLocation)
+                # shutil.copy(path, targetLocation)
+                return True
+
 
 
     def _checkFileOrFolder(self, pathList):
@@ -229,6 +604,9 @@ class ProjectMaterials(object):
         """Checks if the folder exists, creates it if doesnt"""
         if not os.path.isdir(os.path.normpath(folder)):
             os.makedirs(os.path.normpath(folder))
+
+
+
 
 class MainUI(QtWidgets.QMainWindow):
     """Main UI function"""
@@ -598,14 +976,14 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.tabWidget.setCurrentIndex(1)
 
-        self.addStb_pushButton.dropped.connect(self.droppedPath)
-        self.addBrief_pushButton.dropped.connect(self.droppedPath)
-        self.addFootage_pushButton.dropped.connect(self.droppedPath)
-        self.addArtwork_pushButton.dropped.connect(self.droppedPath)
-        self.addOther_pushButton.dropped.connect(self.droppedPath)
+        self.addStb_pushButton.dropped.connect(lambda path: self.droppedPath(path, "storyboard"))
+        self.addBrief_pushButton.dropped.connect(lambda path: self.droppedPath(path, "brief"))
+        self.addFootage_pushButton.dropped.connect(lambda path: self.droppedPath(path, "footage"))
+        self.addArtwork_pushButton.dropped.connect(lambda path: self.droppedPath(path, "artwork"))
+        self.addOther_pushButton.dropped.connect(lambda path: self.droppedPath(path, "other"))
 
-    def droppedPath(self, path):
-        print path
+    def droppedPath(self, path, material):
+        self.promat.saveMaterial(path, material)
 
 class DropPushButton(QtWidgets.QPushButton):
     """Custom LineEdit Class accepting drops"""
@@ -654,6 +1032,7 @@ class DropPushButton(QtWidgets.QPushButton):
         self.dropped.emit(links)
         # self.addItem(path)
 
+
 if __name__ == '__main__':
     os.environ["FORCE_QT4"] = "True"
     app = QtWidgets.QApplication(sys.argv)
@@ -666,3 +1045,4 @@ if __name__ == '__main__':
     window = MainUI()
     window.show()
     sys.exit(app.exec_())
+

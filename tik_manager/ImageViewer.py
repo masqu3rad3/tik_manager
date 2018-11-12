@@ -711,7 +711,7 @@ class SeqCopyProgress(QtWidgets.QWidget):
     def onShowInExplorer(self, path):
         """Open the folder in explorer"""
         # TODO // Make it compatible with Linux
-        os.startfile(path)
+        os.startfile(str(os.path.normpath(path)))
         pass
 
     def closeEvent(self, *args, **kwargs):
