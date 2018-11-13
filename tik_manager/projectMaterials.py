@@ -512,8 +512,8 @@ class ProjectMaterials(RootManager):
         # TEMPORARY
         # ---------
 
-        tempPath = os.path.normpath("E:\\SceneManager_Projects\\SceneManager_DemoProject_None_181101")
-        # tempPath = os.path.normpath("D:\\PROJECT_AND_ARGE\\V3Test_V3Test_V3Test_181106")
+        # tempPath = os.path.normpath("E:\\SceneManager_Projects\\SceneManager_DemoProject_None_181101")
+        tempPath = os.path.normpath("D:\\PROJECT_AND_ARGE\\V3Test_V3Test_V3Test_181106")
         return tempPath
 
 
@@ -696,18 +696,23 @@ class MainUI(QtWidgets.QMainWindow):
         self.stb_label.setAlignment(QtCore.Qt.AlignCenter)
         self.stb_label.setObjectName(("stb_label"))
         self.horizontalLayout.addWidget(self.stb_label)
-        self.storyboard_listWidget = QtWidgets.QListWidget(self.stb_tab)
+        
+        self.storyboard_treeWidget = QtWidgets.QTreeWidget(self.stb_tab)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.storyboard_listWidget.sizePolicy().hasHeightForWidth())
-        self.storyboard_listWidget.setSizePolicy(sizePolicy)
-        self.storyboard_listWidget.setToolTip((""))
-        self.storyboard_listWidget.setStatusTip((""))
-        self.storyboard_listWidget.setWhatsThis((""))
-        self.storyboard_listWidget.setAccessibleName((""))
-        self.storyboard_listWidget.setAccessibleDescription((""))
-        self.storyboard_listWidget.setObjectName(("stb_tableWidget"))
+        sizePolicy.setHeightForWidth(self.storyboard_treeWidget.sizePolicy().hasHeightForWidth())
+        self.storyboard_treeWidget.setSizePolicy(sizePolicy)
+        self.storyboard_treeWidget.setToolTip((""))
+        self.storyboard_treeWidget.setStatusTip((""))
+        self.storyboard_treeWidget.setWhatsThis((""))
+        self.storyboard_treeWidget.setAccessibleName((""))
+        self.storyboard_treeWidget.setAccessibleDescription((""))
+        self.storyboard_treeWidget.setObjectName(("stb_tableWidget"))
+
+        self.storyboard_treeWidget.setSortingEnabled(True)
+        header = QtWidgets.QTreeWidgetItem(["Name", "Date"])
+        self.storyboard_treeWidget.setHeaderItem(header)
         # self.stb_listWidget.setColumnCount(2)
         # self.stb_listWidget.setRowCount(0)
         # item = QtWidgets.QTableWidgetItem()
@@ -717,9 +722,33 @@ class MainUI(QtWidgets.QMainWindow):
         # item.setText(("Date"))
         # self.stb_listWidget.setHorizontalHeaderItem(1, item)
         # self.stb_listWidget.horizontalHeader().setStretchLastSection(True)
-        self.horizontalLayout.addWidget(self.storyboard_listWidget)
+        self.horizontalLayout.addWidget(self.storyboard_treeWidget)
+        
+        # self.storyboard_listWidget = QtWidgets.QListWidget(self.stb_tab)
+        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        # sizePolicy.setHorizontalStretch(0)
+        # sizePolicy.setVerticalStretch(0)
+        # sizePolicy.setHeightForWidth(self.storyboard_listWidget.sizePolicy().hasHeightForWidth())
+        # self.storyboard_listWidget.setSizePolicy(sizePolicy)
+        # self.storyboard_listWidget.setToolTip((""))
+        # self.storyboard_listWidget.setStatusTip((""))
+        # self.storyboard_listWidget.setWhatsThis((""))
+        # self.storyboard_listWidget.setAccessibleName((""))
+        # self.storyboard_listWidget.setAccessibleDescription((""))
+        # self.storyboard_listWidget.setObjectName(("stb_tableWidget"))
+        # # self.stb_listWidget.setColumnCount(2)
+        # # self.stb_listWidget.setRowCount(0)
+        # # item = QtWidgets.QTableWidgetItem()
+        # # item.setText(("Name"))
+        # # self.stb_listWidget.setHorizontalHeaderItem(0, item)
+        # # item = QtWidgets.QTableWidgetItem()
+        # # item.setText(("Date"))
+        # # self.stb_listWidget.setHorizontalHeaderItem(1, item)
+        # # self.stb_listWidget.horizontalHeader().setStretchLastSection(True)
+        # self.horizontalLayout.addWidget(self.storyboard_listWidget)
+        
+        
         self.verticalLayout_5.addLayout(self.horizontalLayout)
-
         self.addStb_pushButton = DropPushButton(self.stb_tab)
         self.addStb_pushButton.setMinimumSize(QtCore.QSize(0, 40))
         self.addStb_pushButton.setToolTip((""))
@@ -1001,9 +1030,22 @@ class MainUI(QtWidgets.QMainWindow):
         #     print date
 
         if matCategory == "Storyboard":
-            self.storyboard_listWidget.clear()
-            self.storyboard_listWidget.addItems(self._sortDictionary(materials, sortBy="date", reversed=False))
-            pass
+            self.storyboard_treeWidget.clear()
+            for x in materials.items():
+                timestamp = os.path.getmtime(x[1])
+                timestampFormatted = datetime.datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
+                # print os.stat(x[1]).st_mtime
+                item = QtWidgets.QTreeWidgetItem(self.storyboard_treeWidget, [x[0], str(timestampFormatted)])
+            # sort by date default
+            self.storyboard_treeWidget.sortItems(1, 0) # 1 is Date Column, 0 is Ascending order
+
+        # if matCategory == "Storyboard":
+        #     self.storyboard_listWidget.clear()
+        #     self.storyboard_listWidget.addItems(self._sortDictionary(materials, sortBy="date", reversed=False))
+        #     pass
+
+
+
         # elif matCategory == "Brief":
         #     self.brief_listWidget.clear()
         #     self.brief_listWidget.addItems(materials)
