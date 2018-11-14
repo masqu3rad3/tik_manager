@@ -96,6 +96,51 @@ def getMainWindow():
     else:
         return None
 
+# class ImageWidget(QtWidgets.QLabel):
+#     """Custom class for thumbnail section. Keeps the aspect ratio when resized."""
+#     def __init__(self, parent=None):
+#         super(ImageWidget, self).__init__(parent)
+#         self.aspectRatio = 1.78
+#         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+#         sizePolicy.setHeightForWidth(True)
+#         self.setSizePolicy(sizePolicy)
+#
+#     def resizeEvent(self, r):
+#         h = self.width()
+#         # self.setFixedHeight(h/self.aspectRatio)
+#         self.set(self.width(), self.width()/self.aspectRatio)
+#         # self.setMinimumHeight(h/self.aspectRatio)
+#         # self.setMaximumHeight(h/self.aspectRatio)
+#         # self.heightForWidth(h/self.aspectRatio)
+#         # self.setBaseSize(50, 50)
+#         # self.set
+
+class ImageWidget(QtWidgets.QLabel):
+    """Custom class for thumbnail section. Keeps the aspect ratio when resized."""
+    def __init__(self, parent=None):
+        super(ImageWidget, self).__init__(parent)
+        self.aspectRatio = 1.78
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHeightForWidth(True)
+        self.setSizePolicy(sizePolicy)
+
+    def resizeEvent(self, r):
+        # print r
+        x = r.oldSize()
+        w = x.width()
+        h = x.height()
+        # print r.size()
+
+        # h = self.width()
+        # self.setFixedHeight(h/self.aspectRatio)
+        # self.set(self.width(), self.width()/self.aspectRatio)
+        # self.setMinimumHeight(h/self.aspectRatio)
+
+        self.setMaximumHeight(w/self.aspectRatio)
+        # self.heightForWidth(h/self.aspectRatio)
+        # self.setBaseSize(50, 50)
+        # self.set
+
 
 class CopyProgress(QtWidgets.QWidget):
     """Custom Widget for visualizing progress of file transfer"""
@@ -426,9 +471,9 @@ class CopyProgress(QtWidgets.QWidget):
 class ProjectMaterials(RootManager):
     def __init__(self):
         super(ProjectMaterials, self).__init__()
-
-        self.init_paths()
-        self.init_database()
+        #
+        # self.init_paths()
+        # self.init_database()
 
 
     def init_paths(self):
@@ -468,6 +513,9 @@ class ProjectMaterials(RootManager):
         # override _currentsDict (disconnected from  the json database)
         self._currentsDict ={"currentSubIndex":0} # default is 0 as "None"
 
+        self.materialsInCategory={} # empty materials directory
+        self.currentMaterialInfo = None
+
 
 
     @property
@@ -494,6 +542,17 @@ class ProjectMaterials(RootManager):
         self._currentsDict["currentSubIndex"] = indexData
 
 
+
+    def _loadMaterialInfo(self, path):
+        """Loads material info from json file and holds it in the self.currentMaterialInfo"""
+        self.currentMaterialInfo = self._loadJson(path)
+        return self.currentMaterialInfo
+
+    def getMaterialPath(self):
+        """Returns the absolute material path of currentMaterialInfo"""
+        return os.path.join(self.projectDir, self.currentMaterialInfo["relativePath"])
+
+
     def getProjectDir(self):
         """OVERRIDEN FUNCTION Returns the project folder according to the environment"""
         # if BoilerDict["Environment"] == "Maya":
@@ -512,8 +571,8 @@ class ProjectMaterials(RootManager):
         # TEMPORARY
         # ---------
 
-        # tempPath = os.path.normpath("E:\\SceneManager_Projects\\SceneManager_DemoProject_None_181101")
-        tempPath = os.path.normpath("D:\\PROJECT_AND_ARGE\\V3Test_V3Test_V3Test_181106")
+        tempPath = os.path.normpath("E:\\SceneManager_Projects\\SceneManager_DemoProject_None_181101")
+        # tempPath = os.path.normpath("D:\\PROJECT_AND_ARGE\\V3Test_V3Test_V3Test_181106")
         return tempPath
 
 
@@ -558,8 +617,8 @@ class ProjectMaterials(RootManager):
             dbFiles.sort(key=os.path.getsize)
         elif sortBy == "name":
             dbFiles.sort()
-        self._materialsInCategory = {self._niceName(file): file for file in glob(os.path.join(searchDir, '*.json'))}
-        return self._materialsInCategory
+        self.materialsInCategory = {self._niceName(file): file for file in glob(os.path.join(searchDir, '*.json'))}
+        return self.materialsInCategory
 
 
 
@@ -584,21 +643,10 @@ class MainUI(QtWidgets.QMainWindow):
         # with open(stylesheetFile, "r") as fh:
         #     self.setStyleSheet(fh.read())
 
+        # matCategories = ["Storyboard", "Brief", "Artwork", "Footage", "Other"]
+
         self.promat = ProjectMaterials()
 
-        if projectPath:
-            self.projectPath=str(projectPath)
-        else:
-            self.projectPath = self.promat.getProjectDir()
-
-        if relativePath:
-            self.rootPath = os.path.join(self.projectPath, str(relativePath))
-        else:
-            self.rootPath = os.path.join(self.projectPath, "images")
-            if not os.path.isdir(self.rootPath):
-                self.rootPath = self.projectPath
-
-        # if not self.promat.checkDatabase():
         pStatus = self.promat.init_paths()
         if not pStatus:
             msg=["Nothing to view", "No Scene Manager Database",
@@ -613,6 +661,23 @@ class MainUI(QtWidgets.QMainWindow):
             if ret == QtWidgets.QMessageBox.Ok:
                 self.close()
                 self.deleteLater()
+
+        self.promat.init_database()
+
+        # if projectPath:
+        #     self.projectPath=str(projectPath)
+        # else:
+        #     self.projectPath = self.promat.getProjectDir()
+        #
+        # if relativePath:
+        #     self.rootPath = os.path.join(self.projectPath, str(relativePath))
+        # else:
+        #     self.rootPath = os.path.join(self.projectPath, "images")
+        #     if not os.path.isdir(self.rootPath):
+        #         self.rootPath = self.projectPath
+
+        # if not self.promat.checkDatabase():
+
 
         # self.databaseDir = os.path.normpath(os.path.join(self.projectPath, "smDatabase"))
         #
@@ -643,6 +708,14 @@ class MainUI(QtWidgets.QMainWindow):
         self.initMainUI()
         self.show()
 
+    def changeEvent(self, event):
+        if event.type() == QtCore.QEvent.WindowStateChange:
+            if self.windowState() & QtCore.Qt.WindowMaximized:
+                self.stb_label.resize(1, 1) ## 1, 1 is random, can be any number
+                # event.ignore()
+                # self.close()
+                return
+
     def buildUI(self):
 
         self.verticalLayout_6 = QtWidgets.QVBoxLayout(self.centralwidget)
@@ -660,44 +733,38 @@ class MainUI(QtWidgets.QMainWindow):
         self.tabWidget = QtWidgets.QTabWidget(self.centralwidget)
         self.tabWidget.setToolTip((""))
         self.tabWidget.setStatusTip((""))
-        self.tabWidget.setWhatsThis((""))
-        self.tabWidget.setAccessibleName((""))
-        self.tabWidget.setAccessibleDescription((""))
-        self.tabWidget.setObjectName(("tabWidget"))
+
+
         self.stb_tab = QtWidgets.QWidget()
         self.stb_tab.setToolTip((""))
         self.stb_tab.setStatusTip((""))
-        self.stb_tab.setWhatsThis((""))
-        self.stb_tab.setAccessibleName((""))
-        self.stb_tab.setAccessibleDescription((""))
-        self.stb_tab.setObjectName(("stb_tab"))
         self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.stb_tab)
-        self.verticalLayout_5.setObjectName(("verticalLayout_5"))
-        self.horizontalLayout = QtWidgets.QHBoxLayout()
-        self.horizontalLayout.setObjectName(("horizontalLayout"))
-        self.stb_label = QtWidgets.QLabel(self.stb_tab)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.stb_label.sizePolicy().hasHeightForWidth())
-        self.stb_label.setSizePolicy(sizePolicy)
-        self.stb_label.setMinimumSize(QtCore.QSize(221, 124))
-        self.stb_label.setMaximumSize(QtCore.QSize(9999, 9999))
-        self.stb_label.setSizeIncrement(QtCore.QSize(1, 1))
-        self.stb_label.setBaseSize(QtCore.QSize(0, 0))
-        self.stb_label.setToolTip((""))
-        self.stb_label.setStatusTip((""))
-        self.stb_label.setWhatsThis((""))
-        self.stb_label.setAccessibleName((""))
-        self.stb_label.setAccessibleDescription((""))
+        # self.horizontalLayout = QtWidgets.QHBoxLayout()
+
+
+        self.stb_label = ImageWidget()
+        self.stb_label.setMinimumSize(QtCore.QSize(10, 10))
         self.stb_label.setFrameShape(QtWidgets.QFrame.Box)
-        self.stb_label.setText(("Storyboard"))
-        self.stb_label.setScaledContents(False)
+        self.stb_label.setScaledContents(True)
         self.stb_label.setAlignment(QtCore.Qt.AlignCenter)
-        self.stb_label.setObjectName(("stb_label"))
-        self.horizontalLayout.addWidget(self.stb_label)
-        
-        self.storyboard_treeWidget = QtWidgets.QTreeWidget(self.stb_tab)
+        # self.stb_label.setAlignment(QtCore.Qt.AlignCenter)
+        # self.stb_label.setFrameShape(QtGui.QFrame.Box)
+        self.stb_label.setText(("Storyboard"))
+        # self.stb_label.setScaledContents(True)
+        # self.stb_label.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.left_layout = QtWidgets.QVBoxLayout()
+        self.left_layout.setSpacing(0)
+        self.left_layout.addWidget(self.stb_label)
+        self.left_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.left_widget = QtWidgets.QFrame()
+        self.left_widget.setContentsMargins(0, 0, 0, 0)
+        self.left_widget.setLayout(self.left_layout)
+
+        # SPLITTER RIGHT SIDE
+
+        self.storyboard_treeWidget = QtWidgets.QTreeWidget(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -705,14 +772,76 @@ class MainUI(QtWidgets.QMainWindow):
         self.storyboard_treeWidget.setSizePolicy(sizePolicy)
         self.storyboard_treeWidget.setToolTip((""))
         self.storyboard_treeWidget.setStatusTip((""))
-        self.storyboard_treeWidget.setWhatsThis((""))
-        self.storyboard_treeWidget.setAccessibleName((""))
-        self.storyboard_treeWidget.setAccessibleDescription((""))
-        self.storyboard_treeWidget.setObjectName(("stb_tableWidget"))
 
         self.storyboard_treeWidget.setSortingEnabled(True)
         header = QtWidgets.QTreeWidgetItem(["Name", "Date"])
         self.storyboard_treeWidget.setHeaderItem(header)
+
+        self.right_layout = QtWidgets.QVBoxLayout()
+        self.right_layout.addWidget(self.storyboard_treeWidget)
+
+
+
+
+
+
+        self.right_widget = QtWidgets.QFrame()
+        self.right_widget.setLayout(self.right_layout)
+        self.right_widget.setContentsMargins(0, 0, 0, 0)
+
+        # self.stb_label = QtWidgets.QLabel(self.splitter)
+
+        self.splitter = QtWidgets.QSplitter(parent=self.tabWidget)
+        self.splitter.setOrientation(QtCore.Qt.Horizontal)
+        self.splitter.setHandleWidth(8)
+        self.splitter.addWidget(self.left_widget)
+        self.splitter.addWidget(self.right_widget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(1)
+        sizePolicy.setVerticalStretch(1)
+        self.splitter.setSizePolicy(sizePolicy)
+
+        self.splitter.setStretchFactor(0, 1)
+
+
+        # sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
+        # sizePolicy.setHorizontalStretch(0)
+        # sizePolicy.setVerticalStretch(0)
+        # sizePolicy.setHeightForWidth(self.stb_label.sizePolicy().hasHeightForWidth())
+        # self.stb_label.setSizePolicy(sizePolicy)
+        # self.stb_label.setMinimumSize(QtCore.QSize(221, 124))
+        # self.stb_label.setMaximumSize(QtCore.QSize(9999, 9999))
+        # self.stb_label.setSizeIncrement(QtCore.QSize(1, 1))
+        # self.stb_label.setBaseSize(QtCore.QSize(0, 0))
+
+
+
+
+
+
+        # self.stb_label = ImageWidget(self.splitter)
+        # self.stb_label.setFrameShape(QtWidgets.QFrame.Box)
+        # self.stb_label.setText(("Storyboard"))
+        # self.stb_label.setObjectName(("stb_label"))
+
+
+
+
+
+        # PyInstaller and Standalone version compatibility
+        # if FORCE_QT4:
+        #     self.tPixmap = QtWidgets.QPixmap("")
+        # else:
+        #     self.tPixmap = QtGui.QPixmap("")
+        # # self.tPixmap = QtGui.QPixmap("")
+        #
+        # self.stb_label.setPixmap(self.tPixmap)
+
+        
+
+
+
+
         # self.stb_listWidget.setColumnCount(2)
         # self.stb_listWidget.setRowCount(0)
         # item = QtWidgets.QTableWidgetItem()
@@ -722,7 +851,10 @@ class MainUI(QtWidgets.QMainWindow):
         # item.setText(("Date"))
         # self.stb_listWidget.setHorizontalHeaderItem(1, item)
         # self.stb_listWidget.horizontalHeader().setStretchLastSection(True)
-        self.horizontalLayout.addWidget(self.storyboard_treeWidget)
+
+
+
+        # self.horizontalLayout.addWidget(self.storyboard_treeWidget)
         
         # self.storyboard_listWidget = QtWidgets.QListWidget(self.stb_tab)
         # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
@@ -748,7 +880,9 @@ class MainUI(QtWidgets.QMainWindow):
         # self.horizontalLayout.addWidget(self.storyboard_listWidget)
         
         
-        self.verticalLayout_5.addLayout(self.horizontalLayout)
+        # self.verticalLayout_5.addLayout(self.horizontalLayout)
+        self.verticalLayout_5.addWidget(self.splitter)
+
         self.addStb_pushButton = DropPushButton(self.stb_tab)
         self.addStb_pushButton.setMinimumSize(QtCore.QSize(0, 40))
         self.addStb_pushButton.setToolTip((""))
@@ -998,6 +1132,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.subP_combobox.activated.connect(self.onSubProjectChange)
 
+        self.storyboard_treeWidget.currentItemChanged.connect(lambda item: self.onChangeItem(item, "storyboard"))
+
         self.addStb_pushButton.dropped.connect(lambda path: self.droppedPath(path, "storyboard"))
         self.addBrief_pushButton.dropped.connect(lambda path: self.droppedPath(path, "brief"))
         self.addFootage_pushButton.dropped.connect(lambda path: self.droppedPath(path, "footage"))
@@ -1012,6 +1148,35 @@ class MainUI(QtWidgets.QMainWindow):
         self.subP_combobox.addItems(self.promat.getSubProjects())
         self.updateViews()
         pass
+
+    def onChangeItem(self, item, matCategory):
+        if not item:
+            return
+
+        # print item
+        matDBpath = self.promat.materialsInCategory[item.text(0)]
+        self.promat._loadMaterialInfo(matDBpath)
+        pic = self.promat.getMaterialPath()
+
+        # print pic
+
+        # update thumb
+        if FORCE_QT4:
+            self.tPixmap = QtWidgets.QPixmap(pic)
+        else:
+            self.tPixmap = QtGui.QPixmap(pic)
+
+        h = float(self.tPixmap.height())
+        w = float(self.tPixmap.width())
+        if h > 0 and w > 0:
+            self.stb_label.aspectRatio = float(w/h)
+            self.stb_label.setPixmap(self.tPixmap)
+        else:
+            self.stb_label.clear()
+            self.stb_label.setText("No Preview")
+            # self.stb_label.setPixmap("")
+        # self.stb_label.setPixmap(pixmap4)
+
 
     def onSubProjectChange(self):
         self.promat.currentSubIndex = self.subP_combobox.currentIndex()
@@ -1034,10 +1199,11 @@ class MainUI(QtWidgets.QMainWindow):
             for x in materials.items():
                 timestamp = os.path.getmtime(x[1])
                 timestampFormatted = datetime.datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
-                # print os.stat(x[1]).st_mtime
                 item = QtWidgets.QTreeWidgetItem(self.storyboard_treeWidget, [x[0], str(timestampFormatted)])
             # sort by date default
             self.storyboard_treeWidget.sortItems(1, 0) # 1 is Date Column, 0 is Ascending order
+
+
 
         # if matCategory == "Storyboard":
         #     self.storyboard_listWidget.clear()
@@ -1144,4 +1310,6 @@ if __name__ == '__main__':
     window = MainUI()
     window.show()
     sys.exit(app.exec_())
+
+
 

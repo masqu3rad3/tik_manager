@@ -322,7 +322,7 @@ class RootManager(object):
 
     @property
     def currentScenePath(self):
-        """Returns absolute path of Base Scene at cursor position"""
+        """Returns absolute path of Base Scene Version at cursor position"""
         logger.debug("Func: currentBaseScenePath/getter")
 
         return os.path.join(self.projectDir, self._currentSceneInfo["Versions"][self.currentVersionIndex-1]["RelativePath"])
