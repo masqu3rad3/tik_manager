@@ -280,14 +280,11 @@ class RootManager(object):
             self.currentVersionIndex = -1
             return
         if sceneName not in self._baseScenesInCategory.keys():
-            # self._currentVersionIndex = -1
-            # self._currentThumbFile = ""
-            # self._currentNotes = ""
+
             self.currentVersionIndex = -1
-            msg = "There is no scene called %s in current category" %sceneName
-            # logger.error(msg)
-            # raise Exception([101, msg])
-            self._exception(101, msg)
+            # msg = "There is no scene called %s in current category" %sceneName
+
+            # self._exception(101, msg)
             return
 
         self._currentBaseSceneName = sceneName

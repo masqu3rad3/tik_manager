@@ -2016,7 +2016,7 @@ class MainUI(QtWidgets.QMainWindow):
         makeReference_checkBox.setText("Make Reference")
         formLayout.setWidget(4, QtWidgets.QFormLayout.FieldRole, makeReference_checkBox)
 
-        if BoilerDict["Environment"] == "Houdini" or "Nuke":
+        if BoilerDict["Environment"] == "Houdini" or BoilerDict["Environment"] == "Nuke":
             makeReference_checkBox.setVisible(False)
 
         formats_horizontalLayout = QtWidgets.QHBoxLayout()
@@ -2108,127 +2108,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         saveBaseScene_Dialog.show()
 
-    # def saveBaseSceneDialog_DEPR(self):
-    #     self.save_Dialog = QtWidgets.QDialog(parent=self)
-    #     self.save_Dialog.setModal(True)
-    #     self.save_Dialog.setObjectName(("save_Dialog"))
-    #     self.save_Dialog.resize(500, 240)
-    #     self.save_Dialog.setMinimumSize(QtCore.QSize(500, 240))
-    #     self.save_Dialog.setMaximumSize(QtCore.QSize(500, 240))
-    #     self.save_Dialog.setWindowTitle(("Save New Base Scene"))
-    #
-    #     self.sdNotes_label = QtWidgets.QLabel(self.save_Dialog)
-    #     self.sdNotes_label.setGeometry(QtCore.QRect(260, 15, 61, 20))
-    #     self.sdNotes_label.setText(("Notes"))
-    #     self.sdNotes_label.setObjectName(("sdNotes_label"))
-    #
-    #     self.sdNotes_textEdit = QtWidgets.QTextEdit(self.save_Dialog)
-    #     self.sdNotes_textEdit.setGeometry(QtCore.QRect(260, 40, 210, 185))
-    #     self.sdNotes_textEdit.setObjectName(("sdNotes_textEdit"))
-    #
-    #     self.sdSubP_label = QtWidgets.QLabel(self.save_Dialog)
-    #     self.sdSubP_label.setGeometry(QtCore.QRect(20, 30, 61, 20))
-    #     self.sdSubP_label.setFrameShape(QtWidgets.QFrame.Box)
-    #     self.sdSubP_label.setText(("Sub-Project"))
-    #     self.sdSubP_label.setObjectName(("sdSubP_label"))
-    #
-    #     self.sdSubP_comboBox = QtWidgets.QComboBox(self.save_Dialog)
-    #     self.sdSubP_comboBox.setFocus()
-    #     self.sdSubP_comboBox.setGeometry(QtCore.QRect(90, 30, 151, 22))
-    #     self.sdSubP_comboBox.setObjectName(("sdCategory_comboBox"))
-    #     self.sdSubP_comboBox.addItems((self.manager._subProjectsList))
-    #     self.sdSubP_comboBox.setCurrentIndex(self.subProject_comboBox.currentIndex())
-    #
-    #     self.sdName_label = QtWidgets.QLabel(self.save_Dialog)
-    #     self.sdName_label.setGeometry(QtCore.QRect(20, 70, 61, 20))
-    #     self.sdName_label.setFrameShape(QtWidgets.QFrame.Box)
-    #     self.sdName_label.setText(("Name"))
-    #     self.sdName_label.setObjectName(("sdName_label"))
-    #
-    #     self.sdName_lineEdit = QtWidgets.QLineEdit(self.save_Dialog)
-    #     self.sdName_lineEdit.setGeometry(QtCore.QRect(90, 70, 151, 20))
-    #     self.sdName_lineEdit.setCursorPosition(0)
-    #     self.sdName_lineEdit.setPlaceholderText(("Choose an unique name"))
-    #     self.sdName_lineEdit.setObjectName(("sdName_lineEdit"))
-    #
-    #     self.sdCategory_label = QtWidgets.QLabel(self.save_Dialog)
-    #     self.sdCategory_label.setGeometry(QtCore.QRect(20, 110, 61, 20))
-    #     self.sdCategory_label.setFrameShape(QtWidgets.QFrame.Box)
-    #     self.sdCategory_label.setText(("Category"))
-    #     self.sdCategory_label.setObjectName(("sdCategory_label"))
-    #
-    #     self.sdCategory_comboBox = QtWidgets.QComboBox(self.save_Dialog)
-    #     self.sdCategory_comboBox.setFocus()
-    #     self.sdCategory_comboBox.setGeometry(QtCore.QRect(90, 110, 151, 22))
-    #     self.sdCategory_comboBox.setObjectName(("sdCategory_comboBox"))
-    #     for i in range(len(self.manager._categories)):
-    #         self.sdCategory_comboBox.addItem((self.manager._categories[i]))
-    #         self.sdCategory_comboBox.setItemText(i, (self.manager._categories[i]))
-    #     self.sdCategory_comboBox.setCurrentIndex(self.category_tabWidget.currentIndex())
-    #
-    #     self.sdMakeReference_checkbox = QtWidgets.QCheckBox("Make it Reference", self.save_Dialog)
-    #     self.sdMakeReference_checkbox.setGeometry(QtCore.QRect(130, 150, 120, 22))
-    #
-    #     # for format in BoilerDict["SceneFormats"]:
-    #     #     radioButton = QtWidgets.QRadioButton(self.save_Dialog)
-    #
-    #     mb_radioButton = QtWidgets.QRadioButton(self.save_Dialog)
-    #     mb_radioButton.setGeometry(QtCore.QRect(20, 150, 50, 22))
-    #     mb_radioButton.setText(("mb"))
-    #     mb_radioButton.setObjectName(("mb_radioButton"))
-    #     mb_radioButton.setChecked(True)
-    #
-    #     ma_radioButton = QtWidgets.QRadioButton(self.save_Dialog)
-    #     ma_radioButton.setGeometry(QtCore.QRect(70, 150, 50, 22))
-    #     ma_radioButton.setText(("ma"))
-    #     ma_radioButton.setChecked(False)
-    #     ma_radioButton.setObjectName(("ma_radioButton"))
-    #
-    #     self.sd_buttonBox = QtWidgets.QDialogButtonBox(self.save_Dialog)
-    #     self.sd_buttonBox.setGeometry(QtCore.QRect(20, 190, 220, 32))
-    #     self.sd_buttonBox.setOrientation(QtCore.Qt.Horizontal)
-    #     self.sd_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
-    #     self.sd_buttonBox.setObjectName(("sd_buttonBox"))
-    #
-    #     def saveCommand():
-    #         checklist = self.manager.preSaveChecklist()
-    #         for msg in checklist:
-    #             q = self.queryPop(type="yesNo", textTitle="Checklist", textHeader=msg)
-    #             if q == "no":
-    #                 return
-    #             else:
-    #                 self.manager.errorLogger(title = "Disregarded warning" , errorMessage=msg)
-    #         category = self.sdCategory_comboBox.currentText()
-    #         name = self.sdName_lineEdit.text()
-    #         subIndex = self.sdSubP_comboBox.currentIndex()
-    #         makeReference = self.sdMakeReference_checkbox.checkState()
-    #         notes = self.sdNotes_textEdit.toPlainText()
-    #         sceneFormat = "mb" if mb_radioButton.isChecked() else "ma"
-    #         self.manager.saveBaseScene(category, name, subIndex, makeReference, notes, sceneFormat)
-    #         self.populateBaseScenes()
-    #         self.manager.getOpenSceneInfo()
-    #         self._initOpenScene()
-    #         self.save_Dialog.accept()
-    #
-    #
-    #     # SIGNALS
-    #     # -------
-    #     self.sdName_lineEdit.textChanged.connect(
-    #         lambda: self._checkValidity(self.sdName_lineEdit.text(), self.sd_buttonBox, self.sdName_lineEdit))
-    #
-    #     self.sd_buttonBox.accepted.connect(saveCommand)
-    #
-    #
-    #     # self.sd_buttonBox.accepted.connect(self.save_Dialog.accept)
-    #     self.sd_buttonBox.rejected.connect(self.save_Dialog.reject)
-    #     # QtCore.QMetaObject.connectSlotsByName(self.save_Dialog)
-    #
-    #     # there is no referencing for Houdini andNuke
-    #     if BoilerDict["Environment"] == "Houdini" or "Nuke":
-    #         self.sdMakeReference_checkbox.setChecked(False)
-    #         self.sdMakeReference_checkbox.setVisible(False)
-    #
-    #     self.save_Dialog.show()
 
     def saveAsVersionDialog(self):
         # This method IS Software Specific
@@ -2240,35 +2119,98 @@ class MainUI(QtWidgets.QMainWindow):
         saveV_Dialog.setMaximumSize(QtCore.QSize(255, 290))
         saveV_Dialog.setWindowTitle(("Save As Version"))
 
-        svNotes_label = QtWidgets.QLabel(saveV_Dialog)
-        svNotes_label.setGeometry(QtCore.QRect(15, 15, 100, 20))
-        svNotes_label.setText(("Version Notes"))
-        svNotes_label.setObjectName(("sdNotes_label"))
+        horizontalLayout = QtWidgets.QHBoxLayout(saveV_Dialog)
+        right_verticalLayout = QtWidgets.QVBoxLayout()
+        right_verticalLayout.setContentsMargins(-1, -1, 10, 10)
+        right_verticalLayout.setSpacing(6)
 
-        self.svNotes_textEdit = QtWidgets.QTextEdit(saveV_Dialog)
-        self.svNotes_textEdit.setGeometry(QtCore.QRect(15, 40, 215, 170))
-        self.svNotes_textEdit.setObjectName(("sdNotes_textEdit"))
+        notes_label = QtGui.QLabel(saveV_Dialog)
+        notes_label.setText(("Notes"))
+        right_verticalLayout.addWidget(notes_label)
 
-        self.svMakeReference_checkbox = QtWidgets.QCheckBox("Make it Reference", saveV_Dialog)
-        self.svMakeReference_checkbox.setGeometry(QtCore.QRect(130, 215, 151, 22))
-        self.svMakeReference_checkbox.setChecked(False)
+        notes_plainTextEdit = QtWidgets.QPlainTextEdit(saveV_Dialog)
+        notes_plainTextEdit.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        right_verticalLayout.addWidget(notes_plainTextEdit)
 
-        if BoilerDict["Environment"] == "Houdini" or "Nuke":
-            self.svMakeReference_checkbox.setVisible(False)
+        formats_horizontalLayout = QtWidgets.QHBoxLayout()
+        right_verticalLayout.addLayout(formats_horizontalLayout)
+        spacerItem = QtWidgets.QSpacerItem(80, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        formats_horizontalLayout.addItem(spacerItem)
+
+
+        radioButtonList = []
+        for format in BoilerDict["SceneFormats"]:
+            radioButton = QtWidgets.QRadioButton(saveV_Dialog)
+            radioButton.setText(format)
+            formats_horizontalLayout.addWidget(radioButton)
+            radioButtonList.append(radioButton)
+
+        # select the first radio button
+        radioButtonList[0].setChecked(True)
+
+        # hide radiobutton if only one format exists
+        if len(radioButtonList) == 1:
+            radioButtonList[0].setVisible(False)
+
+        formats_horizontalLayout_2 = QtWidgets.QHBoxLayout()
+        spacerItem1 = QtGui.QSpacerItem(80, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        formats_horizontalLayout_2.addItem(spacerItem1)
+
+        makeReference_checkBox = QtWidgets.QCheckBox(saveV_Dialog)
+        makeReference_checkBox.setLayoutDirection(QtCore.Qt.LeftToRight)
+        makeReference_checkBox.setInputMethodHints(QtCore.Qt.ImhPreferUppercase)
+        makeReference_checkBox.setText("Make Reference")
+        makeReference_checkBox.setCheckable(True)
+
+        formats_horizontalLayout_2.addWidget(makeReference_checkBox)
+        right_verticalLayout.addLayout(formats_horizontalLayout_2)
 
         sv_buttonBox = QtWidgets.QDialogButtonBox(saveV_Dialog)
-        sv_buttonBox.setGeometry(QtCore.QRect(20, 250, 220, 32))
         sv_buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        sv_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Save | QtWidgets.QDialogButtonBox.Cancel)
-        sv_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
-        sv_buttonBox.button(QtWidgets.QDialogButtonBox.Save).setMinimumSize(QtCore.QSize(100, 30))
+        sv_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        sv_buttonBox.setObjectName(("buttonBox"))
+        right_verticalLayout.addWidget(sv_buttonBox)
+        horizontalLayout.addLayout(right_verticalLayout)
 
-        buttonS = sv_buttonBox.button(QtWidgets.QDialogButtonBox.Save)
+        buttonS = sv_buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
         buttonS.setText('Save As Version')
+        buttonS.setMinimumSize(QtCore.QSize(100, 30))
         buttonC = sv_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel)
         buttonC.setText('Cancel')
+        buttonC.setMinimumSize(QtCore.QSize(100, 30))
 
-        sv_buttonBox.setObjectName(("sd_buttonBox"))
+        # svNotes_label = QtWidgets.QLabel(saveV_Dialog)
+        # svNotes_label.setGeometry(QtCore.QRect(15, 15, 100, 20))
+        # svNotes_label.setText(("Version Notes"))
+        # svNotes_label.setObjectName(("sdNotes_label"))
+        #
+        # self.svNotes_textEdit = QtWidgets.QTextEdit(saveV_Dialog)
+        # self.svNotes_textEdit.setGeometry(QtCore.QRect(15, 40, 215, 170))
+        # self.svNotes_textEdit.setObjectName(("sdNotes_textEdit"))
+        #
+        # self.svMakeReference_checkbox = QtWidgets.QCheckBox("Make it Reference", saveV_Dialog)
+        # self.svMakeReference_checkbox.setGeometry(QtCore.QRect(130, 215, 151, 22))
+        # self.svMakeReference_checkbox.setChecked(False)
+        #
+        # if BoilerDict["Environment"] == "Houdini" or BoilerDict["Environment"] == "Nuke":
+        #     self.svMakeReference_checkbox.setVisible(False)
+        # else:
+        #     self.svMakeReference_checkbox.setVisible(True)
+        #
+        #
+        # sv_buttonBox = QtWidgets.QDialogButtonBox(saveV_Dialog)
+        # sv_buttonBox.setGeometry(QtCore.QRect(20, 250, 220, 32))
+        # sv_buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        # sv_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Save | QtWidgets.QDialogButtonBox.Cancel)
+        # sv_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
+        # sv_buttonBox.button(QtWidgets.QDialogButtonBox.Save).setMinimumSize(QtCore.QSize(100, 30))
+        #
+        # buttonS = sv_buttonBox.button(QtWidgets.QDialogButtonBox.Save)
+        # buttonS.setText('Save As Version')
+        # buttonC = sv_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel)
+        # buttonC.setText('Cancel')
+        #
+        # sv_buttonBox.setObjectName(("sd_buttonBox"))
 
         def saveAsVersionCommand():
             # TODO : ref
@@ -2280,8 +2222,15 @@ class MainUI(QtWidgets.QMainWindow):
                 else:
                     self.manager.errorLogger(title = "Disregarded warning" , errorMessage=msg)
 
-            sceneInfo = self.manager.saveVersion(makeReference=self.svMakeReference_checkbox.checkState(),
-                                                 versionNotes=self.svNotes_textEdit.toPlainText())
+            for button in radioButtonList:
+                if button.isChecked():
+                    sceneFormat = button.text()
+                    break
+
+            print "sceneFormat", sceneFormat
+            sceneInfo = self.manager.saveVersion(makeReference=makeReference_checkBox.checkState(),
+                                                 versionNotes=notes_plainTextEdit.toPlainText(),
+                                                 sceneFormat=sceneFormat)
 
             if not sceneInfo == -1:
                 self.statusBar().showMessage("Status | Version Saved => %s" % len(sceneInfo["Versions"]))
@@ -2299,6 +2248,8 @@ class MainUI(QtWidgets.QMainWindow):
         # -------
         sv_buttonBox.accepted.connect(saveAsVersionCommand)
         sv_buttonBox.rejected.connect(saveV_Dialog.reject)
+
+
 
         sceneInfo = self.manager.getOpenSceneInfo()
         if sceneInfo:
