@@ -478,9 +478,11 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.toolsMenu = self.menubar.addMenu("Tools")
         iviewer = QtWidgets.QAction("&Image Viewer", self)
+        pMaterials = QtWidgets.QAction("&Project Materials", self)
         self.createPB = QtWidgets.QAction("&Create Preview", self)
 
         self.toolsMenu.addAction(iviewer)
+        self.toolsMenu.addAction(pMaterials)
         self.toolsMenu.addAction(self.createPB)
 
         # RIGHT CLICK MENUS
@@ -570,6 +572,7 @@ class MainUI(QtWidgets.QMainWindow):
         checkReferences_fm.triggered.connect(lambda: self.populateBaseScenes(deepCheck=True))
 
         iviewer.triggered.connect(self.onIviewer)
+        pMaterials.triggered.connect(self.onPMaterials)
         self.createPB.triggered.connect(self.onCreatePreview)
 
 
@@ -2737,6 +2740,11 @@ class MainUI(QtWidgets.QMainWindow):
     def onIviewer(self):
         # This method is NOT Software Specific.
         ImageViewer.MainUI(self.manager.projectDir).show()
+
+    def onPMaterials(self):
+        import projectMaterials
+        pMat = projectMaterials.MainUI(projectPath=self.manager.projectDir)
+        pMat.show()
 
     def onCreatePreview(self):
         self.statusBar().showMessage("Creating Preview...")

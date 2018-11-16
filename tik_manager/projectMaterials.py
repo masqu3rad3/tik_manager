@@ -3,6 +3,7 @@
 
 import os
 import sys
+import unicodedata
 from glob import glob
 
 import _version
@@ -10,7 +11,7 @@ import _version
 FORCE_QT4 = bool(os.getenv("FORCE_QT4"))
 
 # Enabele FORCE_QT4 for compiling with pyinstaller
-FORCE_QT4 = True
+# FORCE_QT4 = True
 
 if FORCE_QT4:
     from PyQt4 import QtCore, Qt
@@ -29,6 +30,10 @@ import datetime
 import shutil
 import logging
 
+logging.basicConfig()
+logger = logging.getLogger('projectMaterials')
+logger.setLevel(logging.WARNING)
+
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Scene Manager - Project materials"
 __credits__ = []
@@ -37,10 +42,25 @@ __maintainer__ = "Arda Kutlu"
 __email__ = "ardakutlu@gmail.com"
 __status__ = "Development"
 
-BoilerDict = {"Environment":"Standalone",
-              "MainWindow":None,
-              "WindowTitle":"Project Materials - Standalone v%s" %_version.__version__,
+BoilerDict = {"Environment": "Standalone",
+              "MainWindow": None,
+              "WindowTitle": "Project Materials - Standalone v%s" % _version.__version__,
               "Stylesheet": "mayaDark.stylesheet"}
+
+ColorStyleDict = {"Storyboard": "border: 2px solid #ff7b00",
+             "Brief": "border: 2px solid #faff00",
+             "Reference": "border: 2px solid #72ff00",
+             "Artwork": "border: 2px solid #00f6ff",
+             "Footage": "border: 2px solid #003fff",
+             "Other": "border: 2px solid #dc00ff"
+             }
+# ColorStyleDict = {"Storyboard": "background: #ff7b00",
+#              "Brief": "background: #faff00",
+#              "Reference": "background: #72ff00",
+#              "Artwork": "background: #00f6ff",
+#              "Footage": "background: #003fff",
+#              "Other": "background: #dc00ff"
+#              }
 
 # ---------------
 # GET ENVIRONMENT
@@ -48,8 +68,9 @@ BoilerDict = {"Environment":"Standalone",
 try:
     from maya import OpenMayaUI as omui
     import maya.cmds as cmds
+
     BoilerDict["Environment"] = "Maya"
-    BoilerDict["WindowTitle"] = "Image Viewer Maya v%s" %_version.__version__
+    BoilerDict["WindowTitle"] = "Project Materials Maya v%s" % _version.__version__
     if Qt.__binding__ == "PySide":
         from shiboken import wrapInstance
     elif Qt.__binding__.startswith('PyQt'):
@@ -61,24 +82,28 @@ except ImportError:
 
 try:
     import MaxPlus
+
     BoilerDict["Environment"] = "3dsMax"
-    BoilerDict["WindowTitle"] = "Scene Manager 3ds Max v%s" %_version.__version__
+    BoilerDict["WindowTitle"] = "Project Materials 3ds Max v%s" % _version.__version__
 except ImportError:
     pass
 
 try:
     import hou
+
     BoilerDict["Environment"] = "Houdini"
-    BoilerDict["WindowTitle"] = "Scene Manager Houdini v%s" %_version.__version__
+    BoilerDict["WindowTitle"] = "Project Materials Houdini v%s" % _version.__version__
 except ImportError:
     pass
 
 try:
     import nuke
+
     BoilerDict["Environment"] = "Nuke"
-    BoilerDict["WindowTitle"] = "Scene Manager Nuke v%s" % _version.__version__
+    BoilerDict["WindowTitle"] = "Project Materials Nuke v%s" % _version.__version__
 except ImportError:
     pass
+
 
 def getMainWindow():
     """This function should be overriden"""
@@ -99,6 +124,7 @@ def getMainWindow():
 
     else:
         return None
+
 
 # class ImageWidget(QtWidgets.QLabel):
 #     """Custom class for thumbnail section. Keeps the aspect ratio when resized."""
@@ -134,12 +160,20 @@ class QtImageViewer(QtWidgets.QGraphicsView):
 
     # Mouse button signals emit image scene (x, y) coordinates.
     # !!! For image (row, column) matrix indexing, row = y and column = x.
-    leftMouseButtonPressed = QtCore.pyqtSignal(float, float)
-    rightMouseButtonPressed = QtCore.pyqtSignal(float, float)
-    leftMouseButtonReleased = QtCore.pyqtSignal(float, float)
-    rightMouseButtonReleased = QtCore.pyqtSignal(float, float)
-    leftMouseButtonDoubleClicked = QtCore.pyqtSignal(float, float)
-    rightMouseButtonDoubleClicked = QtCore.pyqtSignal(float, float)
+    if FORCE_QT4:
+        leftMouseButtonPressed = QtCore.pyqtSignal(float, float)
+        rightMouseButtonPressed = QtCore.pyqtSignal(float, float)
+        leftMouseButtonReleased = QtCore.pyqtSignal(float, float)
+        rightMouseButtonReleased = QtCore.pyqtSignal(float, float)
+        leftMouseButtonDoubleClicked = QtCore.pyqtSignal(float, float)
+        rightMouseButtonDoubleClicked = QtCore.pyqtSignal(float, float)
+    else:
+        leftMouseButtonPressed = QtCore.Signal(float, float)
+        rightMouseButtonPressed = QtCore.Signal(float, float)
+        leftMouseButtonReleased = QtCore.Signal(float, float)
+        rightMouseButtonReleased = QtCore.Signal(float, float)
+        leftMouseButtonDoubleClicked = QtCore.Signal(float, float)
+        rightMouseButtonDoubleClicked = QtCore.Signal(float, float)
 
     def __init__(self):
         QtWidgets.QGraphicsView.__init__(self)
@@ -205,12 +239,21 @@ class QtImageViewer(QtWidgets.QGraphicsView):
         Raises a RuntimeError if the input image has type other than QImage or QPixmap.
         :type image: QImage | QPixmap
         """
-        if type(image) is QtWidgets.QPixmap:
-            pixmap = image
-        elif type(image) is QtWidgets.QImage:
-            pixmap = QtWidgets.QPixmap.fromImage(image)
+        if FORCE_QT4:
+            if type(image) is QtWidgets.QPixmap:
+                pixmap = image
+            elif type(image) is QtWidgets.QImage:
+                pixmap = QtWidgets.QPixmap.fromImage(image)
+            else:
+                raise RuntimeError("ImageViewer.setImage: Argument must be a QImage or QPixmap.")
         else:
-            raise RuntimeError("ImageViewer.setImage: Argument must be a QImage or QPixmap.")
+            if type(image) is QtGui.QPixmap:
+                pixmap = image
+            elif type(image) is QtGui.QImage:
+                pixmap = QtGui.QPixmap.fromImage(image)
+            else:
+                raise RuntimeError("ImageViewer.setImage: Argument must be a QImage or QPixmap.")
+
         if self.hasImage():
             self._pixmapHandle.setPixmap(pixmap)
         else:
@@ -257,7 +300,7 @@ class QtImageViewer(QtWidgets.QGraphicsView):
             if self.canPan:
                 self.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
             self.leftMouseButtonPressed.emit(scenePos.x(), scenePos.y())
-        elif event.button() == Qt.RightButton:
+        elif event.button() == QtCore.Qt.RightButton:
             if self.canZoom:
                 self.setDragMode(QtWidgets.QGraphicsView.RubberBandDrag)
             self.rightMouseButtonPressed.emit(scenePos.x(), scenePos.y())
@@ -295,6 +338,7 @@ class QtImageViewer(QtWidgets.QGraphicsView):
             self.rightMouseButtonDoubleClicked.emit(scenePos.x(), scenePos.y())
         QtWidgets.QGraphicsView.mouseDoubleClickEvent(self, event)
 
+
 # class QtImageViewer(QtWidgets.QLabel):
 #     """Custom class for thumbnail section. Keeps the aspect ratio when resized."""
 #     def __init__(self, parent=None):
@@ -324,7 +368,8 @@ class QtImageViewer(QtWidgets.QGraphicsView):
 
 class CopyProgress(QtWidgets.QWidget):
     """Custom Widget for visualizing progress of file transfer"""
-    def __init__(self, logPath = None):
+
+    def __init__(self, logPath=None):
         super(CopyProgress, self).__init__()
         self.logPath = logPath
         self.logger = None
@@ -335,7 +380,6 @@ class CopyProgress(QtWidgets.QWidget):
         self.cancelAll = False
         self.errorFlag = False
         # self.copyfileobj(src=self.src, dst=self.dest)
-
 
     def build_ui(self):
 
@@ -373,24 +417,24 @@ class CopyProgress(QtWidgets.QWidget):
         self.cancelAllButton.clicked.connect(lambda: self.terminate(all=True))
         self.show()
 
-    def results_ui(self, status, color="white", logPath=None, destPath = None):
+    def results_ui(self, status, color="white", logPath=None, destPath=None):
 
         self.msgDialog = QtWidgets.QDialog(parent=self)
         self.msgDialog.setModal(True)
         self.msgDialog.setObjectName("Result_Dialog")
         self.msgDialog.setWindowTitle("Transfer Results")
-        self.msgDialog.resize(300,120)
+        self.msgDialog.resize(300, 120)
         layoutMain = QtWidgets.QVBoxLayout()
         self.msgDialog.setLayout(layoutMain)
 
         infoHeader = QtWidgets.QLabel(status)
 
         infoHeader.setStyleSheet(""
-                               "border: 18px solid black;"
-                               "background-color: black;"
-                               "font-size: 14px;"
-                               "color: {0}"
-                               "".format(color))
+                                 "border: 18px solid black;"
+                                 "background-color: black;"
+                                 "font-size: 14px;"
+                                 "color: {0}"
+                                 "".format(color))
 
         layoutMain.addWidget(infoHeader)
         layoutH = QtWidgets.QHBoxLayout()
@@ -455,13 +499,11 @@ class CopyProgress(QtWidgets.QWidget):
             # currentDate = now.strftime("%y%m%d")
             # targetPath = os.path.join(destination, currentDate, subPath)
 
-
             if os.path.isdir(sel):
                 # re-define dst starting from the folder name
                 newDst = os.path.join(dst, os.path.basename(sel))
                 # if not os.path.isdir(os.path.normpath(newDst)):
                 #     os.makedirs(os.path.normpath(newDst))
-
 
                 copiedPathList.append(self.copyFolder(src=sel, dst=newDst))
 
@@ -489,7 +531,7 @@ class CopyProgress(QtWidgets.QWidget):
         dst = self.uniqueFolderName(os.path.normpath(dst.replace(" ", "_")))
 
         self.pb.setValue(0)
-        self.terminated = False # reset the termination status
+        self.terminated = False  # reset the termination status
         totalCount = self.countFiles(src)
         current = 0
 
@@ -509,7 +551,7 @@ class CopyProgress(QtWidgets.QWidget):
                     shutil.copy(srcFile, destFile)
                 except:
                     self.errorFlag = True
-                #     # self.safeLog("FAILED - unknown error")
+                    #     # self.safeLog("FAILED - unknown error")
                     return None
                 percent = (100 * current) / totalCount
                 self.pb.setValue(percent)
@@ -529,7 +571,7 @@ class CopyProgress(QtWidgets.QWidget):
         dst = os.path.normpath(dst)
 
         self.pb.setValue(0)
-        self.terminated = False # reset the termination status
+        self.terminated = False  # reset the termination status
         totalCount = self.countFiles(src)
         current = 0
 
@@ -544,7 +586,7 @@ class CopyProgress(QtWidgets.QWidget):
             return None
 
     def uniqueFolderName(self, folderLocation):
-        count=0
+        count = 0
         max_iter = 100
         while os.path.isdir(folderLocation) and count < max_iter:
             count += 1
@@ -558,7 +600,7 @@ class CopyProgress(QtWidgets.QWidget):
         return folderLocation
 
     def uniqueFileName(self, fileLocation):
-        count=0
+        count = 0
         max_iter = 100
         while os.path.isfile(fileLocation) and count < max_iter:
             count += 1
@@ -649,12 +691,15 @@ class CopyProgress(QtWidgets.QWidget):
 
 
 class ProjectMaterials(RootManager):
-    def __init__(self):
+    def __init__(self, projectPath=None):
         super(ProjectMaterials, self).__init__()
         #
         # self.init_paths()
         # self.init_database()
-
+        if projectPath:
+            self.passedProject = projectPath
+        else:
+            self.passedProject = None
 
     def init_paths(self):
         """OVERRIDEN FUNCTION - Initializes necessary paths for project materials module"""
@@ -666,22 +711,26 @@ class ProjectMaterials(RootManager):
         if not os.path.isdir(self._pathsDict["masterDir"]):
             return False
 
-        self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
+        self._pathsDict["projectSettingsFile"] = os.path.normpath(
+            os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
 
-        self._pathsDict["databaseDir"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectMaterialsDB"))
+        self._pathsDict["databaseDir"] = os.path.normpath(
+            os.path.join(self._pathsDict["masterDir"], "projectMaterialsDB"))
 
-
-        self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "subPdata.json"))
+        self._pathsDict["subprojectsFile"] = os.path.normpath(
+            os.path.join(self._pathsDict["masterDir"], "subPdata.json"))
 
         self._pathsDict["generalSettingsDir"] = os.path.dirname(os.path.abspath(__file__))
-        self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerUsers.json"))
+        self._pathsDict["usersFile"] = os.path.normpath(
+            os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerUsers.json"))
 
-        #project material specific
-        self._pathsDict["storyboard"] = os.path.join(self.projectDir, "_REF", "storyboard")
-        self._pathsDict["brief"] = os.path.join(self.projectDir, "_REF", "brief")
-        self._pathsDict["artwork"] = os.path.join(self.projectDir, "_REF", "artwork")
-        self._pathsDict["footage"] = os.path.join(self.projectDir, "sourceimages", "_FOOTAGE")
-        self._pathsDict["other"] = os.path.join(self.projectDir, "_REF", "other")
+        # project material specific
+        self._pathsDict["Storyboard"] = os.path.join(self.projectDir, "_REF", "storyboard")
+        self._pathsDict["Brief"] = os.path.join(self.projectDir, "_REF", "brief")
+        self._pathsDict["Reference"] = os.path.join(self.projectDir, "_REF", "reference")
+        self._pathsDict["Artwork"] = os.path.join(self.projectDir, "_REF", "artwork")
+        self._pathsDict["Footage"] = os.path.join(self.projectDir, "sourceimages", "_FOOTAGE")
+        self._pathsDict["Other"] = os.path.join(self.projectDir, "_REF", "other")
 
         return True
 
@@ -691,12 +740,10 @@ class ProjectMaterials(RootManager):
         self._subProjectsList = self._loadSubprojects()
 
         # override _currentsDict (disconnected from  the json database)
-        self._currentsDict ={"currentSubIndex":0} # default is 0 as "None"
+        self._currentsDict = {"currentSubIndex": 0}  # default is 0 as "None"
 
-        self.materialsInCategory={} # empty materials directory
+        self.materialsInCategory = {}  # empty materials directory
         self.currentMaterialInfo = None
-
-
 
     @property
     def currentSubIndex(self):
@@ -707,7 +754,7 @@ class ProjectMaterials(RootManager):
     def currentSubIndex(self, indexData):
         """Moves the cursor to the given sub-project index"""
         if not 0 <= indexData < len(self._subProjectsList):
-            msg="Sub Project index is out of range!"
+            msg = "Sub Project index is out of range!"
             # raise Exception([101, msg])
             self._exception(101, msg)
             return
@@ -720,8 +767,6 @@ class ProjectMaterials(RootManager):
 
         # change only the attribute, dont update currents database
         self._currentsDict["currentSubIndex"] = indexData
-
-
 
     def _loadMaterialInfo(self, path):
         """Loads material info from json file and holds it in the self.currentMaterialInfo"""
@@ -751,33 +796,37 @@ class ProjectMaterials(RootManager):
             data = doc.read()
             return data
 
+
     def getProjectDir(self):
         """OVERRIDEN FUNCTION Returns the project folder according to the environment"""
-        # if BoilerDict["Environment"] == "Maya":
-        #     return os.path.normpath(cmds.workspace(q=1, rd=1))
-        # elif BoilerDict["Environment"] == "3dsMax":
-        #     return os.path.normpath(MaxPlus.PathManager.GetProjectFolderDir())
-        # elif BoilerDict["Environment"] == "Houdini":
-        #     return os.path.normpath((hou.hscript('echo $JOB')[0])[:-1])  # [:-1] is for the extra \n
-        # elif BoilerDict["Environment"] == "Nuke":
-        #     # TODO // Needs a project getter for nuke
-        #     return os.path.normpath(os.path.join(os.path.expanduser("~")))
-        # else:
-        #     return os.path.normpath(os.path.join(os.path.expanduser("~")))
+        # first try to return the passed project
+        if self.passedProject:
+            return self.passedProject
+
+        if BoilerDict["Environment"] == "Maya":
+            return os.path.normpath(cmds.workspace(q=1, rd=1))
+        elif BoilerDict["Environment"] == "3dsMax":
+            return os.path.normpath(MaxPlus.PathManager.GetProjectFolderDir())
+        elif BoilerDict["Environment"] == "Houdini":
+            return os.path.normpath((hou.hscript('echo $JOB')[0])[:-1])  # [:-1] is for the extra \n
+        elif BoilerDict["Environment"] == "Nuke":
+            # TODO // Needs a project getter for nuke
+            return os.path.normpath(os.path.join(os.path.expanduser("~")))
+        else:
+            return os.path.normpath(os.path.join(os.path.expanduser("~")))
 
         # ---------
         # TEMPORARY
         # ---------
 
         # tempPath = os.path.normpath("E:\\SceneManager_Projects\\SceneManager_DemoProject_None_181101")
-        tempPath = os.path.normpath("C:\\Users\\Arda\\Documents\\testArea\\asdf_asdf_asdf_181020")
+        # tempPath = os.path.normpath("C:\\Users\\Arda\\Documents\\testArea\\asdf_asdf_asdf_181020")
         # tempPath = os.path.normpath("D:\\PROJECT_AND_ARGE\\V3Test_V3Test_V3Test_181106")
 
         return tempPath
 
-
-
     def saveMaterial(self, pathList, materialType):
+        print materialType
         subProject = "" if self.currentSubIndex == 0 else self.subProject
         copier = CopyProgress()
         dateDir = datetime.datetime.now().strftime("%y%m%d")
@@ -801,8 +850,8 @@ class ProjectMaterials(RootManager):
                 "materialType": materialType,
                 "subProject": subProject,
                 "entryDate": dateDir
-                        }
-            matDatabaseFile = os.path.join(matDatabaseDir, "%s.json" %niceName)
+            }
+            matDatabaseFile = os.path.join(matDatabaseDir, "%s.json" % niceName)
             self._dumpJson(dictItem, matDatabaseFile)
 
     def scanMaterials(self, materialType, sortBy="date"):
@@ -821,10 +870,46 @@ class ProjectMaterials(RootManager):
         self.materialsInCategory = {self._niceName(file): file for file in glob(os.path.join(searchDir, '*.json'))}
         return self.materialsInCategory
 
+    def execute(self):
+        if not self.currentMaterialInfo:
+            msg = "No material selected"
+            self._exception(360, msg)
+            return
 
+        path = os.path.join(self.projectDir, self.currentMaterialInfo["relativePath"])
+
+        if self.currentPlatform == "Windows":
+            os.startfile(path)
+        elif self.currentPlatform == "Linux":
+            os.system('nautilus %s' % path)
+        else:
+            msg = "%s is not supported" %self.currentPlatform
+            self._exception(210, msg)
+            return
+
+    def cursorInfo(self):
+        """OVERRIDEN - function to return cursor position info for debugging purposes"""
+        pass
+
+
+    def strip_accents(self, s):
+        """
+        Sanitarize the given unicode string and remove all special/localized
+        characters from it.
+
+        Category "Mn" stands for Nonspacing_Mark
+        """
+        try:
+            return ''.join(
+                c for c in unicodedata.normalize('NFD', s)
+                if unicodedata.category(c) != 'Mn'
+            )
+        except:
+            return s
 
 class MainUI(QtWidgets.QMainWindow):
     """Main UI function"""
+
     def __init__(self, projectPath=None, relativePath=None, recursive=False):
         for entry in QtWidgets.QApplication.allWidgets():
             try:
@@ -836,22 +921,22 @@ class MainUI(QtWidgets.QMainWindow):
         super(MainUI, self).__init__(parent=parent)
         # super(MainUI, self).__init__()
 
-        # Set Stylesheet
-        # dirname = os.path.dirname(os.path.abspath(__file__))
-        # # stylesheetFile = os.path.join(dirname, "CSS", "darkorange.stylesheet")
+        # # Set Stylesheet
+        dirname = os.path.dirname(os.path.abspath(__file__))
+        stylesheetFile = os.path.join(dirname, "CSS", "darkorange.stylesheet")
         # stylesheetFile = os.path.join(dirname, "CSS", BoilerDict["Stylesheet"])
-
-        # with open(stylesheetFile, "r") as fh:
-        #     self.setStyleSheet(fh.read())
+        #
+        with open(stylesheetFile, "r") as fh:
+            self.setStyleSheet(fh.read())
 
         # matCategories = ["Storyboard", "Brief", "Artwork", "Footage", "Other"]
 
-        self.promat = ProjectMaterials()
+        self.promat = ProjectMaterials(projectPath=projectPath)
 
         pStatus = self.promat.init_paths()
         if not pStatus:
-            msg=["Nothing to view", "No Scene Manager Database",
-                 "There is no Scene Manager Database Folder in this project path"]
+            msg = ["Nothing to view", "No Scene Manager Database",
+                   "There is no Scene Manager Database Folder in this project path"]
             q = QtWidgets.QMessageBox()
             q.setIcon(QtWidgets.QMessageBox.Information)
             q.setText(msg[0])
@@ -880,7 +965,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         # if not self.promat.checkDatabase():
 
-
         # self.databaseDir = os.path.normpath(os.path.join(self.projectPath, "smDatabase"))
         #
         # if not os.path.isdir(self.databaseDir):
@@ -897,7 +981,6 @@ class MainUI(QtWidgets.QMainWindow):
         #         self.close()
         #         self.deleteLater()
 
-
         self.setObjectName(BoilerDict["Environment"])
         # self.resize(670, 624)
         self.setWindowTitle(BoilerDict["WindowTitle"])
@@ -913,7 +996,7 @@ class MainUI(QtWidgets.QMainWindow):
     def changeEvent(self, event):
         if event.type() == QtCore.QEvent.WindowStateChange:
             if self.windowState() & QtCore.Qt.WindowMaximized:
-                self.stb_label.resize(1, 1) ## 1, 1 is random, can be any number
+                self.stb_label.resize(1, 1)  ## 1, 1 is random, can be any number
                 # event.ignore()
                 # self.close()
                 return
@@ -943,12 +1026,14 @@ class MainUI(QtWidgets.QMainWindow):
         self.stb_tab.setToolTip((""))
         self.stb_tab.setStatusTip((""))
         self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.stb_tab)
-        # self.horizontalLayout = QtWidgets.QHBoxLayout()
 
         self.stb_label = QtImageViewer()
         self.stb_label.setMinimumSize(QtCore.QSize(10, 10))
         self.stb_label.setFrameShape(QtWidgets.QFrame.Box)
         self.stb_label.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.stb_label.canZoom = True
+        self.stb_label.canPan = True
 
         self.left_layout = QtWidgets.QVBoxLayout()
         self.left_layout.setSpacing(0)
@@ -962,11 +1047,6 @@ class MainUI(QtWidgets.QMainWindow):
         # SPLITTER RIGHT SIDE
 
         self.storyboard_treeWidget = QtWidgets.QTreeWidget(self.centralwidget)
-        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        # sizePolicy.setHorizontalStretch(0)
-        # sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setHeightForWidth(self.storyboard_treeWidget.sizePolicy().hasHeightForWidth())
-        # self.storyboard_treeWidget.setSizePolicy(sizePolicy)
         self.storyboard_treeWidget.setToolTip((""))
         self.storyboard_treeWidget.setStatusTip((""))
         self.storyboard_treeWidget.setSortingEnabled(True)
@@ -975,13 +1055,12 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.right_layout = QtWidgets.QVBoxLayout()
         self.right_layout.addWidget(self.storyboard_treeWidget)
-        self.right_layout.setMargin(0)
+        self.right_layout.setContentsMargins(0, 0, 0, 0)
 
         self.right_widget = QtWidgets.QFrame()
         self.right_widget.setLayout(self.right_layout)
         self.right_widget.setContentsMargins(0, 0, 0, 0)
 
-        # self.stb_label = QtWidgets.QLabel(self.splitter)
 
         self.splitter = QtWidgets.QSplitter(parent=self.tabWidget)
         self.splitter.setOrientation(QtCore.Qt.Horizontal)
@@ -995,24 +1074,14 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.splitter.setStretchFactor(0, 1)
 
-        # PyInstaller and Standalone version compatibility
-        # if FORCE_QT4:
-        #     self.tPixmap = QtWidgets.QPixmap("")
-        # else: #     self.tPixmap = QtGui.QPixmap("") # # self.tPixmap = QtGui.QPixmap("")
-        #
-        # self.stb_label.setPixmap(self.tPixmap)
-
         self.verticalLayout_5.addWidget(self.splitter)
 
         self.addStb_pushButton = DropPushButton(self.stb_tab)
         self.addStb_pushButton.setMinimumSize(QtCore.QSize(0, 40))
         self.addStb_pushButton.setToolTip(("Click to select file or drop the file(s) here"))
         self.addStb_pushButton.setStatusTip((""))
-        self.addStb_pushButton.setWhatsThis((""))
-        self.addStb_pushButton.setAccessibleName((""))
-        self.addStb_pushButton.setAccessibleDescription((""))
         self.addStb_pushButton.setText(("Add New Storyboard"))
-        self.addStb_pushButton.setObjectName(("addStb_pushButton"))
+        self.addStb_pushButton.setStyleSheet(ColorStyleDict["Storyboard"])
         self.verticalLayout_5.addWidget(self.addStb_pushButton)
         self.tabWidget.addTab(self.stb_tab, ("Storyboard"))
 
@@ -1022,35 +1091,22 @@ class MainUI(QtWidgets.QMainWindow):
         self.brief_tab = QtWidgets.QWidget()
         self.brief_tab.setToolTip((""))
         self.brief_tab.setStatusTip((""))
-        self.brief_tab.setWhatsThis((""))
-        self.brief_tab.setAccessibleName((""))
-        self.brief_tab.setAccessibleDescription((""))
         self.brief_tab.setObjectName(("brief_tab"))
 
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.brief_tab)
-        self.verticalLayout_4.setObjectName(("verticalLayout_4"))
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_2.setObjectName(("horizontalLayout_2"))
 
         self.brief_textEdit = QtWidgets.QTextEdit(self.brief_tab)
         self.brief_textEdit.setToolTip((""))
         self.brief_textEdit.setStatusTip((""))
-        self.brief_textEdit.setWhatsThis((""))
-        self.brief_textEdit.setAccessibleName((""))
-        self.brief_textEdit.setAccessibleDescription((""))
-        self.brief_textEdit.setObjectName(("brief_textEdit"))
+        self.brief_textEdit.setReadOnly(True)
         self.horizontalLayout_2.addWidget(self.brief_textEdit)
 
         self.brief_treeWidget = QtWidgets.QTreeWidget(self.brief_tab)
-        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        # sizePolicy.setHorizontalStretch(0)
-        # sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setHeightForWidth(self.brief_treeWidget.sizePolicy().hasHeightForWidth())
-        # self.brief_treeWidget.setSizePolicy(sizePolicy)
         self.brief_treeWidget.setSortingEnabled(True)
         header = QtWidgets.QTreeWidgetItem(["Name", "Date"])
         self.brief_treeWidget.setHeaderItem(header)
-        self.brief_treeWidget.sortItems(1, 0)  # 1 is Date Column, 0 is Ascending order
+        self.brief_treeWidget.sortItems(1, QtCore.Qt.AscendingOrder)  # 1 is Date Column, 0 is Ascending order
 
         self.horizontalLayout_2.addWidget(self.brief_treeWidget)
         self.verticalLayout_4.addLayout(self.horizontalLayout_2)
@@ -1058,10 +1114,101 @@ class MainUI(QtWidgets.QMainWindow):
         self.addBrief_pushButton = DropPushButton(self.brief_tab)
         self.addBrief_pushButton.setMinimumSize(QtCore.QSize(0, 40))
         self.addBrief_pushButton.setText(("Add New Document"))
-        self.addBrief_pushButton.setObjectName(("addBrief_pushButton"))
+        self.addBrief_pushButton.setStyleSheet(ColorStyleDict["Brief"])
 
         self.verticalLayout_4.addWidget(self.addBrief_pushButton)
         self.tabWidget.addTab(self.brief_tab, ("Brief"))
+
+        # -----------
+        # REFERENCE TAB
+        # -----------
+        self.reference_tab = QtWidgets.QWidget()
+        self.reference_tab.setToolTip((""))
+        self.reference_tab.setStatusTip((""))
+        self.reference_verticalLayout = QtWidgets.QVBoxLayout(self.reference_tab)
+
+        self.reference_label = QtImageViewer()
+        self.reference_label.setMinimumSize(QtCore.QSize(10, 10))
+        self.reference_label.setFrameShape(QtWidgets.QFrame.Box)
+        self.reference_label.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.leftR_layout = QtWidgets.QVBoxLayout()
+        self.leftR_layout.setSpacing(0)
+        self.leftR_layout.addWidget(self.reference_label)
+        self.leftR_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.leftR_widget = QtWidgets.QFrame()
+        self.leftR_widget.setContentsMargins(0, 0, 0, 0)
+        self.leftR_widget.setLayout(self.leftR_layout)
+
+        # SPLITTER RIGHT SIDE
+
+        self.reference_treeWidget = QtWidgets.QTreeWidget(self.centralwidget)
+        self.reference_treeWidget.setToolTip((""))
+        self.reference_treeWidget.setStatusTip((""))
+        self.reference_treeWidget.setSortingEnabled(True)
+        header = QtWidgets.QTreeWidgetItem(["Name", "Date"])
+        self.reference_treeWidget.setHeaderItem(header)
+
+        self.rightR_layout = QtWidgets.QVBoxLayout()
+        self.rightR_layout.addWidget(self.reference_treeWidget)
+        self.rightR_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.rightR_widget = QtWidgets.QFrame()
+        self.rightR_widget.setLayout(self.rightR_layout)
+        self.rightR_widget.setContentsMargins(0, 0, 0, 0)
+
+
+        self.splitterRef = QtWidgets.QSplitter(parent=self.tabWidget)
+        self.splitterRef.setOrientation(QtCore.Qt.Horizontal)
+        self.splitterRef.setHandleWidth(8)
+        self.splitterRef.addWidget(self.leftR_widget)
+        self.splitterRef.addWidget(self.rightR_widget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(1)
+        sizePolicy.setVerticalStretch(1)
+        self.splitterRef.setSizePolicy(sizePolicy)
+
+        self.splitterRef.setStretchFactor(0, 1)
+
+        self.reference_verticalLayout.addWidget(self.splitterRef)
+
+        self.addReference_pushButton = DropPushButton(self.stb_tab)
+        self.addReference_pushButton.setMinimumSize(QtCore.QSize(0, 40))
+        self.addReference_pushButton.setToolTip(("Click to select file or drop the file(s) here"))
+        self.addReference_pushButton.setStatusTip((""))
+        self.addReference_pushButton.setText(("Add New Reference"))
+        self.addReference_pushButton.setStyleSheet(ColorStyleDict["Reference"])
+        self.reference_verticalLayout.addWidget(self.addReference_pushButton)
+        self.tabWidget.addTab(self.reference_tab, ("Reference"))
+
+        # -----------------------------------------
+        # self.reference_tab = QtWidgets.QWidget()
+        # self.reference_tab.setToolTip((""))
+        # self.reference_tab.setStatusTip((""))
+        #
+        # self.reference_verticalLayout = QtWidgets.QVBoxLayout(self.reference_tab)
+        #
+        # self.reference_treeWidget = QtWidgets.QTreeWidget(self.reference_tab)
+        # self.reference_treeWidget.setToolTip((""))
+        # self.reference_treeWidget.setStatusTip((""))
+        #
+        # self.reference_treeWidget.setSortingEnabled(True)
+        # header = QtWidgets.QTreeWidgetItem(["Name", "Date"])
+        # self.reference_treeWidget.setHeaderItem(header)
+        # self.reference_treeWidget.sortItems(1, 0)  # 1 is Date Column, 0 is Ascending order
+        #
+        # self.reference_verticalLayout.addWidget(self.reference_treeWidget)
+        #
+        # self.addReference_pushButton = DropPushButton(self.reference_tab)
+        # self.addReference_pushButton.setMinimumSize(QtCore.QSize(0, 40))
+        # self.addReference_pushButton.setToolTip((""))
+        # self.addReference_pushButton.setStatusTip((""))
+        # self.addReference_pushButton.setText(("Add New Artwork (Folder)"))
+        # self.addReference_pushButton.setStyleSheet(ColorStyleDict["Reference"])
+        #
+        # self.reference_verticalLayout.addWidget(self.addReference_pushButton)
+        # self.tabWidget.addTab(self.reference_tab, ("Reference"))
 
         # -----------
         # ARTWORK TAB
@@ -1078,19 +1225,13 @@ class MainUI(QtWidgets.QMainWindow):
         self.verticalLayout_3.setObjectName(("verticalLayout_3"))
 
         self.artwork_treeWidget = QtWidgets.QTreeWidget(self.artwork_tab)
-        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        # sizePolicy.setHorizontalStretch(0)
-        # sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setHeightForWidth(self.artwork_treeWidget.sizePolicy().hasHeightForWidth())
-        # self.artwork_treeWidget.setSizePolicy(sizePolicy)
         self.artwork_treeWidget.setToolTip((""))
         self.artwork_treeWidget.setStatusTip((""))
 
         self.artwork_treeWidget.setSortingEnabled(True)
         header = QtWidgets.QTreeWidgetItem(["Name", "Date"])
         self.artwork_treeWidget.setHeaderItem(header)
-        self.artwork_treeWidget.sortItems(1, 0)  # 1 is Date Column, 0 is Ascending order
-
+        self.artwork_treeWidget.sortItems(1, QtCore.Qt.AscendingOrder)  # 1 is Date Column, 0 is Ascending order
 
         self.verticalLayout_3.addWidget(self.artwork_treeWidget)
 
@@ -1098,12 +1239,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.addArtwork_pushButton.setMinimumSize(QtCore.QSize(0, 40))
         self.addArtwork_pushButton.setToolTip((""))
         self.addArtwork_pushButton.setStatusTip((""))
-        self.addArtwork_pushButton.setWhatsThis((""))
-        self.addArtwork_pushButton.setAccessibleName((""))
-        self.addArtwork_pushButton.setAccessibleDescription((""))
         self.addArtwork_pushButton.setText(("Add New Artwork (Folder)"))
-        self.addArtwork_pushButton.setShortcut((""))
-        self.addArtwork_pushButton.setObjectName(("addArtwork_pushButton"))
+        self.addArtwork_pushButton.setStyleSheet(ColorStyleDict["Artwork"])
 
         self.verticalLayout_3.addWidget(self.addArtwork_pushButton)
         self.tabWidget.addTab(self.artwork_tab, ("Artwork"))
@@ -1114,26 +1251,16 @@ class MainUI(QtWidgets.QMainWindow):
         self.footage_tab = QtWidgets.QWidget()
         self.footage_tab.setToolTip((""))
         self.footage_tab.setStatusTip((""))
-        self.footage_tab.setWhatsThis((""))
-        self.footage_tab.setAccessibleName((""))
-        self.footage_tab.setAccessibleDescription((""))
-        self.footage_tab.setObjectName(("footage_tab"))
 
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.footage_tab)
-        self.verticalLayout_2.setObjectName(("verticalLayout_2"))
 
         self.footage_treeWidget = QtWidgets.QTreeWidget(self.footage_tab)
-        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        # sizePolicy.setHorizontalStretch(0)
-        # sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setHeightForWidth(self.footage_treeWidget.sizePolicy().hasHeightForWidth())
-        # self.footage_treeWidget.setSizePolicy(sizePolicy)
         self.footage_treeWidget.setToolTip((""))
         self.footage_treeWidget.setStatusTip((""))
         self.footage_treeWidget.setSortingEnabled(True)
         header = QtWidgets.QTreeWidgetItem(["Name", "Date"])
         self.footage_treeWidget.setHeaderItem(header)
-        self.footage_treeWidget.sortItems(1, 0)  # 1 is Date Column, 0 is Ascending order
+        self.footage_treeWidget.sortItems(1, QtCore.Qt.AscendingOrder)  # 1 is Date Column, 0 is Ascending order
 
         self.verticalLayout_2.addWidget(self.footage_treeWidget)
 
@@ -1141,11 +1268,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.addFootage_pushButton.setMinimumSize(QtCore.QSize(0, 40))
         self.addFootage_pushButton.setToolTip((""))
         self.addFootage_pushButton.setStatusTip((""))
-        self.addFootage_pushButton.setWhatsThis((""))
-        self.addFootage_pushButton.setAccessibleName((""))
-        self.addFootage_pushButton.setAccessibleDescription((""))
         self.addFootage_pushButton.setText(("Add New Footage"))
-        self.addFootage_pushButton.setObjectName(("addFootage_pushButton"))
+        self.addFootage_pushButton.setStyleSheet(ColorStyleDict["Footage"])
 
         self.verticalLayout_2.addWidget(self.addFootage_pushButton)
         self.tabWidget.addTab(self.footage_tab, ("Footage"))
@@ -1156,60 +1280,42 @@ class MainUI(QtWidgets.QMainWindow):
         self.other_tab = QtWidgets.QWidget()
         self.other_tab.setToolTip((""))
         self.other_tab.setStatusTip((""))
-        self.other_tab.setWhatsThis((""))
-        self.other_tab.setAccessibleName((""))
-        self.other_tab.setAccessibleDescription((""))
-        self.other_tab.setObjectName(("other_tab"))
 
         self.verticalLayout = QtWidgets.QVBoxLayout(self.other_tab)
-        self.verticalLayout.setObjectName(("verticalLayout"))
 
         self.other_treeWidget = QtWidgets.QTreeWidget(self.other_tab)
-        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        # sizePolicy.setHorizontalStretch(0)
-        # sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setHeightForWidth(self.other_treeWidget.sizePolicy().hasHeightForWidth())
-        # self.other_treeWidget.setSizePolicy(sizePolicy)
         self.other_treeWidget.setToolTip((""))
         self.other_treeWidget.setStatusTip((""))
         self.other_treeWidget.setSortingEnabled(True)
         header = QtWidgets.QTreeWidgetItem(["Name", "Date"])
         self.other_treeWidget.setHeaderItem(header)
-        self.other_treeWidget.sortItems(1, 0)  # 1 is Date Column, 0 is Ascending order
+        self.other_treeWidget.sortItems(1, QtCore.Qt.AscendingOrder)  # 1 is Date Column, 0 is Ascending order
 
         self.verticalLayout.addWidget(self.other_treeWidget)
-
 
         self.addOther_pushButton = DropPushButton(self.other_tab)
         self.addOther_pushButton.setMinimumSize(QtCore.QSize(0, 40))
         self.addOther_pushButton.setToolTip((""))
         self.addOther_pushButton.setStatusTip((""))
-        self.addOther_pushButton.setWhatsThis((""))
-        self.addOther_pushButton.setAccessibleName((""))
-        self.addOther_pushButton.setAccessibleDescription((""))
         self.addOther_pushButton.setText(("Add New Footage"))
-        self.addOther_pushButton.setShortcut((""))
-        self.addOther_pushButton.setObjectName(("addOther_pushButton"))
+        self.addOther_pushButton.setStyleSheet(ColorStyleDict["Other"])
+
         self.verticalLayout.addWidget(self.addOther_pushButton)
         self.tabWidget.addTab(self.other_tab, ("Other"))
+
         self.verticalLayout_6.addWidget(self.tabWidget)
+
         self.setCentralWidget(self.centralwidget)
+
         self.menubar = QtWidgets.QMenuBar(self)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 715, 21))
         self.menubar.setToolTip((""))
         self.menubar.setStatusTip((""))
-        self.menubar.setWhatsThis((""))
-        self.menubar.setAccessibleName((""))
-        self.menubar.setAccessibleDescription((""))
-        self.menubar.setObjectName(("menubar"))
         self.setMenuBar(self.menubar)
+
         self.statusbar = QtWidgets.QStatusBar(self)
         self.statusbar.setToolTip((""))
         self.statusbar.setStatusTip((""))
-        self.statusbar.setWhatsThis((""))
-        self.statusbar.setAccessibleName((""))
-        self.statusbar.setAccessibleDescription((""))
-        self.statusbar.setObjectName(("statusbar"))
         self.setStatusBar(self.statusbar)
 
         self.tabWidget.setCurrentIndex(0)
@@ -1218,35 +1324,113 @@ class MainUI(QtWidgets.QMainWindow):
         # SIGNAL CONNECTIONS
         # ------------------
 
-        self.subP_combobox.activated.connect(self.onSubProjectChange)
+        self.subP_combobox.activated.connect(self.initSubProjects)
 
-        self.storyboard_treeWidget.currentItemChanged.connect(lambda item: self.onChangeItem(item, "Storyboard"))
-        self.brief_treeWidget.currentItemChanged.connect(lambda item: self.onChangeItem(item, "Brief"))
-        self.artwork_treeWidget.currentItemChanged.connect(lambda item: self.onChangeItem(item, "Artwork"))
-        self.footage_treeWidget.currentItemChanged.connect(lambda item: self.onChangeItem(item, "Footage"))
-        self.other_treeWidget.currentItemChanged.connect(lambda item: self.onChangeItem(item, "Other"))
+        self.storyboard_treeWidget.currentItemChanged.connect(self.onChangeItem)
+        self.brief_treeWidget.currentItemChanged.connect(self.onChangeItem)
+        self.reference_treeWidget.currentItemChanged.connect(self.onChangeItem)
+        self.artwork_treeWidget.currentItemChanged.connect(self.onChangeItem)
+        self.footage_treeWidget.currentItemChanged.connect(self.onChangeItem)
+        self.other_treeWidget.currentItemChanged.connect(self.onChangeItem)
 
         self.addStb_pushButton.dropped.connect(lambda path: self.droppedPath(path, "Storyboard"))
         self.addBrief_pushButton.dropped.connect(lambda path: self.droppedPath(path, "Brief"))
+        self.addReference_pushButton.dropped.connect(lambda path: self.droppedPath(path, "Reference"))
         self.addFootage_pushButton.dropped.connect(lambda path: self.droppedPath(path, "Footage"))
         self.addArtwork_pushButton.dropped.connect(lambda path: self.droppedPath(path, "Artwork"))
         self.addOther_pushButton.dropped.connect(lambda path: self.droppedPath(path, "Other"))
 
-        self.tabWidget.currentChanged.connect(self.onMatCategoryChange)
+        self.storyboard_treeWidget.doubleClicked.connect(self.promat.execute)
+        self.brief_treeWidget.doubleClicked.connect(self.promat.execute)
+        self.reference_treeWidget.doubleClicked.connect(self.promat.execute)
+        self.artwork_treeWidget.doubleClicked.connect(self.promat.execute)
+        self.footage_treeWidget.doubleClicked.connect(self.promat.execute)
+        self.other_treeWidget.doubleClicked.connect(self.promat.execute)
+
+        self.tabWidget.currentChanged.connect(self.initCategoryItems)
 
     def initMainUI(self):
         """Inits the ui elements with the information from  logic class"""
+
+        # Initalization Hierarchy:
+
+        # InitMainUI -> triggered by initial execution
+        # InitSubProjects -> triggered by self.subP_combobox.activated signal
+        # Init Material Category Items -> triggered by self.tabWidget.currentChanged signal and drop action/new material by file
+        # Display info for selected item -> triggered by self.storyboard_treeWidget.currentItemChanged and self.brief_treeWidget.currentItemChanged signals
+
         # update sub-projects
         self.subP_combobox.addItems(self.promat.getSubProjects())
-        self.updateViews()
-        pass
+        self.subP_combobox.setCurrentIndex(0)
+        self.initSubProjects()
 
-    def onChangeItem(self, item, matCategory):
+    def initSubProjects(self):
+        self.promat.currentSubIndex = self.subP_combobox.currentIndex()
+        self.initCategoryItems()
+
+    def initCategoryItems(self):
+
+        self.matCategory = self.tabWidget.tabText(self.tabWidget.currentIndex())
+
+        materials = self.promat.scanMaterials(str(self.matCategory))
+
+        # get the right widget
+        if self.matCategory == "Storyboard":
+            treewidget = self.storyboard_treeWidget
+        elif self.matCategory == "Brief":
+            treewidget = self.brief_treeWidget
+        elif self.matCategory == "Reference":
+            treewidget = self.reference_treeWidget
+        elif self.matCategory == "Artwork":
+            treewidget = self.artwork_treeWidget
+        elif self.matCategory == "Footage":
+            treewidget = self.footage_treeWidget
+        elif self.matCategory == "Other":
+            treewidget = self.other_treeWidget
+        else:
+            print "cannot get category"
+            return
+
+        treewidget.clear()
+        for x in materials.items():
+            timestamp = os.path.getmtime(x[1])
+            timestampFormatted = datetime.datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
+            item = QtWidgets.QTreeWidgetItem(treewidget, [x[0], str(timestampFormatted)])
+        # sort by date default
+        treewidget.sortItems(1, QtCore.Qt.AscendingOrder)  # 1 is Date Column, 0 is Ascending order
+
+
+
+    def onChangeItem(self, item):
+        # print item
         if not item:
             return
-        if matCategory == "Storyboard":
-            # print item
+
+        try:
             matDBpath = self.promat.materialsInCategory[str(item.text(0))]
+        except KeyError:
+            return
+
+        self.promat._loadMaterialInfo(matDBpath)
+
+        if self.matCategory == "Storyboard":
+            # print item
+            pic = self.promat.getMaterialPath()
+            # update thumb
+            if FORCE_QT4:
+                self.tPixmap = QtWidgets.QPixmap(pic)
+            else:
+                self.tPixmap = QtGui.QPixmap(pic)
+
+
+            self.stb_label.setImage(self.tPixmap)
+
+        elif self.matCategory == "Brief":
+            docContent = self.promat.getFileContent()
+            self.brief_textEdit.setPlainText(docContent)
+
+        elif self.matCategory == "Reference":
+            # print item
             self.promat._loadMaterialInfo(matDBpath)
             pic = self.promat.getMaterialPath()
             # update thumb
@@ -1255,116 +1439,15 @@ class MainUI(QtWidgets.QMainWindow):
             else:
                 self.tPixmap = QtGui.QPixmap(pic)
 
-            self.stb_label.setImage(self.tPixmap)
-
-        elif matCategory == "Brief":
-            matDBpath = self.promat.materialsInCategory[str(item.text(0))]
-            self.promat._loadMaterialInfo(matDBpath)
-            # docPath = self.promat.getMaterialPath()
-            # qfile = QtCore.QFile(docPath)
-
-            docContent = self.promat.getFileContent()
-            # content = QtCore.QTextStream(qfile)
-            self.brief_textEdit.setPlainText(docContent)
-
-
-
-
-    def onSubProjectChange(self):
-        self.promat.currentSubIndex = self.subP_combobox.currentIndex()
-
-    def onMatCategoryChange(self):
-        matCategoryName = self.tabWidget.tabText(self.tabWidget.currentIndex())
-        # print self.promat.scanMaterials(matCategoryName)
-        self.updateViews()
-
-    def updateViews(self):
-        matCategory = self.tabWidget.tabText(self.tabWidget.currentIndex())
-        materials = self.promat.scanMaterials(str(matCategory))
-
-        # keys = materials.keys()
-        # for date in sorted(keys, key=lambda date: os.path.getmtime(materials[date])):
-        #     print date
-
-        # get the right widget
-        if matCategory == "Storyboard":
-            treewidget = self.storyboard_treeWidget
-        elif matCategory == "Brief":
-            treewidget = self.brief_treeWidget
-        elif matCategory == "Artwork":
-            treewidget = self.artwork_treeWidget
-        elif matCategory == "Footage":
-            treewidget = self.footage_treeWidget
-        elif matCategory == "Other":
-            treewidget = self.other_treeWidget
-
-        treewidget.clear()
-        for x in materials.items():
-            timestamp = os.path.getmtime(x[1])
-            timestampFormatted = datetime.datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
-            item = QtWidgets.QTreeWidgetItem(treewidget, [x[0], str(timestampFormatted)])
-        # sort by date default
-        treewidget.sortItems(1, 0)  # 1 is Date Column, 0 is Ascending order
-
-        # if matCategory == "Storyboard":
-        #     self.storyboard_treeWidget.clear()
-        #     for x in materials.items():
-        #         timestamp = os.path.getmtime(x[1])
-        #         timestampFormatted = datetime.datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
-        #         item = QtWidgets.QTreeWidgetItem(self.storyboard_treeWidget, [x[0], str(timestampFormatted)])
-        #     sort by date default
-            # self.storyboard_treeWidget.sortItems(1, 0) # 1 is Date Column, 0 is Ascending order
-        #
-        # elif matCategory == "Brief":
-        #     self.brief_treeWidget.clear()
-        #     for x in materials.items():
-        #         pass
-
-
-
-        # if matCategory == "Storyboard":
-        #     self.storyboard_listWidget.clear()
-        #     self.storyboard_listWidget.addItems(self._sortDictionary(materials, sortBy="date", reversed=False))
-        #     pass
-
-
-
-        # elif matCategory == "Brief":
-        #     self.brief_listWidget.clear()
-        #     self.brief_listWidget.addItems(materials)
-        #     pass
-        # elif matCategory == "Artwork":
-        #     self.artwork_listWidget.clear()
-        #     self.artwork_listWidget.addItems(materials)
-        #     pass
-        # elif matCategory == "Footage":
-        #     self.footage_listWidget.clear()
-        #     self.footage_listWidget.addItems(materials)
-        #     pass
-        # elif matCategory == "Other":
-        #     self.other_listWidget.clear()
-        #     self.other_listWidget.addItems(materials)
-        #     pass
-        # self.stb_tableWidget.
-
-    def _sortDictionary(self, dictionary, sortBy="date", reversed=False):
-        """sorts the Sm Dictionary and returns the sorted keys"""
-        keys = dictionary.keys()
-        if sortBy == "date":
-            sortedKeys = [date for date in sorted(keys, key=lambda date: os.path.getmtime(dictionary[date]), reverse=reversed)]
-        elif sortBy == "name":
-            sortedKeys = [name for name in sorted(keys, reverse=reversed)]
-        elif sortBy == "size":
-            sortedKeys = [size for size in sorted(keys, key=lambda size: os.path.getsize(dictionary[size]), reverse=reversed)]
+            self.reference_label.setImage(self.tPixmap)
         else:
-            raise Exception("projectMaterials - _sortDictionary - unidentified sorting type")
-        return sortedKeys
+            return
+
 
 
     def droppedPath(self, path, material):
         self.promat.saveMaterial(path, material)
-
-
+        self.initCategoryItems()
 
 
 class DropPushButton(QtWidgets.QPushButton):
@@ -1377,9 +1460,8 @@ class DropPushButton(QtWidgets.QPushButton):
 
     def __init__(self, type, parent=None):
         super(DropPushButton, self).__init__(parent)
-        self.oldText=""
+        self.oldText = ""
         self.setAcceptDrops(True)
-
 
     def dragEnterEvent(self, event):
         # if event.mimeData().hasFormat('text/uri-list'):
@@ -1404,9 +1486,7 @@ class DropPushButton(QtWidgets.QPushButton):
             event.ignore()
 
     def dropEvent(self, event):
-        # rawPath = event.mimeData().data('text/uri-list').__str__()
-        # path = rawPath.replace("file:///", "").splitlines()[0]
-        # self.dropped.emit(path)
+
         links = []
 
         for url in event.mimeData().urls():
@@ -1421,12 +1501,8 @@ if __name__ == '__main__':
     selfLoc = os.path.dirname(os.path.abspath(__file__))
     stylesheetFile = os.path.join(selfLoc, "CSS", "darkorange.stylesheet")
 
-
     with open(stylesheetFile, "r") as fh:
         app.setStyleSheet(fh.read())
     window = MainUI()
     window.show()
     sys.exit(app.exec_())
-
-
-
