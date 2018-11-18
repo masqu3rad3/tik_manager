@@ -145,6 +145,37 @@ def getMainWindow():
 #         # self.setBaseSize(50, 50)
 #         # self.set
 
+class QFileAndFolderDialog(QtWidgets.QFileDialog):
+    def __init__(self, *args):
+        QtWidgets.QFileDialog.__init__(self, *args)
+        self.setOption(self.DontUseNativeDialog, True)
+        self.setFileMode(self.ExistingFiles)
+        btns = self.findChildren(QtWidgets.QPushButton)
+        self.openBtn = [x for x in btns if 'open' in str(x.text()).lower()][0]
+        self.openBtn.clicked.disconnect()
+        self.openBtn.clicked.connect(self.openClicked)
+        self.tree = self.findChild(QtWidgets.QTreeView)
+
+    def openClicked(self):
+        inds = self.tree.selectionModel().selectedIndexes()
+        files = []
+        for i in inds:
+            if i.column() == 0:
+                # print self.directory().absolutePath(), i.data()
+                # files.append(os.path.join(str(self.directory().absolutePath()),str(i.data().toString())))
+                # print "varyant", i.data().toString()
+                dir = str(self.directory().absolutePath())
+                file = str((i.data().toString()))
+                path = os.path.normpath(os.path.join(dir, file))
+                print "openClickedPAth", path
+                # encodedPath = path.encode("ascii", )
+                files.append(path)
+        self.selectedFiles = files
+        self.hide()
+
+    def filesSelected(self):
+        return self.selectedFiles
+
 class QtImageViewer(QtWidgets.QGraphicsView):
     """ PyQt image viewer widget for a QPixmap in a QGraphicsView scene with mouse zooming and panning.
     Displays a QImage or QPixmap (QImage is internally converted to a QPixmap).
@@ -826,7 +857,6 @@ class ProjectMaterials(RootManager):
         return tempPath
 
     def saveMaterial(self, pathList, materialType):
-        print materialType
         subProject = "" if self.currentSubIndex == 0 else self.subProject
         copier = CopyProgress()
         dateDir = datetime.datetime.now().strftime("%y%m%d")
@@ -1340,6 +1370,13 @@ class MainUI(QtWidgets.QMainWindow):
         self.addArtwork_pushButton.dropped.connect(lambda path: self.droppedPath(path, "Artwork"))
         self.addOther_pushButton.dropped.connect(lambda path: self.droppedPath(path, "Other"))
 
+        self.addStb_pushButton.clicked.connect(lambda: self.onButtonPush("Storyboard"))
+        self.addBrief_pushButton.clicked.connect(lambda: self.onButtonPush("Brief"))
+        self.addReference_pushButton.clicked.connect(lambda: self.onButtonPush("Reference"))
+        self.addFootage_pushButton.clicked.connect(lambda: self.onButtonPush("Footage"))
+        self.addArtwork_pushButton.clicked.connect(lambda: self.onButtonPush("Artwork"))
+        self.addOther_pushButton.clicked.connect(lambda: self.onButtonPush("Other"))
+
         self.storyboard_treeWidget.doubleClicked.connect(self.promat.execute)
         self.brief_treeWidget.doubleClicked.connect(self.promat.execute)
         self.reference_treeWidget.doubleClicked.connect(self.promat.execute)
@@ -1449,6 +1486,22 @@ class MainUI(QtWidgets.QMainWindow):
         self.promat.saveMaterial(path, material)
         self.initCategoryItems()
 
+    def onButtonPush(self, material):
+        selDialog = QFileAndFolderDialog()
+        # selDialog = QtWidgets.QFileDialog()
+        # selDialog.setFileMode(QtWidgets.QFileDialog.DirectoryOnly)
+        # selDialog.setOption(QtWidgets.QFileDialog.DontUseNativeDialog, True)
+        # selDialog.setFileMode(selDialog.Directory)
+        # names = selDialog.getOpenFileNames(self, "Select files")
+        selDialog.setLabelText(selDialog.Accept, "Choose")
+        x = selDialog.exec_()
+        paths = selDialog.filesSelected()
+        print "paths", paths
+        # for path in paths:
+            # print os.path.normpath(path.encode('ascii', 'replace'))
+        self.promat.saveMaterial(paths, material)
+        self.initCategoryItems()
+
 
 class DropPushButton(QtWidgets.QPushButton):
     """Custom LineEdit Class accepting drops"""
@@ -1505,4 +1558,5 @@ if __name__ == '__main__':
         app.setStyleSheet(fh.read())
     window = MainUI()
     window.show()
+    # window.onButtonPush("Storyboard")
     sys.exit(app.exec_())
