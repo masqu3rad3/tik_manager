@@ -165,7 +165,12 @@ class QFileAndFolderDialog(QtWidgets.QFileDialog):
                 # files.append(os.path.join(str(self.directory().absolutePath()),str(i.data().toString())))
                 # print "varyant", i.data().toString()
                 dir = str(self.directory().absolutePath())
-                file = str((i.data().toString()))
+                # file = str((i.data().toString()))
+                if not type(i.data()) == unicode:
+                    file = str(i.data().toString())
+                else:
+                    # PyQt4 differences...
+                    file = str(i.data())
                 path = os.path.normpath(os.path.join(dir, file))
                 print "openClickedPAth", path
                 # encodedPath = path.encode("ascii", )
