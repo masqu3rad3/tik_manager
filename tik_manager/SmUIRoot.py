@@ -2091,11 +2091,15 @@ class MainUI(QtWidgets.QMainWindow):
                     sceneFormat = button.text()
                     break
             AssertionError(sceneFormat)
-            self.manager.saveBaseScene(category, name, subIndex, makeReference, notes, sceneFormat)
-            self.populateBaseScenes()
-            self.manager.getOpenSceneInfo()
-            self._initOpenScene()
-            saveBaseScene_Dialog.accept()
+            state = self.manager.saveBaseScene(category, name, subIndex, makeReference, notes, sceneFormat)
+            if state[0] != -1:
+                print "state", state
+                self.populateBaseScenes()
+                self.manager.getOpenSceneInfo()
+                self._initOpenScene()
+                saveBaseScene_Dialog.accept()
+            else:
+                pass
 
         # SIGNALS
         # -------
@@ -2127,7 +2131,7 @@ class MainUI(QtWidgets.QMainWindow):
         right_verticalLayout.setContentsMargins(-1, -1, 10, 10)
         right_verticalLayout.setSpacing(6)
 
-        notes_label = QtGui.QLabel(saveV_Dialog)
+        notes_label = QtWidgets.QLabel(saveV_Dialog)
         notes_label.setText(("Notes"))
         right_verticalLayout.addWidget(notes_label)
 
@@ -2156,7 +2160,7 @@ class MainUI(QtWidgets.QMainWindow):
             radioButtonList[0].setVisible(False)
 
         formats_horizontalLayout_2 = QtWidgets.QHBoxLayout()
-        spacerItem1 = QtGui.QSpacerItem(80, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        spacerItem1 = QtWidgets.QSpacerItem(80, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         formats_horizontalLayout_2.addItem(spacerItem1)
 
         makeReference_checkBox = QtWidgets.QCheckBox(saveV_Dialog)
@@ -2230,7 +2234,7 @@ class MainUI(QtWidgets.QMainWindow):
                     sceneFormat = button.text()
                     break
 
-            print "sceneFormat", sceneFormat
+            # print "sceneFormat", sceneFormat
             sceneInfo = self.manager.saveVersion(makeReference=makeReference_checkBox.checkState(),
                                                  versionNotes=notes_plainTextEdit.toPlainText(),
                                                  sceneFormat=sceneFormat)
@@ -2851,6 +2855,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.msg.setInformativeText(textInfo)
         self.msg.setWindowTitle(textTitle)
         self.msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        self.msg.button(QtWidgets.QMessageBox.Ok).setFixedHeight(30)
+        self.msg.button(QtWidgets.QMessageBox.Ok).setFixedWidth(100)
         self.msg.show()
 
     def queryPop(self, type, textTitle="Question", textHeader="", textInfo="", password=""):
@@ -2878,6 +2884,13 @@ class MainUI(QtWidgets.QMainWindow):
             q.setWindowTitle(textTitle)
             q.setStandardButtons(
                 QtWidgets.QMessageBox.Save | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Cancel)
+
+            q.button(QtWidgets.QMessageBox.Save).setFixedHeight(30)
+            q.button(QtWidgets.QMessageBox.Save).setFixedWidth(100)
+            q.button(QtWidgets.QMessageBox.No).setFixedHeight(30)
+            q.button(QtWidgets.QMessageBox.No).setFixedWidth(100)
+            q.button(QtWidgets.QMessageBox.Cancel).setFixedHeight(30)
+            q.button(QtWidgets.QMessageBox.Cancel).setFixedWidth(100)
             ret = q.exec_()
             if ret == QtWidgets.QMessageBox.Save:
                 return "yes"
@@ -2893,6 +2906,10 @@ class MainUI(QtWidgets.QMainWindow):
             q.setInformativeText(textInfo)
             q.setWindowTitle(textTitle)
             q.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
+            q.button(QtWidgets.QMessageBox.Ok).setFixedHeight(30)
+            q.button(QtWidgets.QMessageBox.Ok).setFixedWidth(100)
+            q.button(QtWidgets.QMessageBox.Cancel).setFixedHeight(30)
+            q.button(QtWidgets.QMessageBox.Cancel).setFixedWidth(100)
             ret = q.exec_()
             if ret == QtWidgets.QMessageBox.Ok:
                 return "ok"
@@ -2906,6 +2923,10 @@ class MainUI(QtWidgets.QMainWindow):
             q.setInformativeText(textInfo)
             q.setWindowTitle(textTitle)
             q.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+            q.button(QtWidgets.QMessageBox.Yes).setFixedHeight(30)
+            q.button(QtWidgets.QMessageBox.Yes).setFixedWidth(100)
+            q.button(QtWidgets.QMessageBox.No).setFixedHeight(30)
+            q.button(QtWidgets.QMessageBox.No).setFixedWidth(100)
             ret = q.exec_()
             if ret == QtWidgets.QMessageBox.Yes:
                 return "yes"

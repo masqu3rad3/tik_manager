@@ -5,7 +5,7 @@ and checks the scene for possible errors
 Double Clicking on warnings open up the related dialog.
 """
 import _version
-import pymel.core as pm
+# import pymel.core as pm
 import maya.cmds as cmds
 import os
 import maya.mel as mel
@@ -164,70 +164,114 @@ class ImageManager(RootManager):
         return os.path.join(self.folderTemplate, self.nameTemplate)
 
     def initRenderer(self):
-        self.currentRenderer = pm.getAttr('defaultRenderGlobals.currentRenderer')
+        # self.currentRenderer = pm.getAttr('defaultRenderGlobals.currentRenderer')
+        self.currentRenderer = cmds.getAttr('defaultRenderGlobals.currentRenderer')
         logger.debug("Renderer:%s" %self.currentRenderer)
 
         if self.currentRenderer == "arnold":
             # set the image format to 'exr'
-            arnoldDriver = pm.PyNode('defaultArnoldDriver')
-            arnoldDriver.ai_translator.set("exr")
+            # arnoldDriver = pm.PyNode('defaultArnoldDriver')
+            # arnoldDriver.ai_translator.set("exr")
+            cmds.setAttr('defaultArnoldDriver.ai_translator', 'exr', type='string')
+
             # set the compression to 'zips'
-            pm.setAttr("%s.exrCompression" % arnoldDriver, 2)
+            # pm.setAttr("%s.exrCompression" % arnoldDriver, 2)
+            cmds.setAttr("defaultArnoldDriver.exrCompression" , 2)
             # Frame/Animation ext and Frame Padding
-            pm.setAttr("defaultRenderGlobals.outFormatControl", 0)
-            pm.setAttr("defaultRenderGlobals.animation", 1)
-            pm.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
-            pm.setAttr("defaultRenderGlobals.extensionPadding", 4)
+            # pm.setAttr("defaultRenderGlobals.outFormatControl", 0)
+            # pm.setAttr("defaultRenderGlobals.animation", 1)
+            # pm.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
+            # pm.setAttr("defaultRenderGlobals.extensionPadding", 4)
+            cmds.setAttr("defaultRenderGlobals.outFormatControl", 0)
+            cmds.setAttr("defaultRenderGlobals.animation", 1)
+            cmds.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
+            cmds.setAttr("defaultRenderGlobals.extensionPadding", 4)
             # set File Name Prefix
             self.resolvedName = self.resolvePath(self.currentRenderer)
-            pm.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName)
+            # pm.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName)
+            cmds.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName, type='string')
             return
 
         elif self.currentRenderer == "vray":
             # set the image format to 'exr'
-            vraySettings = pm.PyNode("vraySettings")
-            pm.setAttr("%s.imageFormatStr" % vraySettings, 'exr')
+            # vraySettings = pm.PyNode("vraySettings")
+            # pm.setAttr("%s.imageFormatStr" % vraySettings, 'exr')
+            cmds.setAttr('vraySettings.imageFormatStr', 'exr', type='string')
             # set the compression to 'zips'
-            pm.setAttr("%s.imgOpt_exr_compression" % vraySettings, 3)
+            # pm.setAttr("%s.imgOpt_exr_compression" % vraySettings, 3)
+            cmds.setAttr("vraySettings.imgOpt_exr_compression", 3)
             # Frame/Animation ext and Frame Padding
-            pm.setAttr("%s.animType" % vraySettings, 1)
-            pm.setAttr(vraySettings.fileNamePadding, 4)
+            # pm.setAttr("%s.animType" % vraySettings, 1)
+            # pm.setAttr(vraySettings.fileNamePadding, 4)
+            cmds.setAttr("vraySettings.animType", 1)
+            cmds.setAttr("vraySettings.fileNamePadding", 4)
             # set File Name Prefix
             self.resolvedName = self.resolvePath(self.currentRenderer)
-            pm.setAttr("%s.fileNamePrefix" %vraySettings, self.resolvedName)
+            # pm.setAttr("%s.fileNamePrefix" %vraySettings, self.resolvedName)
+            cmds.setAttr("vraySettings.fileNamePrefix", self.resolvedName, type='string')
             return
 
         elif self.currentRenderer == "mentalRay":
+            # # set the image format to 'exr'
+            # pm.setAttr("defaultRenderGlobals.imageFormat", 51)
+            # pm.setAttr("defaultRenderGlobals.imfPluginKey", "exr")
+            # pm.setAttr("defaultRenderGlobals.imageCompression", 0)
+            # # set the compression to 'zips'
+            # pm.setAttr("mentalrayGlobals.imageCompression", 5)
+            # # Frame/Animation ext and Frame Padding
+            # pm.setAttr("defaultRenderGlobals.outFormatControl", 0)
+            # pm.setAttr("defaultRenderGlobals.animation", 1)
+            # pm.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
+            # pm.setAttr("defaultRenderGlobals.extensionPadding", 4)
+            # # set File Name Prefix
+            # self.resolvedName = self.resolvePath()
+            # pm.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName)
+
             # set the image format to 'exr'
-            pm.setAttr("defaultRenderGlobals.imageFormat", 51)
-            pm.setAttr("defaultRenderGlobals.imfPluginKey", "exr")
-            pm.setAttr("defaultRenderGlobals.imageCompression", 0)
+            cmds.setAttr("defaultRenderGlobals.imageFormat", 51)
+            cmds.setAttr("defaultRenderGlobals.imfPluginKey", "exr")
+            cmds.setAttr("defaultRenderGlobals.imageCompression", 0)
             # set the compression to 'zips'
-            pm.setAttr("mentalrayGlobals.imageCompression", 5)
+            cmds.setAttr("mentalrayGlobals.imageCompression", 5)
             # Frame/Animation ext and Frame Padding
-            pm.setAttr("defaultRenderGlobals.outFormatControl", 0)
-            pm.setAttr("defaultRenderGlobals.animation", 1)
-            pm.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
-            pm.setAttr("defaultRenderGlobals.extensionPadding", 4)
+            cmds.setAttr("defaultRenderGlobals.outFormatControl", 0)
+            cmds.setAttr("defaultRenderGlobals.animation", 1)
+            cmds.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
+            cmds.setAttr("defaultRenderGlobals.extensionPadding", 4)
             # set File Name Prefix
             self.resolvedName = self.resolvePath()
-            pm.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName)
+            cmds.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName, type='string')
+
             return
 
         elif self.currentRenderer == "redshift":
+            # # set the image format to 'exr'
+            # pm.setAttr("redshiftOptions.imageFormat", 1)
+            # # set the compression to 'zips'
+            # pm.setAttr("redshiftOptions.exrCompression", 3)
+            # pm.setAttr("redshiftOptions.exrIsTiled", 0)
+            # # Frame/Animation ext and Frame Padding
+            # pm.setAttr("defaultRenderGlobals.outFormatControl", 0)
+            # pm.setAttr("defaultRenderGlobals.animation", 1)
+            # pm.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
+            # pm.setAttr("defaultRenderGlobals.extensionPadding", 4)
+            # # set File Name Prefix
+            # self.resolvedName = self.resolvePath()
+            # pm.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName)
+
             # set the image format to 'exr'
-            pm.setAttr("redshiftOptions.imageFormat", 1)
+            cmds.setAttr("redshiftOptions.imageFormat", 1)
             # set the compression to 'zips'
-            pm.setAttr("redshiftOptions.exrCompression", 3)
-            pm.setAttr("redshiftOptions.exrIsTiled", 0)
+            cmds.setAttr("redshiftOptions.exrCompression", 3)
+            cmds.setAttr("redshiftOptions.exrIsTiled", 0)
             # Frame/Animation ext and Frame Padding
-            pm.setAttr("defaultRenderGlobals.outFormatControl", 0)
-            pm.setAttr("defaultRenderGlobals.animation", 1)
-            pm.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
-            pm.setAttr("defaultRenderGlobals.extensionPadding", 4)
+            cmds.setAttr("defaultRenderGlobals.outFormatControl", 0)
+            cmds.setAttr("defaultRenderGlobals.animation", 1)
+            cmds.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
+            cmds.setAttr("defaultRenderGlobals.extensionPadding", 4)
             # set File Name Prefix
             self.resolvedName = self.resolvePath()
-            pm.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName)
+            cmds.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName, type='string')
             return
 
         else:
@@ -238,13 +282,20 @@ class ImageManager(RootManager):
 
     def getAttrInLayer(self, node, attr, layer, returnAnyWay=False):
         nodeAttr = "%s.%s" % (node, attr)
-        connection_list = pm.listConnections(nodeAttr, plugs=True)
+        print nodeAttr
+        # connection_list = pm.listConnections(nodeAttr, plugs=True)
+        connection_list = cmds.listConnections(nodeAttr, plugs=True)
+        # print "AAA", pm.listConnections(nodeAttr, plugs=True)
+        # print "BBB", cmds.listConnections(nodeAttr, plugs=True)
         if layer == "defaultRenderLayer":
-            return pm.getAttr(nodeAttr)  # return
+            # return pm.getAttr(nodeAttr)  # return
+            return cmds.getAttr(nodeAttr)  # return
 
-        if len(connection_list) == 0:  # hicbir layerda olmasinin mumkunati yoksa
+        # if len(connection_list) == 0:  # hicbir layerda olmasinin mumkunati yoksa
+        if not connection_list:  # hicbir layerda olmasinin mumkunati yoksa
             if returnAnyWay:
-                return pm.getAttr(nodeAttr)  # return
+                # return pm.getAttr(nodeAttr)  # return
+                return cmds.getAttr(nodeAttr)  # return
             else:
                 return None
 
@@ -253,10 +304,12 @@ class ImageManager(RootManager):
             attr_component_list = connection.split(".")
             if attr_component_list[0] == layer:  # eger bu layerdaysa
                 nodeAttr = ".".join(attr_component_list[0:-1])
-                return pm.getAttr("%s.value" % nodeAttr)  # return
+                # return pm.getAttr("%s.value" % nodeAttr)  # return
+                return cmds.getAttr("%s.value" % nodeAttr)  # return
             else:
                 if returnAnyWay:
-                    return pm.getAttr(nodeAttr)  # return
+                    # return pm.getAttr(nodeAttr)  # return
+                    return cmds.getAttr(nodeAttr)  # return
                 else:
                     return None
 
@@ -267,7 +320,8 @@ class ImageManager(RootManager):
 
         # Calculate the maximum possible severity
 
-        allImagePlanes = pm.ls(type="imagePlane")
+        # allImagePlanes = pm.ls(type="imagePlane")
+        allImagePlanes = cmds.ls(type="imagePlane")
 
         if len(allImagePlanes) <= 0:  # if there are no image planes, no need to continue
             return 0
@@ -294,7 +348,8 @@ class ImageManager(RootManager):
     def foolCheckRenderCamera(self, renderLayerList):
         # self.cameraSeverity = 0
         severity = 0
-        allCameras = pm.ls(type="camera")
+        # allCameras = pm.ls(type="camera")
+        allCameras = cmds.ls(type="camera")
 
         for layer in renderLayerList:
             renderCameras = []  # reset renderable camera list for each render layer
@@ -306,7 +361,8 @@ class ImageManager(RootManager):
                     renderCameras.append(x)
             for rcam in renderCameras:
                 # check if the perspective camera is among renderable cameras
-                if "perspShape" in rcam.name():
+                # if "perspShape" in rcam.name():
+                if "perspShape" in rcam:
                     if len(renderCameras) > 1:
                         msg = "Multiple Renderable Cameras => (%s)" % layer
                         self.minorProblemNodes.append([rcam, layer, "unifiedRenderGlobalsWindow;", msg])
@@ -331,22 +387,30 @@ class ImageManager(RootManager):
         severity = 0
 
         # get the timeslider range:
-        startFrame = pm.playbackOptions(q=True, minTime=True)
-        endFrame = pm.playbackOptions(q=True, maxTime=True)
+        # startFrame = pm.playbackOptions(q=True, minTime=True)
+        # endFrame = pm.playbackOptions(q=True, maxTime=True)
+        startFrame = cmds.playbackOptions(q=True, minTime=True)
+        endFrame = cmds.playbackOptions(q=True, maxTime=True)
 
-        activeRenderLayer = pm.editRenderLayerGlobals(q=True, currentRenderLayer=True)
+        # activeRenderLayer = pm.editRenderLayerGlobals(q=True, currentRenderLayer=True)
+        activeRenderLayer = cmds.editRenderLayerGlobals(q=True, currentRenderLayer=True)
+
         # go through all renderlayers:
         for layer in renderLayerList:
-            pm.editRenderLayerGlobals(currentRenderLayer=layer)
+            # pm.editRenderLayerGlobals(currentRenderLayer=layer)
+            cmds.editRenderLayerGlobals(currentRenderLayer=layer)
 
             # get paths
-            comparePath = pm.renderSettings(firstImageName=True, lastImageName=True, fp=True)
+            # comparePath = pm.renderSettings(firstImageName=True, lastImageName=True, fp=True)
+            comparePath = cmds.renderSettings(firstImageName=True, lastImageName=True, fp=True)
             filePath, fileBase = os.path.split(comparePath[0])
 
             ## COmmon for all render engines
             # get the render range
-            animStart = pm.getAttr("defaultRenderGlobals.startFrame")
-            animEnd = pm.getAttr("defaultRenderGlobals.endFrame")
+            # animStart = pm.getAttr("defaultRenderGlobals.startFrame")
+            animStart = cmds.getAttr("defaultRenderGlobals.startFrame")
+            # animEnd = pm.getAttr("defaultRenderGlobals.endFrame")
+            animEnd = cmds.getAttr("defaultRenderGlobals.endFrame")
             if animStart != startFrame or animEnd != endFrame:
                 # msg = "Timeslider range and render ranges are different in {4}. {0}-{1} >> {2}-{3}".format(startFrame,
                 msg = "Timeslider range and Render ranges are different (%s)" %layer
@@ -361,13 +425,15 @@ class ImageManager(RootManager):
 
             try:
 
-                matInfo = pm.listConnections(fileNode, s=False, d=True, type="materialInfo")[0]
+                # matInfo = pm.listConnections(fileNode, s=False, d=True, type="materialInfo")[0]
+                matInfo = cmds.listConnections(fileNode, s=False, d=True, type="materialInfo")[0]
             except:
 
                 matInfo = None
 
             if not matInfo == None:
-                sGroup = pm.getAttr(matInfo.shadingGroup)
+                # sGroup = pm.getAttr(matInfo.shadingGroup)
+                sGroup = cmds.getAttr(matInfo.shadingGroup)
                 if len(sGroup) > 0:
                     try:
                         for i in sGroup:
@@ -382,13 +448,16 @@ class ImageManager(RootManager):
         severity = 0
         validDrive = "M:"
         projectsFolder = os.path.abspath(os.path.join(self.projectDir, os.pardir))
-        allImagePlanes = pm.ls(type="imagePlane")
+        # allImagePlanes = pm.ls(type="imagePlane")
+        allImagePlanes = cmds.ls(type="imagePlane")
         ### TODO // PATHS may NOT WORK with LINUX os
-        currentProjectPath = os.path.normpath(pm.workspace.path)
+        # currentProjectPath = os.path.normpath(pm.workspace.path)
+        currentProjectPath = os.path.normpath(cmds.workspace(q=1, rd=1))
         # check for the image planes:
         ipPPcount = 0.0
         for ip in allImagePlanes:
-            fullPath = os.path.normpath(pm.getAttr(ip.imageName))
+            # fullPath = os.path.normpath(pm.getAttr(ip.imageName))
+            fullPath = os.path.normpath(cmds.getAttr("%s.imageName" %ip))
             filePath, fileBase = os.path.split(fullPath)
             # fileDrive, tmp = os.path.splitdrive(filePath)
             if currentProjectPath not in filePath:
@@ -409,10 +478,12 @@ class ImageManager(RootManager):
         # ipPPratio = 0 if ipPPcount == 0 else ipPPcount / len(allImagePlanes)  # The Almighty Ternery Operator!!!
 
         # check for the file nodes:
-        allFileNodes = pm.ls(type="file")
+        # allFileNodes = pm.ls(type="file")
+        allFileNodes = cmds.ls(type="file")
         fnPPcount = 0.0
         for fn in allFileNodes:
-            fullPath = os.path.normpath(pm.getAttr(fn.fileTextureName))
+            # fullPath = os.path.normpath(pm.getAttr(fn.fileTextureName))
+            fullPath = os.path.normpath(cmds.getAttr("%s.fileTextureName" %fn))
             filePath, fileBase = os.path.split(fullPath)
             # fileDrive, tmp = os.path.splitdrive(filePath)
             if currentProjectPath not in filePath:
@@ -450,10 +521,12 @@ class ImageManager(RootManager):
         # fnPPratio = 0 if fnPPcount == 0 else fnPPcount / len(allFileNodes)  # The Almighty Ternery Operator!!!
 
         # check for the cache files:
-        allCacheFiles = pm.ls(type="cacheFile")
+        # allCacheFiles = pm.ls(type="cacheFile")
+        allCacheFiles = cmds.ls(type="cacheFile")
         cPPcount = 0.0
         for c in allCacheFiles:
-            filePath = os.path.normpath(pm.getAttr(c.cachePath))
+            # filePath = os.path.normpath(pm.getAttr(c.cachePath))
+            filePath = os.path.normpath(cmds.getAttr("%s.cachePath" %c))
             fileDrive, tmp = os.path.splitdrive(filePath)
             if currentProjectPath not in filePath:
                 cPPcount += 1
@@ -486,12 +559,14 @@ class ImageManager(RootManager):
 
         self.minorProblemNodes = []  # reset the problem Lists
         self.majorProblemNodes = []
-        allRenderLayers = pm.ls(type="renderLayer")
+        # allRenderLayers = pm.ls(type="renderLayer")
+        allRenderLayers = cmds.ls(type="renderLayer")
         #
         # # get the non referenced render layers
         self.allUsableRenderLayers = []
         for i in allRenderLayers:
-            if not (pm.referenceQuery([i], isNodeReferenced=True)) and pm.getAttr(i.renderable):
+            # if not (pm.referenceQuery([i], isNodeReferenced=True)) and pm.getAttr(i.renderable):
+            if not (cmds.referenceQuery([i], isNodeReferenced=True)) and cmds.getAttr("%s.renderable" % (i)):
                 self.allUsableRenderLayers.append(i)
 
         # self.feedBack.removeAll()
@@ -533,7 +608,8 @@ class ImageManager(RootManager):
             return None, None
         else:
             msg = "SubmitMayaToDeadlineCustom.mel is not exist under the tik_manager directory"
-            pm.warning(msg)
+            # pm.warning(msg)
+            cmds.warning(msg)
             return -1, msg
 
 class MainUI(QtWidgets.QMainWindow):
@@ -574,13 +650,21 @@ class MainUI(QtWidgets.QMainWindow):
         scriptJobs = []
         if callback:
             ## create a script jobs
-            self.job_1 = pm.scriptJob(ac=["defaultRenderGlobals.currentRenderer", "%s.refresh()" %callback], parent=windowName)
-            self.job_2 = pm.scriptJob(e=["NewSceneOpened", "%s.refresh()" %callback], parent=windowName)
-            self.job_3 = pm.scriptJob(e=["playbackRangeSliderChanged", "%s.refresh()" %callback], parent=windowName)
-            self.job_4 = pm.scriptJob(e=["SceneOpened", "%s.refresh()" %callback], parent=windowName)
-            self.job_5 = pm.scriptJob(e=["timeUnitChanged", "%s.refresh()" %callback], parent=windowName)
-            self.job_6 = pm.scriptJob(e=["renderLayerChange", "%s.refresh()" %callback], parent=windowName)
-            self.job_7 = pm.scriptJob(e=["workspaceChanged", "%s.refresh()" %callback], parent=windowName)
+            # self.job_1 = pm.scriptJob(ac=["defaultRenderGlobals.currentRenderer", "%s.refresh()" %callback], parent=windowName)
+            # self.job_2 = pm.scriptJob(e=["NewSceneOpened", "%s.refresh()" %callback], parent=windowName)
+            # self.job_3 = pm.scriptJob(e=["playbackRangeSliderChanged", "%s.refresh()" %callback], parent=windowName)
+            # self.job_4 = pm.scriptJob(e=["SceneOpened", "%s.refresh()" %callback], parent=windowName)
+            # self.job_5 = pm.scriptJob(e=["timeUnitChanged", "%s.refresh()" %callback], parent=windowName)
+            # self.job_6 = pm.scriptJob(e=["renderLayerChange", "%s.refresh()" %callback], parent=windowName)
+            # self.job_7 = pm.scriptJob(e=["workspaceChanged", "%s.refresh()" %callback], parent=windowName)
+
+            self.job_1 = cmds.scriptJob(ac=["defaultRenderGlobals.currentRenderer", "%s.refresh()" %callback], parent=windowName)
+            self.job_2 = cmds.scriptJob(e=["NewSceneOpened", "%s.refresh()" %callback], parent=windowName)
+            self.job_3 = cmds.scriptJob(e=["playbackRangeSliderChanged", "%s.refresh()" %callback], parent=windowName)
+            self.job_4 = cmds.scriptJob(e=["SceneOpened", "%s.refresh()" %callback], parent=windowName)
+            self.job_5 = cmds.scriptJob(e=["timeUnitChanged", "%s.refresh()" %callback], parent=windowName)
+            self.job_6 = cmds.scriptJob(e=["renderLayerChange", "%s.refresh()" %callback], parent=windowName)
+            self.job_7 = cmds.scriptJob(e=["workspaceChanged", "%s.refresh()" %callback], parent=windowName)
             self.scriptJobs = [self.job_1, self.job_2, self.job_3, self.job_4, self.job_5, self.job_6, self.job_7]
 
             # return
@@ -674,7 +758,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.imanager.initRenderer()
         self.imanager.foolerMaster()
-        self.imanager.projectDir = pm.workspace(q=1, rd=1)
+        self.imanager.projectDir = os.path.normpath(cmds.workspace(q=1, rd=1))
 
         if not self.imanager.currentRenderer in self.imanager.supportedRenderers:
             self.infoPop(textTitle="Render Engine Not Supported", textHeader="%s is not supported by Image Manager" %self.imanager.currentRenderer, textInfo="Image Path will not be set by Image Manager")
@@ -728,8 +812,10 @@ class MainUI(QtWidgets.QMainWindow):
 
         if not nodeToGet == None:
             # first go to the problematic layer
-            pm.editRenderLayerGlobals(currentRenderLayer=layerToGo)
-            pm.select(nodeToGet)
+            # pm.editRenderLayerGlobals(currentRenderLayer=layerToGo)
+            cmds.editRenderLayerGlobals(currentRenderLayer=layerToGo)
+            # pm.select(nodeToGet)
+            cmds.select(nodeToGet)
 
         mel.eval(melToEval)
 

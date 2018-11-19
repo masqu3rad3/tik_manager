@@ -212,7 +212,8 @@ class MaxManager(RootManager):
         ]
         jsonInfo["SubProject"] = self._subProjectsList[subProjectIndex]
         self._dumpJson(jsonInfo, jsonFile)
-        return jsonInfo
+        # return jsonInfo
+        return [0, ""]
 
     def saveVersion(self, makeReference=True, versionNotes="", sceneFormat="max", *args, **kwargs):
         """

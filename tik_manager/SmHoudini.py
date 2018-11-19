@@ -217,7 +217,8 @@ class HoudiniManager(RootManager):
         ]
         jsonInfo["SubProject"] = self._subProjectsList[subProjectIndex]
         self._dumpJson(jsonInfo, jsonFile)
-        return jsonInfo
+        # return jsonInfo
+        return [0, ""]
 
     def saveVersion(self, makeReference=False, versionNotes="", sceneFormat="hip", *args, **kwargs):
         """
@@ -636,11 +637,11 @@ class HoudiniManager(RootManager):
             pass
 
         if currentVersion < baseSceneVersion: # version compare
-            message = "Base Scene is created with a LOWER Houdini version ({0}). Are you sure you want to continue?".format(baseSceneVersion)
+            message = "Base Scene is created with a HIGHER Houdini version ({0}). Are you sure you want to continue?".format(baseSceneVersion)
             messageList.append(message)
 
         if currentVersion > baseSceneVersion:
-            message = "Base Scene is created with a HIGHER 3ds Max version ({0}). Are you sure you want to continue?".format(baseSceneVersion)
+            message = "Base Scene is created with a LOWER Houdini version ({0}). Are you sure you want to continue?".format(baseSceneVersion)
             messageList.append(message)
 
         # old or corrupted databasek       return 0, ""  # skip

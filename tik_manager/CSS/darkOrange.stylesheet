@@ -103,6 +103,8 @@ QPushButton
     font-size: 12px;
     padding-left: 5px;
     padding-right: 5px;
+    /*min-width: 100px;
+    min-height: 30px;*/
 }
 
 QPushButton:pressed

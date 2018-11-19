@@ -7,7 +7,7 @@ from SmRoot import RootManager
 import shutil
 import maya.cmds as cmds
 import maya.mel as mel
-import pymel.core as pm
+# import pymel.core as pm
 import datetime
 import socket
 import logging
@@ -25,7 +25,8 @@ logger.setLevel(logging.WARNING)
 class MayaManager(RootManager):
     def __init__(self):
         super(MayaManager, self).__init__()
-
+        # hard coded format dictionary to pass the format info to cmds
+        self.formatDict = {"ma": "mayaAscii", "mb": "mayaBinary"}
         self.init_paths()
         self.backwardcompatibility()  # DO NOT RUN UNTIL RELEASE
         self.init_database()
@@ -125,7 +126,8 @@ class MayaManager(RootManager):
         for key in scenesToCheck.keys():
             if baseName.lower() == key.lower():
                 msg = ("Base Scene Name is not unique!")
-                cmds.warning(msg)
+                self._exception(360, msg)
+                # cmds.warning(msg)
                 return -1, msg
 
         projectPath = self.projectDir
@@ -163,7 +165,9 @@ class MayaManager(RootManager):
         relSceneFile = os.path.relpath(sceneFile, start=projectPath)
         # killTurtle()
         # TODO // cmds may be used instead
-        pm.saveAs(sceneFile)
+        # pm.saveAs(sceneFile)
+        cmds.file(rename=sceneFile)
+        cmds.file(save=True, type=self.formatDict[sceneFormat])
 
         thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=version)
 
@@ -202,7 +206,7 @@ class MayaManager(RootManager):
 
         jsonInfo["SubProject"] = self._subProjectsList[subProjectIndex]
         self._dumpJson(jsonInfo, jsonFile)
-        return jsonInfo
+        return [0, ""]
 
     def saveVersion(self, makeReference=True, versionNotes="", sceneFormat="mb", *args, **kwargs):
         """
@@ -245,7 +249,11 @@ class MayaManager(RootManager):
 
             # killTurtle()
             # TODO // cmds?
-            pm.saveAs(sceneFile)
+            # pm.saveAs(sceneFile)
+
+            cmds.file(rename=sceneFile)
+            cmds.file(save=True, type=self.formatDict[sceneFormat])
+
             thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=currentVersion)
 
             jsonInfo["Versions"].append(
@@ -457,7 +465,8 @@ class MayaManager(RootManager):
         ## get back the previous state of HUDS
         for hud in hudPreStates.keys():
             cmds.headsUpDisplay(hud, e=True, vis=hudPreStates[hud])
-        pm.select(selection)
+        # pm.select(selection)
+        cmds.select(selection)
         ## find this version in the json data
         for version in jsonInfo["Versions"]:
             if relVersionName == version["RelativePath"]:
@@ -540,14 +549,19 @@ class MayaManager(RootManager):
         # create a thumbnail using playblast
         thumbDir = os.path.split(thumbPath)[0]
         if os.path.exists(thumbDir):
-            frame = pm.currentTime(query=True)
-            store = pm.getAttr("defaultRenderGlobals.imageFormat")
-            pm.setAttr("defaultRenderGlobals.imageFormat", 8)  # This is the value for jpeg
-            pm.playblast(completeFilename=thumbPath, forceOverwrite=True, format='image', width=221, height=124,
-                         showOrnaments=False, frame=[frame], viewer=False, percent=100)
-            pm.setAttr("defaultRenderGlobals.imageFormat", store) #take it back
+            # frame = pm.currentTime(query=True)
+            frame = cmds.currentTime(query=True)
+            # store = pm.getAttr("defaultRenderGlobals.imageFormat")
+            store = cmds.getAttr("defaultRenderGlobals.imageFormat")
+            # pm.setAttr("defaultRenderGlobals.imageFormat", 8)  # This is the value for jpeg
+            cmds.setAttr("defaultRenderGlobals.imageFormat", 8)  # This is the value for jpeg
+            # pm.playblast(completeFilename=thumbPath, forceOverwrite=True, format='image', width=221, height=124, showOrnaments=False, frame=[frame], viewer=False, percent=100)
+            cmds.playblast(completeFilename=thumbPath, forceOverwrite=True, format='image', width=221, height=124, showOrnaments=False, frame=[frame], viewer=False, percent=100)
+            # pm.setAttr("defaultRenderGlobals.imageFormat", store) #take it back
+            cmds.setAttr("defaultRenderGlobals.imageFormat", store) #take it back
         else:
-            pm.warning("something went wrong with thumbnail. Skipping thumbnail")
+            # pm.warning("something went wrong with thumbnail. Skipping thumbnail")
+            cmds.warning("something went wrong with thumbnail. Skipping thumbnail")
             return ""
         # return thumbPath
         return relThumbPath
@@ -630,7 +644,8 @@ class MayaManager(RootManager):
                        201740: "v2017U3",
                        20180000: "v2018"}
 
-        currentVersion = pm.versions.current()
+        # currentVersion = pm.versions.current()
+        currentVersion = cmds.about(api=True)
         try:
             niceVName=versionDict[self._currentSceneInfo["MayaVersion"]]
         except KeyError:
@@ -638,11 +653,11 @@ class MayaManager(RootManager):
         message = ""
         if self._currentSceneInfo["MayaVersion"] == currentVersion:
             return 0, message
-        elif pm.versions.current() > self._currentSceneInfo["MayaVersion"]:
+        elif currentVersion > self._currentSceneInfo["MayaVersion"]:
             message = "Base Scene is created with a LOWER Maya version ({0}). Are you sure you want to continue?".format(
                 niceVName)
             return -1, message
-        elif pm.versions.current() < self._currentSceneInfo["MayaVersion"]:
+        elif currentVersion < self._currentSceneInfo["MayaVersion"]:
             message = "Base Scene is created with a HIGHER Maya version ({0}). Are you sure you want to continue?".format(
                 niceVName)
             return -1, message
@@ -656,7 +671,8 @@ class MayaManager(RootManager):
         """Save the currently open file"""
         logger.debug("Func: saveSimple")
         # TODO // cmds?
-        pm.saveFile()
+        # pm.saveFile()
+        cmds.file(save=True)
 
     def getFormatsAndCodecs(self):
         """Returns the codecs which can be used in current workstation"""

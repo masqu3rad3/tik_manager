@@ -1,6 +1,12 @@
 =============================
 Scene Manager Version History
 =============================
+2.2
+---
+* **New.0:** Project Materials tool added
+* **Fix.01:** Button sizes fixed
+* **Update.01:** SmMaya imports optimized (pymel is not used anymore)
+
 2.1
 ---
 * **Update.0:** Boilerplate UI for all modules

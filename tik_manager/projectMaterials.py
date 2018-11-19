@@ -1010,6 +1010,8 @@ class MainUI(QtWidgets.QMainWindow):
             q.setInformativeText(msg[1])
             q.setWindowTitle(msg[2])
             q.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            q.button(QtWidgets.QMessageBox.Ok).setFixedHeight(30)
+            q.button(QtWidgets.QMessageBox.Ok).setFixedWidth(100)
             ret = q.exec_()
             if ret == QtWidgets.QMessageBox.Ok:
                 self.close()
@@ -1615,9 +1617,9 @@ if __name__ == '__main__':
 
     with open(stylesheetFile, "r") as fh:
         app.setStyleSheet(fh.read())
-    # window = MainUI()
-    # window.show()
-
-    window = MainUI(projectPath= os.path.normpath("E:\\SceneManager_Projects\\SceneManager_DemoProject_None_181101"))
+    window = MainUI()
     window.show()
+
+    # window = MainUI(projectPath= os.path.normpath("E:\\SceneManager_Projects\\SceneManager_DemoProject_None_181101"))
+    # window.show()
     sys.exit(app.exec_())
