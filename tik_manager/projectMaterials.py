@@ -1,3 +1,7 @@
+#!/usr/local/bin/python
+# coding: utf-8
+
+
 # Module to view and organize project materials
 
 
@@ -540,10 +544,15 @@ class CopyProgress(QtWidgets.QWidget):
                 newDst = os.path.join(dst, os.path.basename(sel))
                 # if not os.path.isdir(os.path.normpath(newDst)):
                 #     os.makedirs(os.path.normpath(newDst))
+                newDst = self.strip_accents(newDst)
+                # if not os.path.isdir(os.path.normpath(newDst)):
+                #     os.makedirs(os.path.normpath(newDst))
 
                 copiedPathList.append(self.copyFolder(src=sel, dst=newDst))
 
             else:
+                dst = self.strip_accents(dst)
+
                 if not os.path.isdir(os.path.normpath(dst)):
                     os.makedirs(os.path.normpath(dst))
 
@@ -562,9 +571,12 @@ class CopyProgress(QtWidgets.QWidget):
 
     def copyFolder(self, src, dst):
 
-        src = os.path.normpath(src.replace(" ", "_"))
+        # src = os.path.normpath(src.replace(" ", "_"))
         # dst = os.path.normpath(dst.replace(" ", "_"))
         dst = self.uniqueFolderName(os.path.normpath(dst.replace(" ", "_")))
+        # print "defcon", dst
+        if not os.path.isdir(dst):
+            os.makedirs(dst)
 
         self.pb.setValue(0)
         self.terminated = False  # reset the termination status
@@ -573,8 +585,11 @@ class CopyProgress(QtWidgets.QWidget):
 
         for path, dirs, filenames in os.walk(src):
             for directory in dirs:
+
                 destDir = path.replace(src, dst)
                 targetDir = os.path.join(destDir, directory)
+                targetDir = self.strip_accents(targetDir)
+
                 if not os.path.isdir(targetDir):
                     os.makedirs(targetDir)
 
@@ -582,9 +597,11 @@ class CopyProgress(QtWidgets.QWidget):
                 srcFile = os.path.join(path, sfile)
 
                 destFile = os.path.join(path.replace(src, dst), sfile)
-                # shutil.copy(srcFile, destFile)
+                destFile = self.strip_accents(destFile)
+
                 try:
-                    shutil.copy(srcFile, destFile)
+                    shutil.copyfile(srcFile, destFile)
+
                 except:
                     self.errorFlag = True
                     #     # self.safeLog("FAILED - unknown error")
@@ -613,6 +630,7 @@ class CopyProgress(QtWidgets.QWidget):
 
         try:
             fileLocation = self.uniqueFileName(os.path.join(dst, os.path.basename(src)))
+            fileLocation = self.strip_accents(fileLocation)
 
             shutil.copyfile(src, fileLocation)
             return fileLocation
@@ -724,6 +742,33 @@ class CopyProgress(QtWidgets.QWidget):
                 i.close()
         except:
             pass
+
+    def strip_accents(self, s):
+        """
+        Sanitarize the given unicode string and remove all special/localized
+        characters from it.
+
+        Category "Mn" stands for Nonspacing_Mark
+        """
+
+        if type(s) == str:
+            s = unicode(s, "utf-8")
+
+        newNameList = []
+        for c in unicodedata.normalize('NFKD', s):
+            if unicodedata.category(c) != 'Mn':
+                if c == u'ı':
+                    newNameList.append(u'i')
+                else:
+                    newNameList.append(c)
+        return ''.join(newNameList)
+        # try:
+        #     return ''.join(
+        #         c for c in unicodedata.normalize('NFD', s)
+        #         if unicodedata.category(c) != 'Mn'
+        #     )
+        # except:
+        #     return s
 
 
 class ProjectMaterials(RootManager):
@@ -927,20 +972,7 @@ class ProjectMaterials(RootManager):
         pass
 
 
-    def strip_accents(self, s):
-        """
-        Sanitarize the given unicode string and remove all special/localized
-        characters from it.
 
-        Category "Mn" stands for Nonspacing_Mark
-        """
-        try:
-            return ''.join(
-                c for c in unicodedata.normalize('NFD', s)
-                if unicodedata.category(c) != 'Mn'
-            )
-        except:
-            return s
 
 class MainUI(QtWidgets.QMainWindow):
     """Main UI function"""
@@ -1548,9 +1580,31 @@ class DropPushButton(QtWidgets.QPushButton):
         links = []
 
         for url in event.mimeData().urls():
-            links.append(str(url.toLocalFile()))
+            print "g", url.toLocalFile()
+            # links.append(str(url.toLocalFile()))
+            links.append((url.toLocalFile()))
         self.dropped.emit(links)
         # self.addItem(path)
+
+
+    # def dragEnterEvent(self, event):
+    #     if event.mimeData().hasFormat('text/uri-list'):
+    #         event.accept()
+    #     else:
+    #         event.ignore()
+    #
+    # def dragMoveEvent(self, event):
+    #     if event.mimeData().hasFormat('text/uri-list'):
+    #         event.setDropAction(QtCore.Qt.CopyAction)
+    #         event.accept()
+    #     else:
+    #         event.ignore()
+
+    # def dropEvent(self, event):
+    #     rawPath = event.mimeData().data('text/uri-list').__str__()
+    #     print "rawPath", rawPath
+    #     path = rawPath.replace("file:///", "").splitlines()[0]
+    #     self.dropped.emit(path)
 
 
 if __name__ == '__main__':
@@ -1561,7 +1615,9 @@ if __name__ == '__main__':
 
     with open(stylesheetFile, "r") as fh:
         app.setStyleSheet(fh.read())
-    window = MainUI()
+    # window = MainUI()
+    # window.show()
+
+    window = MainUI(projectPath= os.path.normpath("E:\\SceneManager_Projects\\SceneManager_DemoProject_None_181101"))
     window.show()
-    # window.onButtonPush("Storyboard")
     sys.exit(app.exec_())
