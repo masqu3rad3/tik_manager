@@ -529,18 +529,19 @@ class NukeManager(RootManager):
             self._exception(201, msg)
             return -1, msg
     #
-    # def importBaseScene(self):
-    #     """Imports the scene at cursor position"""
-    #     logger.debug("Func: importBaseScene")
-    #     relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"]
-    #     absSceneFile = os.path.join(self.projectDir, relSceneFile)
-    #     if os.path.isfile(absSceneFile):
-    #         cmds.file(absSceneFile, i=True)
-    #         return 0
-    #     else:
-    #         msg = "File in Scene Manager database doesnt exist"
-    #         cmds.error(msg)
-    #         return -1, msg
+    def importBaseScene(self):
+        """Imports the scene at cursor position"""
+        logger.debug("Func: importBaseScene")
+        relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"]
+        absSceneFile = os.path.join(self.projectDir, relSceneFile)
+        if os.path.isfile(absSceneFile):
+            # cmds.file(absSceneFile, i=True)
+            nuke.nodePaste(absSceneFile)
+            return 0
+        else:
+            msg = "File in Scene Manager database doesnt exist"
+            self._exception(210, msg)
+            return -1, msg
     #
     # def referenceBaseScene(self):
     #     """Creates reference from the scene at cursor position"""
