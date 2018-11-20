@@ -151,7 +151,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.swColorDict = {"Maya": "rgb(81, 230, 247, 255)",
                             "3dsMax": "rgb(150, 247, 81, 255)",
                             "Houdini": "rgb(247, 172, 81, 255)",
-                            "":  "rgb(0, 0, 0, 0)",
+                            "Nuke": "rgb(246, 100, 100, 255)",
+                            "":  "rgb(0, 0, 0, 0)"
                             }
         # self.initMainUI(newborn=True)
 

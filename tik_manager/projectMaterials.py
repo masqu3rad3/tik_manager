@@ -1521,8 +1521,9 @@ class MainUI(QtWidgets.QMainWindow):
 
 
 
-    def droppedPath(self, path, material):
-        self.promat.saveMaterial(path, material)
+    def droppedPath(self, paths, material):
+        paths = [os.path.normpath(str(path)) for path in paths ]
+        self.promat.saveMaterial(paths, material)
         self.initCategoryItems()
 
     def onButtonPush(self, material):
@@ -1535,7 +1536,6 @@ class MainUI(QtWidgets.QMainWindow):
         selDialog.setLabelText(selDialog.Accept, "Choose")
         x = selDialog.exec_()
         paths = selDialog.filesSelected()
-        print "paths", paths
         # for path in paths:
             # print os.path.normpath(path.encode('ascii', 'replace'))
         self.promat.saveMaterial(paths, material)
@@ -1619,7 +1619,7 @@ if __name__ == '__main__':
         app.setStyleSheet(fh.read())
     window = MainUI()
     window.show()
-
+    #
     # window = MainUI(projectPath= os.path.normpath("E:\\SceneManager_Projects\\SceneManager_DemoProject_None_181101"))
     # window.show()
     sys.exit(app.exec_())

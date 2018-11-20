@@ -125,8 +125,8 @@ class MaxManager(RootManager):
         scenesToCheck = self.scanBaseScenes(categoryAs = categoryName, subProjectAs = subProjectIndex)
         for key in scenesToCheck.keys():
             if baseName.lower() == key.lower():
-                msg = ("Base Scene Name is not unique!")
-                logger.warning(msg)
+                msg = ("Base Scene Name is not unique!\nABORTING")
+                self._exception(360, msg)
                 return -1, msg
 
 

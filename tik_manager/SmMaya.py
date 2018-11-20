@@ -125,9 +125,8 @@ class MayaManager(RootManager):
         scenesToCheck = self.scanBaseScenes(categoryAs=categoryName, subProjectAs=subProjectIndex)
         for key in scenesToCheck.keys():
             if baseName.lower() == key.lower():
-                msg = ("Base Scene Name is not unique!")
+                msg = ("Base Scene Name is not unique!\nABORTING")
                 self._exception(360, msg)
-                # cmds.warning(msg)
                 return -1, msg
 
         projectPath = self.projectDir

@@ -6,6 +6,8 @@ Scene Manager Version History
 * **New.0:** Project Materials tool added
 * **Fix.01:** Button sizes fixed
 * **Update.01:** SmMaya imports optimized (pymel is not used anymore)
+* **New.02:** Basic Nuke support added
+* **Fix.02:** Bug fix when dropping items with standalone project materials
 
 2.1
 ---

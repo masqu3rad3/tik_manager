@@ -168,9 +168,8 @@ class NukeManager(RootManager):
         scenesToCheck = self.scanBaseScenes(categoryAs=categoryName, subProjectAs=subProjectIndex)
         for key in scenesToCheck.keys():
             if baseName.lower() == key.lower():
-                msg = ("Base Scene Name is not unique!")
+                msg = ("Base Scene Name is not unique!\nABORTING")
                 self._exception(360, msg)
-                # cmds.warning(msg)
                 return -1, msg
 
         projectPath = self.projectDir
@@ -677,13 +676,14 @@ class NukeManager(RootManager):
             checklist.append(msg)
 
         return checklist
-    #
-    # def _exception(self, code, msg):
-    #     """Overriden Function"""
-    #     cmds.confirmDialog(title=self.errorCodeDict[code], message=msg, button=['Ok'])
-    #     if (200 >= code < 210):
-    #         raise Exception(code, msg)
-    #
+
+    def _exception(self, code, msg):
+        """Overriden Function"""
+        # cmds.confirmDialog(title=self.errorCodeDict[code], message=msg, button=['Ok'])
+        nuke.message(msg)
+        if (200 >= code < 210):
+            raise Exception(code, msg)
+
     def _getTimelineRanges(self):
         # TODO : Make sure the time ranges are INTEGERS
         firstFrame = nuke.Root().firstFrame()
@@ -716,13 +716,14 @@ class MainUI(baseUI):
 
         self.buildUI()
         self.initMainUI(newborn=True)
-        # self.extraMenus()
+        self.modify()
 
-    # def closeEvent(self, event):
-    #     if self.isCallback:
-    #         self.manager._killCallbacks(self.callbackIDList)
-
-    # def extraMenus(self):
-    #     imanager = QtWidgets.QAction("&Image Manager", self)
-    #     self.toolsMenu.addAction(imanager)
-    #     imanager.triggered.connect(ImMaya.MainUI)
+    def modify(self):
+        # make sure load mode is checked and hidden
+        self.load_radioButton.setChecked(True)
+        self.load_radioButton.setVisible(False)
+        self.reference_radioButton.setChecked(False)
+        self.reference_radioButton.setVisible(False)
+        self.makeReference_pushButton.setVisible(False)
+        # idk why this became necessary for houdini..
+        self.category_tabWidget.setMaximumSize(QtCore.QSize(16777215, 30))

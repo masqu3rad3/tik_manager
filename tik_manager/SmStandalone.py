@@ -83,6 +83,19 @@ softwareDictionary = {
             "pbSettingsFile": "pbSettings_houdini.json",
             "categoriesFile": "categoriesHoudini.json",
             "userSettingsDir": "Documents\\SceneManager\\Houdini"
+        },
+    "Nuke":
+        {
+            "niceName": "Nuke",
+            "root": "",
+            "relPath": "",
+            "exeList": ["Nuke10.0.exe","Nuke10.1.exe","Nuke10.2.exe","Nuke10.3.exe","Nuke10.4.exe","Nuke10.5.exe","Nuke10.6.exe","Nuke10.7.exe","Nuke10.8.exe","Nuke10.9.exe","Nuke11.0.exe","Nuke11.1.exe","Nuke11.2.exe","Nuke11.3.exe","Nuke11.4.exe","Nuke11.5.exe","Nuke11.6.exe","Nuke11.7.exe","Nuke11.8.exe","Nuke11.9.exe",],
+            "searchWord": "Nuke",
+            "databaseDir": "nukeDB",
+            "scenesDir": "scenes_nuke",
+            "pbSettingsFile": "pbSettings_nuke.json",
+            "categoriesFile": "categoriesNuke.json",
+            "userSettingsDir": "Documents\\SceneManager\\Nuke"
         }
 }
 
@@ -192,12 +205,15 @@ class SwViewer(RootManager):
             return None
 
         ID = self._currentSceneInfo["ID"]
+
         if ID.startswith("SmMaya"):
             swID = "Maya"
         elif ID.startswith("Sm3dsMax"):
             swID = "3dsMax"
         elif ID.startswith("SmHoudini"):
             swID = "Houdini"
+        elif ID.startswith("SmNuke"):
+            swID = "Nuke"
         else:
             msg = "Cannot resolve software version from database"
             self._exception(360, msg)
@@ -312,9 +328,45 @@ class SwViewer(RootManager):
                     else:
                         subprocess.Popen([exePath, self.currentScenePath], shell=True)
                         return
+            for v in executables["Houdini"]["32Bit"]:
+                versionNumber = v[0].split()[1]
+                versionAsList = [int(s) for s in versionNumber.split(".") if s.isdigit()]
+                exePath = v[1]
+                if dbVersion == versionAsList:
+                    if dbIsApprentice:
+                        subprocess.Popen([exePath, "-apprentice", self.currentScenePath], shell=True)
+                        return
+                    else:
+                        subprocess.Popen([exePath, self.currentScenePath], shell=True)
+                        return
             msg = "Houdini %s is not installed on this workstation" % dbVersion
             self._exception(360, msg)
             return
+
+        elif swID == "Nuke":
+            dbMajorV = self._currentSceneInfo["NukeVersion"][0]
+            dbMinorV = self._currentSceneInfo["NukeVersion"][1]
+            sringVersion = "Nuke{0}.{1}".format(dbMajorV, dbMinorV)
+
+            #first try the 64bit version
+            for v in executables["Nuke"]["64Bit"]:
+                versionFromFolderName = v[0] # eg Nuke10.0v1
+                exePath = v[1]
+                if versionFromFolderName.startswith(sringVersion):
+                    subprocess.Popen([exePath, self.currentScenePath], shell=True)
+                    return
+
+            for v in executables["Nuke"]["32Bit"]:
+                versionFromFolderName = v[0] # eg Nuke10.0v1
+                exePath = v[1]
+                if versionFromFolderName.startswith(sringVersion):
+                    subprocess.Popen([exePath, self.currentScenePath], shell=True)
+                    return
+
+            msg = "Nuke %s is not installed on this workstation" % sringVersion
+            self._exception(360, msg)
+            return
+
 
 
     def _exception(self, code, msg):
