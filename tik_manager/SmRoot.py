@@ -555,7 +555,7 @@ class RootManager(object):
         logger.debug("Func: getUsers")
 
         return sorted(self._usersDict.keys())
-    #
+
     def getBaseScenesInCategory(self):
         """Returns list of nice base scene names under the category at cursor position"""
         logger.debug("Func: getBaseScenesInCategory")
@@ -837,6 +837,86 @@ class RootManager(object):
         # self._currentBaseScenes = [os.path.join(searchDir, file) for file in os.listdir(searchDir) if file.endswith('.json')]
         return self._baseScenesInCategory # dictionary of json files
 
+    def getProjectReport(self):
+        # Hard Coded Software List
+        softwareDBList=["mayaDB", "maxDB", "houdiniDB", "nukeDB"]
+
+        def getOldestFile(listOfFiles):
+            return min(listOfFiles, key=lambda fn: os.stat(fn).st_mtime)
+
+        def getNewestFile(listOfFiles):
+            return max(listOfFiles, key=lambda fn: os.stat(fn).st_mtime)
+
+        def uniqueList(seq, idfun=None):
+            # order preserving
+            if idfun is None:
+                def idfun(x): return x
+            seen = {}
+            result = []
+            for item in seq:
+                marker = idfun(item)
+                # in old Python versions:
+                # if seen.has_key(marker)
+                # but in new ones:
+                if marker in seen: continue
+                seen[marker] = 1
+                result.append(item)
+            return result
+
+
+        now = datetime.datetime.now()
+        formattedDate = now.strftime("%Y.%m.%d.%H.%M")
+        filename = "summary_{0}.txt".format(formattedDate)
+
+        # search entire database folder
+
+        allDBfiles = []
+        for sw in softwareDBList:
+            dbPath = os.path.join(self._pathsDict["masterDir"], sw)
+            if os.path.isdir(dbPath):
+
+                swCategories = os.listdir(dbPath)
+                for category in swCategories:
+                    # get all json files in it recursively
+                    for root, dirs, files in os.walk(os.path.join(dbPath, category)):
+                        for file in files:
+                            if file.endswith(".json"):
+                                allDBfiles.append(os.path.join(root, file))
+                                print(os.path.join(root, file))
+
+
+        usersList = []
+        usedSoftwares = []
+        for sceneFile in allDBfiles:
+            sceneInfo = self._loadJson(sceneFile)
+            for v in sceneInfo["Versions"]:
+                usersList.append(v["User"])
+            sceneInfo[""]
+
+
+
+
+        oldestFile = getOldestFile(allDBfiles)
+        pathOldestFile, nameOldestFile = os.path.split(oldestFile)
+        oldestTimeMod = datetime.datetime.fromtimestamp(os.path.getmtime(oldestFile))
+        newestFile = getNewestFile(allDBfiles)
+        pathNewestFile, nameNewestFile = os.path.split(oldestFile)
+        newestTimeMod = datetime.datetime.fromtimestamp(os.path.getmtime(newestFile))
+
+        # print ", ".join(usedSofwares)
+        formattedUsedSoftwares = ", ".join(usedSofwares)
+
+        ReportText = """
+Scene Manager Report - by {0} on {1}
+---------------
+Participants:{2}
+Softwares Used:{3}
+Oldest Scene File:{4}
+Most Recent Scene File:{5}
+Elapsed Time:{6}
+        """.format(self.currentUser, formattedDate, "2", formattedUsedSoftwares, oldestFile, newestFile, "6")
+        print ReportText
+        pass
     # def getProjectReport(self):
     #     # TODO This function should be re-written considering all possible softwares
     #     # TODO instead of clunking scanBaseScenes with extra arguments, do the scanning inside this function
