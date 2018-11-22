@@ -1,3 +1,35 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# ---------------------------------------------------------------------------------------------
+# Copyright (c) 2017-2018, Arda Kutlu (ardakutlu@gmail.com)
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+#  - Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
+#
+#  - Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+#
+#  - Neither the name of the software nor the names of its contributors
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+# -----------------------------------------------------------------------------
+
 from SmUIRoot import MainUI as baseUI
 import os
 # import SmRoot
@@ -287,7 +319,7 @@ class MayaManager(RootManager):
         """Creates a Playblast preview from currently open scene"""
         logger.debug("Func: createPreview")
 
-        pbSettings = self._loadPBSettings()
+        pbSettings = self.loadPBSettings()
         validFormats = cmds.playblast(format=True, q=True)
         validCodecs = cmds.playblast(c=True, q=True)
 
@@ -319,8 +351,12 @@ class MayaManager(RootManager):
         selection = cmds.ls(sl=True)
         cmds.select(d=pbSettings["ClearSelection"])
         jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
+        try:
+            currentCam = cmds.modelPanel(cmds.getPanel(wf=True), q=True, cam=True)
+        except RuntimeError:
+            msg = "Highlighted Pane is not a camera view"
+            self._exception(360, msg)
 
-        currentCam = cmds.modelPanel(cmds.getPanel(wf=True), q=True, cam=True)
         validName = currentCam
 
         replaceDict = {"|":"__",
@@ -329,14 +365,14 @@ class MayaManager(RootManager):
         for item in replaceDict.items():
             validName = validName.replace(item[0], item[1])
 
-        if not self._nameCheck(validName):
+        if not self.nameCheck(validName):
             msg = "A scene view must be highlighted"
             self._exception(360, msg)
             return
 
         versionName = self.getSceneFile()
         relVersionName = os.path.relpath(versionName, start=openSceneInfo["projectPath"])
-        playBlastFile = os.path.join(openSceneInfo["previewPath"], "{0}_{1}_PB.{2}".format(self._niceName(versionName), validName, extension))
+        playBlastFile = os.path.join(openSceneInfo["previewPath"], "{0}_{1}_PB.{2}".format(self.niceName(versionName), validName, extension))
         relPlayBlastFile = os.path.relpath(playBlastFile, start=openSceneInfo["projectPath"])
 
         if os.path.isfile(playBlastFile):
@@ -393,8 +429,8 @@ class MayaManager(RootManager):
                               lfs="large")
         if pbSettings["ShowSceneName"]:
             freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-            cmds.headsUpDisplay('SMScene', s=5, b=freeBl, label="Scene: %s" % (self._niceName(versionName)),
-                              lfs="large")
+            cmds.headsUpDisplay('SMScene', s=5, b=freeBl, label="Scene: %s" % (self.niceName(versionName)),
+                                lfs="large")
         if pbSettings["ShowCategory"]:
             freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
             cmds.headsUpDisplay('SMCategory', s=5, b=freeBl, label="Category: %s" % (jsonInfo["Category"]),
@@ -465,7 +501,10 @@ class MayaManager(RootManager):
         for hud in hudPreStates.keys():
             cmds.headsUpDisplay(hud, e=True, vis=hudPreStates[hud])
         # pm.select(selection)
-        cmds.select(selection)
+        try:
+            cmds.select(selection)
+        except TypeError: # in case nothing selected
+            pass
         ## find this version in the json data
         for version in jsonInfo["Versions"]:
             if relVersionName == version["RelativePath"]:

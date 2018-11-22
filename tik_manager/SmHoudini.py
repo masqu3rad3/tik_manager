@@ -1,3 +1,35 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# ---------------------------------------------------------------------------------------------
+# Copyright (c) 2017-2018, Arda Kutlu (ardakutlu@gmail.com)
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+#  - Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
+#
+#  - Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+#
+#  - Neither the name of the software nor the names of its contributors
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+# -----------------------------------------------------------------------------
+
 import SmUIRoot
 reload(SmUIRoot)
 from SmUIRoot import MainUI as baseUI
@@ -28,7 +60,7 @@ from Qt import QtCore
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Scene Manager for Maya Project"
 __credits__ = []
-__version__ = "2.0.0"
+__version__ = _version.__version__
 __license__ = "GPL"
 __maintainer__ = "Arda Kutlu"
 __email__ = "ardakutlu@gmail.com"
@@ -78,6 +110,7 @@ class HoudiniManager(RootManager):
         # get the project defined in the database file
         try:
             norm_p_path = projectsDict["HoudiniProject"]
+            self.setProject(norm_p_path)
             return norm_p_path
         except KeyError:
             p_path = (hou.hscript('echo $JOB')[0])[:-1] # [:-1] is for the extra \n
@@ -109,8 +142,8 @@ class HoudiniManager(RootManager):
             projectsDict["HoudiniProject"] = path
         self._saveProjects(projectsDict)
         self.projectDir = path
-
         self._setEnvVariable('JOB', path)
+
 
     def saveBaseScene(self, categoryName, baseName, subProjectIndex=0, makeReference=False, versionNotes="", sceneFormat="hip", *args, **kwargs):
         """
@@ -301,7 +334,7 @@ class HoudiniManager(RootManager):
 
 
         #
-        pbSettings = self._loadPBSettings()
+        pbSettings = self.loadPBSettings()
         # validFormats = cmds.playblast(format=True, q=True)
         # validCodecs = cmds.playblast(c=True, q=True)
         #
@@ -348,7 +381,7 @@ class HoudiniManager(RootManager):
         relVersionName = os.path.relpath(versionName, start=openSceneInfo["projectPath"])
         playBlastDir = os.path.join(openSceneInfo["previewPath"], openSceneInfo["version"])
         self._folderCheck(playBlastDir)
-        playBlastFile = os.path.join(playBlastDir, "{0}_{1}_PB_$F4.{2}".format(self._niceName(versionName), currentCam, extension))
+        playBlastFile = os.path.join(playBlastDir, "{0}_{1}_PB_$F4.{2}".format(self.niceName(versionName), currentCam, extension))
         relPlayBlastFile = os.path.relpath(playBlastFile, start=openSceneInfo["projectPath"])
         #
         if os.path.isfile(playBlastFile):
@@ -407,7 +440,7 @@ class HoudiniManager(RootManager):
         #                       lfs="large")
         # if pbSettings["ShowSceneName"]:
         #     freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-        #     cmds.headsUpDisplay('SMScene', s=5, b=freeBl, label="Scene: %s" % (self._niceName(versionName)),
+        #     cmds.headsUpDisplay('SMScene', s=5, b=freeBl, label="Scene: %s" % (self.niceName(versionName)),
         #                       lfs="large")
         # if pbSettings["ShowCategory"]:
         #     freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
@@ -524,7 +557,8 @@ class HoudiniManager(RootManager):
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
             hou.hipFile.load(absSceneFile, suppress_save_prompt=force, ignore_load_warnings=False)
-            # cmds.file(absSceneFile, o=True, force=force)
+            # self._setEnvVariable('HIP', os.path.split(absSceneFile)[0])
+            self._setEnvVariable('HIP', os.path.split(absSceneFile)[0])
             return 0
         else:
             msg = "File in Scene Manager database doesnt exist"
@@ -732,7 +766,9 @@ class HoudiniManager(RootManager):
             # should be Houdini 12
             hou.allowEnvironmentToOverwriteVariable(var, True)
 
+        value = value.replace('\\', '/')
         hscript_command = "set -g %s = '%s'" % (var, value)
+
         hou.hscript(str(hscript_command))
 
     def _checkRequirements(self):

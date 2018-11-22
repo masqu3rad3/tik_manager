@@ -8,6 +8,8 @@ Scene Manager Version History
 * **Update.01:** SmMaya imports optimized (pymel is not used anymore)
 * **New.02:** Basic Nuke support added
 * **Fix.02:** Bug fix when dropping items with standalone project materials
+* **Fix.03:** Bug fix with multi camera preview playing (Standalone)
+* **Update.03:** Documentation and comment updates
 
 2.1
 ---

@@ -1,8 +1,44 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# ---------------------------------------------------------------------------------------------
+# Copyright (c) 2017-2018, Arda Kutlu (ardakutlu@gmail.com)
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+#  - Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
+#
+#  - Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+#
+#  - Neither the name of the software nor the names of its contributors
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+# -----------------------------------------------------------------------------
+
+# Abstract Module for main UI
+
 import os
 
 # PyInstaller and Standalone version compatibility
 FORCE_QT4 = bool(os.getenv("FORCE_QT4"))
 
+# Somehow Pyinstaller is not working with Qt.py module. Following lines forces to use PyQt4
+# instead of Qt module to make it compatible with PyInstaller.
 if FORCE_QT4:
     from PyQt4 import QtCore, Qt
     from PyQt4 import QtGui as QtWidgets
@@ -15,8 +51,8 @@ import pprint
 
 import ImageViewer
 
-from tik_manager.CSS import darkorange
-reload(darkorange)
+# from tik_manager.CSS import darkorange
+# reload(darkorange)
 import logging
 
 # import Qt
@@ -620,7 +656,7 @@ class MainUI(QtWidgets.QMainWindow):
         # This method is NOT Software Specific
         newSub, ok = QtWidgets.QInputDialog.getText(self, "Create New Sub-Project", "Enter an unique Sub-Project name:")
         if ok:
-            if self.manager._nameCheck(newSub):
+            if self.manager.nameCheck(newSub):
                 self.subProject_comboBox.clear()
                 self.subProject_comboBox.addItems(self.manager.createSubproject(newSub))
                 self.subProject_comboBox.setCurrentIndex(self.manager.currentSubIndex)
@@ -765,10 +801,10 @@ class MainUI(QtWidgets.QMainWindow):
                 self.resolvedpath_label.setText("Fill the mandatory fields")
                 self.newProjectPath = None
                 return
-            resolvedPath = self.manager._resolveProjectPath(self.projectroot_lineEdit.text(),
-                                                            self.projectname_lineEdit.text(),
-                                                            self.brandname_lineEdit.text(),
-                                                            self.client_lineEdit.text())
+            resolvedPath = self.manager.resolveProjectPath(self.projectroot_lineEdit.text(),
+                                                           self.projectname_lineEdit.text(),
+                                                           self.brandname_lineEdit.text(),
+                                                           self.client_lineEdit.text())
             self.resolvedpath_label.setText(resolvedPath)
 
         resolve()
@@ -1002,7 +1038,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.folders_tableView.hideColumn(2)
         self.folders_tableView.setColumnWidth(0,400)
 
-        self.favList = self.manager._loadFavorites()
+        self.favList = self.manager.loadFavorites()
         self.favorites_listWidget.addItems([x[0] for x in self.favList])
 
         self.lookIn_lineEdit.setText(self.projectsRoot)
@@ -1058,7 +1094,7 @@ class MainUI(QtWidgets.QMainWindow):
             if row == -1:
                 return
             # item = self.favList[row]
-            self.favList = self.manager._removeFromFavorites(row)
+            self.favList = self.manager.removeFromFavorites(row)
             # block the signal to prevent unwanted cycle
 
             self.favorites_listWidget.blockSignals(True)
@@ -1079,7 +1115,7 @@ class MainUI(QtWidgets.QMainWindow):
             if [fName, normPath] in self.favList:
                 return
             self.favorites_listWidget.addItem(fName)
-            self.favList = self.manager._addToFavorites(fName, normPath)
+            self.favList = self.manager.addToFavorites(fName, normPath)
 
         def favoritesActivated():
             # block the signal to prevent unwanted cycle
@@ -1189,12 +1225,12 @@ class MainUI(QtWidgets.QMainWindow):
                              "WireOnShaded": self.wireonshaded_checkBox.isChecked(),
                              "UseDefaultMaterial": self.usedefaultmaterial_checkBox.isChecked()
                              }
-            manager._savePBSettings(newPbSettings)
+            manager.savePBSettings(newPbSettings)
             self.statusBar().showMessage("Status | Playblast Settings Saved")
             self.pbSettings_dialog.accept()
 
 
-        currentSettings = manager._loadPBSettings()
+        currentSettings = manager.loadPBSettings()
         self.pbSettings_dialog = QtWidgets.QDialog(parent=self)
         self.pbSettings_dialog.setModal(True)
         self.pbSettings_dialog.setObjectName(("Playblast_Dialog"))
@@ -1451,11 +1487,11 @@ class MainUI(QtWidgets.QMainWindow):
                              "WireOnShaded": self.wireonshaded_checkBox.isChecked(),
                              "UseDefaultMaterial": "N/A"
                              }
-            manager._savePBSettings(newPbSettings)
+            manager.savePBSettings(newPbSettings)
             self.statusBar().showMessage("Status | Playblast Settings Saved")
             self.pbSettings_dialog.accept()
 
-        currentSettings = manager._loadPBSettings()
+        currentSettings = manager.loadPBSettings()
 
         self.pbSettings_dialog = QtWidgets.QDialog(parent=self)
         self.pbSettings_dialog.setModal(True)
@@ -1623,7 +1659,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.selectuser_comboBox.setGeometry(QtCore.QRect(10, 20, 231, 22))
         self.selectuser_comboBox.setObjectName(("selectuser_comboBox"))
 
-        userListSorted = sorted(self.manager._usersDict.keys())
+        # userListSorted = sorted(self.manager._usersDict.keys())
+        userListSorted = self.manager.getUsers()
         for num in range(len(userListSorted)):
             self.selectuser_comboBox.addItem((userListSorted[num]))
             self.selectuser_comboBox.setItemText(num, (userListSorted[num]))
@@ -1641,7 +1678,8 @@ class MainUI(QtWidgets.QMainWindow):
                 return
             self.manager.currentUser = self.fullname_lineEdit.text()
             self._initUsers()
-            userListSorted = sorted(self.manager._usersDict.keys())
+            # userListSorted = sorted(self.manager._usersDict.keys())
+            userListSorted = self.manager.getUsers()
             self.selectuser_comboBox.clear()
             for num in range(len(userListSorted)):
                 self.selectuser_comboBox.addItem((userListSorted[num]))
@@ -1654,9 +1692,11 @@ class MainUI(QtWidgets.QMainWindow):
 
         def onRemoveUser():
             self.manager.removeUser(str(self.selectuser_comboBox.currentText()))
-            self.manager.currentUser = self.manager._usersDict.keys()[0]
+            # self.manager.currentUser = self.manager._usersDict.keys()[0]
+            self.manager.currentUser = self.manager.getUsers()[0]
             self._initUsers()
-            userListSorted = sorted(self.manager._usersDict.keys())
+            # userListSorted = sorted(self.manager._usersDict.keys())
+            userListSorted = self.manager.getUsers()
             self.selectuser_comboBox.clear()
             for num in range(len(userListSorted)):
                 self.selectuser_comboBox.addItem((userListSorted[num]))
@@ -1737,7 +1777,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.selectcategory_comboBox.setGeometry(QtCore.QRect(10, 20, 231, 22))
         self.selectcategory_comboBox.setObjectName(("selectcategory_comboBox"))
 
-        self.selectcategory_comboBox.addItems(manager._categories)
+        # self.selectcategory_comboBox.addItems(manager._categories)
+        self.selectcategory_comboBox.addItems(manager.getCategories())
         # userListSorted = manager._categories
         # for num in range(len(userListSorted)):
         #     self.selectuser_comboBox.addItem((userListSorted[num]))
@@ -1793,7 +1834,7 @@ class MainUI(QtWidgets.QMainWindow):
             return
 
 
-        projectSettingsDB = self.manager._loadProjectSettings()
+        projectSettingsDB = self.manager.loadProjectSettings()
 
         projectSettings_Dialog = QtWidgets.QDialog(parent=self)
         projectSettings_Dialog.setObjectName("projectSettings_Dialog")
@@ -1870,7 +1911,7 @@ class MainUI(QtWidgets.QMainWindow):
         def onAccepted():
             projectSettingsDB = {"Resolution": [resolutionX_spinBox.value(), resolutionY_spinBox.value()],
                                  "FPS": int(fps_comboBox.currentText())}
-            self.manager._saveProjectSettings(projectSettingsDB)
+            self.manager.saveProjectSettings(projectSettingsDB)
             projectSettings_Dialog.close()
 
         buttonBox.accepted.connect(onAccepted)
@@ -1990,7 +2031,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         subProject_comboBox = QtWidgets.QComboBox(verticalLayoutWidget_2)
         subProject_comboBox.setMinimumSize(QtCore.QSize(150, 20))
-        subProject_comboBox.addItems((self.manager._subProjectsList))
+        # subProject_comboBox.addItems((self.manager._subProjectsList))
+        subProject_comboBox.addItems(self.manager.getSubProjects())
         subProject_comboBox.setCurrentIndex(self.subProject_comboBox.currentIndex())
         formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, subProject_comboBox)
 
@@ -2010,7 +2052,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         category_comboBox = QtWidgets.QComboBox(verticalLayoutWidget_2)
         category_comboBox.setMinimumSize(QtCore.QSize(150, 20))
-        category_comboBox.addItems((self.manager._categories))
+        # category_comboBox.addItems((self.manager._categories))
+        category_comboBox.addItems(self.manager.getCategories())
         category_comboBox.setCurrentIndex(self.category_tabWidget.currentIndex())
         formLayout.setWidget(2, QtWidgets.QFormLayout.FieldRole, category_comboBox)
 
@@ -2094,7 +2137,6 @@ class MainUI(QtWidgets.QMainWindow):
             AssertionError(sceneFormat)
             state = self.manager.saveBaseScene(category, name, subIndex, makeReference, notes, sceneFormat)
             if state[0] != -1:
-                print "state", state
                 self.populateBaseScenes()
                 self.manager.getOpenSceneInfo()
                 self._initOpenScene()
@@ -2395,7 +2437,8 @@ class MainUI(QtWidgets.QMainWindow):
             manager.showInExplorer(manager.currentPreviewPath)
 
         if command == "showInExplorerData":
-            filePath = manager._baseScenesInCategory[manager.currentBaseSceneName]
+            # filePath = manager._baseScenesInCategory[manager.currentBaseSceneName]
+            filePath = manager.getBaseScenesInCategory()[manager.currentBaseSceneName]
             dirPath = os.path.dirname(filePath)
             manager.showInExplorer(dirPath)
 
@@ -2686,7 +2729,8 @@ class MainUI(QtWidgets.QMainWindow):
             for z in cameraList:
                 tempAction = QtWidgets.QAction(z, self)
                 zortMenu.addAction(tempAction)
-                tempAction.triggered.connect(lambda item=z: manager.playPreview(item)) ## Take note about the usage of lambda "item=pbDict[z]" makes it possible using the loop
+                ## Take note about the usage of lambda "item=z" makes it possible using the loop, ignore -> for discarding emitted value
+                tempAction.triggered.connect(lambda ignore, item=z: manager.playPreview(str(item)))
 
             if BoilerDict["Environment"] == "Standalone":
                 zortMenu.exec_((QtWidgets.QCursor.pos()))
@@ -2815,7 +2859,7 @@ class MainUI(QtWidgets.QMainWindow):
 
 
     def _checkValidity(self, text, button, lineEdit, allowSpaces=False):
-        if self.manager._nameCheck(text, allowSpaces=allowSpaces):
+        if self.manager.nameCheck(text, allowSpaces=allowSpaces):
             lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: white")
             button.setEnabled(True)
         else:

@@ -188,6 +188,100 @@ def inject(file, newContentList, between=None, after=None, before=None, matchMod
 #     else:
 #         _dumpContent(file, newContentList)
 
+def nukeSetup(prompt=True):
+    print "Starting Nuke Setup"
+    print "Checking files..."
+
+    networkDir = os.path.dirname(os.path.abspath(__file__))
+    fileList = ["__init__.py",
+                "_version.py",
+                "ImageViewer.py",
+                "pyseq.py",
+                "Qt.py",
+                "SmUIRoot.py",
+                "SmNuke.py",
+                "SmRoot.py",
+                "adminPass.psw",
+                "projectMaterials.py"
+                ]
+    for file in fileList:
+        if not os.path.isfile(os.path.join(networkDir, file)):
+            # if the extension is pyc give it another chance
+            if os.path.splitext(file)[1] == ".py":
+                if not os.path.isfile(os.path.join(networkDir, "%sc" %file)): # make the extension pyc
+                    print "Missing file:\nCannot find %s or %sc" % (file, file)
+                    raw_input("Press Enter to continue...")
+                    return
+            else:
+                print "Missing file:\nCannot find %s" %file
+                raw_input("Press Enter to continue...")
+                return
+
+    # check for running instances
+    state = checkRuninngInstances("Nuke")
+    if state == -1:
+        print "Installation Aborted by User"
+        return # user aborts
+
+    upNetworkDir = os.path.abspath(os.path.join(networkDir, os.pardir))
+    userHomeDir = os.path.normpath(os.path.join(os.path.expanduser("~")))
+    pluginDir = os.path.join(userHomeDir, '.nuke')
+    initFile = os.path.join(pluginDir, 'init.py')
+    menuFile = os.path.join(pluginDir, 'menu.py')
+
+    if not os.path.isdir(pluginDir):
+        print "No Nuke version can be found, try manual installation"
+        raw_input("Press Enter to continue...")
+        return
+
+    managerIcon = os.path.join(networkDir, "icons", "manager_ICON.png").replace("\\", "\\\\")
+    saveVersionIcon = os.path.join(networkDir, "icons", "saveVersion_ICON.png").replace("\\", "\\\\")
+    # imageManagerIcon = os.path.join(networkDir, "icons", "imageManager_ICON.png").replace("\\", "\\\\")
+    imageViewerIcon = os.path.join(networkDir, "icons", "imageViewer_ICON.png").replace("\\", "\\\\")
+    # takePreviewIcon = os.path.join(networkDir, "icons", "takePreview_ICON.png").replace("\\", "\\\\")
+    projectMaterialsIcon = os.path.join(networkDir, "icons", "projectMaterials_ICON.png").replace("\\", "\\\\")
+
+    shutil.copyfile(managerIcon, os.path.join(pluginDir, "manager_ICON.png"))
+    shutil.copyfile(saveVersionIcon, os.path.join(pluginDir, "saveVersion_ICON.png"))
+    shutil.copyfile(imageViewerIcon, os.path.join(pluginDir, "imageViewer_ICON.png"))
+    shutil.copyfile(projectMaterialsIcon, os.path.join(pluginDir, "projectMaterials_ICON.png"))
+
+    initContent = [
+        "# start Scene Manager\n",
+        "import os\n",
+        "import sys\n",
+        "\n",
+        "def initFolder(targetFolder):\n",
+        "    if targetFolder in sys.path:\n",
+        "        return\n",
+        "    if not os.path.isdir(targetFolder):\n",
+        "        print ('Path is not valid (%s)' % targetFolder)\n",
+        "    sys.path.append(targetFolder)\n",
+        "\n",
+        "initFolder('{0}')\n".format((upNetworkDir.replace("\\", "//"))),
+        "# end Scene Manager\n"
+    ]
+
+    inject(initFile, initContent, between=("# start Scene Manager\n", "# end Scene Manager\n"))
+    print "init.py file updated at: %s" %(initFile)
+
+    menuContent = [
+        "# start Scene Manager\n",
+        "toolbar = nuke.menu('Nodes')\n",
+        "smMenu = toolbar.addMenu('SceneManager', icon='manager_ICON.png')\n",
+        "smMenu.addCommand('Scene Manager', 'from tik_manager import SmNuke\\nSmNuke.MainUI().show()', icon='manager_ICON.png')\n",
+        "smMenu.addCommand('Save Version', 'from tik_manager import SmNuke\\nSmNuke.MainUI().saveAsVersionDialog()', icon='saveVersion_ICON.png')\n",
+        "smMenu.addCommand('Image Viewer', 'from tik_manager import SmNuke\\ntik_imageViewer = SmNuke.MainUI()\\ntik_imageViewer.onIviewer()', icon='imageViewer_ICON.png')\n",
+        "smMenu.addCommand('Project Materials', 'from tik_manager import SmNuke\\ntik_projectMaterials = SmNuke.MainUI()\\ntik_projectMaterials.onPMaterials()', icon='projectMaterials_ICON.png')\n",
+        "# end Scene Manager\n"
+    ]
+    inject(menuFile, menuContent, between=("# start Scene Manager\n", "# end Scene Manager\n"))
+    print "menu.py updated at: %s" %(menuFile)
+
+    print "Successfull => Nuke Setup"
+    if prompt:
+        raw_input("Press Enter to continue...")
+
 def mayaSetup(prompt=True):
     # Check file integrity
     print "Starting Maya Setup"
@@ -203,7 +297,8 @@ def mayaSetup(prompt=True):
                 "SmMaya.py",
                 "SmRoot.py",
                 "SubmitMayaToDeadlineCustom.mel",
-                "adminPass.psw"
+                "adminPass.psw",
+                "projectMaterials.py"
                 ]
     for file in fileList:
         if not os.path.isfile(os.path.join(networkDir, file)):
@@ -275,6 +370,7 @@ def mayaSetup(prompt=True):
     imageManagerIcon = os.path.join(networkDir, "icons", "imageManager_ICON.png").replace("\\", "\\\\")
     imageViewerIcon = os.path.join(networkDir, "icons", "imageViewer_ICON.png").replace("\\", "\\\\")
     takePreviewIcon = os.path.join(networkDir, "icons", "takePreview_ICON.png").replace("\\", "\\\\")
+    projectMaterialsIcon = os.path.join(networkDir, "icons", "projectMaterials_ICON.png").replace("\\", "\\\\")
     shelfContent = """global proc shelf_SceneManager () {
     global string $gBuffStr;
     global string $gBuffStr0;
@@ -411,8 +507,35 @@ def mayaSetup(prompt=True):
         -commandRepeatable 1
         -flat 1
     ;
+        ;
+        shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "projectMaterials" 
+        -enableBackground 0
+        -align "center" 
+        -label "projectMaterials" 
+        -labelOffset 0
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.9 0.9 0.9 
+        -overlayLabelBackColor 0 0 0 0 
+        -image "%s"
+        -image1 "%s"
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "\\nfrom tik_manager import projectMaterials\\nprojectMaterials.MainUI().show()\\n" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
 
-} """ %(managerIcon,managerIcon,saveVersionIcon,saveVersionIcon,imageManagerIcon,imageManagerIcon,imageViewerIcon,imageViewerIcon, takePreviewIcon, takePreviewIcon)
+} """ %(managerIcon,managerIcon,saveVersionIcon,saveVersionIcon,imageManagerIcon,imageManagerIcon,imageViewerIcon,imageViewerIcon, takePreviewIcon, takePreviewIcon, projectMaterialsIcon, projectMaterialsIcon)
 
     for v in mayaVersions:
         shelfDir = os.path.join(userMayaDir, v, "prefs", "shelves")
@@ -440,7 +563,8 @@ def houdiniSetup(prompt=True):
                 "ImageViewer.py",
                 "SmUIRoot.py",
                 "SmRoot.py",
-                "adminPass.psw"
+                "adminPass.psw",
+                "projectMaterials.py"
                 ]
     for file in fileList:
         if not os.path.isfile(os.path.join(networkDir, file)):
@@ -479,6 +603,7 @@ def houdiniSetup(prompt=True):
     imageManagerIcon = os.path.join(networkDir, "icons", "imageManager_ICON.png").replace("\\", "\\\\")
     imageViewerIcon = os.path.join(networkDir, "icons", "imageViewer_ICON.png").replace("\\", "\\\\")
     takePreviewIcon = os.path.join(networkDir, "icons", "takePreview_ICON.png").replace("\\", "\\\\")
+    projectMaterialsIcon = os.path.join(networkDir, "icons", "projectMaterials_ICON.png").replace("\\", "\\\\")
 
     sScriptContent = [
         "# start Scene Manager\n",
@@ -508,6 +633,7 @@ def houdiniSetup(prompt=True):
     <memberTool name="saveVersion"/>
     <memberTool name="imageViewer"/>
     <memberTool name="takePreview"/>
+    <memberTool name="projectMaterials"/>
   </toolshelf>
 
   <tool name="sceneManager" label="Manager" icon="%s">
@@ -530,8 +656,13 @@ tik_imageViewer = ImageViewer.MainUI().show()]]></script>
     <script scriptType="python"><![CDATA[from tik_manager import SmHoudini
 SmHoudini.HoudiniManager().createPreview()]]></script>
   </tool>
+  
+  <tool name="projectMaterials" label="Project Materials" icon="%s">
+    <script scriptType="python"><![CDATA[from tik_manager import projectMaterials
+projectMaterials.MainUI().show()]]></script>
+  </tool>
 </shelfDocument>
-    """ %(managerIcon, saveVersionIcon, imageViewerIcon, takePreviewIcon)
+    """ %(managerIcon, saveVersionIcon, imageViewerIcon, takePreviewIcon, projectMaterialsIcon)
 
 
     for v in houdiniVersions:
@@ -574,7 +705,8 @@ def maxSetup(prompt=True):
                 "SmRoot.py",
                 "Sm3dsMax.py",
                 "SubmitMayaToDeadlineCustom.mel",
-                "adminPass.psw"
+                "adminPass.psw",
+                "projectMaterials.py"
                 ]
 
     for file in fileList:
@@ -609,12 +741,13 @@ def maxSetup(prompt=True):
             <FRect left="198" top="125" right="350" bottom="199" />
             <DRect left="1395" top="53" right="1504" bottom="92" />
             <DRectPref left="2147483647" top="2147483647" right="-2147483648" bottom="-2147483648" />
-            <CurPos left="198" top="125" right="310" bottom="199" floating="1" panelID="16" />
+            <CurPos left="198" top="125" right="600" bottom="199" floating="1" panelID="16" />
             <Items>
                 <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="manager`SceneManager" tip="Scene Manager" label="Scene Manager" />
                 <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="saveVersion`SceneManager" tip="Scene Manager - Version Save" label="Save Version" />
                 <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="imageViewer`SceneManager" tip="Scene Manager - Image Viewer" label="Image Viewer" />
                 <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="makePreview`SceneManager" tip="Scene Manager - Make Preview" label="Make Preview" />
+                <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="projectMaterials`SceneManager" tip="Scene Manager - Project Materials" label="Project Materials" />
             </Items>
         </Window>\n"""
 
@@ -691,8 +824,9 @@ tooltip: "Scene Manager - Image Viewer"
 ButtonText: "ImageViewer"
 icon: #("SceneManager",4)
 (
-    python.Execute "from tik_manager import ImageViewer"
-    python.Execute "tik_imageViewer = ImageViewer.MainUI().show()"
+    python.Execute "from tik_manager import Sm3dsMax"
+    python.Execute "tik_imageViewer = Sm3dsMax.MainUI()"
+    python.Execute "tik_imageViewer.onIviewer()"
 )"""
         makePreview = """
 macroScript makePreview
@@ -705,10 +839,22 @@ icon: #("SceneManager",5)
 	python.Execute "reload(Sm3dsMax)"
 	python.Execute "Sm3dsMax.MaxManager().createPreview()"
 )"""
+        projectMaterials = """
+macroScript projectMaterials
+category: "SceneManager"
+tooltip: "Scene Manager - Project Materials"
+ButtonText: "Project Materials"
+icon: #("SceneManager",6)
+(
+	python.Execute "from tik_manager import Sm3dsMax"
+	python.Execute "tik_projectMaterials = Sm3dsMax.MainUI()"
+	python.Execute "tik_projectMaterials.onPMaterials()"
+)"""
         _dumpContent(os.path.join(macrosDir, "SceneManager-manager.mcr"), manager)
         _dumpContent(os.path.join(macrosDir, "SceneManager-saveVersion.mcr"), saveVersion)
         _dumpContent(os.path.join(macrosDir, "SceneManager-imageViewer.mcr"), imageViewer)
         _dumpContent(os.path.join(macrosDir, "SceneManager-makePreview.mcr"), makePreview)
+        _dumpContent(os.path.join(macrosDir, "SceneManager-projectMaterials.mcr"), projectMaterials)
 
         searchLines = ['"sceneManager"', "</Window>"]
         print "Injecting the Scene Manager toolbar to the workspace"
@@ -728,6 +874,7 @@ def installAll():
     mayaSetup(prompt=False)
     houdiniSetup(prompt=False)
     maxSetup(prompt=False)
+    nukeSetup(prompt=False)
     raw_input("Setup Completed. Press Enter to Exit...")
     sys.exit()
 
@@ -748,6 +895,7 @@ menuItems = [
     { "Maya": mayaSetup },
     { "Houdini": houdiniSetup },
     { "3dsMax": maxSetup },
+    { "Nuke": nukeSetup },
     { "Install All": installAll },
     { "Exit": sys.exit}
 ]

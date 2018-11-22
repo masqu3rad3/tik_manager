@@ -1,25 +1,34 @@
-# The MIT License
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# ---------------------------------------------------------------------------------------------
+# Copyright (c) 2017-2018, Arda Kutlu (ardakutlu@gmail.com)
 #
-# Copyright (c) 2018 Arda Kutlu
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
 #
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
+#  - Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
 #
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
+#  - Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
 #
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
-
+#  - Neither the name of the software nor the names of its contributors
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+# -----------------------------------------------------------------------------
 
 import platform
 import datetime
@@ -113,19 +122,19 @@ class RootManager(object):
         self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerUsers.json"))
 
     def getSoftwarePaths(self):
-        """This function must be overriden to return the software currently working on"""
+        """This method must be overridden to return the software currently working on"""
         # This function should return a dictionary which includes string values for:
         # databaseDir, scenesDir, pbSettingsFile keys. Software specific paths will be resolved with these strings
         logger.debug("Func: getSoftwarePaths")
         return -1
 
     def getProjectDir(self):
-        """This function must be overriden to return the project directory of running software"""
+        """This method must be overridden to return the project directory of running software"""
         logger.debug("Func: getProjectDir")
         return -1
 
     def getSceneFile(self):
-        """This function must be overriden to return the full scene path ('' for unsaved) of current scene"""
+        """This method must be overridden to return the full scene path ('' for unsaved) of current scene"""
         logger.debug("Func: getSceneFile")
         return -1
 
@@ -515,7 +524,7 @@ class RootManager(object):
 
         jsonFile = os.path.join(dbPath, "{}.json".format(baseSceneName))
         if os.path.isfile(jsonFile):
-            version = (self._niceName(self._pathsDict["sceneFile"])[-4:])
+            version = (self.niceName(self._pathsDict["sceneFile"])[-4:])
             self._openSceneInfo = {
                     "jsonFile":jsonFile,
                     "projectPath":self._pathsDict["projectDir"],
@@ -586,7 +595,7 @@ class RootManager(object):
     def getFPS(self):
         """returns the project FPS setting"""
         # load it each time, since this setting is not limited to a single user
-        projectSettingsDB = self._loadProjectSettings()
+        projectSettingsDB = self.loadProjectSettings()
         try:
             fpsValue = projectSettingsDB["FPS"]
             return fpsValue
@@ -598,7 +607,7 @@ class RootManager(object):
     def getResolution(self):
         """returns the project Resolution setting as a list"""
         # load it each time, since this setting is not limited to a single user
-        projectSettingsDB = self._loadProjectSettings()
+        projectSettingsDB = self.loadProjectSettings()
         try:
             resolution = projectSettingsDB["Resolution"]
             return resolution
@@ -607,6 +616,9 @@ class RootManager(object):
             logger.error(msg)
             return None
 
+    def getSceneInfoAsText(self):
+        name = self._currentSceneInfo["Name"]
+        pass
 
     # def getFavorites(self):
     #     """returns List of favorite projects"""
@@ -625,7 +637,7 @@ class RootManager(object):
         logger.debug("Func: createNewProject")
 
         # resolve the project path
-        resolvedPath = self._resolveProjectPath(projectRoot, projectName, brandName, client)
+        resolvedPath = self.resolveProjectPath(projectRoot, projectName, brandName, client)
 
         # check if there is a duplicate
         if not os.path.isdir(os.path.normpath(resolvedPath)):
@@ -820,8 +832,8 @@ class RootManager(object):
         else:
             searchDir = categoryDBpath
 
-        self._baseScenesInCategory = {self._niceName(file):file for file in glob(os.path.join(searchDir, '*.json'))}
-        # self._baseScenesInCategory = {self._niceName(file): self.filterReferenced(file) for file in glob(os.path.join(searchDir, '*.json'))}
+        self._baseScenesInCategory = {self.niceName(file):file for file in glob(os.path.join(searchDir, '*.json'))}
+        # self._baseScenesInCategory = {self.niceName(file): self.filterReferenced(file) for file in glob(os.path.join(searchDir, '*.json'))}
         # self._currentBaseScenes = [os.path.join(searchDir, file) for file in os.listdir(searchDir) if file.endswith('.json')]
         return self._baseScenesInCategory # dictionary of json files
 
@@ -1021,6 +1033,7 @@ class RootManager(object):
     def playPreview(self, camera):
         """Runs the playblast at cursor position"""
         logger.debug("Func: playPreview")
+        print "cam", camera
         # absPath = os.path.join(self.projectDir, self._currentPreviewsDict[self._currentPreviewCamera])
         absPath = os.path.join(self.projectDir, self._currentPreviewsDict[camera])
         if self.currentPlatform == "Windows":
@@ -1339,9 +1352,9 @@ class RootManager(object):
         if not os.path.isdir(os.path.normpath(folder)):
             os.makedirs(os.path.normpath(folder))
 
-    def _nameCheck(self, text, allowSpaces=False):
+    def nameCheck(self, text, allowSpaces=False):
         """Checks the text for illegal characters, Returns:  corrected Text or -1 for Error """
-        logger.debug("Func: _nameCheck")
+        logger.debug("Func: nameCheck")
 
         if allowSpaces:
             pattern = "^[ A-Za-z0-9_-]*$"
@@ -1354,16 +1367,16 @@ class RootManager(object):
             return False
 
 
-    def _niceName(self, path):
+    def niceName(self, path):
         """Gets the base name of the given filename"""
-        logger.debug("Func: _niceName")
+        logger.debug("Func: niceName")
 
         basename = os.path.split(path)[1]
         return os.path.splitext(basename)[0]
 
-    def _resolveProjectPath(self, projectRoot, projectName, brandName, client):
+    def resolveProjectPath(self, projectRoot, projectName, brandName, client):
         """Parses the info to the absolute project folder path"""
-        logger.debug("Func: _resolveProjectPath")
+        logger.debug("Func: resolveProjectPath")
 
         if projectName == "" or client == "" or projectRoot == "":
             msg = ("Fill the mandatory fields")
@@ -1411,7 +1424,7 @@ class RootManager(object):
         shutil.copyfile(tempFile, file)
         os.remove(tempFile)
 
-    def _loadProjectSettings(self):
+    def loadProjectSettings(self):
         """Loads Project Settings from file"""
         if not os.path.isfile(self._pathsDict["projectSettingsFile"]):
             projectSettingsDB = {"Resolution": [1920, 1080],
@@ -1424,7 +1437,7 @@ class RootManager(object):
                 return -2
             return projectSettingsDB
 
-    def _saveProjectSettings(self, data):
+    def saveProjectSettings(self, data):
         """Dumps the data to the project settings database file"""
         try:
             self._dumpJson(data, self._pathsDict["projectSettingsFile"])
@@ -1450,9 +1463,9 @@ class RootManager(object):
             return userDB
 
 
-    def _loadFavorites(self):
+    def loadFavorites(self):
         """Loads Bookmarked projects"""
-        logger.debug("Func: _loadFavorites")
+        logger.debug("Func: loadFavorites")
 
         if os.path.isfile(self._pathsDict["bookmarksFile"]):
             bookmarksData = self._loadJson(self._pathsDict["bookmarksFile"])
@@ -1463,27 +1476,27 @@ class RootManager(object):
             self._dumpJson(bookmarksData, self._pathsDict["bookmarksFile"])
         return bookmarksData
 
-    def _addToFavorites(self, shortName, absPath):
+    def addToFavorites(self, shortName, absPath):
         """
         Adds the given project info to the favorites database
         :param shortName: (String) Name of the project
         :param absPath: (String) Absolute path of the project folder
         :return: (List) [Favorites Data]
         """
-        logger.debug("Func: _addToFavorites")
+        logger.debug("Func: addToFavorites")
 
         # old Name userFavoritesAdd
-        bookmarksData = self._loadFavorites()
+        bookmarksData = self.loadFavorites()
         bookmarksData.append([shortName, absPath])
         self._dumpJson(bookmarksData, self._pathsDict["bookmarksFile"])
         return bookmarksData
 
-    def _removeFromFavorites(self, index):
+    def removeFromFavorites(self, index):
         """Removes the data from the Favorites database. Accepts index number of the Favorites list"""
-        logger.debug("Func: _removeFromFavorites")
+        logger.debug("Func: removeFromFavorites")
 
         # old Name userFavoritesRemove
-        bookmarksData = self._loadFavorites()
+        bookmarksData = self.loadFavorites()
         del bookmarksData[index]
         self._dumpJson(bookmarksData, self._pathsDict["bookmarksFile"])
         return bookmarksData
@@ -1572,10 +1585,10 @@ class RootManager(object):
 
         self._dumpJson(data, self._pathsDict["projectsFile"])
 
-    def _loadPBSettings(self):
+    def loadPBSettings(self):
         """Loads the preview settings data"""
         # TODO // NEEDS to be IMPROVED and compatible with all softwares (Nuke and Houdini)
-        logger.debug("Func: _loadPBSettings")
+        logger.debug("Func: loadPBSettings")
 
         # old Name getPBsettings
 
@@ -1607,9 +1620,9 @@ class RootManager(object):
                 return -2
             return pbSettings
 
-    def _savePBSettings(self, pbSettings):
+    def savePBSettings(self, pbSettings):
         """Dumps the Preview settings data to the database"""
-        logger.debug("Func: _savePBSettings")
+        logger.debug("Func: savePBSettings")
 
         # old Name setPBsettings
 

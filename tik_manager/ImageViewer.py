@@ -1,3 +1,36 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# ---------------------------------------------------------------------------------------------
+# Copyright (c) 2017-2018, Arda Kutlu (ardakutlu@gmail.com)
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+#  - Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
+#
+#  - Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+#
+#  - Neither the name of the software nor the names of its contributors
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+# -----------------------------------------------------------------------------
+
+
 """Global Module for all Sm softwares
 Creates a tree structure for image sequences
 Image sequences can be listed recursively if the checkbox is checked.
@@ -26,7 +59,7 @@ from shutil import copyfile
 
 import logging
 
-from tik_manager.CSS import darkorange
+# from tik_manager.CSS import darkorange
 
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Scene Manager for Maya Project"
@@ -136,14 +169,14 @@ class MainUI(QtWidgets.QMainWindow):
         # super(MainUI, self).__init__()
 
         # Set Stylesheet
-        # dirname = os.path.dirname(os.path.abspath(__file__))
-        # # stylesheetFile = os.path.join(dirname, "CSS", "darkorange.stylesheet")
+        dirname = os.path.dirname(os.path.abspath(__file__))
+        stylesheetFile = os.path.join(dirname, "CSS", "darkorange.stylesheet")
         # stylesheetFile = os.path.join(dirname, "CSS", BoilerDict["Stylesheet"])
 
         # with open(stylesheetFile, "r") as fh:
         #     self.setStyleSheet(fh.read())
 
-        self.setStyleSheet(darkorange.getStyleSheet())
+        # self.setStyleSheet(darkorange.getStyleSheet())
 
         if projectPath:
             self.projectPath=str(projectPath)

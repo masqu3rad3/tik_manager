@@ -29,3 +29,17 @@ icon: #("SceneManager",5)
 	python.Execute "from tik_manager import Sm3dsMax"
 	python.Execute "Sm3dsMax.MaxManager().createPreview()"
 )
+
+
+# /*
+# macroScript TIK_sceneManager
+# category: "Tik Works"
+# tooltip: "Scene Manager"
+# ButtonText: "Scene Manager"
+# */
+#
+# (
+# 	python.Execute "from tik_manager import Sm3dsMax as man"
+# 	python.Execute "reload(man)"
+# 	python.Execute "r=man.MainUI().show()"
+# )
