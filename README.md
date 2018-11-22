@@ -42,7 +42,7 @@ The folder structure makes sense for manual browsing. There are minimal nested f
 point it has been decided to stop using Scene Manager, it is possible to continue working without relying on it.
 However, Scenes saved after that stage wont be included to the Scene Manager database
 
-Scene Manager has a hiearachy like this:
+Scene Manager has the following hierarchy:
 * Project Folder
     * Category
         * Sub-Project (If any)
