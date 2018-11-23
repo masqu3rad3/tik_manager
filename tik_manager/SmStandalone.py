@@ -76,59 +76,59 @@ logger = logging.getLogger('smStandalone')
 logger.setLevel(logging.DEBUG)
 
 # hard coded software dictionary for getting executables and creating viewer objects
-softwareDictionary = {
-    "Maya":{
-        "niceName": "Maya",
-        "root": "Autodesk",
-        "relPath": "bin",
-        "exeList": ["maya.exe"],
-        "searchWord": "Maya",
-        "databaseDir": "mayaDB",
-        "scenesDir": "scenes",
-        "pbSettingsFile": "pbSettings.json",
-        "categoriesFile": "categoriesMaya.json",
-        "userSettingsDir": "Documents\\SceneManager\\Maya"
-    },
-    "3dsMax":
-        {
-            "niceName": "3dsMax",
-            "root": "Autodesk",
-            "relPath": "",
-            "exeList": ["3dsmax.exe"],
-            "searchWord": "3ds",
-            "databaseDir": "maxDB",
-            "scenesDir": "scenes_3dsMax",
-            "pbSettingsFile": "pbSettings_3dsMax.json",
-            "categoriesFile": "categories3dsMax.json",
-            "userSettingsDir": "Documents\\SceneManager\\3dsMax"
-        },
-    "Houdini":
-        {
-            "niceName": "Houdini",
-            "root": "Side Effects Software",
-            "relPath": "bin",
-            "exeList": ["houdini.exe", "houdinifx.exe"],
-            "searchWord": "Hou",
-            "databaseDir": "houdiniDB",
-            "scenesDir": "scenes_houdini",
-            "pbSettingsFile": "pbSettings_houdini.json",
-            "categoriesFile": "categoriesHoudini.json",
-            "userSettingsDir": "Documents\\SceneManager\\Houdini"
-        },
-    "Nuke":
-        {
-            "niceName": "Nuke",
-            "root": "",
-            "relPath": "",
-            "exeList": ["Nuke10.0.exe","Nuke10.1.exe","Nuke10.2.exe","Nuke10.3.exe","Nuke10.4.exe","Nuke10.5.exe","Nuke10.6.exe","Nuke10.7.exe","Nuke10.8.exe","Nuke10.9.exe","Nuke11.0.exe","Nuke11.1.exe","Nuke11.2.exe","Nuke11.3.exe","Nuke11.4.exe","Nuke11.5.exe","Nuke11.6.exe","Nuke11.7.exe","Nuke11.8.exe","Nuke11.9.exe",],
-            "searchWord": "Nuke",
-            "databaseDir": "nukeDB",
-            "scenesDir": "scenes_nuke",
-            "pbSettingsFile": "pbSettings_nuke.json",
-            "categoriesFile": "categoriesNuke.json",
-            "userSettingsDir": "Documents\\SceneManager\\Nuke"
-        }
-}
+# softwareDictionary = {
+#     "Maya":{
+#         "niceName": "Maya",
+#         "root": "Autodesk",
+#         "relPath": "bin",
+#         "exeList": ["maya.exe"],
+#         "searchWord": "Maya",
+#         "databaseDir": "mayaDB",
+#         "scenesDir": "scenes",
+#         "pbSettingsFile": "pbSettings.json",
+#         "categoriesFile": "categoriesMaya.json",
+#         "userSettingsDir": "SceneManager\\Maya"
+#     },
+#     "3dsMax":
+#         {
+#             "niceName": "3dsMax",
+#             "root": "Autodesk",
+#             "relPath": "",
+#             "exeList": ["3dsmax.exe"],
+#             "searchWord": "3ds",
+#             "databaseDir": "maxDB",
+#             "scenesDir": "scenes_3dsMax",
+#             "pbSettingsFile": "pbSettings_3dsMax.json",
+#             "categoriesFile": "categories3dsMax.json",
+#             "userSettingsDir": "SceneManager\\3dsMax"
+#         },
+#     "Houdini":
+#         {
+#             "niceName": "Houdini",
+#             "root": "Side Effects Software",
+#             "relPath": "bin",
+#             "exeList": ["houdini.exe", "houdinifx.exe"],
+#             "searchWord": "Hou",
+#             "databaseDir": "houdiniDB",
+#             "scenesDir": "scenes_houdini",
+#             "pbSettingsFile": "pbSettings_houdini.json",
+#             "categoriesFile": "categoriesHoudini.json",
+#             "userSettingsDir": "SceneManager\\Houdini"
+#         },
+#     "Nuke":
+#         {
+#             "niceName": "Nuke",
+#             "root": "",
+#             "relPath": "",
+#             "exeList": ["Nuke10.0.exe","Nuke10.1.exe","Nuke10.2.exe","Nuke10.3.exe","Nuke10.4.exe","Nuke10.5.exe","Nuke10.6.exe","Nuke10.7.exe","Nuke10.8.exe","Nuke10.9.exe","Nuke11.0.exe","Nuke11.1.exe","Nuke11.2.exe","Nuke11.3.exe","Nuke11.4.exe","Nuke11.5.exe","Nuke11.6.exe","Nuke11.7.exe","Nuke11.8.exe","Nuke11.9.exe",],
+#             "searchWord": "Nuke",
+#             "databaseDir": "nukeDB",
+#             "scenesDir": "scenes_nuke",
+#             "pbSettingsFile": "pbSettings_nuke.json",
+#             "categoriesFile": "categoriesNuke.json",
+#             "userSettingsDir": "SceneManager\\Nuke"
+#         }
+# }
 
 
 class SwViewer(RootManager):
@@ -197,7 +197,8 @@ class SwViewer(RootManager):
 
         if software:
             try:
-                lookupDict = {software: softwareDictionary[software]}
+                # lookupDict = {software: softwareDictionary[software]}
+                lookupDict = {software: self.swDict}
             except KeyError:
                 self._exception(360, "Incorrect Software name")
                 return
@@ -237,18 +238,20 @@ class SwViewer(RootManager):
 
         ID = self._currentSceneInfo["ID"]
 
-        if ID.startswith("SmMaya"):
-            swID = "Maya"
-        elif ID.startswith("Sm3dsMax"):
-            swID = "3dsMax"
-        elif ID.startswith("SmHoudini"):
-            swID = "Houdini"
-        elif ID.startswith("SmNuke"):
-            swID = "Nuke"
-        else:
-            msg = "Cannot resolve software version from database"
-            self._exception(360, msg)
-            return
+        # if ID.startswith("SmMaya"):
+        #     swID = "Maya"
+        # elif ID.startswith("Sm3dsMax"):
+        #     swID = "3dsMax"
+        # elif ID.startswith("SmHoudini"):
+        #     swID = "Houdini"
+        # elif ID.startswith("SmNuke"):
+        #     swID = "Nuke"
+        # else:
+        #     msg = "Cannot resolve software version from database"
+        #     self._exception(360, msg)
+        #     return
+
+        swID = self.swDict["niceName"]
 
         executables = self.getAvailableExecutables(software=swID)
         # return
@@ -447,6 +450,8 @@ class StandaloneManager(RootManager):
 
         self.initSoftwares()
 
+        # get hardcoded software list
+
 
     def init_paths(self):
         """Overriden function"""
@@ -475,9 +480,12 @@ class StandaloneManager(RootManager):
 
     def init_database(self):
         """OVERRIDEN FUNCTION"""
-
         self._usersDict = self._loadUsers()
         self._currentsDict = self._loadUserPrefs()
+        # get hardcoded software list
+        hardCodedSwPath = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
+
+        self.softwareDictionary = self._loadJson(hardCodedSwPath)
 
     def getProjectDir(self):
         """OVERRIDEN FUNCTION"""
@@ -528,7 +536,8 @@ class StandaloneManager(RootManager):
         #     searchPath = (os.path.join(self.projectDir, "smDatabase", swDict["databaseDir"]))
         #     if os.path.isdir(searchPath):
         #         self.swList.append(SwViewer(swDict, self.projectDir))
-        for swDict in softwareDictionary.items():
+        # for swDict in softwareDictionary.items():
+        for swDict in self.softwareDictionary.items():
             searchPath = (os.path.join(self.projectDir, "smDatabase", swDict[1]["databaseDir"]))
             if os.path.isdir(searchPath):
                 # create a new software viewer object with the accessed project path

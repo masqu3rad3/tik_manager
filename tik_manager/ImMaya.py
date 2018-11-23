@@ -459,13 +459,15 @@ class ImageManager(RootManager):
 
                 # matInfo = pm.listConnections(fileNode, s=False, d=True, type="materialInfo")[0]
                 matInfo = cmds.listConnections(fileNode, s=False, d=True, type="materialInfo")[0]
+                print "debug", matInfo
             except:
 
                 matInfo = None
 
             if not matInfo == None:
                 # sGroup = pm.getAttr(matInfo.shadingGroup)
-                sGroup = cmds.getAttr(matInfo.shadingGroup)
+                sGroup = cmds.getAttr("%s.shadingGroup" %matInfo)
+
                 if len(sGroup) > 0:
                     try:
                         for i in sGroup:

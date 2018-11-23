@@ -119,14 +119,13 @@ class NukeManager(RootManager):
     def getSoftwarePaths(self):
         """Overriden function"""
         logger.debug("Func: getSoftwarePaths")
-
         # To tell the base class maya specific path names
         return {"niceName": "Nuke",
                 "databaseDir": "nukeDB",
                 "scenesDir": "scenes_Nuke",
                 "pbSettingsFile": "pbSettings_Nuke.json",
                 "categoriesFile": "categoriesNuke.json",
-                "userSettingsDir": "Documents\\SceneManager\\Nuke",
+                "userSettingsDir": "SceneManager\\Nuke",
                 }
 
 

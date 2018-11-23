@@ -82,7 +82,7 @@ class RootManager(object):
         # all paths in here must be absolute paths
         _softwarePathsDict = self.getSoftwarePaths()
 
-        self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(os.path.expanduser("~"), _softwarePathsDict["userSettingsDir"]))
+        self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDirectory(), _softwarePathsDict["userSettingsDir"]))
         self._folderCheck(self._pathsDict["userSettingsDir"])
 
         self._pathsDict["bookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smBookmarks.json"))
@@ -482,6 +482,13 @@ class RootManager(object):
             self._currentPreviewCamera,
             self._currentThumbFile
             ))
+
+    def getUserDirectory(self):
+        """Returns Documents Directory"""
+        dir = os.path.expanduser('~')
+        if not "Documents" in dir:
+            dir = os.path.join(dir, "Documents")
+        return os.path.normpath(dir)
 
     def getOpenSceneInfo(self):
         """
@@ -890,9 +897,10 @@ class RootManager(object):
         for sceneFile in allDBfiles:
             sceneInfo = self._loadJson(sceneFile)
             for v in sceneInfo["Versions"]:
+                # print v
                 usersList.append(v["User"])
-            sceneInfo[""]
 
+        print uniqueList(usersList)
 
 
 

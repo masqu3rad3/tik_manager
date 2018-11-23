@@ -202,7 +202,8 @@ def nukeSetup(prompt=True):
                 "SmNuke.py",
                 "SmRoot.py",
                 "adminPass.psw",
-                "projectMaterials.py"
+                "projectMaterials.py",
+                "softwareDatabase.json"
                 ]
     for file in fileList:
         if not os.path.isfile(os.path.join(networkDir, file)):
@@ -298,7 +299,8 @@ def mayaSetup(prompt=True):
                 "SmRoot.py",
                 "SubmitMayaToDeadlineCustom.mel",
                 "adminPass.psw",
-                "projectMaterials.py"
+                "projectMaterials.py",
+                "softwareDatabase.json"
                 ]
     for file in fileList:
         if not os.path.isfile(os.path.join(networkDir, file)):
@@ -564,7 +566,8 @@ def houdiniSetup(prompt=True):
                 "SmUIRoot.py",
                 "SmRoot.py",
                 "adminPass.psw",
-                "projectMaterials.py"
+                "projectMaterials.py",
+                "softwareDatabase.json"
                 ]
     for file in fileList:
         if not os.path.isfile(os.path.join(networkDir, file)):
@@ -706,7 +709,8 @@ def maxSetup(prompt=True):
                 "Sm3dsMax.py",
                 "SubmitMayaToDeadlineCustom.mel",
                 "adminPass.psw",
-                "projectMaterials.py"
+                "projectMaterials.py",
+                "softwareDatabase.json"
                 ]
 
     for file in fileList:
