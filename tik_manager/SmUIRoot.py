@@ -776,7 +776,7 @@ class MainUI(QtWidgets.QMainWindow):
             dlg.setFileMode(QtWidgets.QFileDialog.Directory)
 
             if dlg.exec_():
-                selectedroot = os.path.normpath(dlg.selectedFiles()[0])
+                selectedroot = os.path.normpath(str(dlg.selectedFiles()[0]))
                 self.projectroot_lineEdit.setText(selectedroot)
                 resolve()
 

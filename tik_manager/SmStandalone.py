@@ -450,7 +450,7 @@ class StandaloneManager(RootManager):
 
         self.initSoftwares()
 
-        # get hardcoded software list
+
 
 
     def init_paths(self):
@@ -485,6 +485,7 @@ class StandaloneManager(RootManager):
         # get hardcoded software list
         hardCodedSwPath = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
 
+        # get hardcoded software list
         self.softwareDictionary = self._loadJson(hardCodedSwPath)
 
     def getProjectDir(self):
@@ -529,6 +530,7 @@ class StandaloneManager(RootManager):
         # We need to get which softwares are used in the current project
         self.swList = []
         dbFolder = self._pathsDict["masterDir"]
+        print dbFolder
         if not os.path.isdir(dbFolder):
             self.swList = [] # empty software list
             return self.swList#this is not a sceneManager project
