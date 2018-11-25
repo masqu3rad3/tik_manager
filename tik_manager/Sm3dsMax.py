@@ -82,13 +82,16 @@ class MaxManager(RootManager):
 
     def getSoftwarePaths(self):
         """Overriden function"""
+        softwareDatabaseFile = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "softwareDatabase.json"))
+        softwareDB = self._loadJson(softwareDatabaseFile)
+        return softwareDB["3dsMax"]
         # To tell the base class maya specific path names
-        return {"niceName": "3dsMax",
-                "databaseDir": "maxDB",
-                "scenesDir": "scenes_3dsMax",
-                "pbSettingsFile": "pbSettings_3dsMax.json",
-                "categoriesFile": "categories3dsMax.json",
-                "userSettingsDir": "SceneManager\\3dsMax"} # this is just for 3ds max. expanduser"~" returns different in max
+        # return {"niceName": "3dsMax",
+        #         "databaseDir": "maxDB",
+        #         "scenesDir": "scenes_3dsMax",
+        #         "pbSettingsFile": "pbSettings_3dsMax.json",
+        #         "categoriesFile": "categories3dsMax.json",
+        #         "userSettingsDir": "SceneManager\\3dsMax"} # this is just for 3ds max. expanduser"~" returns different in max
 
     def getProjectDir(self):
         """Overriden function"""

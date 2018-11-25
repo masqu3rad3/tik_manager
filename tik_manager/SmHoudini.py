@@ -85,14 +85,16 @@ class HoudiniManager(RootManager):
     def getSoftwarePaths(self):
         """Overriden function"""
         logger.debug("Func: getSoftwarePaths")
-
+        softwareDatabaseFile = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "softwareDatabase.json"))
+        softwareDB = self._loadJson(softwareDatabaseFile)
+        return softwareDB["Houdini"]
         # To tell the base class maya specific path names
-        return {"niceName": "Houdini",
-                "databaseDir": "houdiniDB",
-                "scenesDir": "scenes_houdini",
-                "pbSettingsFile": "pbSettings_houdini.json",
-                "categoriesFile": "categoriesHoudini.json",
-                "userSettingsDir": "SceneManager\\Houdini"}
+        # return {"niceName": "Houdini",
+        #         "databaseDir": "houdiniDB",
+        #         "scenesDir": "scenes_houdini",
+        #         "pbSettingsFile": "pbSettings_houdini.json",
+        #         "categoriesFile": "categoriesHoudini.json",
+        #         "userSettingsDir": "SceneManager\\Houdini"}
 
     def getProjectDir(self):
         """Overriden function"""
