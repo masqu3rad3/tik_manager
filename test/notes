@@ -14,7 +14,7 @@ Compile Standalone
 ------------------
 python -OO -m PyInstaller SmStandaloneP4.py -w
 
-python -OO -m PyInstaller SmStandalone.py -w -i "icons/manager_icon_bhg_icon.ico"
+python -OO -m PyInstaller SmStandalone.py -w -i "icons/osicon_scenemanager_EM0_icon.ico"
 
 ### DONT FORGET TO COPY CSS FOLDER UNDER THE DISTRO
 
