@@ -39,26 +39,15 @@ from PyQt4 import QtCore, Qt
 from PyQt4 import QtGui as QtWidgets
 
 import SmRoot
-reload(SmRoot)
+# reload(SmRoot)
 from SmRoot import RootManager
 from SmUIRoot import MainUI as baseUI
-# import Qt
-# from Qt import QtWidgets, QtCore, QtGui
 
-
-
-
-# import ImageViewer
-# reload(ImageViewer)
 import _version
 import subprocess
-# import json
 
 import pprint
 import logging
-
-
-
 
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Scene Manager for Maya Project"
@@ -478,15 +467,18 @@ class StandaloneManager(RootManager):
         self._pathsDict["generalSettingsDir"] = os.path.dirname(os.path.abspath(__file__))
         self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerUsers.json"))
 
+        self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
+        self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerDefaults.json"))
+
     def init_database(self):
         """OVERRIDEN FUNCTION"""
         self._usersDict = self._loadUsers()
         self._currentsDict = self._loadUserPrefs()
         # get hardcoded software list
-        hardCodedSwPath = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
+        # hardCodedSwPath = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
 
         # get hardcoded software list
-        self.softwareDictionary = self._loadJson(hardCodedSwPath)
+        self.softwareDictionary = self._loadJson(self._pathsDict["softwareDatabase"])
 
     def getProjectDir(self):
         """OVERRIDEN FUNCTION"""
@@ -530,7 +522,6 @@ class StandaloneManager(RootManager):
         # We need to get which softwares are used in the current project
         self.swList = []
         dbFolder = self._pathsDict["masterDir"]
-        print dbFolder
         if not os.path.isdir(dbFolder):
             self.swList = [] # empty software list
             return self.swList#this is not a sceneManager project

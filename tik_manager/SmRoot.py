@@ -121,6 +121,9 @@ class RootManager(object):
 
         self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerUsers.json"))
 
+        self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
+        self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerDefaults.json"))
+
     def getSoftwarePaths(self):
         """This method must be overridden to return the software currently working on"""
         # This function should return a dictionary which includes string values for:
@@ -147,6 +150,9 @@ class RootManager(object):
         self._usersDict = self._loadUsers()
         self._currentsDict = self._loadUserPrefs()
         self._subProjectsList = self._loadSubprojects()
+
+        # defaults dictionary holding "defaultCategories", "defaultPreviewSettings", "defaultUsers"
+        self._sceneManagerDefaults = self._loadJson(self._pathsDict["sceneManagerDefaults"])
 
         # unsaved DB
         self._baseScenesInCategory = []
@@ -845,8 +851,13 @@ class RootManager(object):
         return self._baseScenesInCategory # dictionary of json files
 
     def getProjectReport(self):
-        # Hard Coded Software List
-        softwareDBList=["mayaDB", "maxDB", "houdiniDB", "nukeDB"]
+
+        # TODO // NEEDS to be working on
+
+        # Hard Coded Software List - get path
+        hardCodedSwPath = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
+        softwareDictionary = self._loadJson(hardCodedSwPath)
+        # softwareDBList=["mayaDB", "maxDB", "houdiniDB", "nukeDB"]
 
         def getOldestFile(listOfFiles):
             return min(listOfFiles, key=lambda fn: os.stat(fn).st_mtime)
@@ -878,8 +889,9 @@ class RootManager(object):
         # search entire database folder
 
         allDBfiles = []
-        for sw in softwareDBList:
-            dbPath = os.path.join(self._pathsDict["masterDir"], sw)
+        for sw in softwareDictionary.keys():
+            dbDirName = softwareDictionary[sw]["databaseDir"]
+            dbPath = os.path.join(self._pathsDict["masterDir"], dbDirName)
             if os.path.isdir(dbPath):
 
                 swCategories = os.listdir(dbPath)
@@ -1541,9 +1553,10 @@ Elapsed Time:{6}
 
         # old Name
         if not os.path.isfile(self._pathsDict["usersFile"]):
-            userDB = {"Generic": "gn"}
-            self._dumpJson(userDB, self._pathsDict["usersFile"])
-            return userDB
+            # userDB = {"Generic": "gn"}
+            defaultUsers = self._sceneManagerDefaults["defaultUsers"]
+            self._dumpJson(defaultUsers, self._pathsDict["usersFile"])
+            return defaultUsers
         else:
             userDB = self._loadJson(self._pathsDict["usersFile"])
             if userDB == -2:
@@ -1598,7 +1611,8 @@ Elapsed Time:{6}
             if categoriesData == -2:
                 return -2
         else:
-            categoriesData = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
+            categoriesData = self._sceneManagerDefaults["defaultCategories"]
+            # categoriesData = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
             self._dumpJson(categoriesData, self._pathsDict["categoriesFile"])
         return categoriesData
 
@@ -1683,23 +1697,24 @@ Elapsed Time:{6}
         # pbSettingsFile = os.path.normpath(os.path.join(self.project_Path, "Playblasts", "PBsettings.json"))
 
         if not os.path.isfile(self._pathsDict["pbSettingsFile"]):
-            defaultSettings = {"Resolution": (1280, 720),  ## done
-                               "Format": 'avi',  ## done
-                               "Codec": 'IYUV codec',  ## done
-                               "Percent": 100,  ## done
-                               "Quality": 100,  ## done
-                               "ShowFrameNumber": True,
-                               "ShowSceneName": False,
-                               "ShowCategory": False,
-                               "ShowFrameRange": True,
-                               "ShowFPS": True,
-                               "PolygonOnly": True,  ## done
-                               "ShowGrid": False,  ## done
-                               "ClearSelection": True,  ## done
-                               "DisplayTextures": True,  ## done
-                               "WireOnShaded": False,
-                               "UseDefaultMaterial": False,
-                               }
+            # defaultSettings = {"Resolution": (1280, 720),  ## done
+            #                    "Format": 'avi',  ## done
+            #                    "Codec": 'IYUV codec',  ## done
+            #                    "Percent": 100,  ## done
+            #                    "Quality": 100,  ## done
+            #                    "ShowFrameNumber": True,
+            #                    "ShowSceneName": False,
+            #                    "ShowCategory": False,
+            #                    "ShowFrameRange": True,
+            #                    "ShowFPS": True,
+            #                    "PolygonOnly": True,  ## done
+            #                    "ShowGrid": False,  ## done
+            #                    "ClearSelection": True,  ## done
+            #                    "DisplayTextures": True,  ## done
+            #                    "WireOnShaded": False,
+            #                    "UseDefaultMaterial": False,
+            #                    }
+            defaultSettings = self._sceneManagerDefaults["defaultPreviewSettings"]
             self._dumpJson(defaultSettings, self._pathsDict["pbSettingsFile"])
             return defaultSettings
         else:

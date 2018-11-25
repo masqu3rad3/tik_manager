@@ -68,14 +68,18 @@ class MayaManager(RootManager):
         """Overriden function"""
         logger.debug("Func: getSoftwarePaths")
 
+        softwareDatabaseFile = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "softwareDatabase.json"))
+        softwareDB = self._loadJson(softwareDatabaseFile)
         # To tell the base class maya specific path names
-        return {"niceName": "Maya",
-                "databaseDir": "mayaDB",
-                "scenesDir": "scenes",
-                "pbSettingsFile": "pbSettings.json",
-                "categoriesFile": "categoriesMaya.json",
-                "userSettingsDir": "SceneManager\\Maya",
-                }
+        # print softwareDB
+        return softwareDB["Maya"]
+        # return {"niceName": "Maya",
+        #         "databaseDir": "mayaDB",
+        #         "scenesDir": "scenes",
+        #         "pbSettingsFile": "pbSettings.json",
+        #         "categoriesFile": "categoriesMaya.json",
+        #         "userSettingsDir": "SceneManager\\Maya",
+        #         }
 
 
     def getProjectDir(self):
