@@ -530,7 +530,6 @@ class StandaloneManager(RootManager):
         # We need to get which softwares are used in the current project
         self.swList = []
         dbFolder = self._pathsDict["masterDir"]
-        print dbFolder
         if not os.path.isdir(dbFolder):
             self.swList = [] # empty software list
             return self.swList#this is not a sceneManager project

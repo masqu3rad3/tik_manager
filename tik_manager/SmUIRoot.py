@@ -993,12 +993,19 @@ class MainUI(QtWidgets.QMainWindow):
         gridLayout.addLayout(M2_horizontalLayout, 1, 0, 1, 1)
 
         M3_horizontalLayout = QtWidgets.QHBoxLayout()
-
-        M3_horizontalLayout.setContentsMargins(0, 20, -1, -1)
-
+        M3_horizontalLayout.setContentsMargins(0, 10, -1, -1)
         M3_horizontalLayout.setObjectName(("M3_horizontalLayout"))
 
         spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+
+        dirFilter_label = QtWidgets.QLabel()
+        dirFilter_label.setText("Search Filter")
+        self.dirFilter_lineEdit = QtWidgets.QLineEdit(self.setProject_Dialog)
+        self.dirFilter_lineEdit.setMaximumWidth(175)
+
+        M3_horizontalLayout.addWidget(dirFilter_label)
+        M3_horizontalLayout.addWidget(self.dirFilter_lineEdit)
+
 
         M3_horizontalLayout.addItem(spacerItem1)
 
@@ -1028,9 +1035,26 @@ class MainUI(QtWidgets.QMainWindow):
         self.spActiveProjectPath = None
         self.__flagView = True
 
+
         self.setPmodel = QtWidgets.QFileSystemModel()
         self.setPmodel.setRootPath(self.projectsRoot)
-        self.setPmodel.setFilter(QtCore.QDir.AllDirs | QtCore.QDir.NoDotAndDotDot | QtCore.QDir.Time)
+        self.setPmodel.setFilter(QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot | QtCore.QDir.Time)
+        # self.setPmodel.setFilter(QtCore.QDir.Dirs)
+        # self.setPmodel.setFilter(QtCore.QDir.Files)
+
+        # --------------s
+        if FORCE_QT4:
+            self.DirFilter = QtCore.QStringList()
+        else:
+            self.DirFilter = []
+
+        # filter = QtCore.QStringList()
+        # filter.append("__database")
+        # self.setPmodel.setNameFilters(self.DirFilter)
+        self.setPmodel.setNameFilterDisables(False)
+        # --------------e
+
+
 
         self.folders_tableView.setModel(self.setPmodel)
         self.folders_tableView.setRootIndex(self.setPmodel.index(self.projectsRoot))
@@ -1159,6 +1183,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.lookIn_lineEdit.returnPressed.connect(lambda: navigate("lineEnter"))
         self.folders_tableView.doubleClicked.connect(lambda index: navigate("folder", index=index))
 
+
+
         self.favorites_listWidget.currentItemChanged.connect(favoritesActivated)
         # self.folders_tableView.selectionModel().currentRowChanged.connect(foldersViewActivated)
         # There is a bug in here. If following two lines are run in a single line, a segmentation fault occurs and crashes 3ds max immediately
@@ -1167,11 +1193,31 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.favorites_listWidget.doubleClicked.connect(setProject)
 
+        self.dirFilter_lineEdit.textChanged.connect(self.filterDirectories)
+        # self.dirFilter_lineEdit.returnPressed.connect(self.filterDirectories)
+
         cancel_pushButton.clicked.connect(self.setProject_Dialog.close)
         set_pushButton.clicked.connect(setProject)
         # set_pushButton.clicked.connect(self.setProject_Dialog.close)
 
         self.setProject_Dialog.show()
+
+    def filterDirectories(self):
+
+        filterWord = self.dirFilter_lineEdit.text()
+        # self.DirFilter = [unicode(filterWord)]
+        # self.DirFilter = ["*%s*" %filterWord]
+        # print self.DirFilter
+
+        self.DirFilter = [(unicode("*%s*" %filterWord))]
+
+
+        self.setPmodel.setNameFilters(self.DirFilter)
+        # self.folders_tableView.reset()
+        # self.folders_tableView.setModel(self.setPmodel)
+        # self.folders_tableView.setRootIndex(self.setPmodel.index(self.projectsRoot))
+        # self.setPmodel.modelReset()
+
 
     def pbSettingsMayaUI(self):
         # This method iS Software Specific

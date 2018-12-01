@@ -10,6 +10,12 @@ Scene Manager Version History
 * **Fix.02:** Bug fix when dropping items with standalone project materials
 * **Fix.03:** Bug fix with multi camera preview playing (Standalone)
 * **Update.03:** Documentation and comment updates
+* **Update.04:** softwareDatabase.json file for easy module integration
+* **Fix.04:** Bug fix Unicode character dragging to project materials
+* **New.04:** New Icon set
+* **New.04:** Show In Explorer Root/Raid folders added for image viewer
+* **Update.04:** Added project line to the project materials
+
 
 2.1
 ---
