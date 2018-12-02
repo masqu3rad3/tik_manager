@@ -4,7 +4,7 @@ pyinstaller flags:
 
 Compile Setup
 -------------
-python -OO -m PyInstaller setup.py --onefile
+python -OO -m
 
 
 Alternative: (Needs external Upx file)
