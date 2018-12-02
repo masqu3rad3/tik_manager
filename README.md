@@ -1,4 +1,4 @@
-# TIK Scene Manager
+# TIK Manager
 
 Tik Manager is a lightweight multi platform asset and project management system.
 
