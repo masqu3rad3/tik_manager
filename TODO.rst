@@ -10,9 +10,7 @@ V2.5 Goals
 * Transfer Manager
     * import/export various formats
     * will have a seperate database to track information such as where they come from and their intended usage
-* Nuke Version
 * Better Linux support
-* Tool to view and track Client References
 * Tool to view and track progresses, milestones, presentations etc.
 
 Minors
