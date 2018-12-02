@@ -920,19 +920,19 @@ class MainUI(QtWidgets.QMainWindow):
 
 
         # self.folders_tableView = QtWidgets.QTableView(self.M2_splitter)
-        self.folders_tableView = QtWidgets.QTreeView(M2_splitter)
-        self.folders_tableView.setMinimumSize(QtCore.QSize(0, 0))
-        self.folders_tableView.setDragEnabled(True)
-        self.folders_tableView.setDragDropMode(QtWidgets.QAbstractItemView.DragOnly)
-        self.folders_tableView.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-        self.folders_tableView.setObjectName(("folders_tableView"))
+        self.folders_treeView = QtWidgets.QTreeView(M2_splitter)
+        self.folders_treeView.setMinimumSize(QtCore.QSize(0, 0))
+        self.folders_treeView.setDragEnabled(True)
+        self.folders_treeView.setDragDropMode(QtWidgets.QAbstractItemView.DragOnly)
+        self.folders_treeView.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.folders_treeView.setObjectName(("folders_tableView"))
 
-        self.folders_tableView.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.folders_tableView.setItemsExpandable(False)
-        self.folders_tableView.setRootIsDecorated(False)
-        self.folders_tableView.setSortingEnabled(True)
+        self.folders_treeView.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.folders_treeView.setItemsExpandable(False)
+        self.folders_treeView.setRootIsDecorated(False)
+        self.folders_treeView.setSortingEnabled(True)
         # self.folders_tableView.sortByColumn(0, QtCore.Qt.SortOrder.AscendingOrder)
-        self.folders_tableView.setStyleSheet("background-color: rgb(80,80,80); color: white")
+        self.folders_treeView.setStyleSheet("background-color: rgb(80,80,80); color: white")
 
         verticalLayoutWidget = QtWidgets.QWidget(M2_splitter)
         verticalLayoutWidget.setObjectName(("verticalLayoutWidget"))
@@ -993,12 +993,19 @@ class MainUI(QtWidgets.QMainWindow):
         gridLayout.addLayout(M2_horizontalLayout, 1, 0, 1, 1)
 
         M3_horizontalLayout = QtWidgets.QHBoxLayout()
-
-        M3_horizontalLayout.setContentsMargins(0, 20, -1, -1)
-
+        M3_horizontalLayout.setContentsMargins(0, 10, -1, -1)
         M3_horizontalLayout.setObjectName(("M3_horizontalLayout"))
 
         spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+
+        dirFilter_label = QtWidgets.QLabel()
+        dirFilter_label.setText("Search Filter")
+        self.dirFilter_lineEdit = QtWidgets.QLineEdit(self.setProject_Dialog)
+        self.dirFilter_lineEdit.setMaximumWidth(175)
+
+        M3_horizontalLayout.addWidget(dirFilter_label)
+        M3_horizontalLayout.addWidget(self.dirFilter_lineEdit)
+
 
         M3_horizontalLayout.addItem(spacerItem1)
 
@@ -1028,15 +1035,51 @@ class MainUI(QtWidgets.QMainWindow):
         self.spActiveProjectPath = None
         self.__flagView = True
 
-        self.setPmodel = QtWidgets.QFileSystemModel()
-        self.setPmodel.setRootPath(self.projectsRoot)
-        self.setPmodel.setFilter(QtCore.QDir.AllDirs | QtCore.QDir.NoDotAndDotDot | QtCore.QDir.Time)
+        # self.proxyModel = QtWidgets.QSortFilterProxyModel()
+        # self.proxyModel.setDynamicSortFilter(True)
 
-        self.folders_tableView.setModel(self.setPmodel)
-        self.folders_tableView.setRootIndex(self.setPmodel.index(self.projectsRoot))
-        self.folders_tableView.hideColumn(1)
-        self.folders_tableView.hideColumn(2)
-        self.folders_tableView.setColumnWidth(0,400)
+        self.sourceModel = QtWidgets.QFileSystemModel()
+        self.sourceModel.setNameFilterDisables(False)
+        self.sourceModel.setNameFilters(["*"])
+
+        self.sourceModel.setRootPath(self.projectsRoot)
+        self.sourceModel.setFilter(QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot | QtCore.QDir.Time)
+
+
+        # self.proxyModel.setSourceModel(self.sourceModel)
+        # self.folders_treeView.setModel(self.proxyModel)
+        self.folders_treeView.setModel(self.sourceModel)
+        self.folders_treeView.setRootIndex(self.sourceModel.index(self.projectsRoot))
+
+
+        # self.folders_treeView.hideColumn(1)
+        # self.folders_treeView.hideColumn(2)
+        self.folders_treeView.setColumnWidth(0,400)
+        self.folders_treeView.setColumnWidth(1,0)
+        self.folders_treeView.setColumnWidth(2,0)
+
+
+        # self.setPmodel.setRootPath(self.projectsRoot)
+        # self.setPmodel.setFilter(QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot | QtCore.QDir.Time)
+        # # self.setPmodel.setFilter(QtCore.QDir.Dirs)
+        # # self.setPmodel.setFilter(QtCore.QDir.Files)
+        #
+        # # --------------s
+        # if FORCE_QT4:
+        #     self.DirFilter = QtCore.QStringList()
+        # else:
+        #     self.DirFilter = []
+        #
+        # self.setPmodel.setNameFilterDisables(False)
+        # # --------------e
+        #
+        #
+        #
+        # self.folders_tableView.setModel(self.setPmodel)
+        # self.folders_tableView.setRootIndex(self.setPmodel.index(self.projectsRoot))
+        # self.folders_tableView.hideColumn(1)
+        # self.folders_tableView.hideColumn(2)
+        # self.folders_tableView.setColumnWidth(0,400)
 
         self.favList = self.manager.loadFavorites()
         self.favorites_listWidget.addItems([x[0] for x in self.favList])
@@ -1068,8 +1111,8 @@ class MainUI(QtWidgets.QMainWindow):
                     return
 
             if command == "folder":
-                index = self.folders_tableView.currentIndex()
-                self.projectsRoot = os.path.normpath(str(self.setPmodel.filePath(index)))
+                index = self.folders_treeView.currentIndex()
+                self.projectsRoot = os.path.normpath(str(self.sourceModel.filePath(index)))
                 self.browser.addData(self.projectsRoot)
 
             if command == "lineEnter":
@@ -1081,11 +1124,11 @@ class MainUI(QtWidgets.QMainWindow):
                 else:
                     self.lookIn_lineEdit.setText(self.projectsRoot)
 
-            self.setPmodel.setRootPath(self.projectsRoot)
+            self.sourceModel.setRootPath(self.projectsRoot)
 
             self.forward_pushButton.setDisabled(self.browser.isForwardLocked())
             self.back_pushButton.setDisabled(self.browser.isBackwardLocked())
-            self.folders_tableView.setRootIndex(self.setPmodel.index(self.browser.getData()))
+            self.folders_treeView.setRootIndex(self.sourceModel.index(self.browser.getData()))
             self.lookIn_lineEdit.setText(self.browser.getData())
 
         def onRemoveFavs():
@@ -1102,10 +1145,10 @@ class MainUI(QtWidgets.QMainWindow):
             self.favorites_listWidget.blockSignals(False)
 
         def onAddFavs():
-            index = self.folders_tableView.currentIndex()
+            index = self.folders_treeView.currentIndex()
             if index.row() == -1:  # no row selected, abort
                 return
-            fullPath = self.setPmodel.filePath(index)
+            fullPath = self.sourceModel.filePath(index)
             onDragAndDrop(fullPath)
 
         def onDragAndDrop(path):
@@ -1119,19 +1162,19 @@ class MainUI(QtWidgets.QMainWindow):
 
         def favoritesActivated():
             # block the signal to prevent unwanted cycle
-            self.folders_tableView.selectionModel().blockSignals(True)
+            self.folders_treeView.selectionModel().blockSignals(True)
             row = self.favorites_listWidget.currentRow()
             self.spActiveProjectPath = self.favList[row][1]
 
             # clear the selection in folders view
-            self.folders_tableView.setCurrentIndex(self.setPmodel.index(self.projectsRoot))
-            self.folders_tableView.selectionModel().blockSignals(False)
+            self.folders_treeView.setCurrentIndex(self.sourceModel.index(self.projectsRoot))
+            self.folders_treeView.selectionModel().blockSignals(False)
 
         def foldersViewActivated():
             # block the signal to prevent unwanted cycle
             self.favorites_listWidget.blockSignals(True)
-            index = self.folders_tableView.currentIndex()
-            self.spActiveProjectPath = os.path.normpath(str(self.setPmodel.filePath(index)))
+            index = self.folders_treeView.currentIndex()
+            self.spActiveProjectPath = os.path.normpath(str(self.sourceModel.filePath(index)))
 
 
             # clear the selection in favorites view
@@ -1157,21 +1200,41 @@ class MainUI(QtWidgets.QMainWindow):
         self.forward_pushButton.clicked.connect(lambda: navigate("forward"))
         browse_pushButton.clicked.connect(lambda: navigate("browse"))
         self.lookIn_lineEdit.returnPressed.connect(lambda: navigate("lineEnter"))
-        self.folders_tableView.doubleClicked.connect(lambda index: navigate("folder", index=index))
+        self.folders_treeView.doubleClicked.connect(lambda index: navigate("folder", index=index))
+
+
 
         self.favorites_listWidget.currentItemChanged.connect(favoritesActivated)
         # self.folders_tableView.selectionModel().currentRowChanged.connect(foldersViewActivated)
         # There is a bug in here. If following two lines are run in a single line, a segmentation fault occurs and crashes 3ds max immediately
-        selectionModel = self.folders_tableView.selectionModel()
+        selectionModel = self.folders_treeView.selectionModel()
         selectionModel.selectionChanged.connect(foldersViewActivated)
 
         self.favorites_listWidget.doubleClicked.connect(setProject)
+
+        self.dirFilter_lineEdit.textChanged.connect(self.filterDirectories)
+        # self.dirFilter_lineEdit.returnPressed.connect(self.filterDirectories)
 
         cancel_pushButton.clicked.connect(self.setProject_Dialog.close)
         set_pushButton.clicked.connect(setProject)
         # set_pushButton.clicked.connect(self.setProject_Dialog.close)
 
         self.setProject_Dialog.show()
+
+    def filterDirectories(self):
+        filterWord = self.dirFilter_lineEdit.text()
+        # self.DirFilter = [unicode(filterWord)]
+        # self.DirFilter = ["*%s*" %filterWord]
+        # print self.DirFilter
+
+        self.DirFilter = [(unicode("*%s*" %filterWord))]
+
+
+        self.sourceModel.setNameFilters(self.DirFilter)
+        # self.folders_tableView.reset()
+        # self.folders_tableView.setModel(self.setPmodel)
+        # self.folders_tableView.setRootIndex(self.setPmodel.index(self.projectsRoot))
+        # self.setPmodel.modelReset()
 
     def pbSettingsMayaUI(self):
         # This method iS Software Specific

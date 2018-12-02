@@ -933,7 +933,7 @@ class ProjectMaterials(RootManager):
         # tempPath = os.path.normpath("C:\\Users\\Arda\\Documents\\testArea\\asdf_asdf_asdf_181020")
         # tempPath = os.path.normpath("D:\\PROJECT_AND_ARGE\\V3Test_V3Test_V3Test_181106")
 
-        return tempPath
+        # return tempPath
 
     def saveMaterial(self, pathList, materialType):
         subProject = "" if self.currentSubIndex == 0 else self.subProject
@@ -962,6 +962,20 @@ class ProjectMaterials(RootManager):
             }
             matDatabaseFile = os.path.join(matDatabaseDir, "%s.json" % niceName)
             self._dumpJson(dictItem, matDatabaseFile)
+
+    def deleteMaterial(self, dbPath):
+
+        dbInfo = self._loadJson(dbPath)
+
+        material_absPath = os.path.join(self._pathsDict["projectDir"], dbInfo["relativePath"])
+
+        if os.path.isdir(material_absPath):
+            os.rmdir(material_absPath)
+        else:
+            os.remove(material_absPath)
+
+        os.remove(dbPath)
+        return True
 
     def scanMaterials(self, materialType, sortBy="date"):
         # materialType = str(materialType)
@@ -1105,13 +1119,34 @@ class MainUI(QtWidgets.QMainWindow):
         self.verticalLayout_6.setObjectName(("verticalLayout_6"))
 
         self.subP_HLayout = QtWidgets.QHBoxLayout()
+
+        self.project_label = QtWidgets.QLabel(self.centralwidget)
+        self.project_label.setText(("Project:"))
+        self.project_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.project_label.setObjectName(("project_label"))
+
+
+        self.project_lineEdit = QtWidgets.QLineEdit(self.centralwidget)
+        self.project_lineEdit.setText((""))
+        self.project_lineEdit.setPlaceholderText((""))
+        self.project_lineEdit.setObjectName(("project_lineEdit"))
+        self.project_lineEdit.setReadOnly(True)
+
+
+
         self.subP_label = QtWidgets.QLabel()
         self.subP_label.setText("Sub-Project:")
         self.subP_label.setAlignment((QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter))
         self.subP_combobox = QtWidgets.QComboBox()
+        self.subP_combobox.setMinimumWidth(150)
+
+        self.subP_HLayout.addWidget(self.project_label)
+        self.subP_HLayout.addWidget(self.project_lineEdit)
         self.subP_HLayout.addWidget(self.subP_label)
         self.subP_HLayout.addWidget(self.subP_combobox)
         self.verticalLayout_6.addLayout(self.subP_HLayout)
+
+
 
         self.tabWidget = QtWidgets.QTabWidget(self.centralwidget)
         self.tabWidget.setToolTip((""))
@@ -1418,18 +1453,61 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.tabWidget.setCurrentIndex(0)
 
+        # ----------------
+        # RIGHT CLICK MENU
+        # ----------------
+
+        # SEQUENCE RC
+        # -----------
+        tabTrees = [self.storyboard_treeWidget, self.brief_treeWidget, self.reference_treeWidget, self.artwork_treeWidget, self.footage_treeWidget, self.other_treeWidget]
+
+        self.popMenu = QtWidgets.QMenu()
+        rcA = QtWidgets.QAction('Show in Explorer', self)
+        for tree in tabTrees:
+            tree.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+            # lambda y: (tree.customContextMenuRequested.connect(lambda x: self.onContextMenu(x, tree)))
+            # tree.customContextMenuRequested.connect(lambda x: self.onContextMenu(x, tree))
+            # rcA = QtWidgets.QAction('Show in Explorer', self)
+            self.popMenu.addAction(rcA)
+
+
+
+        # self.storyboard_treeWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        # self.brief_treeWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        # self.reference_treeWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        # self.artwork_treeWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        # self.footage_treeWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        # self.other_treeWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        #
+        self.storyboard_treeWidget.customContextMenuRequested.connect(lambda x: self.onContextMenu(x, self.storyboard_treeWidget))
+        self.brief_treeWidget.customContextMenuRequested.connect(lambda x: self.onContextMenu(x, self.brief_treeWidget))
+        self.reference_treeWidget.customContextMenuRequested.connect(lambda x: self.onContextMenu(x, self.reference_treeWidget))
+        self.artwork_treeWidget.customContextMenuRequested.connect(lambda x: self.onContextMenu(x, self.artwork_treeWidget))
+        self.footage_treeWidget.customContextMenuRequested.connect(lambda x: self.onContextMenu(x, self.footage_treeWidget))
+        self.other_treeWidget.customContextMenuRequested.connect(lambda x: self.onContextMenu(x, self.other_treeWidget))
+
+        # self.popMenu = QtWidgets.QMenu()
+
+
+        # rcAction_0 = QtWidgets.QAction('Show in Explorer', self)
+        # self.popMenu.addAction(rcAction_0)
+
         # ------------------
         # SIGNAL CONNECTIONS
         # ------------------
+        # rcAction_0.triggered.connect(lambda: self.onShowInExplorer())
+
 
         self.subP_combobox.activated.connect(self.initSubProjects)
 
-        self.storyboard_treeWidget.currentItemChanged.connect(self.onChangeItem)
-        self.brief_treeWidget.currentItemChanged.connect(self.onChangeItem)
-        self.reference_treeWidget.currentItemChanged.connect(self.onChangeItem)
-        self.artwork_treeWidget.currentItemChanged.connect(self.onChangeItem)
-        self.footage_treeWidget.currentItemChanged.connect(self.onChangeItem)
-        self.other_treeWidget.currentItemChanged.connect(self.onChangeItem)
+        for tree in tabTrees:
+            tree.currentItemChanged.connect(self.onChangeItem)
+        # self.storyboard_treeWidget.currentItemChanged.connect(self.onChangeItem)
+        # self.brief_treeWidget.currentItemChanged.connect(self.onChangeItem)
+        # self.reference_treeWidget.currentItemChanged.connect(self.onChangeItem)
+        # self.artwork_treeWidget.currentItemChanged.connect(self.onChangeItem)
+        # self.footage_treeWidget.currentItemChanged.connect(self.onChangeItem)
+        # self.other_treeWidget.currentItemChanged.connect(self.onChangeItem)
 
         self.addStb_pushButton.dropped.connect(lambda path: self.droppedPath(path, "Storyboard"))
         self.addBrief_pushButton.dropped.connect(lambda path: self.droppedPath(path, "Brief"))
@@ -1454,6 +1532,12 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.tabWidget.currentChanged.connect(self.initCategoryItems)
 
+    def onContextMenu(self, point, treeWidget):
+        """Method to pop the menu at the position of the mouse cursor"""
+        # print se
+        if not treeWidget.currentIndex() is -1:
+            self.popMenu.exec_(treeWidget.mapToGlobal(point))
+
     def initMainUI(self):
         """Inits the ui elements with the information from  logic class"""
 
@@ -1464,6 +1548,8 @@ class MainUI(QtWidgets.QMainWindow):
         # Init Material Category Items -> triggered by self.tabWidget.currentChanged signal and drop action/new material by file
         # Display info for selected item -> triggered by self.storyboard_treeWidget.currentItemChanged and self.brief_treeWidget.currentItemChanged signals
 
+        # update current project line
+        self.project_lineEdit.setText(self.promat.projectDir)
         # update sub-projects
         self.subP_combobox.addItems(self.promat.getSubProjects())
         self.subP_combobox.setCurrentIndex(0)
@@ -1551,7 +1637,8 @@ class MainUI(QtWidgets.QMainWindow):
 
 
     def droppedPath(self, paths, material):
-        paths = [os.path.normpath(str(path)) for path in paths ]
+        # paths = [os.path.normpath(str(path)) for path in paths ]
+        paths = [os.path.normpath(unicode(path)) for path in paths ]
         self.promat.saveMaterial(paths, material)
         self.initCategoryItems()
 
@@ -1611,10 +1698,14 @@ class DropPushButton(QtWidgets.QPushButton):
         links = []
 
         for url in event.mimeData().urls():
-            print "g", url.toLocalFile()
+            # print "g", unicode(str(url), "utf-8")
+            # print "str", url.toString()
+            # print "str", url.toLocalFile()
             # links.append(str(url.toLocalFile()))
+
             links.append((url.toLocalFile()))
         self.dropped.emit(links)
+
         # self.addItem(path)
 
 
