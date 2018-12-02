@@ -99,11 +99,16 @@ class ImageManager(RootManager):
 
         self.sceneInfo = self.getOpenSceneInfo()
         if not self.sceneInfo:
-            logger.warning("This is not a Base Scene")
+            msg = "Scene is not a Base Scene. Save it using SceneManager"
+            self._exception(360, msg)
+            # logger.warning("This is not a Base Scene")
             return
         if not self.sceneInfo["category"] == "Render":
-            logger.warning("Base Scene must be under Render Category")
-            return
+            # logger.warning("Base Scene must be under Render Category")
+            # return
+            self.deadlineFlag = False
+        else:
+            self.deadlineFlag = True
 
         self.folderTemplate = "{4}/{0}/{1}/{3}/{2}/"
         self.nameTemplate = "{0}_{1}_{2}_{3}_"
@@ -646,6 +651,12 @@ class ImageManager(RootManager):
             cmds.warning(msg)
             return -1, msg
 
+    def _exception(self, code, msg):
+        """Overriden Function"""
+        cmds.confirmDialog(title=self.errorCodeDict[code], message=msg, button=['Ok'])
+        if (200 >= code < 210):
+            raise Exception(code, msg)
+
 class MainUI(QtWidgets.QMainWindow):
     def __init__(self, callback=None):
 
@@ -659,12 +670,12 @@ class MainUI(QtWidgets.QMainWindow):
         super(MainUI, self).__init__(parent=parent)
         self.imanager = ImageManager()
         if not self.imanager.sceneInfo:
-            self.infoPop(textTitle="Warning - Not a Base Scene", textHeader="Scene is not a Base Scene. Save it using SceneManager")
+            # self.infoPop(textTitle="Warning - Not a Base Scene", textHeader="Scene is not a Base Scene. Save it using SceneManager")
             return
 
-        if not self.imanager.sceneInfo["category"] == "Render":
-            self.infoPop(textTitle="Warning - Not under Render Category", textHeader="Scene is not under Render Category.")
-            return
+        # if not self.imanager.sceneInfo["category"] == "Render":
+            # self.infoPop(textTitle="Warning - Not under Render Category", textHeader="Scene is not under Render Category.")
+            # return
 
         self.setObjectName(windowName)
         self.resize(656, 402)
@@ -756,6 +767,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.sendDeadline_pushButton.setObjectName("sendDeadline_pushButton")
         self.sendDeadline_pushButton.setText("Send To Deadline")
         self.gridLayout.addWidget(self.sendDeadline_pushButton, 6, 0, 1, 3)
+        self.sendDeadline_pushButton.setEnabled(self.imanager.deadlineFlag)
 
         spacerItem = QtWidgets.QSpacerItem(20, 15, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
         self.gridLayout.addItem(spacerItem, 2, 0, 1, 1)

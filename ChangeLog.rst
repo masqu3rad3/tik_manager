@@ -16,6 +16,7 @@ Scene Manager Version History
 * **New.04:** Show In Explorer Root/Raid folders added for image viewer
 * **Update.04:** Added project line to the project materials
 * **Update.05:** Search filter added to the Set Project Window
+* **Update.06:** Image Manager now works on all categories. Send To Deadline is enabled for only Render Layer
 
 2.1
 ---
