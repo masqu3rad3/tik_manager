@@ -6,21 +6,16 @@ INSTALL INSTRUCTIONS
 AUTOMATIC INSTALLATION (Windows Only)
 -------------------------------------
 
--------
-GENERAL
--------
 - Put entire tik_manager folder and all of its contents in a network folder where all users can reach.
     ``*eg:: M:\Projects\__database\scripts\*``
-- Maya and 3ds Max must run as admin in order to Scene Manager work. Right click on each executable and make sure "Run as Admin" is checked
 
-- (FOR WINDOWS 10 USERS) If a mapped network drive used to share the projects among team members
+- (FOR WINDOWS 10 USERS who runs the software as admin)
+    If a mapped network drive used to share the projects among team members
     (This is the most likely scenario) you need to enable linked connections through registry.
     Simply right click
     enableLinkedConnectionsW10.reg and "merge" to add the key to the registry
 
-
-
-
+- Run setup.exe in 'tik_manager' folder and follow the instructions.
 
 MANUAL INSTALLATION
 -------------------
@@ -28,6 +23,9 @@ MANUAL INSTALLATION
 -------
 GENERAL
 -------
+
+- Put entire tik_manager folder and all of its contents in a network folder where all users can reach.
+    ``*eg:: M:\Projects\__database\scripts\*``
 
 * Registry Edit for Linked Connections
     1) In Registry Editor, locate and then click the following registry subkey:
@@ -111,5 +109,5 @@ HOUDINI
 
 3DS MAX
 -------
-*
+(This section is not updated yet)
 

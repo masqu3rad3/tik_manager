@@ -1,6 +1,6 @@
-# TIK Scene Manager
+# TIK Manager
 
-Tik Scene Manager is a lightweight multi platform asset and project management system.
+Tik Manager is a lightweight multi platform asset and project management system.
 
 A project manager helps team members to maintain focus on the task at hand.
 Regardless of the scale of the project. Without a project manager, artists tend to waste 
@@ -11,9 +11,9 @@ Whole system requires little or no maintenance and all database is contained wit
 to another network drive or local disk and continue working.
 Small to medium ranged teams are aimed as well as individuals.
 
-Tik Scene Manager already has been tested and used on dozens of tv commercials and several feature films.
+Tik Manager already has been tested and used on dozens of tv commercials and several feature films.
 
-Tik Scene Manager has following features / tools:
+Tik Manager has following features / tools:
 * Consistent naming of scenes and versions
 * Version and reference controlling
 * Supports Maya, 3ds Max, Houdini, Nuke
@@ -37,7 +37,7 @@ Tik Scene Manager has following features / tools:
 * Project Materials tool for organizing and viewing brief documents, concepts, artworks, references etc.
 * Easy installation single CLI installer. (Windows only)
 
-TIK Scene Manager follows a simple folder hierarchy. 
+Tik Manager follows a simple folder hierarchy. 
 The folder structure makes sense for manual browsing. There are minimal nested folders. If at some
 point it has been decided to stop using Scene Manager, it is possible to continue working without relying on it.
 However, Scenes saved after that stage wont be included to the Scene Manager database
