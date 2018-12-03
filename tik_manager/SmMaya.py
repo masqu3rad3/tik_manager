@@ -469,6 +469,7 @@ class MayaManager(RootManager):
         normPB = os.path.normpath(playBlastFile)
         # print "normPath", normPB
         cmds.playblast(format=pbSettings["Format"],
+                       sequenceTime=True,
                      filename=playBlastFile,
                      widthHeight=pbSettings["Resolution"],
                      percent=pbSettings["Percent"],
