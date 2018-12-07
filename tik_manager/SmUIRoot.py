@@ -150,9 +150,10 @@ class MainUI(QtWidgets.QMainWindow):
     """Main UI Class for Tik Scene Manager"""
     def __init__(self, callback=None):
         self.isCallback = callback
+        self.windowName = BoilerDict["WindowTitle"]
         for entry in QtWidgets.QApplication.allWidgets():
             try:
-                if entry.objectName() == BoilerDict["WindowTitle"]:
+                if entry.objectName() == self.windowName:
                     entry.close()
             except AttributeError:
                 pass
@@ -197,9 +198,9 @@ class MainUI(QtWidgets.QMainWindow):
 
     def buildUI(self):
 
-        self.setObjectName(BoilerDict["WindowTitle"])
+        self.setObjectName(self.windowName)
         self.resize(680, 600)
-        self.setWindowTitle(BoilerDict["WindowTitle"])
+        self.setWindowTitle(self.windowName)
 
         self.centralwidget = QtWidgets.QWidget(self)
         self.centralwidget.setObjectName("centralwidget")
@@ -2473,7 +2474,9 @@ class MainUI(QtWidgets.QMainWindow):
 
         # disable the version related stuff
         self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
-        self._vEnableDisable()
+        # self._vEnableDisable()
+        self.onModeChange()
+        # print "ASDFASDFASDFASDF"
 
     def refresh(self):
         # currentUserIndex = self.user_comboBox.currentIndex()

@@ -18,6 +18,8 @@ Scene Manager Version History
 * **Update.05:** Search filter added to the Set Project Window
 * **Update.06:** Image Manager now works on all categories. Send To Deadline is enabled for only Render Layer
 * **Update.07:** Previews in Maya supports Camera sequences now.
+* **Fix.071:** When references loaded, it asks to set the time range
+* **Fix.071:** Minor UI fixes
 
 2.1
 ---
