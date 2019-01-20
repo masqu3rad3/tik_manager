@@ -1651,11 +1651,18 @@ class MainUI(QtWidgets.QMainWindow):
         # names = selDialog.getOpenFileNames(self, "Select files")
         selDialog.setLabelText(selDialog.Accept, "Choose")
         x = selDialog.exec_()
+
         paths = selDialog.filesSelected()
-        # for path in paths:
-            # print os.path.normpath(path.encode('ascii', 'replace'))
-        self.promat.saveMaterial(paths, material)
-        self.initCategoryItems()
+
+        # len(paths) throws an error is the dialog canceled without selecting an item.
+        # this is a workaround for skipping the save material procedure when the gui closed
+        try:
+            len(paths)
+            self.promat.saveMaterial(paths, material)
+            self.initCategoryItems()
+        except:
+            pass
+
 
 
 class DropPushButton(QtWidgets.QPushButton):

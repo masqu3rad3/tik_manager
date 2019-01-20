@@ -306,7 +306,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.baseScene_lineEdit.setText((""))
         self.baseScene_lineEdit.setPlaceholderText((""))
         self.baseScene_lineEdit.setObjectName(("baseScene_lineEdit"))
-        # TODO : ref
         self.baseScene_lineEdit.setReadOnly(True)
         self.r1_gridLayout.addWidget(self.baseScene_lineEdit, 0, 1, 1, 1)
 
@@ -320,7 +319,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.project_lineEdit.setText((""))
         self.project_lineEdit.setPlaceholderText((""))
         self.project_lineEdit.setObjectName(("project_lineEdit"))
-        # TODO : ref
         # self.project_lineEdit.setReadOnly(True)
         self.r1_gridLayout.addWidget(self.project_lineEdit, 1, 1, 1, 1)
 

@@ -20,6 +20,8 @@ Scene Manager Version History
 * **Update.07:** Previews in Maya supports Camera sequences now.
 * **Fix.071:** When references loaded, it asks to set the time range
 * **Fix.071:** Minor UI fixes
+* **Fix.072:** Houdini open file path fix ("\\" => "/")
+* **Fix.072:** Bug fix when canceling the item selection in project materials
 
 2.1
 ---
