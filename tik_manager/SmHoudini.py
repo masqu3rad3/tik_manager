@@ -558,6 +558,9 @@ class HoudiniManager(RootManager):
         relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"]
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
+            print "absSceneFile", absSceneFile
+            # houdini opens the scene with "\" paths but cannot resolve some inside paths. So convert them to "/"
+            absSceneFile = absSceneFile.replace('\\', '/')
             hou.hipFile.load(absSceneFile, suppress_save_prompt=force, ignore_load_warnings=False)
             # self._setEnvVariable('HIP', os.path.split(absSceneFile)[0])
             self._setEnvVariable('HIP', os.path.split(absSceneFile)[0])

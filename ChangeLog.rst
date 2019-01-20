@@ -16,6 +16,12 @@ Scene Manager Version History
 * **New.04:** Show In Explorer Root/Raid folders added for image viewer
 * **Update.04:** Added project line to the project materials
 * **Update.05:** Search filter added to the Set Project Window
+* **Update.06:** Image Manager now works on all categories. Send To Deadline is enabled for only Render Layer
+* **Update.07:** Previews in Maya supports Camera sequences now.
+* **Fix.071:** When references loaded, it asks to set the time range
+* **Fix.071:** Minor UI fixes
+* **Fix.072:** Houdini open file path fix ("\\" => "/")
+* **Fix.072:** Bug fix when canceling the item selection in project materials
 
 2.1
 ---

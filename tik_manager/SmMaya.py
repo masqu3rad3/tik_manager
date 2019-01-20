@@ -469,6 +469,7 @@ class MayaManager(RootManager):
         normPB = os.path.normpath(playBlastFile)
         # print "normPath", normPB
         cmds.playblast(format=pbSettings["Format"],
+                       sequenceTime=False,
                      filename=playBlastFile,
                      widthHeight=pbSettings["Resolution"],
                      percent=pbSettings["Percent"],
@@ -557,7 +558,9 @@ class MayaManager(RootManager):
                       namespace=namespace)
             try:
                 ranges = self._currentSceneInfo["Versions"][self._currentSceneInfo["ReferencedVersion"]-1]["Ranges"]
-                self._setTimelineRanges(ranges)
+                q = self._question("Do You want to set the Time ranges same with the reference?")
+                if q:
+                    self._setTimelineRanges(ranges)
             except KeyError:
                 pass
 
@@ -746,6 +749,13 @@ class MayaManager(RootManager):
         if (200 >= code < 210):
             raise Exception(code, msg)
 
+    def _question(self, msg):
+        state = cmds.confirmDialog( title='Manager Question', message=msg, button=['Yes','No'], defaultButton='Yes', cancelButton='No', dismissString='No' )
+        if state == "Yes":
+            return True
+        else:
+            return False
+
     def _getTimelineRanges(self):
         # TODO : Make sure the time ranges are INTEGERS
         R_ast = cmds.playbackOptions(q=True, ast=True)
@@ -760,10 +770,10 @@ class MayaManager(RootManager):
         cmds.playbackOptions(ast=rangeList[0], min=rangeList[1], max=rangeList[2], aet=rangeList[3])
 
 
-    def _createCallbacks(self, handler):
+    def _createCallbacks(self, handler, parent):
         logger.debug("Func: _createCallbacks")
         callbackIDList=[]
-        callbackIDList.append(cmds.scriptJob(e=["workspaceChanged", "%s.callbackRefresh()" % handler], replacePrevious=True, parent=SM_Version))
+        callbackIDList.append(cmds.scriptJob(e=["workspaceChanged", "%s.callbackRefresh()" % handler], replacePrevious=True, parent=parent))
         return callbackIDList
 
     def _killCallbacks(self, callbackIDList):
@@ -865,7 +875,7 @@ class MainUI(baseUI):
 
         self.callbackIDList=[]
         if self.isCallback:
-            self.callbackIDList = self.manager._createCallbacks(self.isCallback)
+            self.callbackIDList = self.manager._createCallbacks(self.isCallback, self.windowName)
 
         self.buildUI()
         self.initMainUI(newborn=True)

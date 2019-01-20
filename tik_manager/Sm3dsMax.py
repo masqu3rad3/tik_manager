@@ -505,7 +505,9 @@ class MaxManager(RootManager):
             rt.xrefs.addNewXRefObject(referenceFile, Xrefobjs)
             try:
                 ranges = self._currentSceneInfo["Versions"][self._currentSceneInfo["ReferencedVersion"]-1]["Ranges"]
-                self._setTimelineRanges(ranges)
+                q = self._question("Do You want to set the Time ranges same with the reference?")
+                if q:
+                    self._setTimelineRanges(ranges)
             except KeyError:
                 pass
 
@@ -682,6 +684,10 @@ class MaxManager(RootManager):
         rt.messageBox(msg, title=self.errorCodeDict[code])
         if (200 >= code < 210):
             raise Exception(code, msg)
+
+    def _question(self, msg):
+        state = rt.queryBox( msg, title='Manager Question')
+        return state
 
     def _getTimelineRanges(self):
         R_ast = int(rt.animationRange.start)
