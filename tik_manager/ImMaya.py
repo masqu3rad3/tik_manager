@@ -457,6 +457,7 @@ class ImageManager(RootManager):
         return severity
 
     def foolCheckPaths(self):
+
         acceptables = ["mesh", "shape", "transform"]
         def isAssigned(fileNode):
 
@@ -471,7 +472,13 @@ class ImageManager(RootManager):
 
             if not matInfo == None:
                 # sGroup = pm.getAttr(matInfo.shadingGroup)
-                sGroup = cmds.getAttr("%s.shadingGroup" %matInfo)
+                print "Aa", matInfo
+                import pymel.core as pm
+
+                # sGroup = pm.getAttr("%s.shadingGroup" %matInfo)
+                # print sGroup
+                # sGroup = cmds.getAttr("%s.shadingGroup" %matInfo)
+                sGroup = cmds.listConnections(matInfo, type="shadingEngine")[0]
 
                 if len(sGroup) > 0:
                     try:
@@ -485,6 +492,8 @@ class ImageManager(RootManager):
             return False
 
         severity = 0
+
+        # return severity
         validDrive = "M:"
         projectsFolder = os.path.abspath(os.path.join(self.projectDir, os.pardir))
         # allImagePlanes = pm.ls(type="imagePlane")
@@ -636,7 +645,6 @@ class ImageManager(RootManager):
     def callDeadlineScript(self):
         scriptLocation = os.path.dirname(os.path.abspath(__file__))
         scriptPath = os.path.join(scriptLocation, "SubmitMayaToDeadlineCustom.mel")
-        print "hede", scriptPath
         if os.path.isfile(scriptPath):
             scriptPath = scriptPath.replace("\\", "//") ## for compatibility with mel syntax.
             # mel.eval('source "%s//SubmitMayaToDeadlineCustom.mel";' % compatibility)

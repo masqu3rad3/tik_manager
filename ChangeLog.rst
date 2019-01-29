@@ -22,6 +22,8 @@ Scene Manager Version History
 * **Fix.071:** Minor UI fixes
 * **Fix.072:** Houdini open file path fix ("\\" => "/")
 * **Fix.072:** Bug fix when canceling the item selection in project materials
+* **Fix.073:** Bug fix with default categories when trying to open scene manager from a non-scene manager project
+* **Fix.073:** Bug fix - Image Manager / querying shading groups
 
 2.1
 ---

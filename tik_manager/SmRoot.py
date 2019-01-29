@@ -145,14 +145,14 @@ class RootManager(object):
         """Initializes all databases"""
         logger.debug("Func: init_database")
 
+        # defaults dictionary holding "defaultCategories", "defaultPreviewSettings", "defaultUsers"
+        self._sceneManagerDefaults = self._loadJson(self._pathsDict["sceneManagerDefaults"])
+
         # self.currentPlatform = platform.system()
         self._categories = self._loadCategories()
         self._usersDict = self._loadUsers()
         self._currentsDict = self._loadUserPrefs()
         self._subProjectsList = self._loadSubprojects()
-
-        # defaults dictionary holding "defaultCategories", "defaultPreviewSettings", "defaultUsers"
-        self._sceneManagerDefaults = self._loadJson(self._pathsDict["sceneManagerDefaults"])
 
         # unsaved DB
         self._baseScenesInCategory = []
