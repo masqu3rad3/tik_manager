@@ -103,12 +103,12 @@ class ImageManager(RootManager):
             self._exception(360, msg)
             # logger.warning("This is not a Base Scene")
             return
-        if not self.sceneInfo["category"] == "Render":
-            # logger.warning("Base Scene must be under Render Category")
-            # return
-            self.deadlineFlag = False
-        else:
-            self.deadlineFlag = True
+
+        self.deadlineFlag = True
+        # if not self.sceneInfo["category"] == "Render":
+        #     self.deadlineFlag = False
+        # else:
+        #     self.deadlineFlag = True
 
         self.folderTemplate = "{4}/{0}/{1}/{3}/{2}/"
         self.nameTemplate = "{0}_{1}_{2}_{3}_"
