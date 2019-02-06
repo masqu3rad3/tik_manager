@@ -434,9 +434,10 @@ class ImageManager(RootManager):
 
         # go through all renderlayers:
         for layer in renderLayerList:
-            # pm.editRenderLayerGlobals(currentRenderLayer=layer)
-            cmds.editRenderLayerGlobals(currentRenderLayer=layer)
-
+            try:
+                cmds.editRenderLayerGlobals(currentRenderLayer=layer)
+            except RuntimeError:
+                continue
             # get paths
             # comparePath = pm.renderSettings(firstImageName=True, lastImageName=True, fp=True)
             comparePath = cmds.renderSettings(firstImageName=True, lastImageName=True, fp=True)

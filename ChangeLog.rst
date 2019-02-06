@@ -24,6 +24,7 @@ Scene Manager Version History
 * **Fix.072:** Bug fix when canceling the item selection in project materials
 * **Fix.073:** Bug fix with default categories when trying to open scene manager from a non-scene manager project
 * **Fix.073:** Bug fix - Image Manager / querying shading groups
+* **Fix.074:** Bug fix - Image Manager / Unusable Referenced Render Layer checking error fixed
 
 2.1
 ---

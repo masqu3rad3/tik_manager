@@ -1470,6 +1470,8 @@ class MainUI(QtWidgets.QMainWindow):
             # rcA = QtWidgets.QAction('Show in Explorer', self)
             self.popMenu.addAction(rcA)
 
+        rcA.triggered.connect(lambda: self.onRightClick("showInExplorer"))
+
 
 
         # self.storyboard_treeWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -1634,7 +1636,10 @@ class MainUI(QtWidgets.QMainWindow):
         else:
             return
 
-
+    def onRightClick(self, cmd):
+        if cmd == "showInExplorer":
+            pathDir = os.path.dirname(self.promat.getMaterialPath())
+            self.promat.showInExplorer(pathDir)
 
     def droppedPath(self, paths, material):
         # paths = [os.path.normpath(str(path)) for path in paths ]
