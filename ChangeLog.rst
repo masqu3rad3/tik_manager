@@ -25,6 +25,7 @@ Scene Manager Version History
 * **Fix.073:** Bug fix with default categories when trying to open scene manager from a non-scene manager project
 * **Fix.073:** Bug fix - Image Manager / querying shading groups
 * **Fix.074:** Bug fix - Image Manager / Unusable Referenced Render Layer checking error fixed
+* **Fix.075:** Bug fix - Houdini Module loading and importing modules setting $HIP location fixed
 
 2.1
 ---

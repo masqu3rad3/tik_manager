@@ -73,7 +73,6 @@ logger = logging.getLogger('smMaya')
 logger.setLevel(logging.WARNING)
 
 
-
 class HoudiniManager(RootManager):
     def __init__(self):
         super(HoudiniManager, self).__init__()
@@ -209,12 +208,15 @@ class HoudiniManager(RootManager):
 
         version = 1
         sceneName = "{0}_{1}_{2}_v{3}".format(baseName, categoryName, self._usersDict[self.currentUser], str(version).zfill(3))
-        sceneFile = os.path.join(shotPath, "{0}.{1}".format(sceneName, sceneFormat))
+        absSceneFile = os.path.join(shotPath, "{0}.{1}".format(sceneName, sceneFormat))
+        # print "absSceneFile", absSceneFile
+        # houdini opens the scene with "\" paths but cannot resolve some inside paths. So convert them to "/"
+        absSceneFile = absSceneFile.replace('\\', '/')
         ## relativity update
-        relSceneFile = os.path.relpath(sceneFile, start=projectPath)
+        relSceneFile = os.path.relpath(absSceneFile, start=projectPath)
         # killTurtle()
 
-        hou.hipFile.save(file_name=sceneFile)
+        hou.hipFile.save(file_name=absSceneFile)
 
         thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=version)
 
@@ -226,7 +228,7 @@ class HoudiniManager(RootManager):
             referenceFile = os.path.join(shotPath, "{0}.{1}".format(referenceName, sceneFormat))
             ## relativity update
             relReferenceFile = os.path.relpath(referenceFile, start=projectPath)
-            shutil.copyfile(sceneFile, referenceFile)
+            shutil.copyfile(absSceneFile, referenceFile)
             jsonInfo["ReferenceFile"] = relReferenceFile
             jsonInfo["ReferencedVersion"] = version
         else:
@@ -293,10 +295,13 @@ class HoudiniManager(RootManager):
                                                   str(currentVersion).zfill(3))
             relSceneFile = os.path.join(jsonInfo["Path"], "{0}.{1}".format(sceneName, sceneFormat))
 
-            sceneFile = os.path.join(sceneInfo["projectPath"], relSceneFile)
+            absSceneFile = os.path.join(sceneInfo["projectPath"], relSceneFile)
+            # print "absSceneFile", absSceneFile
+            # houdini opens the scene with "\" paths but cannot resolve some inside paths. So convert them to "/"
+            absSceneFile = absSceneFile.replace('\\', '/')
 
             # killTurtle()
-            hou.hipFile.save(file_name=sceneFile)
+            hou.hipFile.save(file_name=absSceneFile)
 
             thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=currentVersion)
 
@@ -319,7 +324,7 @@ class HoudiniManager(RootManager):
                 relReferenceFile = os.path.join(jsonInfo["Path"], "{0}.{1}".format(referenceName, sceneFormat))
                 referenceFile = os.path.join(sceneInfo["projectPath"], relReferenceFile)
 
-                shutil.copyfile(sceneFile, referenceFile)
+                shutil.copyfile(absSceneFile, referenceFile)
                 jsonInfo["ReferenceFile"] = relReferenceFile
                 jsonInfo["ReferencedVersion"] = currentVersion
             self._dumpJson(jsonInfo, jsonFile)
@@ -558,7 +563,7 @@ class HoudiniManager(RootManager):
         relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"]
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
-            print "absSceneFile", absSceneFile
+            # print "absSceneFile", absSceneFile
             # houdini opens the scene with "\" paths but cannot resolve some inside paths. So convert them to "/"
             absSceneFile = absSceneFile.replace('\\', '/')
             hou.hipFile.load(absSceneFile, suppress_save_prompt=force, ignore_load_warnings=False)
@@ -577,6 +582,9 @@ class HoudiniManager(RootManager):
         relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"]
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
+            # print "absSceneFile", absSceneFile
+            # houdini opens the scene with "\" paths but cannot resolve some inside paths. So convert them to "/"
+            absSceneFile = absSceneFile.replace('\\', '/')
             hou.hipFile.merge(absSceneFile, node_pattern="*", overwrite_on_conflict=False, ignore_load_warnings=False)
             return 0
         else:
