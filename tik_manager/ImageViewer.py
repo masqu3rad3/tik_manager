@@ -39,6 +39,7 @@ recursively.
 Double clicking on the seguence will execute the file on the defined application
 """
 import os
+import sys
 import _version
 
 # import pprint
@@ -217,7 +218,8 @@ class MainUI(QtWidgets.QMainWindow):
         self._generator = None
         self._timerId = None
 
-        self.sequenceData = []
+        # self.sequenceData = []
+        self.sequenceData = {}
 
         self.extensionDictionary = {"jpg": ["*.jpg", "*.jpeg"],
                                     "png": ["*.png"],
@@ -324,6 +326,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.directories_treeView.hideColumn(1)
         self.directories_treeView.hideColumn(2)
         self.directories_treeView.setContentsMargins(0, 0, 0, 0)
+        self.directories_treeView.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
 
         self.left_layout = QtWidgets.QVBoxLayout()
         self.left_layout.setSpacing(0)
@@ -336,8 +339,16 @@ class MainUI(QtWidgets.QMainWindow):
 
         # Splitter Right Side:
 
-        self.sequences_listWidget = QtWidgets.QListWidget(self.centralwidget)
-        self.sequences_listWidget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        self.sequences_treeWidget = QtWidgets.QTreeWidget(self.centralwidget)
+        self.sequences_treeWidget.setToolTip((""))
+        self.sequences_treeWidget.setStatusTip((""))
+        self.sequences_treeWidget.setSortingEnabled(True)
+        header = QtWidgets.QTreeWidgetItem(["Name", "Date"])
+        self.sequences_treeWidget.setHeaderItem(header)
+        self.sequences_treeWidget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+
+        # self.sequences_listWidget = QtWidgets.QListWidget(self.centralwidget)
+        # self.sequences_listWidget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
 
         self.nameFilter_label = QtWidgets.QLabel(self.centralwidget)
         self.nameFilter_label.setText("Filter:")
@@ -345,7 +356,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.nameFilterApply_pushButton = QtWidgets.QPushButton(self.centralwidget, text="Apply")
 
         self.right_layout = QtWidgets.QVBoxLayout()
-        self.right_layout.addWidget(self.sequences_listWidget)
+        self.right_layout.addWidget(self.sequences_treeWidget)
 
         nameFilter_layout = QtWidgets.QHBoxLayout()
         nameFilter_layout.addWidget(self.nameFilter_label)
@@ -377,7 +388,7 @@ class MainUI(QtWidgets.QMainWindow):
         selectionModel = self.directories_treeView.selectionModel()
         selectionModel.selectionChanged.connect(self.populate)
         self.recursive_checkBox.toggled.connect(self.populate)
-        self.sequences_listWidget.doubleClicked.connect(self.onRunItem)
+        self.sequences_treeWidget.doubleClicked.connect(self.onRunItem)
         self.browseRaid_pushButton.clicked.connect(self.onBrowseRaid)
 
         # -----------------
@@ -387,8 +398,8 @@ class MainUI(QtWidgets.QMainWindow):
         # SEQUENCE RC
         # -----------
 
-        self.sequences_listWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.sequences_listWidget.customContextMenuRequested.connect(self.onContextMenu_images)
+        self.sequences_treeWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.sequences_treeWidget.customContextMenuRequested.connect(self.onContextMenu_images)
         self.popMenu = QtWidgets.QMenu()
 
         rcAction_0 = QtWidgets.QAction('Show in Explorer', self)
@@ -452,7 +463,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.model.setRootPath(dir)
         self.directories_treeView.setRootIndex(self.model.index(dir))
         self.rootFolder_lineEdit.setText(os.path.normpath(dir))
-        self.sequences_listWidget.clear()
+        self.sequences_treeWidget.clear()
 
     def getRaidPath(self):
         """
@@ -486,8 +497,8 @@ class MainUI(QtWidgets.QMainWindow):
     def onContextMenu_images(self, point):
         """Method to pop the menu at the position of the mouse cursor"""
         # print se
-        if not self.sequences_listWidget.currentRow() is -1:
-            self.popMenu.exec_(self.sequences_listWidget.mapToGlobal(point))
+        if not self.sequences_treeWidget.currentIndex().row() is -1:
+            self.popMenu.exec_(self.sequences_treeWidget.mapToGlobal(point))
 
     def onContextMenu_labels(self, point):
         """Method to pop the menu at the position of the mouse cursor"""
@@ -513,10 +524,9 @@ class MainUI(QtWidgets.QMainWindow):
         if self.tLocation == "N/A":
             raise Exception([341], "Raid Location not defined")
             return
-        row = self.sequences_listWidget.currentRow()
-        selList = [x.row() for x in self.sequences_listWidget.selectedIndexes()]
-        # return
-        if row == -1:
+
+        selectedItemNames = [x.text(0) for x in self.sequences_treeWidget.selectedItems()]
+        if len(selectedItemNames) == 0:
             raise Exception([101], "No sequence selected")
             return
 
@@ -524,7 +534,7 @@ class MainUI(QtWidgets.QMainWindow):
         folderCheck(logPath)
 
         seqCopy = SeqCopyProgress()
-        seqCopy.copysequence(self.sequenceData, selList, self.tLocation, logPath, self.rootPath)
+        seqCopy.copysequence(self.sequenceData, selectedItemNames, self.tLocation, logPath, self.rootPath)
 
     def onShowInExplorer(self, path=None):
         """Open the folder of sequence in explorer"""
@@ -533,16 +543,21 @@ class MainUI(QtWidgets.QMainWindow):
             os.startfile(path)
             return
 
-        row = self.sequences_listWidget.currentRow()
-        if row == -1:
+        selectedItemNames = [x.text(0) for x in self.sequences_treeWidget.selectedItems()]
+        if len(selectedItemNames) == 0:
+            raise Exception([101], "No sequence selected")
             return
-        os.startfile(self.sequenceData[row].dirname)
+
+        for itemName in selectedItemNames:
+            seq = self.sequenceData[itemName]
+            os.startfile(seq.dirname)
 
     def populate(self):
         """Search for sequences"""
 
-        self.sequences_listWidget.clear()  # fresh page
-        self.sequenceData = []  # clear the custom list
+        self.sequences_treeWidget.clear()  # fresh page
+        # self.sequenceData = []  # clear the custom list
+        self.sequenceData = {}  # clear the custom dictionary
 
         # if no filter extension selected, stop iterating through folders
         if not self.filterList:
@@ -550,6 +565,20 @@ class MainUI(QtWidgets.QMainWindow):
             return
 
         index = self.directories_treeView.currentIndex()
+
+        # indexes = [x for x in self.directories_treeView.selectedIndexes()]
+        # paths = self.uniqueList([str(self.model.filePath(i)) for i in indexes])
+
+        if index.row() == -1:  # no row selected
+            pathList = [self.rootPath]
+        else:
+            indexes = [x for x in self.directories_treeView.selectedIndexes()]
+            pathList = self.uniqueList([str(self.model.filePath(i)) for i in indexes])
+
+        # genList = [seq.walk(path, level=rec, includes=filter) for path in pathList]
+        # self.stop()  # Stop any existing Timer
+        # self._generator = self.listingLoop(genList)  # start the loop
+        # self._timerId = self.startTimer(0)  # idle timer
 
         if index.row() == -1:  # no row selected
             fullPath = self.rootPath
@@ -564,31 +593,68 @@ class MainUI(QtWidgets.QMainWindow):
         # convert filterList to tuple
         filter = (f for f in self.filterList)
         # create a generator
-        gen = seq.walk(fullPath, level=rec, includes=filter)
+        # genList = seq.walk(pathList[0], level=rec, includes=filter)
+        genList = [seq.walk(path, level=rec, includes=filter) for path in pathList]
+
         self.stop()  # Stop any existing Timer
-        self._generator = self.listingLoop(gen)  # start the loop
+        self._generator = self.listingLoop(genList)  # start the loop
         self._timerId = self.startTimer(0)  # idle timer
 
-    def listingLoop(self, gen):
+    # def listingLoop(self, gen):
+    #     """Add found sequences to the List widget"""
+    #     for x in gen:
+    #         for i in x[2]:
+    #             QtWidgets.QApplication.processEvents(QtCore.QEventLoop.ExcludeUserInputEvents)
+    #             # filtertest
+    #             filterWord = str(self.nameFilter_lineEdit.text())
+    #             # print filterWord
+    #             if filterWord != "" and filterWord.lower() not in i.lower():
+    #                 continue
+    #
+    #             itemName = i.format('%h%t %R')
+    #             self.sequenceData[itemName] = i
+    #             # self.sequenceData.append(i)
+    #             # self.sequences_listWidget.addItem(i.format('%h%t %R'))
+    #             firstImagePath = os.path.join(os.path.normpath(i.dirname), i.name)
+    #             timestamp = os.path.getmtime(firstImagePath)
+    #             timestampFormatted = datetime.datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
+    #             item = QtWidgets.QTreeWidgetItem(self.sequences_treeWidget, [itemName, str(timestampFormatted)])
+    #             self.sequences_treeWidget.sortItems(1, QtCore.Qt.AscendingOrder)  # 1 is Date Column, 0 is Ascending order
+    #
+    #             yield
+
+    def listingLoop(self, genList):
         """Add found sequences to the List widget"""
-        for x in gen:
-            for i in x[2]:
-                QtWidgets.QApplication.processEvents(QtCore.QEventLoop.ExcludeUserInputEvents)
-                # filtertest
-                filterWord = str(self.nameFilter_lineEdit.text())
-                # print filterWord
-                if filterWord != "" and filterWord.lower() not in i.lower():
-                    continue
-                self.sequenceData.append(i)
-                self.sequences_listWidget.addItem(i.format('%h%t %R'))
-                yield
+        for gen in genList:
+            for x in gen:
+                for i in x[2]:
+                    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.ExcludeUserInputEvents)
+                    # filtertest
+                    filterWord = str(self.nameFilter_lineEdit.text())
+                    # print filterWord
+                    if filterWord != "" and filterWord.lower() not in i.lower():
+                        continue
+
+                    itemName = i.format('%h%t %R')
+                    self.sequenceData[itemName] = i
+                    # self.sequenceData.append(i)
+                    # self.sequences_listWidget.addItem(i.format('%h%t %R'))
+                    firstImagePath = os.path.join(os.path.normpath(i.dirname), i.name)
+                    timestamp = os.path.getmtime(firstImagePath)
+                    timestampFormatted = datetime.datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
+                    item = QtWidgets.QTreeWidgetItem(self.sequences_treeWidget, [itemName, str(timestampFormatted)])
+                    self.sequences_treeWidget.sortItems(1, QtCore.Qt.AscendingOrder)  # 1 is Date Column, 0 is Ascending order
+
+                    yield
 
     def onRunItem(self):
         """Execute the sequence"""
         # TODO // Make it compatible with Linux
-        row = self.sequences_listWidget.currentRow()
-        item = self.sequenceData[row]
-        firstImagePath = os.path.join(os.path.normpath(item.dirname), item.name)
+        itemName = self.sequences_treeWidget.currentItem().text(0)
+        seq = self.sequenceData[itemName]
+        # row = self.sequences_treeWidget.currentRow()
+        # item = self.sequenceData[row]
+        firstImagePath = os.path.join(os.path.normpath(seq.dirname), seq.name)
         os.startfile(firstImagePath)
 
     def stop(self):  # Connect to Stop-button clicked()
@@ -631,6 +697,11 @@ class MainUI(QtWidgets.QMainWindow):
             json.dump(data, f, indent=4)
         copyfile(tempFile, file)
         os.remove(tempFile)
+
+    def uniqueList(self, seq):  # Dave Kirby
+        # Order preserving
+        seen = set()
+        return [x for x in seq if x not in seen and not seen.add(x)]
 
 
 class DropLineEdit(QtWidgets.QLineEdit):
@@ -756,13 +827,13 @@ class SeqCopyProgress(QtWidgets.QWidget):
         if logPath:
             showLogButton = QtWidgets.QPushButton("Show Log File")
             layoutH.addWidget(showLogButton)
-            showLogButton.clicked.connect(lambda x=logPath: os.startfile(x))
+            showLogButton.clicked.connect(lambda dump, x=logPath: os.startfile(x))
         showInExplorer = QtWidgets.QPushButton("Show in Explorer")
         layoutH.addWidget(showInExplorer)
         okButton = QtWidgets.QPushButton("OK")
         layoutH.addWidget(okButton)
 
-        showInExplorer.clicked.connect(lambda x=destPath: self.onShowInExplorer(x))
+        showInExplorer.clicked.connect(lambda dump, x=destPath: self.onShowInExplorer(x))
 
         okButton.clicked.connect(self.msgDialog.close)
 
@@ -816,8 +887,8 @@ class SeqCopyProgress(QtWidgets.QWidget):
     def copysequence(self, sequenceData, selectionList, destination, logPath, root):
         """
         Copies the sequences to the destination
-        :param sequenceData: (List) list of sequences - Usually all found sequences
-        :param selectionList: (List) Index list of selected sequences to iterate
+        :param sequenceData: (Dictionary) Dictionary of sequences - Usually all found sequences
+        :param selectionList: (List) Name list of selected sequences to iterate
         :param destination: (String) Absolute Path of remote destination
         :param logPath: (String) Absolute folder Path for log file
         :param root: (String) Root path of the images. Difference between sequence file folder
@@ -838,11 +909,11 @@ class SeqCopyProgress(QtWidgets.QWidget):
                 "---------------------------------------------\n"
                 "Copy Progress - {0}\n"
                 "---------------------------------------------".format(
-                    sequenceData[sel]))
+                    sequenceData[str(sel)]))
             percent = (100 * current) / totalCount
             self.pbOverall.setValue(percent)
             current += 1
-            tFilesList = [i.path for i in sequenceData[sel]]
+            tFilesList = [i.path for i in sequenceData[str(sel)]]
             subPath = os.path.split(os.path.relpath(tFilesList[0], root))[0]  ## get the relative path
             currentDate = now.strftime("%y%m%d")
             targetPath = os.path.join(destination, currentDate, subPath)
@@ -875,3 +946,18 @@ class SeqCopyProgress(QtWidgets.QWidget):
             logger.removeHandler(i)
             i.flush()
             i.close()
+
+if __name__ == '__main__':
+    os.environ["FORCE_QT4"] = "True"
+    app = QtWidgets.QApplication(sys.argv)
+    selfLoc = os.path.dirname(os.path.abspath(__file__))
+    stylesheetFile = os.path.join(selfLoc, "CSS", "darkorange.stylesheet")
+
+    with open(stylesheetFile, "r") as fh:
+        app.setStyleSheet(fh.read())
+    window = MainUI()
+    window.show()
+    #
+    # window = MainUI(projectPath= os.path.normpath("E:\\SceneManager_Projects\\SceneManager_DemoProject_None_181101"))
+    # window.show()
+    sys.exit(app.exec_())

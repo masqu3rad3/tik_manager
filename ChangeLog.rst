@@ -1,6 +1,12 @@
 =============================
 Scene Manager Version History
 =============================
+2.3
+---
+* **Fix.001:** Bug fix - 'make reference' checkbox removed from save version dialog if runs from Houdini
+* **Update.001:** ImageViewer update --> date show/sort feature for collapsed sequences
+* **Update.001:** ImageViewer update --> now accepts multiple folder selections
+
 2.2
 ---
 * **New.0:** Project Materials tool added
@@ -26,6 +32,7 @@ Scene Manager Version History
 * **Fix.073:** Bug fix - Image Manager / querying shading groups
 * **Fix.074:** Bug fix - Image Manager / Unusable Referenced Render Layer checking error fixed
 * **Fix.075:** Bug fix - Houdini Module loading and importing modules setting $HIP location fixed
+* **Fix.076:** Bug fix - 'make reference' checkbox removed from save version dialog if runs from Houdini
 
 2.1
 ---

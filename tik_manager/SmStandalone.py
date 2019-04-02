@@ -38,8 +38,8 @@ os.environ["FORCE_QT4"]="True"
 from PyQt4 import QtCore, Qt
 from PyQt4 import QtGui as QtWidgets
 
-import SmRoot
-# reload(SmRoot)
+import SmUIRoot
+reload(SmUIRoot)
 from SmRoot import RootManager
 from SmUIRoot import MainUI as baseUI
 

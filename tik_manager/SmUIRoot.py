@@ -50,6 +50,7 @@ import _version
 import pprint
 
 import ImageViewer
+reload(ImageViewer)
 
 # from tik_manager.CSS import darkorange
 # reload(darkorange)
@@ -2273,6 +2274,9 @@ class MainUI(QtWidgets.QMainWindow):
         makeReference_checkBox.setInputMethodHints(QtCore.Qt.ImhPreferUppercase)
         makeReference_checkBox.setText("Make Reference")
         makeReference_checkBox.setCheckable(True)
+
+        if BoilerDict["Environment"] == "Houdini" or BoilerDict["Environment"] == "Nuke":
+            makeReference_checkBox.setVisible(False)
 
         formats_horizontalLayout_2.addWidget(makeReference_checkBox)
         right_verticalLayout.addLayout(formats_horizontalLayout_2)
