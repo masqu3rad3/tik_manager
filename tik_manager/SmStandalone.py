@@ -251,6 +251,7 @@ class SwViewer(RootManager):
 
         if swID == "Maya":
             versionDict = {201400: "Maya2014",
+                           201414: "Maya2014",
                            201450: "Maya2014",
                            201451: "Maya2014",
                            201459: "Maya2014",

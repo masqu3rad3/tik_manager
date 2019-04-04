@@ -12,7 +12,6 @@ python -OO -m PyInstaller setup.py --onefile --upx-dir "C:\Users\kutlu\Documents
 
 Compile Standalone
 ------------------
-python -OO -m PyInstaller SmStandaloneP4.py -w
 
 python -OO -m PyInstaller SmStandalone.py -w -i "icons/osicon_scenemanager_EM0_icon.ico"
 
