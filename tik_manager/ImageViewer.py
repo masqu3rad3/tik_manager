@@ -64,7 +64,7 @@ import logging
 # from tik_manager.CSS import darkorange
 
 __author__ = "Arda Kutlu"
-__copyright__ = "Copyright 2018, Scene Manager for Maya Project"
+__copyright__ = "Copyright 2018, Image Viewer"
 __credits__ = []
 __license__ = "GPL"
 __maintainer__ = "Arda Kutlu"
