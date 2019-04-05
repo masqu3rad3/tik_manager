@@ -33,6 +33,7 @@
 # Module to access Library of global assets
 
 import os
+import sys
 import shutil
 import _version
 
@@ -686,3 +687,17 @@ class libraryTab(QtWidgets.QWidget):
 
         self.gridLayout_2.addLayout(self.rightUp_gridLayout, 0, 0, 1, 1)
 
+if __name__ == '__main__':
+    os.environ["FORCE_QT4"] = "True"
+    app = QtWidgets.QApplication(sys.argv)
+    selfLoc = os.path.dirname(os.path.abspath(__file__))
+    stylesheetFile = os.path.join(selfLoc, "CSS", "darkorange.stylesheet")
+
+    with open(stylesheetFile, "r") as fh:
+        app.setStyleSheet(fh.read())
+    window = MainUI()
+    window.show()
+    #
+    # window = MainUI(projectPath= os.path.normpath("E:\\SceneManager_Projects\\SceneManager_DemoProject_None_181101"))
+    # window.show()
+    sys.exit(app.exec_())
