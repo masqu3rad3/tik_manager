@@ -98,7 +98,7 @@ try:
     import MaxPlus
 
     BoilerDict["Environment"] = "3dsMax"
-    BoilerDict["WindowTitle"] = "Scene Manager 3ds Max v%s" % _version.__version__
+    BoilerDict["WindowTitle"] = "Image Viewer 3ds Max v%s" % _version.__version__
 except ImportError:
     pass
 
@@ -106,7 +106,7 @@ try:
     import hou
 
     BoilerDict["Environment"] = "Houdini"
-    BoilerDict["WindowTitle"] = "Scene Manager Houdini v%s" % _version.__version__
+    BoilerDict["WindowTitle"] = "Image Viewer Houdini v%s" % _version.__version__
 except ImportError:
     pass
 
@@ -114,7 +114,7 @@ try:
     import nuke
 
     BoilerDict["Environment"] = "Nuke"
-    BoilerDict["WindowTitle"] = "Scene Manager Nuke v%s" % _version.__version__
+    BoilerDict["WindowTitle"] = "Image Viewer Nuke v%s" % _version.__version__
 except ImportError:
     pass
 

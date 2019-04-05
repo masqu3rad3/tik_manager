@@ -451,6 +451,9 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.splitter.setStretchFactor(0, 1)
 
+        # MENU BAR / STATUS BAR
+        # ---------------------
+
         self.menubar = QtWidgets.QMenuBar(self)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 680, 18))
         self.menubar.setObjectName(("menubar"))
@@ -460,8 +463,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.statusbar.setObjectName(("statusbar"))
         self.setStatusBar(self.statusbar)
 
-        # MENU BAR / STATUS BAR
-        # ---------------------
         self.fileMenu = self.menubar.addMenu("File")
         createProject_fm = QtWidgets.QAction("&Create Project", self)
         self.saveVersion_fm = QtWidgets.QAction("&Save Version", self)

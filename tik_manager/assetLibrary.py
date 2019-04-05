@@ -77,7 +77,7 @@ try:
     import maya.cmds as cmds
 
     BoilerDict["Environment"] = "Maya"
-    BoilerDict["WindowTitle"] = "Image Viewer Maya v%s" % _version.__version__
+    BoilerDict["WindowTitle"] = "Asset Library Maya v%s" % _version.__version__
     if Qt.__binding__ == "PySide":
         from shiboken import wrapInstance
     elif Qt.__binding__.startswith('PyQt'):
@@ -91,7 +91,7 @@ try:
     import MaxPlus
 
     BoilerDict["Environment"] = "3dsMax"
-    BoilerDict["WindowTitle"] = "Scene Manager 3ds Max v%s" % _version.__version__
+    BoilerDict["WindowTitle"] = "Asset Library 3ds Max v%s" % _version.__version__
 except ImportError:
     pass
 
@@ -99,7 +99,7 @@ try:
     import hou
 
     BoilerDict["Environment"] = "Houdini"
-    BoilerDict["WindowTitle"] = "Scene Manager Houdini v%s" % _version.__version__
+    BoilerDict["WindowTitle"] = "Asset Library Houdini v%s" % _version.__version__
 except ImportError:
     pass
 
@@ -107,7 +107,7 @@ try:
     import nuke
 
     BoilerDict["Environment"] = "Nuke"
-    BoilerDict["WindowTitle"] = "Scene Manager Nuke v%s" % _version.__version__
+    BoilerDict["WindowTitle"] = "Asset Library Nuke v%s" % _version.__version__
 except ImportError:
     pass
 
@@ -289,60 +289,400 @@ class MainUI(QtWidgets.QMainWindow):
         dirname = os.path.dirname(os.path.abspath(__file__))
         stylesheetFile = os.path.join(dirname, "CSS", "darkorange.stylesheet")
 
-
-        if projectPath:
-            self.projectPath = str(projectPath)
-        else:
-            self.projectPath = getProject()
-
-        if relativePath:
-            self.rootPath = os.path.join(self.projectPath, str(relativePath))
-        else:
-            self.rootPath = os.path.join(self.projectPath, "images")
-            if not os.path.isdir(self.rootPath):
-                self.rootPath = self.projectPath
-
-        self.databaseDir = os.path.normpath(os.path.join(self.projectPath, "smDatabase"))
-
-        if not os.path.isdir(self.databaseDir):
-            msg = ["Nothing to view", "No Scene Manager Database",
-                   "There is no Scene Manager Database Folder in this project path"]
-            q = QtWidgets.QMessageBox()
-            q.setIcon(QtWidgets.QMessageBox.Information)
-            q.setText(msg[0])
-            q.setInformativeText(msg[1])
-            q.setWindowTitle(msg[2])
-            q.setStandardButtons(QtWidgets.QMessageBox.Ok)
-            ret = q.exec_()
-            if ret == QtWidgets.QMessageBox.Ok:
-                self.close()
-                self.deleteLater()
-
-        self.recursiveInitial = recursive
-
-        self._generator = None
-        self._timerId = None
-
-        # self.sequenceData = []
-        self.sequenceData = {}
-
-        self.extensionDictionary = {"jpg": ["*.jpg", "*.jpeg"],
-                                    "png": ["*.png"],
-                                    "exr": ["*.exr"],
-                                    "tif": ["*.tif", "*.tiff"],
-                                    "tga": ["*.tga"]
-                                    }
-
-        self.filterList = sum(self.extensionDictionary.values(), [])
-
         self.setObjectName(BoilerDict["Environment"])
         self.resize(670, 624)
         self.setWindowTitle(BoilerDict["Environment"])
         self.centralwidget = QtWidgets.QWidget(self)
-        self.model = QtWidgets.QFileSystemModel()
-        self.model.setRootPath(self.rootPath)
-        self.model.setFilter(QtCore.QDir.AllDirs | QtCore.QDir.NoDotAndDotDot)
-        self.tLocation = self.getRaidPath()
-        self.buildUI()
 
+        # MENU BAR / STATUS BAR
+        # ---------------------
+        menubar = QtWidgets.QMenuBar(self)
+        menubar.setGeometry(QtCore.QRect(0, 0, 735, 21))
+        self.setMenuBar(menubar)
+        statusbar = QtWidgets.QStatusBar(self)
+        self.setStatusBar(statusbar)
+
+        fileMenu = menubar.addMenu("File")
+        addNewLibrary_mi= QtWidgets.QAction("&Add New Library", self)
+        createNewAsset_mi = QtWidgets.QAction("&Create New Asset", self)
+        loadAsset_mi = QtWidgets.QAction("&Load Selected Asset", self)
+        importAssetWithTextures_mi = QtWidgets.QAction("&Import Asset and Copy Textures", self)
+        importAsset_mi = QtWidgets.QAction("&Import only", self)
+        deleteAsset_mi = QtWidgets.QAction("&Delete Selected Asset", self)
+        removeLibrary_mi = QtWidgets.QAction("&Remove Library", self)
+
+        fileMenu.addAction(addNewLibrary_mi)
+        fileMenu.addAction(createNewAsset_mi)
+
+        fileMenu.addSeparator()
+        fileMenu.addAction(loadAsset_mi)
+        fileMenu.addAction(importAssetWithTextures_mi)
+        fileMenu.addAction(importAsset_mi)
+
+        fileMenu.addSeparator()
+        fileMenu.addAction(deleteAsset_mi)
+        fileMenu.addAction(removeLibrary_mi)
+
+
+
+
+
+        self.tabDialog()
         self.setCentralWidget(self.centralwidget)
+
+    def tabDialog(self):
+
+        self.masterLayout = QtWidgets.QVBoxLayout(self.centralwidget)
+
+        self.tabWidget = QtWidgets.QTabWidget(self.centralwidget)
+        self.tabWidget.setMaximumSize(QtCore.QSize(16777215, 167777))
+        self.tabWidget.setTabPosition(QtWidgets.QTabWidget.North)
+        self.tabWidget.setElideMode(QtCore.Qt.ElideNone)
+        self.tabWidget.setUsesScrollButtons(False)
+
+        self.masterLayout.addWidget(self.tabWidget)
+
+        testPath="E:\_Sel"
+        preTab = libraryTab(testPath)
+        self.tabWidget.addTab(preTab, "TEST")
+        preTab.setLayout(preTab.layout)
+
+
+        #
+        # libs = self.settings(mode="load")
+        # junkPaths = []
+        # for item in libs:
+        #     name = item[0]
+        #     path = item[1]
+        #     if not os.path.exists(path):
+        #         logger.warning("Cannot reach library path: \n%s \n Removing from the database..." % (path))
+        #         junkPaths.append(item)
+        #         continue
+        #     preTab = libraryTab(path)
+        #     self.addTab(preTab, name)
+        #     preTab.setLayout(preTab.layout)
+        #
+        # ## Remove the junk paths from the config file
+        # for x in junkPaths:
+        #     self.settings(mode="remove", item=x)
+        #
+        # if len(libs) == 0:
+        #     self.createNewTab()
+        #
+        # self.addNew = QtWidgets.QWidget()
+        # self.addTab(self.addNew, "+")
+        #
+        # self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        #
+        # self.customContextMenuRequested.connect(self.on_context_menu)
+        #
+        # self.tabsRightMenu = QtWidgets.QMenu()
+        #
+        # renameTabAction = QtWidgets.QAction('Rename', self)
+        # self.tabsRightMenu.addAction(renameTabAction)
+        # renameTabAction.triggered.connect(lambda val="rename": self.settings(mode=val))
+        #
+        # repathTabAction = QtWidgets.QAction('Re-path', self)
+        # self.tabsRightMenu.addAction(repathTabAction)
+        # repathTabAction.triggered.connect(lambda val="repath": self.settings(mode=val))
+        #
+        # removeTabAction = QtWidgets.QAction('Remove Selected Library', self)
+        # self.tabsRightMenu.addAction(removeTabAction)
+        # removeTabAction.triggered.connect(self.deleteCurrentTab)
+        #
+        # self.currentChanged.connect(self.createNewTab)  # changed!
+
+    def on_context_menu(self, point):
+        # show context menu
+        self.tabsRightMenu.exec_(self.mapToGlobal(point))
+        # print (QtWidgets.QApplication.widgetAt(self.mapToGlobal(point)))
+
+    def createNewTab(self):
+        currentIndex = self.currentIndex()
+        totalTabs = self.count()
+        if currentIndex >= (totalTabs - 1):  ## if it is not the last tab (+)
+            self.setCurrentIndex(currentIndex - 1)
+            ## ASK For the new direcory location:
+
+            directory = QtWidgets.QFileDialog.getExistingDirectory(self, "Select Asset Directory",
+                                                                   QtCore.QDir.currentPath())
+            if directory:
+                tabName = str(os.path.basename(directory))
+
+                self.tabID += 1
+                # testTab = libraryTab(directory)
+                # self.addTab(testTab, tabName)
+                self.tabBar().moveTab(currentIndex, currentIndex + 1)
+                self.setCurrentIndex(currentIndex)
+                self.settings(mode="add", name=tabName, path=directory)
+
+    # def eventFilter(self, QObject, event):
+    #     if event.type() == QtCore.Event.MouseButtonPress:
+    #         if event.button() == Qt.RightButton:
+    #             print("Right button clicked")
+    #     return False
+
+    ## TODO: FOOL PROOF config.json file. Test possible situations
+    ## TODO: FOOL PROOF missing library folder (a re-path sub menu item within the right click menu?)
+
+    def deleteCurrentTab(self):
+
+        currentIndex = self.currentIndex()
+        totalTabs = self.count()
+
+        if currentIndex < (totalTabs):  ## if it is not the last tab (+)
+            widget = self.widget(currentIndex)
+            if widget is not None:
+                widget.deleteLater()
+            self.setCurrentIndex(currentIndex - 1)
+            self.removeTab(currentIndex)
+            self.settings(mode="remove", itemIndex=currentIndex)
+
+    def settings(self, mode, name=None, path=None, itemIndex=None, item=None):
+        """
+        Reads and write Library name and path information on/from config file (assetLibraryConfig.json)
+
+        Add mode
+        adds the name and path of the directory to the database. "name" and "path" arguments are required.
+        Ex.
+        settings(mode="add", name="NameOfTheLib", path="Absolute/path/of/the/library")
+
+        Remove mode
+        Removes the given item from the database. Either "itemIndex" or "item" arguments are required. If both given, "item" will be used.
+        Ex.
+        settings(mode="remove", itemIndex=2)
+        or
+        settings(mode="remove", item=["Name","Path"])
+
+        Rename mode
+        Opens a input dialog, renames the selected tab and updates database with the new name
+
+        Repath mode
+        Opens a folder selection dialog, updates database with the selected folder
+
+        Load mode
+        Returns the database list.
+
+        Args:
+            mode: (String) Valid values are "add", "remove", "load".
+            name: (String) Tab Name of the Library to be added. Required by "add" mode
+            path: (String) Absolute Path of the Library to be added. Required by "add" mode
+            itemIndex: (Int) Index value of the item which will be removed from the database. Required by "remove" mode IF item flag is not set
+            item: (Int) item which will be removed from the database. Required by "remove" mode IF itemIndex flag is not set.
+
+        Returns:
+            Load mode returns List
+
+        """
+        ## get the file location
+        homedir = os.path.expanduser("~")
+        settingsFile = os.path.join(homedir, "assetLibraryConfig.json")
+
+        # settingsFile = os.path.join(os.path.dirname(os.path.abspath( __file__ )),"assetLibraryConfig.json")
+        def dump(data, file):
+            with open(file, "w") as f:
+                json.dump(data, f, indent=4)
+
+        if mode == "add" and name is not None and path is not None:
+            currentData = self.settings(mode="load")
+            currentData.append([name, path])
+            dump(currentData, settingsFile)
+            return
+        if mode == "remove":
+            print "itemIndex", itemIndex
+            print "item", item
+            currentData = self.settings(mode="load")
+            if itemIndex is not None:
+                currentData.pop(itemIndex)
+            elif item is not None:
+                currentData.remove(item)
+            else:
+                logger.warning("You need to specify itemIndex or item for remove action")
+                return
+            dump(currentData, settingsFile)
+            return
+
+        if mode == "rename":
+            currentIndex = self.currentIndex()
+            if currentIndex == self.count():
+                return
+            currentData = self.settings(mode="load")
+            exportWindow, ok = QtWidgets.QInputDialog.getText(self, 'Text Input Dialog', 'New Name:')
+            if ok:
+                newInput = str(exportWindow)
+                if not newInput.strip():
+                    logger.warn("You must give a name!")
+                    return
+                self.setTabText(currentIndex, newInput)
+                ## update the settings file
+                currentData[currentIndex][0] = newInput
+                dump(currentData, settingsFile)
+                return
+
+        if mode == "repath":
+            currentIndex = self.currentIndex()
+            if currentIndex == self.count():
+                return
+            currentData = self.settings(mode="load")
+
+            newDir = QtWidgets.QFileDialog.getExistingDirectory(self, "Select Asset Directory",
+                                                                QtCore.QDir.currentPath())
+            if newDir:
+                currentData[currentIndex][1] = newDir
+                dump(currentData, settingsFile)
+                return
+
+        if mode == "load":
+            if os.path.isfile(settingsFile):
+                with open(settingsFile, 'r') as f:
+                    # The JSON module will read our file, and convert it to a python dictionary
+                    data = json.load(f)
+                    return data
+            else:
+                return []
+        logger.warning("Settings file not changed")
+
+class libraryTab(QtWidgets.QWidget):
+    viewModeState = 1
+
+    def __init__(self, directory):
+        self.directory = directory
+
+        # super is an interesting function
+        # It gets the class that our class is inheriting from
+        # This is called the superclass
+        # The reason is that because we redefined __init__ in our class, we no longer call the code in the super's init
+        # So we need to call our super's init to make sure we are initialized like it wants us to be
+        # me=self
+        # for entry in QtWidgets.QApplication.allWidgets():
+        #     if entry.objectName() == "assetLib":
+        #         # print entry
+        #         entry.close()
+
+        # parent = getMayaMainWindow()
+
+        super(libraryTab, self).__init__()
+
+        # self.exportUV_def = True
+        # self.exportOBJ_def = True
+        # self.selectionOnly_def = True
+
+        # self.library = assetLibrary(directory)
+        self.buildTabUI()
+
+    def buildTabUI(self):
+        self.layout = QtWidgets.QVBoxLayout(self)
+        self.splitter = QtWidgets.QSplitter(self)
+        self.splitter.setGeometry(QtCore.QRect(20, 10, 693, 437))
+        self.splitter.setOrientation(QtCore.Qt.Horizontal)
+        self.layout.addWidget(self.splitter)
+
+        self.createNewAsset_pushButton = QtWidgets.QPushButton(self)
+        self.createNewAsset_pushButton.setMinimumSize(QtCore.QSize(150, 45))
+        self.createNewAsset_pushButton.setMaximumSize(QtCore.QSize(15000, 45))
+        self.createNewAsset_pushButton.setText("Create New Asset")
+        self.layout.addWidget(self.createNewAsset_pushButton)
+
+
+        self.frame = QtWidgets.QFrame(self.splitter)
+        self.frame.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.frame.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.frame.setLineWidth(0)
+
+        self.gridLayout = QtWidgets.QGridLayout(self.frame)
+        self.gridLayout.setMargin(0)
+        self.gridLayout.setSpacing(0)
+
+        self.rightBelow_verticalLayout = QtWidgets.QVBoxLayout()
+        self.rightBelow_verticalLayout.setSpacing(0)
+
+        self.assets_listWidget = QtWidgets.QListWidget(self.frame)
+
+        self.rightBelow_verticalLayout.addWidget(self.assets_listWidget)
+
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setContentsMargins(-1, 6, -1, -1)
+        self.horizontalLayout.setSpacing(6)
+
+        self.filter_label_2 = QtWidgets.QLabel(self.frame)
+
+        self.horizontalLayout.addWidget(self.filter_label_2)
+
+        self.filter_lineEdit_2 = QtWidgets.QLineEdit(self.frame)
+        self.horizontalLayout.addWidget(self.filter_lineEdit_2)
+
+        self.rightBelow_verticalLayout.addLayout(self.horizontalLayout)
+
+        self.gridLayout.addLayout(self.rightBelow_verticalLayout, 2, 0, 1, 1)
+
+        self.frame_right = QtWidgets.QFrame(self.splitter)
+        self.frame_right.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.frame_right.setFrameShadow(QtWidgets.QFrame.Raised)
+
+        self.gridLayout_2 = QtWidgets.QGridLayout(self.frame_right)
+        self.gridLayout_2.setContentsMargins(-1, -1, 0, 0)
+
+        self.rightBelow_verticalLayout = QtWidgets.QVBoxLayout()
+
+        self.assetNotes_label = QtWidgets.QLabel(self.frame_right)
+        self.assetNotes_label.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.assetNotes_label.setText(("Asset Notes"))
+        self.assetNotes_label.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        self.rightBelow_verticalLayout.addWidget(self.assetNotes_label)
+
+        self.notes_textEdit = QtWidgets.QTextEdit(self.frame_right)
+
+        self.rightBelow_verticalLayout.addWidget(self.notes_textEdit)
+
+        self.thumb_label = QtWidgets.QLabel(self.frame_right)
+
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.thumb_label.sizePolicy().hasHeightForWidth())
+
+        self.thumb_label.setSizePolicy(sizePolicy)
+        self.thumb_label.setMinimumSize(QtCore.QSize(221, 124))
+        self.thumb_label.setMaximumSize(QtCore.QSize(884, 496))
+        self.thumb_label.setSizeIncrement(QtCore.QSize(1, 1))
+        self.thumb_label.setBaseSize(QtCore.QSize(0, 0))
+        self.thumb_label.setFrameShape(QtWidgets.QFrame.Box)
+        self.thumb_label.setScaledContents(False)
+        self.thumb_label.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.rightBelow_verticalLayout.addWidget(self.thumb_label)
+
+        self.gridLayout_2.addLayout(self.rightBelow_verticalLayout, 3, 0, 1, 1)
+
+        self.rightUp_gridLayout = QtWidgets.QGridLayout()
+        self.rightUp_gridLayout.setContentsMargins(-1, -1, 10, 10)
+
+        self.importOnly_pushButton = QtWidgets.QPushButton(self.frame_right)
+        self.importOnly_pushButton.setMinimumSize(QtCore.QSize(100, 30))
+        self.importOnly_pushButton.setMaximumSize(QtCore.QSize(150, 30))
+        self.importOnly_pushButton.setText(("Import Only"))
+
+        self.rightUp_gridLayout.addWidget(self.importOnly_pushButton, 1, 0, 1, 1)
+
+        self.load_pushButton = QtWidgets.QPushButton(self.frame_right)
+        self.load_pushButton.setMinimumSize(QtCore.QSize(100, 30))
+        self.load_pushButton.setMaximumSize(QtCore.QSize(150, 30))
+        self.load_pushButton.setText(("Load"))
+
+        self.rightUp_gridLayout.addWidget(self.load_pushButton, 0, 3, 1, 1)
+
+        self.importObj_pushButton = QtWidgets.QPushButton(self.frame_right)
+        self.importObj_pushButton.setMinimumSize(QtCore.QSize(100, 30))
+        self.importObj_pushButton.setMaximumSize(QtCore.QSize(150, 30))
+        self.importObj_pushButton.setText(("Import .obj"))
+
+        self.rightUp_gridLayout.addWidget(self.importObj_pushButton, 1, 3, 1, 1)
+
+        self.importAndCopy_pushButton = QtWidgets.QPushButton(self.frame_right)
+        self.importAndCopy_pushButton.setMinimumSize(QtCore.QSize(100, 30))
+        self.importAndCopy_pushButton.setMaximumSize(QtCore.QSize(150, 30))
+        self.importAndCopy_pushButton.setText(("Import/Copy Textures"))
+        self.rightUp_gridLayout.addWidget(self.importAndCopy_pushButton, 0, 0, 1, 1)
+
+        self.gridLayout_2.addLayout(self.rightUp_gridLayout, 0, 0, 1, 1)
+
