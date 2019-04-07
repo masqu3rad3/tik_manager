@@ -313,6 +313,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         fileMenu = menubar.addMenu("File")
         addNewLibrary_mi= QtWidgets.QAction("&Add New Library", self)
+
         createNewAsset_mi = QtWidgets.QAction("&Create New Asset", self)
         loadAsset_mi = QtWidgets.QAction("&Load Selected Asset", self)
         importAssetWithTextures_mi = QtWidgets.QAction("&Import Asset and Copy Textures", self)
@@ -333,7 +334,7 @@ class MainUI(QtWidgets.QMainWindow):
         fileMenu.addAction(removeLibrary_mi)
 
 
-
+        addNewLibrary_mi.triggered.connect(self.newLibraryUI)
 
 
         self.tabDialog()
@@ -342,6 +343,9 @@ class MainUI(QtWidgets.QMainWindow):
     def tabDialog(self):
 
         self.masterLayout = QtWidgets.QVBoxLayout(self.centralwidget)
+        # self.masterLayout.setContentsMargins(0, 0, 0, 0)
+        self.masterLayout.setSpacing(6)
+        self.masterLayout.setMargin(0)
 
         self.tabWidget = QtWidgets.QTabWidget(self.centralwidget)
         self.tabWidget.setMaximumSize(QtCore.QSize(16777215, 167777))
@@ -370,7 +374,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.refreshTab()
 
     def refreshTab(self):
-        self.tabWidget.currentWidget().populate()
+        if self.tabWidget.currentWidget():
+            self.tabWidget.currentWidget().populate()
 
         #
         # libs = self.settings(mode="load")
@@ -415,6 +420,19 @@ class MainUI(QtWidgets.QMainWindow):
         # removeTabAction.triggered.connect(self.deleteCurrentTab)
         #
         # self.currentChanged.connect(self.createNewTab)  # changed!
+
+    def newLibraryUI(self):
+        ## TODO // Add a mini ui with:
+            ## Custom Name for the new library (optional)
+            ## Path for the library
+        ## check the path if its valid
+
+        pass
+
+    def renameLibrary(self, customName):
+        """ Renames the current Library"""
+        ## TODO //
+        pass
 
     def getLibraryPaths(self):
         try:
