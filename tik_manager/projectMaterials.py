@@ -205,7 +205,6 @@ class QFileAndFolderDialog(QtWidgets.QFileDialog):
                     # PyQt4 differences...
                     file = str(i.data())
                 path = os.path.normpath(os.path.join(dir, file))
-                print "openClickedPAth", path
                 # encodedPath = path.encode("ascii", )
                 files.append(path)
         self.selectedFiles = files

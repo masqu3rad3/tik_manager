@@ -39,6 +39,7 @@ import assetLibrary
 reload(assetLibrary)
 from assetLibrary import AssetLibrary
 from assetLibrary import MainUI as baseUI
+from assetLibrary import LibraryTab as baseLibraryUI
 
 
 
@@ -182,8 +183,10 @@ class AssetEditor(assetLibrary.AssetLibrary):
         #     os.remove(newScenePath)
 
 class MainUI(baseUI):
-    def __init__(self, callback=None):
-        super(MainUI, self).__init__()
+    def __init__(self):
+        super(MainUI, self).__init__(viewOnly=False)
+
+        # self.viewOnly=False
 
         # self.manager = MayaManager()
         # problem, msg = self.manager._checkRequirements()
@@ -198,5 +201,6 @@ class MainUI(baseUI):
         # self.buildUI()
         # self.initMainUI(newborn=True)
         # self.extraMenus()
+
 
 
