@@ -73,12 +73,26 @@ BoilerDict = {"Environment": "Standalone",
               "WindowTitle": "Asset Library Standalone v%s" % _version.__version__,
               "Stylesheet": "mayaDark.stylesheet"}
 
+class AssetEditor(object):
+    def __init__(self):
+        super(AssetEditor, self).__init__()
+        pass
+
+
 # ---------------
 # GET ENVIRONMENT
 # ---------------
 try:
     from maya import OpenMayaUI as omui
     import maya.cmds as cmds
+
+    ##
+    ## EDITOR CLASS
+    import assetEditorMaya # for dev
+    reload(assetEditorMaya)# for dev
+
+    from assetEditorMaya import AssetEditorMaya as AssetEditor
+
 
     BoilerDict["Environment"] = "Maya"
     BoilerDict["WindowTitle"] = "Asset Library Maya v%s" % _version.__version__
@@ -156,7 +170,7 @@ def _dumpJson(data, file):
     shutil.copyfile(tempFile, file)
     os.remove(tempFile)
 
-class AssetLibrary(object):
+class AssetLibrary(AssetEditor):
     """
     Asset Library Logical operations Class. This Class holds the main functions (save,import,scan)
     """
@@ -204,22 +218,22 @@ class AssetLibrary(object):
         print "loading %s" % assetName
         pass
 
-    def saveAsset(self, assetName, screenshot=True, moveCenter=False, selectionOnly=True, exportUV=True, exportOBJ=True, **info):
-        """
-        Saves the selected object(s) as an asset into the predefined library
-        Args:
-            assetName: (Unicode) Asset will be saved as with this name
-            screenshot: (Bool) If true, screenshots (Screenshot, Thumbnail, Wireframe, UV Snapshots) will be taken with playblast. Default True
-            directory: (Unicode) Default Library location. Default is predefined outside of this class
-            moveCenter: (Bool) If True, selected object(s) will be moved to World 0 point. Pivot will be the center of selection. Default False
-            **info: (Any) Extra information which will be hold in the .json file
-
-        Returns:
-            None
-
-        """
-
-        pass
+    # def saveAsset(self, assetName, screenshot=True, moveCenter=False, selectionOnly=True, exportUV=True, exportOBJ=True, **info):
+    #     """
+    #     Saves the selected object(s) as an asset into the predefined library
+    #     Args:
+    #         assetName: (Unicode) Asset will be saved as with this name
+    #         screenshot: (Bool) If true, screenshots (Screenshot, Thumbnail, Wireframe, UV Snapshots) will be taken with playblast. Default True
+    #         directory: (Unicode) Default Library location. Default is predefined outside of this class
+    #         moveCenter: (Bool) If True, selected object(s) will be moved to World 0 point. Pivot will be the center of selection. Default False
+    #         **info: (Any) Extra information which will be hold in the .json file
+    #
+    #     Returns:
+    #         None
+    #
+    #     """
+    #
+    #     pass
 
 
     def scanAssets(self):
@@ -308,19 +322,24 @@ class AssetLibrary(object):
         logger.error(msg)
         raise Exception (code, msg)
 
+
+
 class MainUI(QtWidgets.QMainWindow):
     """Main UI function"""
-    def __init__(self, viewOnly=True):
+    def __init__(self):
         for entry in QtWidgets.QApplication.allWidgets():
             try:
-                if entry.objectName() == BoilerDict["Environment"]:
+                if entry.objectName() == BoilerDict["WindowTitle"]:
                     entry.close()
             except AttributeError:
                 pass
         parent = getMainWindow()
         super(MainUI, self).__init__(parent=parent)
 
-        self.viewOnly = viewOnly
+        if BoilerDict["Environment"]=="Standalone":
+            self.viewOnly = True
+        else:
+            self.viewOnly = False
         # Set Stylesheet
         dirname = os.path.dirname(os.path.abspath(__file__))
         stylesheetFile = os.path.join(dirname, "CSS", "darkorange.stylesheet")
@@ -394,7 +413,7 @@ class MainUI(QtWidgets.QMainWindow):
                 logger.warning("Cannot reach library path: \n%s \n Removing from the database..." % (path))
                 self.removeLibrary(name)
                 continue
-            preTab = LibraryTab(path, viewOnly=self.viewOnly)
+            preTab = LibraryTab(path)
             self.tabWidget.addTab(preTab, name)
             preTab.setObjectName(name)
             preTab.setLayout(preTab.layout)
@@ -571,7 +590,7 @@ class MainUI(QtWidgets.QMainWindow):
 class LibraryTab(QtWidgets.QWidget):
     viewModeState = -1
 
-    def __init__(self, directory, viewOnly=True):
+    def __init__(self, directory):
         self.directory = directory
         super(LibraryTab, self).__init__()
 
@@ -579,7 +598,8 @@ class LibraryTab(QtWidgets.QWidget):
 
         self.library = AssetLibrary(directory)
         self.buildTabUI()
-        if viewOnly:
+
+        if BoilerDict["Environment"]=="Standalone":
             self.viewOnlyMode()
 
     def buildTabUI(self):
@@ -807,19 +827,19 @@ class LibraryTab(QtWidgets.QWidget):
         saveAsset_Dialog = QtWidgets.QDialog(parent=self)
         saveAsset_Dialog.setWindowModality(QtCore.Qt.ApplicationModal)
         saveAsset_Dialog.resize(257, 219)
-        saveAsset_Dialog.setWindowTitle("saveAsset_Dialog")
+        saveAsset_Dialog.setWindowTitle("Create New Asset")
 
         self.verticalLayout = QtWidgets.QVBoxLayout(saveAsset_Dialog)
 
         self.formLayout = QtWidgets.QFormLayout()
-        self.formLayout.setFieldGrowthPolicy(QtGui.QFormLayout.AllNonFixedFieldsGrow)
+        self.formLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
         self.formLayout.setVerticalSpacing(10)
 
         self.assetName_label = QtWidgets.QLabel(saveAsset_Dialog)
         self.assetName_label.setText(("Asset Name"))
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.assetName_label)
 
-        self.assetName_lineEdit = QtGui.QLineEdit(saveAsset_Dialog)
+        self.assetName_lineEdit = QtWidgets.QLineEdit(saveAsset_Dialog)
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.assetName_lineEdit)
 
         self.exportUv_checkBox = QtWidgets.QCheckBox(saveAsset_Dialog)
@@ -830,15 +850,15 @@ class LibraryTab(QtWidgets.QWidget):
         self.exportObj_checkBox.setText(("Export .obj"))
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.exportObj_checkBox)
 
-        self.exportFbx_checkBox = QtGui.QCheckBox(saveAsset_Dialog)
+        self.exportFbx_checkBox = QtWidgets.QCheckBox(saveAsset_Dialog)
         self.exportFbx_checkBox.setText(("Export .fbx"))
         self.formLayout.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.exportFbx_checkBox)
 
-        self.range_label = QtGui.QLabel(saveAsset_Dialog)
+        self.range_label = QtWidgets.QLabel(saveAsset_Dialog)
         self.range_label.setText(("Range"))
         self.formLayout.setWidget(4, QtWidgets.QFormLayout.LabelRole, self.range_label)
 
-        self.range_horizontalLayout = QtGui.QHBoxLayout()
+        self.range_horizontalLayout = QtWidgets.QHBoxLayout()
 
         range_radioButton_grp = QtWidgets.QButtonGroup(self.range_horizontalLayout)
         self.selection_radioButton= QtWidgets.QRadioButton("Selection", parent=self)
@@ -853,7 +873,7 @@ class LibraryTab(QtWidgets.QWidget):
 
         self.formLayout.setLayout(4, QtWidgets.QFormLayout.FieldRole, self.range_horizontalLayout)
 
-        self.format_label = QtGui.QLabel(saveAsset_Dialog)
+        self.format_label = QtWidgets.QLabel(saveAsset_Dialog)
         self.format_label.setText(("Format"))
 
         self.formLayout.setWidget(5, QtWidgets.QFormLayout.LabelRole, self.format_label)
@@ -879,8 +899,8 @@ class LibraryTab(QtWidgets.QWidget):
         self.saveAsset_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
         self.saveAsset_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
         self.saveAsset_buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setMinimumSize(QtCore.QSize(100, 30))
-        self.createAsset_pushButton = self.saveAsset_buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
-        self.createAsset_pushButton.setText('Create Asset')
+        self.create_pushButton = self.saveAsset_buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
+        self.create_pushButton.setText('Create Asset')
 
         self.verticalLayout.addWidget(self.saveAsset_buttonBox)
 
@@ -890,8 +910,19 @@ class LibraryTab(QtWidgets.QWidget):
         self.saveAsset_buttonBox.accepted.connect(saveAsset_Dialog.accept)
         self.saveAsset_buttonBox.rejected.connect(saveAsset_Dialog.reject)
 
+        if not BoilerDict["Environment"]=="Maya":
+            self.ma_radioButton.setHidden(True)
+            self.mb_radioButton.setHidden(True)
+
+        self.create_pushButton.clicked.connect(lambda: self.library.saveAsset(assetName=self.assetName_lineEdit.text(),
+                                                                      exportUV=self.exportUv_checkBox.isChecked(),
+                                                                      exportOBJ=self.exportObj_checkBox.isChecked(),
+                                                                      exportFBX=self.exportFbx_checkBox.isChecked(),
+                                                                      selectionOnly=self.selection_radioButton.isChecked(),
+                                                                      mbFormat=self.mb_radioButton.isChecked()
+                                                                      ))
         self.assetName_lineEdit.textChanged.connect(
-            lambda: self._checkValidity(self.assetName_lineEdit.text(), self.createAsset_pushButton,
+            lambda: self._checkValidity(self.assetName_lineEdit.text(), self.create_pushButton,
                                         self.assetName_lineEdit))
 
         saveAsset_Dialog.show()
@@ -1320,7 +1351,7 @@ if __name__ == '__main__':
 
     with open(stylesheetFile, "r") as fh:
         app.setStyleSheet(fh.read())
-    window = MainUI(viewOnly=False)
+    window = MainUI()
     window.show()
     #
     # window = MainUI(projectPath= os.path.normpath("E:\\SceneManager_Projects\\SceneManager_DemoProject_None_181101"))
