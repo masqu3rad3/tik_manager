@@ -98,7 +98,7 @@ class AssetEditorMaya(object):
         # ------------
         import time
         start = time.time()
-        possibleFileHolders = cmds.listRelatives(selection, ad=True, type=["mesh", "nurbsSurface"])
+        possibleFileHolders = cmds.listRelatives(selection, ad=True, type=["mesh", "nurbsSurface"], fullPath=True)
 
         allFileTexturesGen = self._repathFileNodes(possibleFileHolders, assetDirectory)
         uniqueFileTextures = self.uniqueList([x for x in allFileTexturesGen][0])
