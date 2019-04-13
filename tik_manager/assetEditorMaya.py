@@ -96,10 +96,19 @@ class AssetEditorMaya(object):
 
         # GET TEXTURES
         # ------------
+        import time
+        start = time.time()
         possibleFileHolders = cmds.listRelatives(selection, ad=True, type=["mesh", "nurbsSurface"])
+
         allFileTexturesGen = self._repathFileNodes(possibleFileHolders, assetDirectory)
         uniqueFileTextures = self.uniqueList([x for x in allFileTexturesGen][0])
 
+        ## TODO // THROWS error if multiple objects with the same name assigned to the 'allFileTexturesGen' Iterator
+        ## TODO // sg = cmds.listConnections(obj, type='shadingEngine') This is the problem
+
+        end = time.time()
+        print "evaluation time: %s" %(end-start)
+        return
 
         # CREATE PREVIEWS
         # ---------------
@@ -107,9 +116,13 @@ class AssetEditorMaya(object):
 
         # SAVE SOURCE
         # -----------
-        # return
-        cmds.file(assetSourcePath, type=saveFormat, exportSelected=True)
+        # cmds.file(assetSourcePath, type=saveFormat, exportSelected=True)
 
+        # if selectionOnly:
+        #     cmds.file(assetSourcePath, type=saveFormat, exportSelected=True)
+        # else:
+        #     cmds.file(rename=assetSourcePath)
+        #     cmds.file(save=True, type=saveFormat)
 
         # EXPORT OBJ
         # ----------
@@ -120,19 +133,21 @@ class AssetEditorMaya(object):
         # DATABASE
         # --------
         return
+
+
         dataDict = {}
-        info['sourceProject'] = "Maya(%s)" %ext
-        info['version'] = cmds.about(q=True, api=True)
-        info['assetName'] = assetName
-        info['objPath'] = self.pathOps(objName, "basename")
-        info['maPath'] = self.pathOps(maName, "basename")
-        info['thumbPath'] = os.path.basename(thumbPath)
-        info['ssPath'] = os.path.basename(ssPath)
-        info['swPath'] = os.path.basename(swPath)
-        info['textureFiles'] = uniqueFileTextures
-        info['Faces/Triangles'] = ("%s/%s" % (str(polyCount), str(tiangleCount)))
-        info['sourceProject'] = originalPath
-        info['Notes'] = notes
+        dataDict['sourceProject'] = "Maya(%s)" %ext
+        dataDict['version'] = cmds.about(q=True, api=True)
+        dataDict['assetName'] = assetName
+        dataDict['objPath'] = os.path.basename(objName)
+        dataDict['sourcePath'] = os.path.basename(assetSourcePath)
+        dataDict['thumbPath'] = os.path.basename(thumbPath)
+        dataDict['ssPath'] = os.path.basename(ssPath)
+        dataDict['swPath'] = os.path.basename(swPath)
+        dataDict['textureFiles'] = uniqueFileTextures
+        dataDict['Faces/Triangles'] = ("%s/%s" % (str(polyCount), str(tiangleCount)))
+        dataDict['sourceProject'] = originalPath
+        dataDict['Notes'] = notes
 
 
         #
@@ -298,6 +313,19 @@ class AssetEditorMaya(object):
         cmds.select(selection)
         return thumbPath, SSpath, WFpath
 
+    def _getFileNodes(self, objList):
+        for obj in objList:
+            # Get the shading group from the selected mesh
+            sg = cmds.listConnections(obj, type='shadingEngine')
+            if not sg:
+                continue
+            allInputs = []
+            for i in sg:
+                allInputs += cmds.listHistory(i)
+
+            uniqueInputs =self.uniqueList(allInputs)
+            fileNodes = cmds.ls(uniqueInputs, type="file")
+            yield fileNodes
 
     def _repathFileNodes(self, objList, newPath):
         for obj in objList:
