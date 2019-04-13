@@ -103,9 +103,6 @@ class AssetEditorMaya(object):
         allFileTexturesGen = self._repathFileNodes(possibleFileHolders, assetDirectory)
         uniqueFileTextures = self.uniqueList([x for x in allFileTexturesGen][0])
 
-        ## TODO // THROWS error if multiple objects with the same name assigned to the 'allFileTexturesGen' Iterator
-        ## TODO // sg = cmds.listConnections(obj, type='shadingEngine') This is the problem
-
         end = time.time()
         print "evaluation time: %s" %(end-start)
         return
