@@ -170,9 +170,13 @@ def _dumpJson(data, file):
     shutil.copyfile(tempFile, file)
     os.remove(tempFile)
 
+class AssetEditor(AssetEditor):
+    def __init__(self, directory):
+        super(AssetEditor, self).__init__()
+
 class AssetLibrary(AssetEditor):
     """
-    Asset Library Logical operations Class. This Class holds the main functions (save,import,scan)
+    Asset Library Logical operations Class. This Class holds the main functions (view only)
     """
 
     def __init__(self, directory):
@@ -722,32 +726,34 @@ class LibraryTab(QtWidgets.QWidget):
         # self.thumb_label.setAlignment(QtCore.Qt.AlignCenter)
         ## --------------
 
-        ## ImageWidget
-        ## -----------
-        # if FORCE_QT4:
-        #     self.tPixmap = QtWidgets.QPixmap("")
-        # else:
-        #     self.tPixmap = QtGui.QPixmap("")
-        # self.screenshot_label = ImageWidget(self.frame_right)
-        # self.screenshot_label.setPixmap(self.tPixmap)
-        #
-        # self.screenshot_label.setMinimumSize(QtCore.QSize(200, 200))
-        # self.screenshot_label.setFrameShape(QtWidgets.QFrame.Box)
-        # self.screenshot_label.setScaledContents(True)
-        # self.screenshot_label.setAlignment(QtCore.Qt.AlignCenter)
-        ## -----------
+        # ImageWidget
+        # -----------
+        if FORCE_QT4:
+            self.tPixmap = QtWidgets.QPixmap("")
+        else:
+            self.tPixmap = QtGui.QPixmap("")
+        self.screenshot_label = ImageWidget(self.frame_right)
+        self.screenshot_label.setPixmap(self.tPixmap)
 
-
-        ## QtImageViewer
-        ## -------------
-        self.screenshot_label = QtImageViewer()
-        self.screenshot_label.setMinimumSize(QtCore.QSize(10, 10))
+        self.screenshot_label.setMinimumSize(QtCore.QSize(200, 200))
         self.screenshot_label.setFrameShape(QtWidgets.QFrame.Box)
+        self.screenshot_label.setScaledContents(True)
         self.screenshot_label.setAlignment(QtCore.Qt.AlignCenter)
-        self.screenshot_label.canZoom = False
-        self.screenshot_label.canPan = False
-        # self.screenshot_label.setFixedHeight(500)
-        ## -------------
+        # -----------
+
+
+        # ## QtImageViewer
+        # ## -------------
+        # self.screenshot_label = QtImageViewer()
+        # self.screenshot_label.setMinimumSize(QtCore.QSize(10, 10))
+        # # self.screenshot_label.setMinimumSize(QtCore.QSize(400, 400))
+        #
+        # self.screenshot_label.setFrameShape(QtWidgets.QFrame.Box)
+        # self.screenshot_label.setAlignment(QtCore.Qt.AlignCenter)
+        # self.screenshot_label.canZoom = False
+        # self.screenshot_label.canPan = False
+        # # self.screenshot_label.setFixedHeight(500)
+        # ## -------------
 
         self.rightBelow_verticalLayout.addWidget(self.screenshot_label)
 
@@ -809,8 +815,8 @@ class LibraryTab(QtWidgets.QWidget):
         self.assets_listWidget.currentItemChanged.connect(self.onAssetChange)
 
         # self.screenshot_label.clicked.connect(self.toggleWireframe)
-        # self.screenshot_label.leftClicked.connect(self.toggleWireframe)
-        self.screenshot_label.leftMouseButtonPressed.connect(self.toggleWireframe)
+        self.screenshot_label.leftClicked.connect(self.toggleWireframe)
+        # self.screenshot_label.leftMouseButtonPressed.connect(self.toggleWireframe)
 
         self.splitter.setSizes([375, 25])
 
@@ -853,6 +859,8 @@ class LibraryTab(QtWidgets.QWidget):
         self.exportFbx_checkBox = QtWidgets.QCheckBox(saveAsset_Dialog)
         self.exportFbx_checkBox.setText(("Export .fbx"))
         self.formLayout.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.exportFbx_checkBox)
+
+        self.exportFbx_checkBox.setEnabled(False)
 
         self.range_label = QtWidgets.QLabel(saveAsset_Dialog)
         self.range_label.setText(("Range"))
@@ -927,6 +935,7 @@ class LibraryTab(QtWidgets.QWidget):
 
         saveAsset_Dialog.show()
 
+
     def viewOnlyMode(self):
         self.importObj_pushButton.setHidden(True)
         self.merge_pushButton.setHidden(True)
@@ -947,13 +956,15 @@ class LibraryTab(QtWidgets.QWidget):
         else:
             screenshotPath = self.library.getWireFrame(assetName)
 
+        # print screenshotPath
+
         # update preview image
         if FORCE_QT4:
             self.tPixmap = QtWidgets.QPixmap(screenshotPath)
         else:
             self.tPixmap = QtGui.QPixmap(screenshotPath)
-        # self.screenshot_label.setPixmap(self.tPixmap)
-        self.screenshot_label.setImage(self.tPixmap)
+        self.screenshot_label.setPixmap(self.tPixmap)
+        # self.screenshot_label.setImage(self.tPixmap)
 
         # get Notes
         # assetNotes = self.library.getNotes(assetName)

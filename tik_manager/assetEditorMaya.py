@@ -43,30 +43,59 @@ class AssetEditorMaya(object):
     def __init__(self):
         super(AssetEditorMaya, self).__init__()
 
-    def saveAsset(self, assetName, exportUV=True, exportOBJ=False, exportFBX=False, selectionOnly=True, mbFormat=False, notes="N/A", **info):
+
+    def saveAsset(self, assetName, exportUV=True, exportOBJ=True, exportFBX=True, selectionOnly=True, mbFormat=False, notes="N/A", **info):
         """
         Saves the selected object(s) as an asset into the predefined library
         """
+        self.ssResolution = 1000
+        if assetName in self.assetsList:
+            msg = "This Asset already exists.\nDo you want to overwrite?"
+            state = cmds.confirmDialog(title='Asset Exists', message=msg, button=['Ok', 'Cancel'])
+            # cmds.warning("There are unknown nodes in the scene. Cannot proceed with %s extension. Do you want to proceed with %s?" %(ext, origExt))
+            if state == "Ok":
+                pass
+            elif state == "Cancel":
+                return
+
 
         if mbFormat:
-            ext = "mb"
+            ext = u'.mb'
             saveFormat = "mayaBinary"
         else:
-            ext = "ma"
+            ext = u'.ma'
             saveFormat = "mayaAscii"
 
         originalPath = cmds.file(q=True, sn=True)
 
+        dump, origExt = os.path.splitext(originalPath)
 
-        # TODO // Query box to inform if the file cannot be saved different than the original format.
-        # TODO // Like: "Because of the unknown nodes, current format cannot be changed. Do you want to continue with <other format here>?
+        # print origExt, ext, len(cmds.ls(type="unknown"))
+        # print cmds.ls(type="unknown")
+        # if len(cmds.ls(type="unknown")) > 0 and ext != origExt:
+        if len(cmds.ls(type="unknown")) > 0 and ext != origExt:
+            msg = "There are unknown nodes in the scene. Cannot proceed with %s extension.\n\nDo you want to continue with %s?" %(ext, origExt)
+            state = cmds.confirmDialog(title='Cannot Continue', message=msg, button=['Ok', 'Cancel'])
+            # cmds.warning("There are unknown nodes in the scene. Cannot proceed with %s extension. Do you want to proceed with %s?" %(ext, origExt))
+            if state == "Ok":
+                if origExt == u'.mb':
+                    print "HERE"
+                    ext = u'.mb'
+                    saveFormat = "mayaBinary"
+                else:
+                    print "Anan"
+                    ext = u'.ma'
+                    saveFormat = "mayaAscii"
+
+            elif state == "Cancel":
+                return
+
+
 
         assetDirectory = os.path.join(self.directory, assetName)
-        tempAssetPath = os.path.join(assetDirectory, "temp.%s" %ext)
+        # tempAssetPath = os.path.join(assetDirectory, "temp.%s" %ext)
 
-        assetSourcePath = os.path.join(assetDirectory, "%s.%s" %(assetName, ext))
-
-
+        assetAbsPath = os.path.join(assetDirectory, "%s.%s" %(assetName, ext))
 
 
         # return
@@ -89,23 +118,24 @@ class AssetEditorMaya(object):
         if not os.path.exists(assetDirectory):
             os.mkdir(assetDirectory)
 
-        # SAVE THE TEMP FILE FIRST (Disaster Prevention)
-        # ----------------------------------------------
-        cmds.file(rename=tempAssetPath)
-        temporaryFile = cmds.file(save=True, type=saveFormat)
+        # # SAVE THE TEMP FILE FIRST (Disaster Prevention)
+        # # ----------------------------------------------
+        # cmds.file(rename=tempAssetPath)
+        # temporaryFile = cmds.file(save=True, type=saveFormat)
 
         # GET TEXTURES
         # ------------
-        import time
-        start = time.time()
+
         possibleFileHolders = cmds.listRelatives(selection, ad=True, type=["mesh", "nurbsSurface"], fullPath=True)
+        allFileNodes = self._getFileNodes(possibleFileHolders)
 
-        allFileTexturesGen = self._repathFileNodes(possibleFileHolders, assetDirectory)
-        uniqueFileTextures = self.uniqueList([x for x in allFileTexturesGen][0])
+        textureDatabase = [x for x in self._buildPathDatabase(allFileNodes, assetDirectory)]
 
-        end = time.time()
-        print "evaluation time: %s" %(end-start)
-        return
+        self._copyTextures(textureDatabase)
+
+        # GET UV SNAPSHOTS
+        # ----------------
+        ## TODO //
 
         # CREATE PREVIEWS
         # ---------------
@@ -113,150 +143,74 @@ class AssetEditorMaya(object):
 
         # SAVE SOURCE
         # -----------
-        # cmds.file(assetSourcePath, type=saveFormat, exportSelected=True)
+        cmds.file(assetAbsPath, type=saveFormat, exportSelected=True, force=True)
 
         # if selectionOnly:
-        #     cmds.file(assetSourcePath, type=saveFormat, exportSelected=True)
+        #     cmds.file(assetPath, type=saveFormat, exportSelected=True)
         # else:
-        #     cmds.file(rename=assetSourcePath)
+        #     cmds.file(rename=assetPath)
         #     cmds.file(save=True, type=saveFormat)
 
         # EXPORT OBJ
         # ----------
 
+        if exportOBJ:
+            if not cmds.pluginInfo('objExport', l=True, q=True):
+                cmds.loadPlugin('objExport')
+
+            objName = cmds.file(os.path.join(assetDirectory, assetName), pr=True, force=True, typ="OBJexport", es=True,
+                                op="groups=0; ptgroups=0; materials=0; smoothing=0; normals=0")
+            objName = "{0}.obj".format(assetName)
+        else:
+            objName = "N/A"
+
         # EXPORT FBX
         # ----------
+        fbxName = "N/A"
+        # if exportFBX:
+        #     if not cmds.pluginInfo('fbxmaya', l=True, q=True):
+        #         cmds.loadPlugin('fbxmaya')
+        #
+        #     # fbxName = cmds.file("{0}.fbx".format(os.path.join(assetDirectory, assetName)), es=True, type="FBX")
+        #     cmds.FBXExport(f="{0}.fbx".format(os.path.join(assetDirectory, assetName), s=True))
+        #     # objName = "%s.obj" %assetName
+        #     fbxName = "{0}.fbx".format(assetName)
+        # else:
+        #     fbxName = "N/A"
+
+        # NUMERIC DATA
+        # ------------
+
+        polyCount = cmds.polyEvaluate(f=True)
+        tiangleCount = cmds.polyEvaluate(t=True)
+
 
         # DATABASE
         # --------
-        return
-
 
         dataDict = {}
         dataDict['sourceProject'] = "Maya(%s)" %ext
         dataDict['version'] = cmds.about(q=True, api=True)
         dataDict['assetName'] = assetName
         dataDict['objPath'] = os.path.basename(objName)
-        dataDict['sourcePath'] = os.path.basename(assetSourcePath)
+        dataDict['fbxPath'] = os.path.basename(fbxName)
+        dataDict['sourcePath'] = os.path.basename(assetAbsPath)
         dataDict['thumbPath'] = os.path.basename(thumbPath)
         dataDict['ssPath'] = os.path.basename(ssPath)
         dataDict['swPath'] = os.path.basename(swPath)
-        dataDict['textureFiles'] = uniqueFileTextures
+        dataDict['textureFiles'] = [x["Texture"] for x in textureDatabase]
         dataDict['Faces/Triangles'] = ("%s/%s" % (str(polyCount), str(tiangleCount)))
-        dataDict['sourceProject'] = originalPath
+        dataDict['origin'] = originalPath
         dataDict['Notes'] = notes
 
+        self._setData(assetName, dataDict)
 
-        #
-        # if selectionOnly:
-        #     pm.select(selection)
-        #     # objName = "N/A"
-        #     if exportOBJ:
-        #         if not pm.pluginInfo('objExport', l=True, q=True):
-        #             pm.loadPlugin('objExport')
-        #         objName = pm.exportSelected(os.path.join(assetDirectory, assetName), type="OBJexport", force=True,
-        #                                     options="groups=1;ptgroups=1;materials=1;smoothing=1;normals=1", pr=True,
-        #                                     es=True)
-        #     else:
-        #         objName = "NA"
-        #     maName = pm.exportSelected(os.path.join(assetDirectory, assetName), type="mayaAscii")
-        #
-        #     # selection for poly evaluate
-        #     pm.select(possibleFileHolders)
-        #     polyCount = pm.polyEvaluate(f=True)
-        #     tiangleCount = pm.polyEvaluate(t=True)
-        #
-        # else:
-        #     pm.select(d=True)
-        #     # objName = "N/A"
-        #     if exportOBJ:
-        #         objName = pm.exportAll(os.path.join(assetDirectory, assetName), type="OBJexport", force=True,
-        #                             options="groups=1;ptgroups=1;materials=1;smoothing=1;normals=1", pr=True)
-        #     else:
-        #         objName = "NA"
-        #     maName = pm.exportAll(os.path.join(assetDirectory, assetName), type="mayaAscii")
-        #
-        #     # selection for poly evaluate
-        #     pm.select(d=True)
-        #     polyCount = pm.polyEvaluate(f=True)
-        #     tiangleCount = pm.polyEvaluate(t=True)
-        #
-        # ## Json stuff
-        #
-        # info['assetName'] = assetName
-        # info['objPath'] = self.pathOps(objName, "basename")
-        # info['maPath'] = self.pathOps(maName, "basename")
-        # info['thumbPath'] = self.pathOps(thumbPath, "basename")
-        # info['ssPath'] = self.pathOps(ssPath, "basename")
-        # info['swPath'] = self.pathOps(swPath, "basename")
-        # info['textureFiles'] = allFileTextures
-        # info['Faces/Trianges'] = ("%s/%s" % (str(polyCount), str(tiangleCount)))
-        # info['sourceProject'] = originalPath
-        #
-        # # query the number of faces
-        # # pm.polyEvaluate(f=True)
-        # # Result: 16
-        #
-        # # query the number of triangles
-        # # pm.polyEvaluate(t=True)
-        #
-        # propFile = os.path.join(assetDirectory, "%s.json" % assetName)
-        #
-        # with open(propFile, "w") as f:
-        #     json.dump(info, f, indent=4)
-        #
-        # self[assetName] = info
-        #
-        # ## TODO // REVERT BACK
-        # # if not originalPath == "":
-        # #     pm.openFile(originalPath, force=True)
-        # #     os.remove(newScenePath)
+        cmds.select(d=True)
+        self._returnOriginal(textureDatabase)
 
-        # LOAD BACK
-        # ---------
-        cmds.file(originalPath, o=True, force=True)
+        self.scanAssets()
 
-    # def findFileNodes(self, shape):
-    #     print "shape:", shape
-    #
-    #     def checkInputs(node):
-    #         inputNodes = node.inputs()
-    #         if len(inputNodes) == 0:
-    #             return []
-    #         else:
-    #             filteredNodes = [x for x in inputNodes if x.type() != "renderLayer"]
-    #             return filteredNodes
-    #
-    #     # geo = obj.getShape()
-    #     # Get the shading group from the selected mesh
-    #     try:
-    #         sg = shape.outputs(type='shadingEngine')
-    #     except:
-    #         # if there is no sg, return en empty list
-    #         return []
-    #     everyInput = []
-    #     for i in sg:
-    #         everyInput += pm.listHistory(i)
-    #
-    #     everyInput = self.makeUnique(everyInput)
-    #     print "everyInput", everyInput
-    #
-    #     fileNodes = pm.ls(everyInput, type="file")
-    #     return fileNodes
-
-    # def _findAllFileNodes(self, candidateList):
-    #     for obj in candidateList:
-    #         # Get the shading group from the selected mesh
-    #         sg = cmds.listConnections(obj, type='shadingEngine')
-    #         if not sg:
-    #             continue
-    #         allInputs = []
-    #         for i in sg:
-    #             allInputs += cmds.listHistory(i)
-    #
-    #         uniqueInputs =self.uniqueList(allInputs)
-    #         fileNodes = cmds.ls(uniqueInputs, type="file")
-    #         yield fileNodes
+        cmds.confirmDialog(title="Success", message="Asset Created Successfully", button=['Ok'])
 
     def _createThumbnail(self, assetName, selectionOnly=True, viewFit=True):
 
@@ -270,23 +224,41 @@ class AssetEditorMaya(object):
         SSpath = os.path.join(self.directory, assetName, "%s_s.jpg" % assetName)
         WFpath = os.path.join(self.directory, assetName, "%s_w.jpg" % assetName)
 
+        ## CREATE A CUSTOM PANEL WITH DESIRED SETTINGS
+
+        try:
+            currentCam = cmds.modelPanel(cmds.getPanel(wf=True), q=True, cam=True)
+        except RuntimeError:
+            currentCam = u'persp'
+
+        tempWindow = cmds.window(title="AssetLibrary_SS",
+                               widthHeight=(self.ssResolution * 1.1, self.ssResolution * 1.1),
+                               tlc=(0, 0))
+
+        cmds.paneLayout()
+        pbPanel = cmds.modelPanel(camera=currentCam)
+        cmds.showWindow(tempWindow)
+        cmds.setFocus(pbPanel)
+
+        ########################################
+
         # make sure the viewport display is suitable
-        panel = cmds.getPanel(wf=True)
+        # panel = cmds.getPanel(wf=True)
+        #
+        # if cmds.getPanel(to=panel) != "modelPanel":
+        #     panel = cmds.getPanel(wl="Persp View")
 
-        if cmds.getPanel(to=panel) != "modelPanel":
-            panel = cmds.getPanel(wl="Persp View")
 
-
-        cmds.modelEditor(panel, e=1, allObjects=1)
-        cmds.modelEditor(panel, e=1, da="smoothShaded")
-        cmds.modelEditor(panel, e=1, displayTextures=1)
-        cmds.modelEditor(panel, e=1, wireframeOnShaded=0)
+        cmds.modelEditor(pbPanel, e=1, allObjects=1)
+        cmds.modelEditor(pbPanel, e=1, da="smoothShaded")
+        cmds.modelEditor(pbPanel, e=1, displayTextures=1)
+        cmds.modelEditor(pbPanel, e=1, wireframeOnShaded=0)
         if viewFit:
             cmds.viewFit()
 
         if selectionOnly:
-            cmds.isolateSelect(panel, state=1)
-            cmds.isolateSelect(panel, addSelected=True)
+            cmds.isolateSelect(pbPanel, state=1)
+            cmds.isolateSelect(pbPanel, addSelected=True)
         # temporarily deselect
         cmds.select(d=True)
         cmds.setAttr("defaultRenderGlobals.imageFormat", 8)  # This is the value for jpeg
@@ -301,16 +273,20 @@ class AssetEditorMaya(object):
                      showOrnaments=False, frame=[frame], viewer=False)
 
         # Wireframe
-        cmds.modelEditor(panel, e=1, displayTextures=0)
-        cmds.modelEditor(panel, e=1, wireframeOnShaded=1)
+        cmds.modelEditor(pbPanel, e=1, displayTextures=0)
+        cmds.modelEditor(pbPanel, e=1, wireframeOnShaded=1)
         cmds.playblast(completeFilename=WFpath, forceOverwrite=True, format='image', width=1600, height=1600,
                      showOrnaments=False, frame=[frame], viewer=False)
+
+        ## remove window when pb is donw
+        cmds.deleteUI(tempWindow)
 
         # print panel
         cmds.select(selection)
         return thumbPath, SSpath, WFpath
 
     def _getFileNodes(self, objList):
+        returnList = []
         for obj in objList:
             # Get the shading group from the selected mesh
             sg = cmds.listConnections(obj, type='shadingEngine')
@@ -318,49 +294,84 @@ class AssetEditorMaya(object):
                 continue
             allInputs = []
             for i in sg:
-                allInputs += cmds.listHistory(i)
+                allInputs.extend(cmds.listHistory(i))
 
             uniqueInputs =self.uniqueList(allInputs)
+
             fileNodes = cmds.ls(uniqueInputs, type="file")
-            yield fileNodes
+            if len(fileNodes) != 0:
+                # print "sdf", fileNodes
+                # yield fileNodes
+                returnList.extend(fileNodes)
+        returnList = self.uniqueList(returnList)
+        return returnList
 
-    def _repathFileNodes(self, objList, newPath):
-        for obj in objList:
-            # Get the shading group from the selected mesh
-            sg = cmds.listConnections(obj, type='shadingEngine')
-            if not sg:
-                continue
-            allInputs = []
-            for i in sg:
-                allInputs += cmds.listHistory(i)
+    def _buildPathDatabase(self, fileNodeList, newRoot):
+        for file in fileNodeList:
+            oldAbsPath = os.path.normpath(cmds.getAttr("%s.fileTextureName" %file))
+            filePath, fileBase = os.path.split(oldAbsPath)
+            newAbsPath = os.path.normpath(os.path.join(newRoot, fileBase))
 
-            uniqueInputs =self.uniqueList(allInputs)
-            fileNodes = cmds.ls(uniqueInputs, type="file")
-            textures = self._filePass(fileNodes, newPath)
-            yield [x for x in textures]
+            # if oldAbsPath == newAbsPath:
+            #     cmds.warning("File Node copy skipped. Target Path and Source Path is same")
+            #     # textureName = self.pathOps(newLocation, "basename")
+            #     textureName = os.path.basename(newAbsPath)
+            #     # textures.append(textureName)
+            #     continue
+            yield {"FileNode": file,
+                   "Texture": os.path.basename(oldAbsPath),
+                   "OldPath": oldAbsPath,
+                   "NewPath": newAbsPath
+                   }
 
-    def _filePass(self, fileNodes, newPath, *args):
-        # textures = []
-        for file in fileNodes:
-            fullPath = os.path.normpath(cmds.getAttr("%s.fileTextureName" %file))
-            filePath, fileBase = os.path.split(fullPath)
-            newLocation = os.path.normpath(os.path.join(newPath, fileBase))
+    def _copyTextures(self, pathDatabase):
+        for data in pathDatabase:
+            if data["OldPath"] != data["NewPath"]:
+                copyfile(data["OldPath"], data["NewPath"])
+                cmds.setAttr("%s.fileTextureName" % data["FileNode"], data["NewPath"], type="string")
 
-            if fullPath == newLocation:
-                cmds.warning("File Node copy skipped")
-                # textureName = self.pathOps(newLocation, "basename")
-                textureName = os.path.basename(newLocation)
-                # textures.append(textureName)
-                yield textureName
-                continue
+    def _returnOriginal(self, pathDatabase):
+        for data in pathDatabase:
+            # print data
+            cmds.setAttr("%s.fileTextureName" % data["FileNode"], data["OldPath"], type="string")
 
-            copyfile(fullPath, newLocation)
-
-            cmds.setAttr("%s.fileTextureName" %file, newLocation, type="string")
-            textureName = os.path.basename(newLocation)
-            # textures.append(textureName)
-            yield textureName
-        # return textures
+    # def _repathFileNodes(self, objList, newPath):
+    #     for obj in objList:
+    #         # Get the shading group from the selected mesh
+    #         sg = cmds.listConnections(obj, type='shadingEngine')
+    #         if not sg:
+    #             continue
+    #         allInputs = []
+    #         for i in sg:
+    #             allInputs += cmds.listHistory(i)
+    #
+    #         uniqueInputs =self.uniqueList(allInputs)
+    #         fileNodes = cmds.ls(uniqueInputs, type="file")
+    #         textures = self._filePass(fileNodes, newPath)
+    #         yield [x for x in textures]
+    #
+    # def _filePass(self, fileNodes, newPath, *args):
+    #     # textures = []
+    #     for file in fileNodes:
+    #         fullPath = os.path.normpath(cmds.getAttr("%s.fileTextureName" %file))
+    #         filePath, fileBase = os.path.split(fullPath)
+    #         newLocation = os.path.normpath(os.path.join(newPath, fileBase))
+    #
+    #         if fullPath == newLocation:
+    #             cmds.warning("File Node copy skipped")
+    #             # textureName = self.pathOps(newLocation, "basename")
+    #             textureName = os.path.basename(newLocation)
+    #             # textures.append(textureName)
+    #             yield textureName
+    #             continue
+    #
+    #         copyfile(fullPath, newLocation)
+    #
+    #         cmds.setAttr("%s.fileTextureName" %file, newLocation, type="string")
+    #         textureName = os.path.basename(newLocation)
+    #         # textures.append(textureName)
+    #         yield textureName
+    #     # return textures
 
     # def uniqueList(self, seq):  # Dave Kirby
     #     # Order preserving
