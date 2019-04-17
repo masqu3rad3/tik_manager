@@ -38,7 +38,6 @@ import shutil
 import re
 import _version
 
-import time
 
 FORCE_QT4 = bool(os.getenv("FORCE_QT4"))
 
@@ -78,6 +77,24 @@ class AssetEditor(object):
         super(AssetEditor, self).__init__()
         pass
 
+    def mergeAsset(self, assetName):
+        logger.warning("merging Asset is not defined")
+
+
+    def importAsset(self, assetName):
+        logger.warning("importing Asset is not defined")
+
+
+    def importObj(self, assetName):
+        logger.warning("importing obj is not defined")
+
+
+    def loadAsset(self, assetName):
+        logger.warning("loading Asset is not defined")
+
+
+    def saveAsset(self, *args, **kwargs):
+        logger.warning("saving Asset is not defined")
 
 # ---------------
 # GET ENVIRONMENT
@@ -197,49 +214,6 @@ class AssetLibrary(AssetEditor):
 
         self.assetsList=[]
 
-    # def getLibraries(self):
-    #     pass
-    #
-    # def addLibrary(self):
-    #     pass
-    #
-    # def removeLibrary(self):
-    #     pass
-
-    def mergeAsset(self, assetName):
-        print "merging %s" %assetName
-        pass
-
-    def importAsset(self, assetName):
-        print "importing %s" % assetName
-        pass
-
-    def importObj(self, assetName):
-        print "importing Obj %s" % assetName
-        pass
-
-    def loadAsset(self, assetName):
-        print "loading %s" % assetName
-        pass
-
-    # def saveAsset(self, assetName, screenshot=True, moveCenter=False, selectionOnly=True, exportUV=True, exportOBJ=True, **info):
-    #     """
-    #     Saves the selected object(s) as an asset into the predefined library
-    #     Args:
-    #         assetName: (Unicode) Asset will be saved as with this name
-    #         screenshot: (Bool) If true, screenshots (Screenshot, Thumbnail, Wireframe, UV Snapshots) will be taken with playblast. Default True
-    #         directory: (Unicode) Default Library location. Default is predefined outside of this class
-    #         moveCenter: (Bool) If True, selected object(s) will be moved to World 0 point. Pivot will be the center of selection. Default False
-    #         **info: (Any) Extra information which will be hold in the .json file
-    #
-    #     Returns:
-    #         None
-    #
-    #     """
-    #
-    #     pass
-
-
     def scanAssets(self):
         """
         Scans the directory for .json files, and gather info.
@@ -291,6 +265,16 @@ class AssetLibrary(AssetEditor):
         path = os.path.join(self.directory, assetName)
         os.startfile(path)
 
+    def showScreenShot(self, assetName):
+        path = self.getScreenShot(assetName)
+        os.startfile(path)
+        pass
+
+    def showWireFrame(self, assetName):
+        path = self.getWireFrame(assetName)
+        os.startfile(path)
+        pass
+
     def _getData(self, assetName):
         jsonFile = os.path.join(self.directory, assetName, "%s.json" %assetName)
         data = _loadJson(jsonFile)
@@ -340,13 +324,16 @@ class MainUI(QtWidgets.QMainWindow):
         parent = getMainWindow()
         super(MainUI, self).__init__(parent=parent)
 
-        if BoilerDict["Environment"]=="Standalone":
+        if BoilerDict["Environment"]=="Standalone" or\
+                BoilerDict["Environment"]=="Houdini" or \
+                BoilerDict["Environment"] == "Nuke" or \
+                BoilerDict["Environment"] == "3dsMax":
             self.viewOnly = True
         else:
             self.viewOnly = False
         # Set Stylesheet
         dirname = os.path.dirname(os.path.abspath(__file__))
-        stylesheetFile = os.path.join(dirname, "CSS", "darkorange.stylesheet")
+        # stylesheetFile = os.path.join(dirname, "CSS", "darkorange.stylesheet")
 
         self.homedir = os.path.expanduser("~")
         self.DocumentsDir = "Documents" if BoilerDict["Environment"] == "Standalone" else ""
@@ -365,36 +352,40 @@ class MainUI(QtWidgets.QMainWindow):
         statusbar = QtWidgets.QStatusBar(self)
         self.setStatusBar(statusbar)
 
-        fileMenu = menubar.addMenu("File")
-        addNewLibrary_mi= QtWidgets.QAction("&Add New Library", self)
-        renameLibrary_mi = QtWidgets.QAction("&Rename Active Library", self)
-        createNewAsset_mi = QtWidgets.QAction("&Create New Asset", self)
-        loadAsset_mi = QtWidgets.QAction("&Load Selected Asset", self)
-        importAssetWithTextures_mi = QtWidgets.QAction("&Import Asset and Copy Textures", self)
-        importAsset_mi = QtWidgets.QAction("&Import only", self)
-        deleteAsset_mi = QtWidgets.QAction("&Delete Selected Asset", self)
-        removeLibrary_mi = QtWidgets.QAction("&Remove Library", self)
+        self.fileMenu = menubar.addMenu("File")
+        self.addNewLibrary_mi= QtWidgets.QAction("&Add New Library", self)
+        self.renameLibrary_mi = QtWidgets.QAction("&Rename Active Library", self)
+        self.createNewAsset_mi = QtWidgets.QAction("&Create New Asset", self)
+        self.loadAsset_mi = QtWidgets.QAction("&Load Selected Asset", self)
+        self.mergeAsset_mi = QtWidgets.QAction("&Merge Asset", self)
+        self.importAsset_mi = QtWidgets.QAction("&Import only", self)
+        self.importObj_mi = QtWidgets.QAction("&Import Obj", self)
+        # self.deleteAsset_mi = QtWidgets.QAction("&Delete Selected Asset", self)
+        self.removeLibrary_mi = QtWidgets.QAction("&Remove Library", self)
 
-        fileMenu.addAction(addNewLibrary_mi)
-        fileMenu.addAction(renameLibrary_mi)
-        fileMenu.addAction(createNewAsset_mi)
+        self.fileMenu.addAction(self.addNewLibrary_mi)
+        self.fileMenu.addAction(self.renameLibrary_mi)
+        self.fileMenu.addAction(self.createNewAsset_mi)
 
-        fileMenu.addSeparator()
-        fileMenu.addAction(loadAsset_mi)
-        fileMenu.addAction(importAssetWithTextures_mi)
-        fileMenu.addAction(importAsset_mi)
+        self.fileMenu.addSeparator()
+        self.fileMenu.addAction(self.loadAsset_mi)
+        self.fileMenu.addAction(self.mergeAsset_mi)
+        self.fileMenu.addAction(self.importAsset_mi)
+        self.fileMenu.addAction(self.importObj_mi)
 
-        fileMenu.addSeparator()
-        fileMenu.addAction(deleteAsset_mi)
-        fileMenu.addAction(removeLibrary_mi)
+        self.fileMenu.addSeparator()
+        # self.fileMenu.addAction(self.deleteAsset_mi)
+        self.fileMenu.addAction(self.removeLibrary_mi)
 
         self.tabDialog()
         self.setCentralWidget(self.centralwidget)
 
-        addNewLibrary_mi.triggered.connect(self.newLibraryUI)
-        renameLibrary_mi.triggered.connect(self.renameLibrary)
-        removeLibrary_mi.triggered.connect(lambda: self.removeLibrary(self.tabWidget.currentWidget().objectName()))
+        self.addNewLibrary_mi.triggered.connect(self.newLibraryUI)
+        self.renameLibrary_mi.triggered.connect(self.renameLibrary)
+        self.removeLibrary_mi.triggered.connect(lambda: self.removeLibrary(self.tabWidget.currentWidget().objectName()))
 
+        if self.viewOnly:
+            self.viewOnlyMode()
 
     def tabDialog(self):
 
@@ -417,13 +408,20 @@ class MainUI(QtWidgets.QMainWindow):
                 logger.warning("Cannot reach library path: \n%s \n Removing from the database..." % (path))
                 self.removeLibrary(name)
                 continue
-            preTab = LibraryTab(path)
+            preTab = LibraryTab(path, self.viewOnly)
             self.tabWidget.addTab(preTab, name)
             preTab.setObjectName(name)
             preTab.setLayout(preTab.layout)
 
         self.tabWidget.currentChanged.connect(self.refreshTab)
         self.refreshTab()
+
+    def viewOnlyMode(self):
+        self.createNewAsset_mi.setVisible(False)
+        self.loadAsset_mi.setVisible(False)
+        self.mergeAsset_mi.setVisible(False)
+        self.importAsset_mi.setVisible(False)
+        self.importObj_mi.setVisible(False)
 
     def refreshTab(self):
         if self.tabWidget.currentWidget():
@@ -594,7 +592,7 @@ class MainUI(QtWidgets.QMainWindow):
 class LibraryTab(QtWidgets.QWidget):
     viewModeState = -1
 
-    def __init__(self, directory):
+    def __init__(self, directory, viewOnly=True):
         self.directory = directory
         super(LibraryTab, self).__init__()
 
@@ -603,8 +601,9 @@ class LibraryTab(QtWidgets.QWidget):
         self.library = AssetLibrary(directory)
         self.buildTabUI()
 
-        if BoilerDict["Environment"]=="Standalone":
+        if viewOnly:
             self.viewOnlyMode()
+
 
     def buildTabUI(self):
         self.layout = QtWidgets.QVBoxLayout(self)
@@ -803,14 +802,46 @@ class LibraryTab(QtWidgets.QWidget):
         self.assets_rcItem_0 = QtWidgets.QAction('View as Icons', self)
         self.popMenu_assets.addAction(self.assets_rcItem_0)
 
+        self.popMenu_assets.addSeparator()
+
         self.assets_rcItem_1 = QtWidgets.QAction('Show in Explorer', self)
         self.popMenu_assets.addAction(self.assets_rcItem_1)
+
+        self.assets_rcItem_2 = QtWidgets.QAction('Show Screenshot', self)
+        self.popMenu_assets.addAction(self.assets_rcItem_2)
+
+        self.assets_rcItem_3 = QtWidgets.QAction('Show Wireframe', self)
+        self.popMenu_assets.addAction(self.assets_rcItem_3)
+
+        # ss area
+
+        self.screenshot_label.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.screenshot_label.customContextMenuRequested.connect(self.onContextMenu_screenshot)
+        self.popMenu_screenshot = QtWidgets.QMenu()
+
+        ## action items from assets_listWidget
+        self.popMenu_screenshot.addAction(self.assets_rcItem_1)
+        self.popMenu_screenshot.addAction(self.assets_rcItem_2)
+        self.popMenu_screenshot.addAction(self.assets_rcItem_3)
+
+        self.popMenu_screenshot.addSeparator()
+        self.screenshot_rcItem_1 = QtWidgets.QAction('Replace with Current View', self)
+        self.popMenu_screenshot.addAction(self.screenshot_rcItem_1)
+
+        # self.screenshot_rcItem_2 = QtWidgets.QAction('Replace with External File', self)
+        # self.popMenu_screenshot.addAction(self.screenshot_rcItem_2)
+
 
         # SIGNAL CONNECTIONS
         # ------------------
 
         self.assets_rcItem_0.triggered.connect(lambda: self.rcAction_assets("viewModeChange"))
         self.assets_rcItem_1.triggered.connect(lambda: self.rcAction_assets("showInExplorer"))
+        self.assets_rcItem_2.triggered.connect(lambda: self.rcAction_assets("showScreenShot"))
+        self.assets_rcItem_3.triggered.connect(lambda: self.rcAction_assets("showWireFrame"))
+        self.screenshot_rcItem_1.triggered.connect(lambda: self.rcAction_ss("currentView"))
+        # self.screenshot_rcItem_1.triggered.connect(lambda: self.library.replaceWithCurrentView(self._getCurrentAssetName()))
+        # self.screenshot_rcItem_2.triggered.connect(lambda: self.library.replaceWithExternalFile(self._getCurrentAssetName()))
 
         self.assets_listWidget.currentItemChanged.connect(self.onAssetChange)
 
@@ -827,7 +858,20 @@ class LibraryTab(QtWidgets.QWidget):
         self.createNewAsset_pushButton.clicked.connect(self.createNewAssetUI)
 
 
+
+
+        ## SHORTCUTS
+        ## ---------
+
+        # PyInstaller and Standalone version compatibility
+        if FORCE_QT4:
+            shortcutRefresh = Qt.QShortcut(QtWidgets.QKeySequence("F5"), self, self.populate)
+        else:
+            shortcutRefresh = QtWidgets.QShortcut(QtGui.QKeySequence("F5"), self, self.populate)
+
         # self.populate()
+
+
 
     def createNewAssetUI(self):
         saveAsset_Dialog = QtWidgets.QDialog(parent=self)
@@ -860,7 +904,7 @@ class LibraryTab(QtWidgets.QWidget):
         self.exportFbx_checkBox.setText(("Export .fbx"))
         self.formLayout.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.exportFbx_checkBox)
 
-        self.exportFbx_checkBox.setEnabled(False)
+        # self.exportFbx_checkBox.setEnabled(False)
 
         self.range_label = QtWidgets.QLabel(saveAsset_Dialog)
         self.range_label.setText(("Range"))
@@ -922,13 +966,7 @@ class LibraryTab(QtWidgets.QWidget):
             self.ma_radioButton.setHidden(True)
             self.mb_radioButton.setHidden(True)
 
-        self.create_pushButton.clicked.connect(lambda: self.library.saveAsset(assetName=self.assetName_lineEdit.text(),
-                                                                      exportUV=self.exportUv_checkBox.isChecked(),
-                                                                      exportOBJ=self.exportObj_checkBox.isChecked(),
-                                                                      exportFBX=self.exportFbx_checkBox.isChecked(),
-                                                                      selectionOnly=self.selection_radioButton.isChecked(),
-                                                                      mbFormat=self.mb_radioButton.isChecked()
-                                                                      ))
+        self.create_pushButton.clicked.connect(self.onCreateNewAsset)
         self.assetName_lineEdit.textChanged.connect(
             lambda: self._checkValidity(self.assetName_lineEdit.text(), self.create_pushButton,
                                         self.assetName_lineEdit))
@@ -942,11 +980,14 @@ class LibraryTab(QtWidgets.QWidget):
         self.import_pushButton.setHidden(True)
         self.load_pushButton.setHidden(True)
         self.createNewAsset_pushButton.setHidden(True)
+        self.screenshot_rcItem_1.setVisible(False)
 
     def onAssetChange(self):
         assetName = self._getCurrentAssetName()
         if not assetName:
             return
+        else:
+            str(assetName)
 
         assetData = self.library._getData(assetName)
 
@@ -982,7 +1023,6 @@ class LibraryTab(QtWidgets.QWidget):
         self.sourceProject_label.setText("Source: %s Version: %s" %(sourceProject, version))
         isObjExist = False if assetData["objPath"] == "NA" else True
         self.objCopy_label.setText("Obj File: %s" %isObjExist)
-
 
     def toggleWireframe(self):
         self.wireframeMode *= -1
@@ -1023,6 +1063,24 @@ class LibraryTab(QtWidgets.QWidget):
             self.assets_listWidget.setGridSize(QtCore.QSize(15,15))
             self.assets_listWidget.addItems(self.filterList(self.library.assetsList, filterWord))
 
+    def onCreateNewAsset(self):
+        assetName = self.assetName_lineEdit.text()
+        exportUV = self.exportUv_checkBox.isChecked()
+        exportOBJ = self.exportObj_checkBox.isChecked()
+        exportFBX = self.exportFbx_checkBox.isChecked()
+        selectionOnly = self.selection_radioButton.isChecked()
+        mbFormat = self.mb_radioButton.isChecked()
+
+        self.library.saveAsset(assetName=assetName,
+                               exportUV=exportUV,
+                               exportOBJ=exportOBJ,
+                               exportFBX=exportFBX,
+                               selectionOnly=selectionOnly,
+                               mbFormat=mbFormat)
+
+        self.populate()
+
+
     def onMergeAsset(self):
         assetName = self._getCurrentAssetName()
         if assetName:
@@ -1046,8 +1104,8 @@ class LibraryTab(QtWidgets.QWidget):
     def _clearDisplayInfo(self):
 
         self.notes_textEdit.clear()
-        # self.screenshot_label.clear()
-        self.screenshot_label.clearImage()
+        self.screenshot_label.clear()
+        # self.screenshot_label.clearImage() # for using with QtImage class
         self.sourceProject_label.setText(("Source: "))
         self.objCopy_label.setText(("Obj File: "))
         self.facesTriangles_label.setText(("Faces/Triangles: "))
@@ -1074,28 +1132,17 @@ class LibraryTab(QtWidgets.QWidget):
         row = self.assets_listWidget.currentRow()
         if row == -1:
             return
-        #
-        #     self.scenes_rcItem_1.setEnabled(False)
-        #     self.scenes_rcItem_2.setEnabled(False)
-        #     self.scenes_rcItem_3.setEnabled(False)
-        #     self.scenes_rcItem_4.setEnabled(False)
-        #     self.scenes_rcItem_5.setEnabled(False)
-        #     self.scenes_rcItem_6.setEnabled(True)
-        # else:
-        #     self.scenes_rcItem_1.setEnabled(os.path.isdir(manager.currentBaseScenePath))
-        #     self.scenes_rcItem_2.setEnabled(os.path.isdir(manager.currentPreviewPath))
-        #     self.scenes_rcItem_3.setEnabled(True)
-        #     self.scenes_rcItem_4.setEnabled(True)
-        #     # show context menu
-        #     self.scenes_rcItem_5.setEnabled(os.path.isdir(os.path.join(manager.projectDir, "images", manager.currentBaseSceneName)))
-        #     self.scenes_rcItem_6.setEnabled(True)
-
         self.popMenu_assets.exec_(self.assets_listWidget.mapToGlobal(point))
 
+    def onContextMenu_screenshot(self, point):
+        row = self.assets_listWidget.currentRow()
+        if row == -1:
+            return
+        self.popMenu_screenshot.exec_(self.screenshot_label.mapToGlobal(point))
 
     def rcAction_assets(self, item):
         currentItem = self.assets_listWidget.currentItem()
-        name = currentItem.text()
+        name = str(currentItem.text())
 
         if item == 'showInExplorer':
             self.library.showInExplorer(name)
@@ -1110,6 +1157,25 @@ class LibraryTab(QtWidgets.QWidget):
                 self.assets_rcItem_0.setText("View As Icons")
                 self.populate()
                 # self.assets_listWidget.setViewMode(QtWidgets.QListWidget.ListMode)
+
+        elif item == 'showScreenShot':
+            self.library.showScreenShot(name)
+        elif item == 'showWireFrame':
+            self.library.showWireFrame(name)
+
+    def rcAction_ss(self, mode):
+        if mode == "currentView":
+            assetName = self._getCurrentAssetName()
+            self.library.replaceWithCurrentView(assetName)
+            pass
+        # if mode == "externalFile":
+        #     fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', self.library.directory,"Image files (*.jpg *.gif)")[0]
+        #     if not fname: # if dialog is canceled
+        #         return
+        #     self.library.replaceWithExternalFile(assetName, fname)
+
+        self.onAssetChange()
+
 
     def _checkValidity(self, text, button, lineEdit, allowSpaces=False):
 
@@ -1134,8 +1200,10 @@ class ImageWidget(QtWidgets.QLabel):
     # !!! For image (row, column) matrix indexing, row = y and column = x.
     if FORCE_QT4:
         leftClicked = QtCore.pyqtSignal(float)
+        rightClicked = QtCore.pyqtSignal(float)
     else:
         leftClicked = QtCore.Signal(float)
+        rightClicked = QtCore.Signal(float)
 
 
     def __init__(self, parent=None):
@@ -1151,7 +1219,11 @@ class ImageWidget(QtWidgets.QLabel):
         self.setMaximumHeight(h/self.aspectRatio)
 
     def mousePressEvent(self, event):
-        self.leftClicked.emit(1)
+        if event.button() == QtCore.Qt.LeftButton:
+            self.leftClicked.emit(1)
+        elif event.button() == QtCore.Qt.RightButton:
+            self.rightClicked.emit(1)
+
 
 class QtImageViewer(QtWidgets.QGraphicsView):
     """ PyQt image viewer widget for a QPixmap in a QGraphicsView scene with mouse zooming and panning.
@@ -1359,9 +1431,9 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     selfLoc = os.path.dirname(os.path.abspath(__file__))
     stylesheetFile = os.path.join(selfLoc, "CSS", "darkorange.stylesheet")
-
-    with open(stylesheetFile, "r") as fh:
-        app.setStyleSheet(fh.read())
+    if os.path.isfile(stylesheetFile):
+        with open(stylesheetFile, "r") as fh:
+            app.setStyleSheet(fh.read())
     window = MainUI()
     window.show()
     #

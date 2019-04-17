@@ -800,11 +800,11 @@ class MainUI(baseUI):
 
 if __name__ == '__main__':
     selfLoc = os.path.dirname(os.path.abspath(__file__))
-    stylesheetFile = os.path.join(selfLoc, "CSS", "darkorange.stylesheet")
-
     app = QtWidgets.QApplication(sys.argv)
-    with open(stylesheetFile, "r") as fh:
-        app.setStyleSheet(fh.read())
+    stylesheetFile = os.path.join(selfLoc, "CSS", "darkorange.stylesheet")
+    if os.path.isfile(stylesheetFile):
+        with open(stylesheetFile, "r") as fh:
+            app.setStyleSheet(fh.read())
     window = MainUI()
     window.show()
     sys.exit(app.exec_())

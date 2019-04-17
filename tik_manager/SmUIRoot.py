@@ -515,12 +515,14 @@ class MainUI(QtWidgets.QMainWindow):
         self.fileMenu.addAction(checkReferences_fm)
 
         self.toolsMenu = self.menubar.addMenu("Tools")
-        iviewer = QtWidgets.QAction("&Image Viewer", self)
-        pMaterials = QtWidgets.QAction("&Project Materials", self)
+        imageViewer_mi = QtWidgets.QAction("&Image Viewer", self)
+        projectMaterials_mi = QtWidgets.QAction("&Project Materials", self)
+        assetLibrary_mi = QtWidgets.QAction("&Asset Library", self)
         self.createPB = QtWidgets.QAction("&Create Preview", self)
 
-        self.toolsMenu.addAction(iviewer)
-        self.toolsMenu.addAction(pMaterials)
+        self.toolsMenu.addAction(imageViewer_mi)
+        self.toolsMenu.addAction(projectMaterials_mi)
+        self.toolsMenu.addAction(assetLibrary_mi)
         self.toolsMenu.addAction(self.createPB)
 
         # RIGHT CLICK MENUS
@@ -609,8 +611,9 @@ class MainUI(QtWidgets.QMainWindow):
 
         checkReferences_fm.triggered.connect(lambda: self.populateBaseScenes(deepCheck=True))
 
-        iviewer.triggered.connect(self.onIviewer)
-        pMaterials.triggered.connect(self.onPMaterials)
+        imageViewer_mi.triggered.connect(self.onIviewer)
+        projectMaterials_mi.triggered.connect(self.onPMaterials)
+        assetLibrary_mi.triggered.connect(self.onAssetLibrary)
         self.createPB.triggered.connect(self.onCreatePreview)
 
 
@@ -2863,6 +2866,10 @@ class MainUI(QtWidgets.QMainWindow):
         import projectMaterials
         pMat = projectMaterials.MainUI(projectPath=self.manager.projectDir)
         pMat.show()
+
+    def onAssetLibrary(self):
+        import assetLibrary
+        assLib = assetLibrary.MainUI().show()
 
     def onCreatePreview(self):
         self.statusBar().showMessage("Creating Preview...")

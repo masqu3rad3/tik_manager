@@ -292,6 +292,8 @@ def mayaSetup(prompt=True):
                 "_version.py",
                 "ImMaya.py",
                 "ImageViewer.py",
+                "assetLibrary.py",
+                "assetEditorMaya.py",
                 "pyseq.py",
                 "Qt.py",
                 "SmUIRoot.py",
@@ -373,6 +375,7 @@ def mayaSetup(prompt=True):
     imageViewerIcon = os.path.join(networkDir, "icons", "imageViewer_ICON.png").replace("\\", "\\\\")
     takePreviewIcon = os.path.join(networkDir, "icons", "takePreview_ICON.png").replace("\\", "\\\\")
     projectMaterialsIcon = os.path.join(networkDir, "icons", "projectMaterials_ICON.png").replace("\\", "\\\\")
+    assetLibraryIcon = os.path.join(networkDir, "icons", "assetLibrary_ICON.png").replace("\\", "\\\\")
     shelfContent = """global proc shelf_SceneManager () {
     global string $gBuffStr;
     global string $gBuffStr0;
@@ -509,7 +512,6 @@ def mayaSetup(prompt=True):
         -commandRepeatable 1
         -flat 1
     ;
-        ;
         shelfButton
         -enableCommandRepeat 1
         -enable 1
@@ -536,8 +538,34 @@ def mayaSetup(prompt=True):
         -commandRepeatable 1
         -flat 1
     ;
+        shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "assetLibrary" 
+        -enableBackground 0
+        -align "center" 
+        -label "assetLibrary" 
+        -labelOffset 0
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.9 0.9 0.9 
+        -overlayLabelBackColor 0 0 0 0 
+        -image "%s"
+        -image1 "%s"
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "\\nfrom tik_manager import assetLibrary\\nassetLibrary.MainUI().show()\\n" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
 
-} """ %(managerIcon,managerIcon,saveVersionIcon,saveVersionIcon,imageManagerIcon,imageManagerIcon,imageViewerIcon,imageViewerIcon, takePreviewIcon, takePreviewIcon, projectMaterialsIcon, projectMaterialsIcon)
+} """ %(managerIcon,managerIcon,saveVersionIcon,saveVersionIcon,imageManagerIcon,imageManagerIcon,imageViewerIcon,imageViewerIcon, takePreviewIcon, takePreviewIcon, projectMaterialsIcon, projectMaterialsIcon, assetLibraryIcon, assetLibraryIcon)
 
     for v in mayaVersions:
         shelfDir = os.path.join(userMayaDir, v, "prefs", "shelves")
