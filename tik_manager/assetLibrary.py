@@ -987,7 +987,7 @@ class LibraryTab(QtWidgets.QWidget):
         if not assetName:
             return
         else:
-            str(assetName)
+            assetName = str(assetName)
 
         assetData = self.library._getData(assetName)
 
