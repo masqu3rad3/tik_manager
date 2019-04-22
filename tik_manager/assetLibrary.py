@@ -37,6 +37,7 @@ import sys
 import shutil
 import re
 import _version
+import datetime
 
 
 FORCE_QT4 = bool(os.getenv("FORCE_QT4"))
@@ -256,10 +257,18 @@ class AssetLibrary(AssetEditor):
             notes = ""
         return notes
 
-    def setNotes(self, assetName, note):
+    def addNote(self, assetName, note):
         data = self._getData(assetName)
         data["notes"] = note
         self._setData(assetName, data)
+
+    def addNote(self, assetName, note):
+        """Adds a note to the version at current position"""
+        data = self._getData(assetName)
+        now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
+        data["notes"] = "%s %s\n%s\n" % (data["notes"], now, note)
+        self._setData(assetName, data)
+
 
     def showInExplorer(self, assetName):
         path = os.path.join(self.directory, assetName)
@@ -336,7 +345,8 @@ class MainUI(QtWidgets.QMainWindow):
         # stylesheetFile = os.path.join(dirname, "CSS", "darkorange.stylesheet")
 
         self.homedir = os.path.expanduser("~")
-        self.DocumentsDir = "Documents" if BoilerDict["Environment"] == "Standalone" else ""
+        self.DocumentsDir = "Documents" if BoilerDict["Environment"] == "Standalone"\
+            or BoilerDict["Environment"] == "3dsMax" else ""
         self.settingsFile = os.path.join(self.homedir, self.DocumentsDir, "assetLibraryConfig.json")
 
         self.setObjectName(BoilerDict["WindowTitle"])
@@ -391,7 +401,9 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.masterLayout = QtWidgets.QVBoxLayout(self.centralwidget)
         self.masterLayout.setSpacing(6)
-        self.masterLayout.setMargin(0)
+        # pyside does not have setMargin attribute
+        try: self.masterLayout.setMargin(0)
+        except AttributeError: pass
 
         self.tabWidget = QtWidgets.QTabWidget(self.centralwidget)
         self.tabWidget.setMaximumSize(QtCore.QSize(16777215, 167777))
@@ -483,7 +495,7 @@ class MainUI(QtWidgets.QMainWindow):
         # SIGNAL CONNECTIONS
         # ------------------
 
-        self.addLibrary_button.clicked.connect(lambda: self.addLibrary(self.directory_lineEdit.text(), self.aliasName_lineEdit.text()))
+        self.addLibrary_button.clicked.connect(lambda: self.addLibrary(str(self.directory_lineEdit.text()), str(self.aliasName_lineEdit.text())))
 
         self.buttonBox.accepted.connect(newLibrary_Dialog.accept)
         self.buttonBox.rejected.connect(newLibrary_Dialog.reject)
@@ -625,7 +637,9 @@ class LibraryTab(QtWidgets.QWidget):
         self.frame.setLineWidth(0)
 
         self.gridLayout = QtWidgets.QGridLayout(self.frame)
-        self.gridLayout.setMargin(0)
+
+        try: self.gridLayout.setMargin(0)
+        except AttributeError: pass
         self.gridLayout.setSpacing(0)
 
         self.left_verticalLayout = QtWidgets.QVBoxLayout()
@@ -703,6 +717,7 @@ class LibraryTab(QtWidgets.QWidget):
 
         self.notes_textEdit = QtWidgets.QTextEdit(self.frame_right)
         self.rightBelow_verticalLayout.addWidget(self.notes_textEdit)
+        self.notes_textEdit.setReadOnly(True)
 
 
 
@@ -831,6 +846,26 @@ class LibraryTab(QtWidgets.QWidget):
         # self.screenshot_rcItem_2 = QtWidgets.QAction('Replace with External File', self)
         # self.popMenu_screenshot.addAction(self.screenshot_rcItem_2)
 
+        # notes area
+
+        self.notes_textEdit.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.notes_textEdit.customContextMenuRequested.connect(self.onContextMenu_notes)
+        self.popMenu_notes = QtWidgets.QMenu()
+
+        self.notes_rcItem_0 = QtWidgets.QAction('Add New Note', self)
+        self.popMenu_notes.addAction(self.notes_rcItem_0)
+
+        # self.popMenu_assets.addSeparator()
+        #
+        # self.assets_rcItem_1 = QtWidgets.QAction('Show in Explorer', self)
+        # self.popMenu_assets.addAction(self.assets_rcItem_1)
+        #
+        # self.assets_rcItem_2 = QtWidgets.QAction('Show Screenshot', self)
+        # self.popMenu_assets.addAction(self.assets_rcItem_2)
+        #
+        # self.assets_rcItem_3 = QtWidgets.QAction('Show Wireframe', self)
+        # self.popMenu_assets.addAction(self.assets_rcItem_3)
+
 
         # SIGNAL CONNECTIONS
         # ------------------
@@ -842,6 +877,8 @@ class LibraryTab(QtWidgets.QWidget):
         self.screenshot_rcItem_1.triggered.connect(lambda: self.rcAction_ss("currentView"))
         # self.screenshot_rcItem_1.triggered.connect(lambda: self.library.replaceWithCurrentView(self._getCurrentAssetName()))
         # self.screenshot_rcItem_2.triggered.connect(lambda: self.library.replaceWithExternalFile(self._getCurrentAssetName()))
+        self.notes_rcItem_0.triggered.connect(self.addNoteUI)
+
 
         self.assets_listWidget.currentItemChanged.connect(self.onAssetChange)
 
@@ -871,7 +908,71 @@ class LibraryTab(QtWidgets.QWidget):
 
         # self.populate()
 
+    def addNoteUI(self):
+        # inputD = QtWidgets.QInputDialog(self)
+        # inputD.setInputMode(QtWidgets.QInputDialog.TextInput)
+        # inputD.setLabelText("Add Notes:")
+        # inputD.resize(200, 800)
+        # ok = inputD.exec_()
+        #
+        # text, ok = QtWidgets.QInputDialog.getText(self, 'Input Dialog', 'Enter text:')
+        # if ok:
+        #     print text
+            # print inputD.textValue()
+            # self.le.setText(str(text))
+        # This method IS Software Specific
+        # if BoilerDict["Environment"]=="Standalone":
+        #     manager=self._getManager()
+        # else:
+        #     manager = self.manager
 
+        row = self.assets_listWidget.currentRow()
+        if row == -1:
+            return
+        else:
+            assetName = str(self._getCurrentAssetName())
+
+        addNotes_Dialog = QtWidgets.QDialog(parent=self)
+        addNotes_Dialog.setModal(True)
+        addNotes_Dialog.setObjectName(("addNotes_Dialog"))
+        addNotes_Dialog.resize(255, 290)
+        addNotes_Dialog.setMinimumSize(QtCore.QSize(255, 290))
+        addNotes_Dialog.setMaximumSize(QtCore.QSize(255, 290))
+        addNotes_Dialog.setWindowTitle(("Add Notes"))
+
+        addNotes_label = QtWidgets.QLabel(addNotes_Dialog)
+        addNotes_label.setGeometry(QtCore.QRect(15, 15, 100, 20))
+        addNotes_label.setText(("Additional Notes"))
+        addNotes_label.setObjectName(("addNotes_label"))
+
+        addNotes_textEdit = QtWidgets.QTextEdit(addNotes_Dialog)
+        addNotes_textEdit.setGeometry(QtCore.QRect(15, 40, 215, 170))
+        addNotes_textEdit.setObjectName(("addNotes_textEdit"))
+
+        addNotes_buttonBox = QtWidgets.QDialogButtonBox(addNotes_Dialog)
+        addNotes_buttonBox.setGeometry(QtCore.QRect(20, 250, 220, 32))
+        addNotes_buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        addNotes_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Save | QtWidgets.QDialogButtonBox.Cancel)
+        addNotes_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
+        addNotes_buttonBox.button(QtWidgets.QDialogButtonBox.Save).setMinimumSize(QtCore.QSize(100, 30))
+
+        buttonS = addNotes_buttonBox.button(QtWidgets.QDialogButtonBox.Save)
+        buttonS.setText('Add Notes')
+        buttonC = addNotes_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel)
+        buttonC.setText('Cancel')
+
+        addNotes_buttonBox.setObjectName(("addNotes_buttonBox"))
+        # addNotes_buttonBox.accepted.connect(lambda: manager.addNote(addNotes_textEdit.toPlainText()))
+
+        addNotes_buttonBox.accepted.connect(lambda: self.library.addNote(assetName, addNotes_textEdit.toPlainText()))
+        # addNotes_buttonBox.accepted.connect(self.onVersionChange)
+        addNotes_buttonBox.accepted.connect(self.onAssetChange)
+        addNotes_buttonBox.accepted.connect(addNotes_Dialog.accept)
+
+        addNotes_buttonBox.rejected.connect(addNotes_Dialog.reject)
+        QtCore.QMetaObject.connectSlotsByName(addNotes_Dialog)
+
+        addNotes_Dialog.show()
 
     def createNewAssetUI(self):
         saveAsset_Dialog = QtWidgets.QDialog(parent=self)
@@ -1012,8 +1113,8 @@ class LibraryTab(QtWidgets.QWidget):
         # self.notes_textEdit.setText(assetNotes)
 
         # get display data
-
-
+        assetNotes = assetData["notes"]
+        self.notes_textEdit.setText(assetNotes)
         textures = len(assetData["textureFiles"])
         self.textures_label.setText("Textures: %s" %textures)
         facesTriangles = assetData["Faces/Triangles"]
@@ -1053,7 +1154,11 @@ class LibraryTab(QtWidgets.QWidget):
                 item = QtWidgets.QListWidgetItem(itemName)
                 thumbPath = self.library.getThumbnail(itemName)
 
-                icon = QtGui.QIcon(thumbPath)
+                if FORCE_QT4:
+                    icon = QtWidgets.QIcon(thumbPath)
+                else:
+                    icon = QtGui.QIcon(thumbPath)
+
                 item.setIcon(icon)
 
                 self.assets_listWidget.addItem(item)
@@ -1139,6 +1244,13 @@ class LibraryTab(QtWidgets.QWidget):
         if row == -1:
             return
         self.popMenu_screenshot.exec_(self.screenshot_label.mapToGlobal(point))
+
+    def onContextMenu_notes(self, point):
+        row = self.assets_listWidget.currentRow()
+        if row == -1:
+            return
+        self.popMenu_notes.exec_(self.notes_textEdit.mapToGlobal(point))
+
 
     def rcAction_assets(self, item):
         currentItem = self.assets_listWidget.currentItem()

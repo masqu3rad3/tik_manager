@@ -549,7 +549,7 @@ class MainUI(QtWidgets.QMainWindow):
             return
 
         for itemName in selectedItemNames:
-            seq = self.sequenceData[itemName]
+            seq = self.sequenceData[str(itemName)]
             os.startfile(seq.dirname)
 
     def populate(self):
@@ -650,7 +650,7 @@ class MainUI(QtWidgets.QMainWindow):
     def onRunItem(self):
         """Execute the sequence"""
         # TODO // Make it compatible with Linux
-        itemName = self.sequences_treeWidget.currentItem().text(0)
+        itemName = str(self.sequences_treeWidget.currentItem().text(0))
         seq = self.sequenceData[itemName]
         # row = self.sequences_treeWidget.currentRow()
         # item = self.sequenceData[row]

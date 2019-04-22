@@ -4,7 +4,7 @@ Tik Manager is a lightweight multi platform asset and project management system.
 
 A project manager helps team members to maintain focus on the task at hand.
 Regardless of the scale of the project. Without a project manager, artists tend to waste 
-precious time while trying to stay organized or -much worse- they waste more time/data due to the lack of organization.
+precious time while trying to stay organized or -much worse- they may lose data due to the lack of organization.
 
 The goal is to create an everyday project manager which is easy to install and easier to use across different platforms.
 Whole system requires little or no maintenance and all database is contained within the project folders. This means it is possible to copy or move the entire project
@@ -34,15 +34,16 @@ Tik Manager has following features / tools:
     * Lists rendered images (or footages) as collapsed items
     * Executing the sequences within the application by double clicking
     * Option to send the selected sequences to a remote path in a dated folder
-* Project Materials tool for organizing and viewing brief documents, concepts, artworks, references etc.
+* Project Materials - A tool for organizing and viewing brief documents, concepts, artworks, references etc.
+* Global Asset Library - Keeps re-usable assets organized
 * Easy installation single CLI installer. (Windows only)
 
 Tik Manager follows a simple folder hierarchy. 
 The folder structure makes sense for manual browsing. There are minimal nested folders. If at some
-point it has been decided to stop using Scene Manager, it is possible to continue working without relying on it.
-However, Scenes saved after that stage wont be included to the Scene Manager database
+point, the user decides to stop using Scene Manager, it is possible to continue working without it.
+However, Scenes saved after this point wont be included in the manager database
 
-Scene Manager has the following hierarchy:
+Tik Manager has the following hierarchy:
 * Project Folder
     * Category
         * Sub-Project (If any)
@@ -52,4 +53,4 @@ Scene Manager has the following hierarchy:
                 * ...
                 
 Scene Manager main window is not a browser window. It is NOT POSSIBLE TO OVERWRITE ANY PREVIOUS FILE.
-With admin password, it is possible to delete entire base scene along with all versions, which ideally should not happen.
+With admin password, it is possible to delete entire base scene along with all versions. This should not be necessary in most cases.

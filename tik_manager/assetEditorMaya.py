@@ -233,7 +233,7 @@ class AssetEditorMaya(object):
         cmds.confirmDialog(title="Success", message="Asset Created Successfully", button=['Ok'])
 
     def _createThumbnail(self, assetName, selectionOnly=True, viewFit=True):
-        self.ssResolution = 1000
+        ssResolution = 1000
         thumbPath = os.path.join(self.directory, assetName, "%s_thumb.jpg" % assetName)
         SSpath = os.path.join(self.directory, assetName, "%s_s.jpg" % assetName)
         WFpath = os.path.join(self.directory, assetName, "%s_w.jpg" % assetName)
@@ -258,7 +258,7 @@ class AssetEditorMaya(object):
             vRenderer = 'vp2Renderer'
 
         tempWindow = cmds.window(title="AssetLibrary_SS",
-                               widthHeight=(self.ssResolution * 1.1, self.ssResolution * 1.1),
+                               widthHeight=(ssResolution * 1.1, ssResolution * 1.1),
                                tlc=(0, 0))
 
         cmds.paneLayout()
@@ -321,8 +321,44 @@ class AssetEditorMaya(object):
         cmds.select(selection)
         return thumbPath, SSpath, WFpath
 
+    # def replaceWithCurrentView(self, assetName):
+    #     thumbPath, ssPath, swPath = self._createThumbnail(assetName, viewFit=False, selectionOnly=False)
+
     def replaceWithCurrentView(self, assetName):
-        thumbPath, ssPath, swPath = self._createThumbnail(assetName, viewFit=False, selectionOnly=False)
+
+        thumbPath = os.path.join(self.directory, assetName, "%s_thumb.jpg" % assetName)
+        SSpath = os.path.join(self.directory, assetName, "%s_s.jpg" % assetName)
+        WFpath = os.path.join(self.directory, assetName, "%s_w.jpg" % assetName)
+
+        pbPanel = cmds.getPanel(wf=True)
+        if cmds.getPanel(to=pbPanel) != "modelPanel":
+            cmds.warning("The focus is not on a model panel. Cancelling")
+            return None, None, None
+        wireMode = cmds.modelEditor(pbPanel, q=1, wireframeOnShaded=1)
+        textureMode = cmds.modelEditor(pbPanel, q=1, displayTextures=1)
+
+        cmds.setAttr("defaultRenderGlobals.imageFormat", 8)  # This is the value for jpeg
+
+        frame = cmds.currentTime(query=True)
+        # thumb
+        cmds.modelEditor(pbPanel, e=1, displayTextures=1)
+        cmds.modelEditor(pbPanel, e=1, wireframeOnShaded=0)
+        cmds.playblast(completeFilename=thumbPath, forceOverwrite=True, format='image', width=200, height=200,
+                     showOrnaments=False, frame=[frame], viewer=False)
+
+        # screenshot
+        cmds.playblast(completeFilename=SSpath, forceOverwrite=True, format='image', width=1600, height=1600,
+                     showOrnaments=False, frame=[frame], viewer=False)
+
+        # Wireframe
+        cmds.modelEditor(pbPanel, e=1, displayTextures=0)
+        cmds.modelEditor(pbPanel, e=1, wireframeOnShaded=1)
+        cmds.playblast(completeFilename=WFpath, forceOverwrite=True, format='image', width=1600, height=1600,
+                     showOrnaments=False, frame=[frame], viewer=False)
+
+        # leave it as it was
+        cmds.modelEditor(pbPanel, e=1, wireframeOnShaded=wireMode)
+        cmds.modelEditor(pbPanel, e=1, displayTextures=textureMode)
 
     def replaceWithExternalFile(self, assetName, FilePath):
         # TODO

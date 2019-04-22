@@ -12,7 +12,8 @@ for path in pathList:
         # data["sourceProject"] = "Maya(ma)"
         # data["notes"] = "N/A"
         # data["version"] = "N/A"
-        if data["Faces/Triangles"] == "Nothing counted : no polygonal object is selected./Nothing counted : no polygonal object is selected.":
-            data["Faces/Triangles"] = "N/A"
+        # if data["Faces/Triangles"] == "Nothing counted : no polygonal object is selected./Nothing counted : no polygonal object is selected.":
+        #     data["Faces/Triangles"] = "N/A"
+        data["notes"]=""
         # data["Faces/Triangles"] = data["Faces/Trianges"]
         lib._setData(item, data)

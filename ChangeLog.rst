@@ -1,6 +1,10 @@
 =============================
-Scene Manager Version History
+Tik Manager Version History
 =============================
+2.4
+---
+* **New.0:** Asset Library added
+
 2.3
 ---
 * **Fix.001:** Bug fix - 'make reference' checkbox removed from save version dialog if runs from Houdini

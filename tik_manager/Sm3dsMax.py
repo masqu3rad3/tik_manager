@@ -735,4 +735,5 @@ class MainUI(baseUI):
             self.loadScene_pushButton.setText("Reference Scene")
             # self.scenes_listWidget.setStyleSheet("background-color: rgb(100,100,100);")
             self.scenes_listWidget.setStyleSheet("background-color: rgb(80,120,120); border-style: solid ; border-width: 2px; border-color: cyan;")
+        self.populateBaseScenes()
 

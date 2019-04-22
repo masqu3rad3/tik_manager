@@ -59,8 +59,8 @@ addButton("imageManager", command=cmd, icon=icon )
 
 ## add imageViewer button
 cmd = """
-from tik_manager import IvMaya
-tik_imageViewer = IvMaya.MainUI().show()
+from tik_manager import ImageViewer
+tik_imageViewer = ImageViewer.MainUI().show()
 """
 icon = os.path.join(iconsLocation, "imageViewer_ICON.png")
 if not os.path.isfile(icon):
@@ -68,10 +68,34 @@ if not os.path.isfile(icon):
     icon = None
 addButton("imageViewer", command=cmd, icon=icon )
 
+## add projectMaterials button
+cmd="""
+from tik_manager import projectMaterials
+projectMaterials.MainUI().show()
+"""
+icon = os.path.join(iconsLocation, "projectMaterials_ICON.png")
+if not os.path.isfile(icon):
+    mc.warning("Icon cannot found - %s" %icon)
+    icon = None
+addButton("projectMaterials", command=cmd, icon=icon)
+
+## add assetLibrary button
+cmd="""
+from tik_manager import assetLibrary
+assetLibrary.MainUI().show()
+"""
+icon = os.path.join(iconsLocation, "assetLibrary_ICON.png")
+if not os.path.isfile(icon):
+    mc.warning("Icon cannot found - %s" %icon)
+    icon = None
+addButton("assetLibrary", command=cmd, icon=icon )
+
+
 
 
 # User Setup
 # ----------
+# Following lines should be added to the userSetup.py (without #'s)
 
 # import os
 # import sys

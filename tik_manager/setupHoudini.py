@@ -17,7 +17,6 @@ tools =[]
 
 smScript = """
 from tik_manager import SmHoudini
-reload(SmHoudini)
 SmHoudini.MainUI().show()
 """
 smIcon = os.path.join(iconsLocation, "manager_ICON.png")
@@ -37,4 +36,41 @@ avIcon = os.path.join(iconsLocation, "saveVersion_ICON.png")
 avTool = hou.shelves.newTool(name="SaveVersion", label="AddVersion", script=avScript, icon=avIcon)
 
 tools.append(avTool)
+# smShelf.setTools(tools)
+
+
+## add imageViewer button
+ivScript = """
+from tik_manager import ImageViewer
+tik_imageViewer = ImageViewer.MainUI().show()
+"""
+ivIcon = os.path.join(iconsLocation, "imageViewer_ICON.png")
+
+ivTool = hou.shelves.newTool(name="ImageViewer", label="ImageViewer", script=ivScript, icon=ivIcon)
+
+tools.append(ivTool)
+
+## add projectMaterials button
+pmScript = """
+from tik_manager import projectMaterials
+projectMaterials.MainUI().show()
+"""
+pmIcon = os.path.join(iconsLocation, "projectMaterials_ICON.png")
+
+pmTool = hou.shelves.newTool(name="ProjectMaterials", label="ProjectMaterials", script=pmScript, icon=pmIcon)
+
+tools.append(pmTool)
+
+## add assetLibrary button
+alScript = """
+from tik_manager import projectMaterials
+projectMaterials.MainUI().show()
+"""
+alIcon = os.path.join(iconsLocation, "assetLibrary_ICON.png")
+
+alTool = hou.shelves.newTool(name="ProjectMaterials", label="ProjectMaterials", script=alScript, icon=alIcon)
+
+tools.append(alTool)
+
+
 smShelf.setTools(tools)
