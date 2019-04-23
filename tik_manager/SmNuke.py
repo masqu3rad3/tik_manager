@@ -357,198 +357,7 @@ class NukeManager(RootManager):
             self._exception(360, msg)
             return -1, msg
         return jsonInfo
-    #
-    # def createPreview(self, *args, **kwargs):
-    #     """Creates a Playblast preview from currently open scene"""
-    #     logger.debug("Func: createPreview")
-    #
-    #     pbSettings = self.loadPBSettings()
-    #     validFormats = cmds.playblast(format=True, q=True)
-    #     validCodecs = cmds.playblast(c=True, q=True)
-    #
-    #     if not pbSettings["Format"] in validFormats:
-    #         msg = ("Format specified in project settings is not supported. Install {0}".format(pbSettings["Format"]))
-    #         self._exception(360, msg)
-    #         return
-    #
-    #     if not pbSettings["Codec"] in validCodecs:
-    #         msg = ("Codec specified in project settings is not supported. Install {0}".format(pbSettings["Codec"]))
-    #         self._exception(360, msg)
-    #         return
-    #
-    #     extension = "mov" if pbSettings["Format"] == "qt" else "avi"
-    #
-    #     # Quicktime format is missing the final frame all the time. Add an extra frame to compansate
-    #     if pbSettings["Format"] == 'qt':
-    #         maxTime = cmds.playbackOptions(q=True, maxTime=True)
-    #         endTime = cmds.playbackOptions(q=True, animationEndTime=True)
-    #         cmds.playbackOptions(maxTime=maxTime + 1)
-    #         cmds.playbackOptions(animationEndTime=endTime + 1)
-    #
-    #     openSceneInfo = self.getOpenSceneInfo()
-    #     if not openSceneInfo:
-    #         msg = "This is not a base scene. Scene must be saved as a base scene before playblasting."
-    #         self._exception(360, msg)
-    #         return
-    #
-    #     selection = cmds.ls(sl=True)
-    #     cmds.select(d=pbSettings["ClearSelection"])
-    #     jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
-    #
-    #     currentCam = cmds.modelPanel(cmds.getPanel(wf=True), q=True, cam=True)
-    #     validName = currentCam
-    #
-    #     replaceDict = {"|":"__",
-    #                    " ":"_",
-    #                    ":":"_"}
-    #     for item in replaceDict.items():
-    #         validName = validName.replace(item[0], item[1])
-    #
-    #     if not self.nameCheck(validName):
-    #         msg = "A scene view must be highlighted"
-    #         self._exception(360, msg)
-    #         return
-    #
-    #     versionName = self.getSceneFile()
-    #     relVersionName = os.path.relpath(versionName, start=openSceneInfo["projectPath"])
-    #     playBlastFile = os.path.join(openSceneInfo["previewPath"], "{0}_{1}_PB.{2}".format(self.niceName(versionName), validName, extension))
-    #     relPlayBlastFile = os.path.relpath(playBlastFile, start=openSceneInfo["projectPath"])
-    #
-    #     if os.path.isfile(playBlastFile):
-    #         try:
-    #             os.remove(playBlastFile)
-    #         except WindowsError:
-    #             msg = "The file is open somewhere else"
-    #             self._exception(202, msg)
-    #             return
-    #
-    #     ## CREATE A CUSTOM PANEL WITH DESIRED SETTINGS
-    #
-    #     tempWindow = cmds.window(title="SM_Playblast",
-    #                            widthHeight=(pbSettings["Resolution"][0] * 1.1, pbSettings["Resolution"][1] * 1.1),
-    #                            tlc=(0, 0))
-    #     # panel = pm.getPanel(wf=True)
-    #
-    #     cmds.paneLayout()
-    #
-    #     pbPanel = cmds.modelPanel(camera=currentCam)
-    #     cmds.showWindow(tempWindow)
-    #     cmds.setFocus(pbPanel)
-    #
-    #     cmds.modelEditor(pbPanel, e=1,
-    #                    allObjects=not pbSettings["PolygonOnly"],
-    #                    da="smoothShaded",
-    #                    displayTextures=pbSettings["DisplayTextures"],
-    #                    wireframeOnShaded=pbSettings["WireOnShaded"],
-    #                    grid=pbSettings["ShowGrid"],
-    #                    useDefaultMaterial=pbSettings["UseDefaultMaterial"],
-    #                    polymeshes=True,
-    #                    imagePlane=True,
-    #                    hud=True
-    #                    )
-    #
-    #     cmds.camera(currentCam, e=True, overscan=True, displayFilmGate=False, displayResolution=False)
-    #
-    #     ## get previous HUD States and turn them all off
-    #     hudPreStates = {}
-    #     HUDS = cmds.headsUpDisplay(lh=True)
-    #     for hud in HUDS:
-    #         hudPreStates[hud] = cmds.headsUpDisplay(hud, q=True, vis=True)
-    #         cmds.headsUpDisplay(hud, e=True, vis=False)
-    #
-    #     ## clear the custom HUDS
-    #     customHuds = ['SMFrame', 'SMScene', 'SMCategory', 'SMFPS', 'SMCameraName', 'SMFrange']
-    #     for hud in customHuds:
-    #         if cmds.headsUpDisplay(hud, ex=True):
-    #             cmds.headsUpDisplay(hud, rem=True)
-    #
-    #     if pbSettings["ShowFrameNumber"]:
-    #         freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-    #         cmds.headsUpDisplay('SMFrame', s=5, b=freeBl, label="Frame", preset="currentFrame", dfs="large",
-    #                           lfs="large")
-    #     if pbSettings["ShowSceneName"]:
-    #         freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-    #         cmds.headsUpDisplay('SMScene', s=5, b=freeBl, label="Scene: %s" % (self.niceName(versionName)),
-    #                           lfs="large")
-    #     if pbSettings["ShowCategory"]:
-    #         freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-    #         cmds.headsUpDisplay('SMCategory', s=5, b=freeBl, label="Category: %s" % (jsonInfo["Category"]),
-    #                           lfs="large")
-    #     if pbSettings["ShowFPS"]:
-    #         freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-    #         cmds.headsUpDisplay('SMFPS', s=5, b=freeBl, label="Time Unit: %s" % (cmds.currentUnit(q=True, time=True)),
-    #                           lfs="large")
-    #
-    #     # v1.1 SPECIFIC
-    #     try:
-    #         if pbSettings["ShowFrameRange"]:
-    #             freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-    #             cmds.headsUpDisplay('SMFrange', s=5, b=freeBl,
-    #                               label="Frame Range: {} - {}".format(int(cmds.playbackOptions(q=True, minTime=True)),
-    #                                                                   int(cmds.playbackOptions(q=True,
-    #                                                                                          maxTime=True))),
-    #                               lfs="large")
-    #     except KeyError:
-    #         pass
-    #
-    #     freeBl = cmds.headsUpDisplay(nfb=2)
-    #     cmds.headsUpDisplay('SMCameraName', s=2, b=freeBl, ba='center', dw=50, pre='cameraNames')
-    #
-    #     ## Get the active sound
-    #
-    #     aPlayBackSliderPython = mel.eval('$tmpVar=$gPlayBackSlider')
-    #     activeSound = cmds.timeControl(aPlayBackSliderPython, q=True, sound=True)
-    #
-    #     ## Check here: http://download.autodesk.com/us/maya/2011help/pymel/generated/functions/pymel.core.windows/pymel.core.windows.headsUpDisplay.html
-    #     # print "playBlastFile", playBlastFile
-    #     normPB = os.path.normpath(playBlastFile)
-    #     # print "normPath", normPB
-    #     cmds.playblast(format=pbSettings["Format"],
-    #                  filename=playBlastFile,
-    #                  widthHeight=pbSettings["Resolution"],
-    #                  percent=pbSettings["Percent"],
-    #                  quality=pbSettings["Quality"],
-    #                  compression=pbSettings["Codec"],
-    #                  sound=activeSound,
-    #                  uts=True)
-    #     ## remove window when pb is donw
-    #     cmds.deleteUI(tempWindow)
-    #
-    #     # Get back to the original frame range if the codec is Quick Time
-    #     if pbSettings["Format"] == 'qt':
-    #         cmds.playbackOptions(maxTime=maxTime)
-    #         cmds.playbackOptions(animationEndTime=endTime)
-    #
-    #     ## remove the custom HUdS
-    #     if pbSettings["ShowFrameNumber"]:
-    #         cmds.headsUpDisplay('SMFrame', rem=True)
-    #     if pbSettings["ShowSceneName"]:
-    #         cmds.headsUpDisplay('SMScene', rem=True)
-    #     if pbSettings["ShowCategory"]:
-    #         cmds.headsUpDisplay('SMCategory', rem=True)
-    #     if pbSettings["ShowFPS"]:
-    #         cmds.headsUpDisplay('SMFPS', rem=True)
-    #     try:
-    #         if pbSettings["ShowFrameRange"]:
-    #             cmds.headsUpDisplay('SMFrange', rem=True)
-    #     except KeyError:
-    #         pass
-    #
-    #         cmds.headsUpDisplay('SMCameraName', rem=True)
-    #
-    #     ## get back the previous state of HUDS
-    #     for hud in hudPreStates.keys():
-    #         cmds.headsUpDisplay(hud, e=True, vis=hudPreStates[hud])
-    #     # pm.select(selection)
-    #     cmds.select(selection)
-    #     ## find this version in the json data
-    #     for version in jsonInfo["Versions"]:
-    #         if relVersionName == version["RelativePath"]:
-    #             version["Preview"][currentCam] = relPlayBlastFile
-    #
-    #     self._dumpJson(jsonInfo, openSceneInfo["jsonFile"])
-    #     return 0, ""
-    #
+
     def loadBaseScene(self, force=False):
         """Loads the scene at cursor position"""
         logger.debug("Func: loadBaseScene")
@@ -575,28 +384,8 @@ class NukeManager(RootManager):
             msg = "File in Scene Manager database doesnt exist"
             self._exception(210, msg)
             return -1, msg
-    #
-    # def referenceBaseScene(self):
-    #     """Creates reference from the scene at cursor position"""
-    #     logger.debug("Func: referenceBaseScene")
-    #     projectPath = self.projectDir
-    #     relReferenceFile = self._currentSceneInfo["ReferenceFile"]
-    #
-    #     if relReferenceFile:
-    #         referenceFile = os.path.join(projectPath, relReferenceFile)
-    #         refFileBasename = os.path.split(relReferenceFile)[1]
-    #         namespace = os.path.splitext(refFileBasename)[0]
-    #         cmds.file(os.path.normpath(referenceFile), reference=True, gl=True, mergeNamespacesOnClash=False,
-    #                   namespace=namespace)
-    #         try:
-    #             ranges = self._currentSceneInfo["Versions"][self._currentSceneInfo["ReferencedVersion"]-1]["Ranges"]
-    #             self._setTimelineRanges(ranges)
-    #         except KeyError:
-    #             pass
-    #
-    #     else:
-    #         cmds.warning("There is no reference set for this scene. Nothing changed")
-    #
+
+
     def createThumbnail(self, useCursorPosition=False, dbPath = None, versionInt = None):
         """
         Creates the thumbnail file.
@@ -732,6 +521,20 @@ class NukeManager(RootManager):
     #     """Sets the timeline ranges [AnimationStart, Min, Max, AnimationEnd]"""
     #     # TODO : Make sure the time ranges are INTEGERS
     #     cmds.playbackOptions(ast=rangeList[0], min=rangeList[1], max=rangeList[2], aet=rangeList[3])
+
+    def _loadCategories(self):
+        """OVERRIDEN FUNCTION for specific category default of Nuke"""
+        logger.debug("Func: _loadCategories")
+
+        if os.path.isfile(self._pathsDict["categoriesFile"]):
+            categoriesData = self._loadJson(self._pathsDict["categoriesFile"])
+            if categoriesData == -2:
+                return -2
+        else:
+            # categoriesData = self._sceneManagerDefaults["defaultCategories"]
+            categoriesData = ["Comp"]
+            self._dumpJson(categoriesData, self._pathsDict["categoriesFile"])
+        return categoriesData
 
 
 class MainUI(baseUI):

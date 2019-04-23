@@ -4,6 +4,8 @@ Tik Manager Version History
 2.4
 ---
 * **New.0:** Asset Library added
+* **New.1:** Sending to Batch Render and Image Sequencer options added to Image Manager (Maya)
+* **Update.1:** SmNuke default categories changes (Only Comp by default)
 
 2.3
 ---

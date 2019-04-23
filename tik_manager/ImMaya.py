@@ -36,6 +36,25 @@ On initialization, script changes the image name template according to the defin
 and checks the scene for possible errors
 Double Clicking on warnings open up the related dialog.
 """
+# JUST FOR AUTO COMPLETION
+# ------------------------
+import os
+FORCE_QT4 = bool(os.getenv("FORCE_QT4"))
+
+# Somehow Pyinstaller is not working with Qt.py module. Following lines forces to use PyQt4
+# instead of Qt module to make it compatible with PyInstaller.
+
+
+if FORCE_QT4:
+    from PyQt4 import QtCore, Qt
+    from PyQt4 import QtGui as QtWidgets
+else:
+    import Qt
+    from Qt import QtWidgets, QtCore, QtGui
+# ------------------------
+
+
+
 import _version
 # import pymel.core as pm
 import maya.cmds as cmds
@@ -64,7 +83,7 @@ else:
 
 
 __author__ = "Arda Kutlu"
-__copyright__ = "Copyright 2018, Scene Manager for Maya Project"
+__copyright__ = "Copyright 2018, Image Manager for Maya Project"
 __credits__ = []
 __license__ = "GPL"
 __maintainer__ = "Arda Kutlu"
@@ -104,7 +123,7 @@ class ImageManager(RootManager):
             # logger.warning("This is not a Base Scene")
             return
 
-        self.deadlineFlag = True
+        self.renderFlag = True
         # if not self.sceneInfo["category"] == "Render":
         #     self.deadlineFlag = False
         # else:
@@ -660,6 +679,18 @@ class ImageManager(RootManager):
             cmds.warning(msg)
             return -1, msg
 
+    def batchRender(self, optionBox=False):
+        if not optionBox:
+            cmds.BatchRender()
+        else:
+            cmds.BatchRenderOptions()
+
+    def imageSequencer(self, optionBox=False):
+        if not optionBox:
+            cmds.RenderSequence()
+        else:
+            mel.eval("renderSequenceOptionsWindow")
+
     def _exception(self, code, msg):
         """Overriden Function"""
         cmds.confirmDialog(title=self.errorCodeDict[code], message=msg, button=['Ok'])
@@ -772,11 +803,49 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.gridLayout.addWidget(self.foolcheck_listWidget, 4, 0, 1, 3)
 
+        renderLayout = QtWidgets.QHBoxLayout(self.centralwidget)
+        renderLayout.setSpacing(25)
+
+        self.gridLayout.addLayout(renderLayout, 6, 0, 1, 3)
+
+        imageSequencerLayout = QtWidgets.QHBoxLayout(self.centralwidget)
+        imageSequencerLayout.setSpacing(2)
+        batchLayout = QtWidgets.QHBoxLayout(self.centralwidget)
+        batchLayout.setSpacing(2)
+
+        deadlineLayout = QtWidgets.QHBoxLayout(self.centralwidget)
+        deadlineLayout.setSpacing(2)
+        renderLayout.addLayout(imageSequencerLayout)
+        renderLayout.addLayout(batchLayout)
+        renderLayout.addLayout(deadlineLayout)
+
+        self.imageSequencer_pushButton = QtWidgets.QPushButton(self.centralwidget)
+        self.imageSequencer_pushButton.setText("Image Sequencer")
+        self.imageSequencer_pushButton.setEnabled(self.imanager.renderFlag)
+        imageSequencerLayout.addWidget(self.imageSequencer_pushButton)
+
+        # self.imageSequencerOB_pushButton = QtWidgets.QPushButton(self.centralwidget)
+        # self.imageSequencerOB_pushButton.setText("█")
+        # self.imageSequencerOB_pushButton.setEnabled(self.imanager.renderFlag)
+        # self.imageSequencerOB_pushButton.setMaximumWidth(20)
+        # imageSequencerLayout.addWidget(self.imageSequencerOB_pushButton)
+
+        self.batch_pushButton = QtWidgets.QPushButton(self.centralwidget)
+        self.batch_pushButton.setText("Batch Render")
+        self.batch_pushButton.setEnabled(self.imanager.renderFlag)
+        batchLayout.addWidget(self.batch_pushButton)
+
+        # self.batchOB_pushButton = QtWidgets.QPushButton(self.centralwidget)
+        # self.batchOB_pushButton.setText("█")
+        # self.batchOB_pushButton.setEnabled(self.imanager.renderFlag)
+        # self.batchOB_pushButton.setMaximumWidth(20)
+        # batchLayout.addWidget(self.batchOB_pushButton)
+
         self.sendDeadline_pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.sendDeadline_pushButton.setObjectName("sendDeadline_pushButton")
         self.sendDeadline_pushButton.setText("Send To Deadline")
-        self.gridLayout.addWidget(self.sendDeadline_pushButton, 6, 0, 1, 3)
-        self.sendDeadline_pushButton.setEnabled(self.imanager.deadlineFlag)
+        self.sendDeadline_pushButton.setEnabled(self.imanager.renderFlag)
+        deadlineLayout.addWidget(self.sendDeadline_pushButton)
+
 
         spacerItem = QtWidgets.QSpacerItem(20, 15, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
         self.gridLayout.addItem(spacerItem, 2, 0, 1, 1)
@@ -795,6 +864,11 @@ class MainUI(QtWidgets.QMainWindow):
         # self.setProject_pushButton.clicked.connect(self.onSetProject)
         self.foolcheck_listWidget.doubleClicked.connect(self.onDoubleClick)
         self.sendDeadline_pushButton.clicked.connect(self.onDeadline)
+
+        self.imageSequencer_pushButton.clicked.connect(lambda: self.imanager.imageSequencer(optionBox=True))
+        # self.imageSequencerOB_pushButton.clicked.connect(lambda: self.imanager.imageSequencer(optionBox=True))
+        self.batch_pushButton.clicked.connect(lambda: self.imanager.batchRender(optionBox=False))
+        # self.batchOB_pushButton.clicked.connect(lambda: self.imanager.batchRender(optionBox=True))
 
         shortcutRefresh = Qt.QtWidgets.QShortcut(Qt.QtGui.QKeySequence("F5"), self, self.refresh)
 
@@ -879,6 +953,7 @@ class MainUI(QtWidgets.QMainWindow):
         if code == -1:
             if code == -1:
                 self.infoPop(textTitle="Missing File", textInfo="Cannot Submit Scene", textHeader=msg)
+
 
 
 
