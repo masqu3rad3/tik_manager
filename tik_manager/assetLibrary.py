@@ -1135,7 +1135,7 @@ class LibraryTab(QtWidgets.QWidget):
         Returns:
 
         """
-        filterWord = self.filter_lineEdit.text()
+        filterWord = str(self.filter_lineEdit.text())
 
         self.assets_listWidget.clear()
         self.library.scanAssets()

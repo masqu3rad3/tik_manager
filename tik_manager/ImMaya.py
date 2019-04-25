@@ -36,23 +36,23 @@ On initialization, script changes the image name template according to the defin
 and checks the scene for possible errors
 Double Clicking on warnings open up the related dialog.
 """
-# JUST FOR AUTO COMPLETION
-# ------------------------
-import os
-FORCE_QT4 = bool(os.getenv("FORCE_QT4"))
-
-# Somehow Pyinstaller is not working with Qt.py module. Following lines forces to use PyQt4
-# instead of Qt module to make it compatible with PyInstaller.
-
-
-if FORCE_QT4:
-    from PyQt4 import QtCore, Qt
-    from PyQt4 import QtGui as QtWidgets
-else:
-    import Qt
-    from Qt import QtWidgets, QtCore, QtGui
-# ------------------------
-
+# # JUST FOR AUTO COMPLETION
+# # ------------------------
+# import os
+# FORCE_QT4 = bool(os.getenv("FORCE_QT4"))
+#
+# # Somehow Pyinstaller is not working with Qt.py module. Following lines forces to use PyQt4
+# # instead of Qt module to make it compatible with PyInstaller.
+#
+#
+# if FORCE_QT4:
+#     from PyQt4 import QtCore, Qt
+#     from PyQt4 import QtGui as QtWidgets
+# else:
+#     import Qt
+#     from Qt import QtWidgets, QtCore, QtGui
+# # ------------------------
+#
 
 
 import _version

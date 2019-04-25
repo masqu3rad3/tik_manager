@@ -6,6 +6,9 @@ Tik Manager Version History
 * **New.0:** Asset Library added
 * **New.1:** Sending to Batch Render and Image Sequencer options added to Image Manager (Maya)
 * **Update.1:** SmNuke default categories changes (Only Comp by default)
+* **Update.2:** SmStandalone now asks for the common database folder on first run.
+* **Update.2:** Change Common Database option for SmStandalone
+* **Update.3:** Add/Remove User GUI renewed
 
 2.3
 ---

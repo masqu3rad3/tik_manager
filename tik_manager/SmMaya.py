@@ -30,6 +30,11 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -----------------------------------------------------------------------------
 
+# DELETE
+import SmUIRoot
+reload(SmUIRoot)
+# ------
+
 from SmUIRoot import MainUI as baseUI
 import os
 # import SmRoot
@@ -687,7 +692,13 @@ class MayaManager(RootManager):
                        201701: "v2017U1",
                        201720: "v2017U2",
                        201740: "v2017U3",
-                       20180000: "v2018"}
+                       20180000: "v2018",
+                       20180100: "v2018.1",
+                       20180200: "v2018.2",
+                       20180300: "v2018.3",
+                       20180400: "v2018.4",
+                       20180500: "v2018.5"
+                       }
 
         # currentVersion = pm.versions.current()
         currentVersion = cmds.about(api=True)

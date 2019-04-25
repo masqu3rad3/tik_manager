@@ -30,8 +30,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -----------------------------------------------------------------------------
 
-import SmUIRoot
-reload(SmUIRoot)
 from SmUIRoot import MainUI as baseUI
 import os
 import sys
