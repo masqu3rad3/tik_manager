@@ -1670,17 +1670,17 @@ class MainUI(QtWidgets.QMainWindow):
 
     def addRemoveUserUI(self):
         # This method is NOT Software Specific
-        # passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query",
-        #                                        "Enter Admin Password:", QtWidgets.QLineEdit.Password)
-        #
-        # if ok:
-        #     if self.manager.checkPassword(passw):
-        #         pass
-        #     else:
-        #         self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
-        #         return
-        # else:
-        #     return
+        passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query",
+                                               "Enter Admin Password:", QtWidgets.QLineEdit.Password)
+
+        if ok:
+            if self.manager.checkPassword(passw):
+                pass
+            else:
+                self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
+                return
+        else:
+            return
 
         userControl_Dialog = QtWidgets.QDialog(parent=self)
         userControl_Dialog.setObjectName(("userControl_Dialog"))
@@ -1741,6 +1741,7 @@ class MainUI(QtWidgets.QMainWindow):
             addUser_Dialog.resize(260, 114)
             addUser_Dialog.setMaximumSize(QtCore.QSize(16777215, 150))
             addUser_Dialog.setFocusPolicy(QtCore.Qt.ClickFocus)
+            addUser_Dialog.setWindowTitle(("Add New User"))
 
             verticalLayout = QtWidgets.QVBoxLayout(addUser_Dialog)
 
