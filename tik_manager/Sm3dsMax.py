@@ -150,6 +150,8 @@ class MaxManager(RootManager):
         Returns: Scene DB Dictionary
 
         """
+
+
         # fullName = self.userList.keys()[self.userList.values().index(userName)]
         now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
         completeNote = "[%s] on %s\n%s\n" % (self.currentUser, now, versionNotes)
@@ -220,8 +222,10 @@ class MaxManager(RootManager):
             jsonInfo["ReferencedVersion"] = None
 
         # version serialization:
-        version, api, sdk = rt.maxversion()
-        vInfo = [version, api, sdk]
+        # version, api, sdk = rt.maxversion()
+        versionInfo = rt.maxversion()
+        # vInfo = [version, api, sdk]
+        vInfo = [versionInfo[0], versionInfo[1], versionInfo[2]]
 
         jsonInfo["ID"] = "Sm3dsMaxV02_sceneFile"
         # jsonInfo["3dsMaxVersion"] = os.path.basename(os.path.split(pManager.GetMaxSysRootDir())[0])
@@ -614,8 +618,10 @@ class MaxManager(RootManager):
                        }
 
         #version serialization:
-        version, api, sdk = rt.maxversion()
-        currentVersion = [version, api, sdk]
+        # version, api, sdk = rt.maxversion()
+        versionInfo = rt.maxversion()
+        # currentVersion = [version, api, sdk]
+        currentVersion = [versionInfo[0], versionInfo[1], versionInfo[2]]
         logger.debug("currentversion %s" %currentVersion)
         baseSceneVersion = self._currentSceneInfo["3dsMaxVersion"]
         logger.debug("baseVersion %s" % baseSceneVersion)
@@ -629,11 +635,11 @@ class MaxManager(RootManager):
             msg = ""
             return 0, msg
 
-        if currentVersion[0] < baseSceneVersion[0]: # max version compare
+        if currentVersion[0] > baseSceneVersion[0]: # max version compare
             message = "Base Scene is created with a LOWER 3ds Max version ({0}). Are you sure you want to continue?".format(niceVName)
             return -1, message
 
-        if currentVersion[0] > baseSceneVersion[0]:
+        if currentVersion[0] < baseSceneVersion[0]:
             message = "Base Scene is created with a HIGHER 3ds Max version ({0}). Are you sure you want to continue?".format(niceVName)
             return -1, message
 
@@ -641,7 +647,7 @@ class MaxManager(RootManager):
             message = "Base Scene is created with a LOWER Build ({0}). Are you sure you want to continue?".format(niceVName)
             return -1, message
 
-        if currentVersion[1] > baseSceneVersion[1]:
+        if currentVersion[1] < baseSceneVersion[1]:
             message = "Base Scene is created with a HIGHER Build ({0}). Are you sure you want to continue?".format(niceVName)
             return -1, message
 

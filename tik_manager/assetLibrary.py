@@ -155,7 +155,9 @@ def getMainWindow():
         return ptr
 
     elif BoilerDict["Environment"] == "3dsMax":
-        return MaxPlus.GetQMaxWindow()
+        try: mainWindow = MaxPlus.GetQMaxWindow()
+        except AttributeError: mainWindow = MaxPlus.GetQMaxMainWindow()
+        return mainWindow
 
     elif BoilerDict["Environment"] == "Houdini":
         return hou.qt.mainWindow()

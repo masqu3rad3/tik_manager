@@ -33,6 +33,7 @@
 # Abstract Module for main UI
 
 import os
+import webbrowser
 
 # PyInstaller and Standalone version compatibility
 FORCE_QT4 = bool(os.getenv("FORCE_QT4"))
@@ -134,7 +135,9 @@ def getMainWindow():
         return ptr
 
     elif BoilerDict["Environment"] == "3dsMax":
-        return MaxPlus.GetQMaxWindow()
+        try: mainWindow = MaxPlus.GetQMaxWindow()
+        except AttributeError: mainWindow = MaxPlus.GetQMaxMainWindow()
+        return mainWindow
 
     elif BoilerDict["Environment"] == "Houdini":
         return hou.qt.mainWindow()
@@ -533,6 +536,11 @@ class MainUI(QtWidgets.QMainWindow):
         self.toolsMenu.addAction(assetLibrary_mi)
         self.toolsMenu.addAction(self.createPB)
 
+        helpMenu = self.menubar.addMenu("Help")
+        onlineHelp_mi = QtWidgets.QAction("&Online Help", self)
+
+        helpMenu.addAction(onlineHelp_mi)
+
         # RIGHT CLICK MENUS
         # -----------------
 
@@ -626,6 +634,7 @@ class MainUI(QtWidgets.QMainWindow):
         assetLibrary_mi.triggered.connect(self.onAssetLibrary)
         self.createPB.triggered.connect(self.onCreatePreview)
 
+        onlineHelp_mi.triggered.connect(lambda: webbrowser.open_new("http://www.ardakutlu.com/tik-manager-documentation/"))
 
         self.statusBar().showMessage("Status | Idle")
 

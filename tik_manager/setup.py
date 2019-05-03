@@ -2,6 +2,7 @@ import sys
 import os
 import shutil
 import psutil
+import _version
 
 def checkRuninngInstances(sw):
     running = True
@@ -354,9 +355,12 @@ def mayaSetup(prompt=True):
         "    sys.path.append(targetFolder)\n",
         "\n",
         "def smUpdate(*args):\n",
-        "    from tik_manager import SmMaya\n",
-        "    m = SmMaya.MayaManager()\n",
-        "    m.saveCallback()\n",
+        "    try:\n",
+        "        from tik_manager import SmMaya\n",
+        "        m = SmMaya.MayaManager()\n",
+        "        m.saveCallback()\n",
+        "    except:\n",
+        "        pass\n",
         "\n",
         "initFolder('{0}')\n".format((upNetworkDir.replace("\\", "//"))),
         "maya.utils.executeDeferred('SMid = OpenMaya.MSceneMessage.addCallback(OpenMaya.MSceneMessage.kAfterSave, smUpdate)')\n",
@@ -820,7 +824,7 @@ python.Execute "import sys"
 python.Execute "import os"
 python.Execute "import MaxPlus"
 python.Execute "sys.path.append(os.path.normpath('{0}'))"
-python.Execute "def smUpdate(*args):\\n	from tik_manager import Sm3dsMax\\n	m = Sm3dsMax.MaxManager()\\n	m.saveCallback()"
+python.Execute "def smUpdate(*args):\\n    try:\\n        from tik_manager import Sm3dsMax\\n        m = Sm3dsMax.MaxManager()\\n        m.saveCallback()\\n    except:\\n        pass"
 python.Execute "MaxPlus.NotificationManager.Register(14, smUpdate)"
 """.format(upNetworkDir.replace("\\", "//"))
 
@@ -916,11 +920,11 @@ def folderCheck(folder):
 
 
 header = """
--------------------
-Scene Manager Setup
--------------------
+---------------------------
+Scene Manager Setup v%s
+---------------------------
 
-Choose the software you want to setup Scene Manager:"""
+Choose the software you want to setup Scene Manager:""" % _version.__version__
 
 
 menuItems = [

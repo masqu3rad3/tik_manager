@@ -558,7 +558,6 @@ class StandaloneManager(RootManager):
         if self._pathsDict["generalSettingsDir"] == -1:
             self._exception(201, "Cannot Continue Without Common Database")
             return -1
-        # self._pathsDict["generalSettingsDir"] = os.path.dirname(os.path.abspath(__file__))
 
         self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerUsers.json"))
 

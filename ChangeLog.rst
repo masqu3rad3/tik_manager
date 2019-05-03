@@ -1,6 +1,11 @@
 =============================
 Tik Manager Version History
 =============================
+2.5
+---
+* **Fix.0** 3ds Max 2018-2019 support
+* **Update.0** Installation Update - Callback functions wont cause a crash if the tik_manager path is not valid anymore
+
 2.4
 ---
 * **New.0:** Asset Library added
