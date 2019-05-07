@@ -322,7 +322,6 @@ class AssetLibrary(AssetEditor):
         raise Exception (code, msg)
 
 
-
 class MainUI(QtWidgets.QMainWindow):
     """Main UI function"""
     def __init__(self):
@@ -367,23 +366,23 @@ class MainUI(QtWidgets.QMainWindow):
         self.fileMenu = menubar.addMenu("File")
         self.addNewLibrary_mi= QtWidgets.QAction("&Add New Library", self)
         self.renameLibrary_mi = QtWidgets.QAction("&Rename Active Library", self)
-        self.createNewAsset_mi = QtWidgets.QAction("&Create New Asset", self)
-        self.loadAsset_mi = QtWidgets.QAction("&Load Selected Asset", self)
-        self.mergeAsset_mi = QtWidgets.QAction("&Merge Asset", self)
-        self.importAsset_mi = QtWidgets.QAction("&Import only", self)
-        self.importObj_mi = QtWidgets.QAction("&Import Obj", self)
+        # self.createNewAsset_mi = QtWidgets.QAction("&Create New Asset", self)
+        # self.loadAsset_mi = QtWidgets.QAction("&Load Selected Asset", self)
+        # self.mergeAsset_mi = QtWidgets.QAction("&Merge Asset", self)
+        # self.importAsset_mi = QtWidgets.QAction("&Import only", self)
+        # self.importObj_mi = QtWidgets.QAction("&Import Other", self)
         # self.deleteAsset_mi = QtWidgets.QAction("&Delete Selected Asset", self)
         self.removeLibrary_mi = QtWidgets.QAction("&Remove Library", self)
 
         self.fileMenu.addAction(self.addNewLibrary_mi)
         self.fileMenu.addAction(self.renameLibrary_mi)
-        self.fileMenu.addAction(self.createNewAsset_mi)
+        # self.fileMenu.addAction(self.createNewAsset_mi)
 
-        self.fileMenu.addSeparator()
-        self.fileMenu.addAction(self.loadAsset_mi)
-        self.fileMenu.addAction(self.mergeAsset_mi)
-        self.fileMenu.addAction(self.importAsset_mi)
-        self.fileMenu.addAction(self.importObj_mi)
+        # self.fileMenu.addSeparator()
+        # self.fileMenu.addAction(self.loadAsset_mi)
+        # self.fileMenu.addAction(self.mergeAsset_mi)
+        # self.fileMenu.addAction(self.importAsset_mi)
+        # self.fileMenu.addAction(self.importObj_mi)
 
         self.fileMenu.addSeparator()
         # self.fileMenu.addAction(self.deleteAsset_mi)
@@ -392,9 +391,13 @@ class MainUI(QtWidgets.QMainWindow):
         self.tabDialog()
         self.setCentralWidget(self.centralwidget)
 
+        # SIGNAL CONNECTIONS
+        # ------------------
+
         self.addNewLibrary_mi.triggered.connect(self.newLibraryUI)
         self.renameLibrary_mi.triggered.connect(self.renameLibrary)
         self.removeLibrary_mi.triggered.connect(lambda: self.removeLibrary(self.tabWidget.currentWidget().objectName()))
+
 
         if self.viewOnly:
             self.viewOnlyMode()
@@ -689,7 +692,7 @@ class LibraryTab(QtWidgets.QWidget):
 
         self.objCopy_label = QtWidgets.QLabel(self.frame_right)
         self.objCopy_label.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.objCopy_label.setText(("Obj File: "))
+        self.objCopy_label.setText(("Other Formats: "))
         self.objCopy_label.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         self.rightBelow_verticalLayout.addWidget(self.objCopy_label)
 
@@ -795,7 +798,7 @@ class LibraryTab(QtWidgets.QWidget):
         self.importObj_pushButton = QtWidgets.QPushButton(self.frame_right)
         self.importObj_pushButton.setMinimumSize(QtCore.QSize(100, 30))
         self.importObj_pushButton.setMaximumSize(QtCore.QSize(150, 30))
-        self.importObj_pushButton.setText(("Import .obj"))
+        self.importObj_pushButton.setText(("Import Other"))
 
         self.rightUp_gridLayout.addWidget(self.importObj_pushButton, 1, 3, 1, 1)
 
@@ -892,7 +895,7 @@ class LibraryTab(QtWidgets.QWidget):
 
         self.import_pushButton.clicked.connect(self.onImportAsset)
         self.merge_pushButton.clicked.connect(self.onMergeAsset)
-        self.importObj_pushButton.clicked.connect(self.onImportObj)
+        self.importObj_pushButton.clicked.connect(self.onImportOther)
         self.load_pushButton.clicked.connect(self.onLoadAsset)
         self.createNewAsset_pushButton.clicked.connect(self.createNewAssetUI)
 
@@ -979,7 +982,7 @@ class LibraryTab(QtWidgets.QWidget):
     def createNewAssetUI(self):
         saveAsset_Dialog = QtWidgets.QDialog(parent=self)
         saveAsset_Dialog.setWindowModality(QtCore.Qt.ApplicationModal)
-        saveAsset_Dialog.resize(257, 219)
+        saveAsset_Dialog.resize(257, 250)
         saveAsset_Dialog.setWindowTitle("Create New Asset")
 
         self.verticalLayout = QtWidgets.QVBoxLayout(saveAsset_Dialog)
@@ -1000,18 +1003,23 @@ class LibraryTab(QtWidgets.QWidget):
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.exportUv_checkBox)
 
         self.exportObj_checkBox = QtWidgets.QCheckBox(saveAsset_Dialog)
-        self.exportObj_checkBox.setText(("Export .obj"))
+        self.exportObj_checkBox.setText(("Export .obj(Wavefront)"))
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.exportObj_checkBox)
 
         self.exportFbx_checkBox = QtWidgets.QCheckBox(saveAsset_Dialog)
-        self.exportFbx_checkBox.setText(("Export .fbx"))
+        self.exportFbx_checkBox.setText(("Export .fbx(FBX)"))
         self.formLayout.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.exportFbx_checkBox)
+
+        self.exportABC_checkBox = QtWidgets.QCheckBox(saveAsset_Dialog)
+        self.exportABC_checkBox.setText("Export .abc(Alembic)")
+        self.formLayout.setWidget(4, QtWidgets.QFormLayout.FieldRole, self.exportABC_checkBox)
+
 
         # self.exportFbx_checkBox.setEnabled(False)
 
         self.range_label = QtWidgets.QLabel(saveAsset_Dialog)
         self.range_label.setText(("Range"))
-        self.formLayout.setWidget(4, QtWidgets.QFormLayout.LabelRole, self.range_label)
+        self.formLayout.setWidget(5, QtWidgets.QFormLayout.LabelRole, self.range_label)
 
         self.range_horizontalLayout = QtWidgets.QHBoxLayout()
 
@@ -1026,12 +1034,12 @@ class LibraryTab(QtWidgets.QWidget):
         self.range_horizontalLayout.addWidget(self.selection_radioButton)
         self.range_horizontalLayout.addWidget(self.scene_radioButton)
 
-        self.formLayout.setLayout(4, QtWidgets.QFormLayout.FieldRole, self.range_horizontalLayout)
+        self.formLayout.setLayout(5, QtWidgets.QFormLayout.FieldRole, self.range_horizontalLayout)
 
         self.format_label = QtWidgets.QLabel(saveAsset_Dialog)
         self.format_label.setText(("Format"))
 
-        self.formLayout.setWidget(5, QtWidgets.QFormLayout.LabelRole, self.format_label)
+        self.formLayout.setWidget(6, QtWidgets.QFormLayout.LabelRole, self.format_label)
         self.format_horizontalLayout = QtWidgets.QHBoxLayout()
         #####################
         format_radioButton_grp = QtWidgets.QButtonGroup(self.format_horizontalLayout)
@@ -1046,7 +1054,7 @@ class LibraryTab(QtWidgets.QWidget):
         self.format_horizontalLayout.addWidget(self.mb_radioButton)
         #################
 
-        self.formLayout.setLayout(5, QtWidgets.QFormLayout.FieldRole, self.format_horizontalLayout)
+        self.formLayout.setLayout(6, QtWidgets.QFormLayout.FieldRole, self.format_horizontalLayout)
         self.verticalLayout.addLayout(self.formLayout)
 
         self.saveAsset_buttonBox = QtWidgets.QDialogButtonBox(saveAsset_Dialog)
@@ -1124,8 +1132,48 @@ class LibraryTab(QtWidgets.QWidget):
         sourceProject = assetData["sourceProject"]
         version = assetData["version"]
         self.sourceProject_label.setText("Source: %s Version: %s" %(sourceProject, version))
-        isObjExist = False if assetData["objPath"] == "NA" else True
-        self.objCopy_label.setText("Obj File: %s" %isObjExist)
+        # isObjExist = False if assetData["objPath"] == "NA" else True
+        otherFormats = ", ".join(self._getOtherFormats(assetData))
+        self.objCopy_label.setText("Other Formats: %s" %otherFormats)
+
+    # def _getOtherFormats(self, assetData):
+    #     formats = ""
+    #     try:
+    #         if assetData["objPath"] != "NA": formats = "%s Obj," %(formats)
+    #     except KeyError:
+    #         pass
+    #
+    #     try:
+    #         if assetData["fbxPath"] != "NA": formats ="%s Fbx," %(formats)
+    #     except KeyError:
+    #         pass
+    #
+    #     try:
+    #         if assetData["abcPath"] != "NA": formats = "%s Alembic," %(formats)
+    #     except KeyError:
+    #         pass
+    #
+    #     formats = formats[:-1] #remove the last character to delete unnecessary ','
+    #     return formats
+
+    def _getOtherFormats(self, assetData):
+        formats = []
+        try:
+            if assetData["objPath"] != "NA": formats.append("Obj")
+        except KeyError:
+            pass
+
+        try:
+            if assetData["fbxPath"] != "NA": formats.append("Fbx")
+        except KeyError:
+            pass
+
+        try:
+            if assetData["abcPath"] != "NA": formats.append("Alembic")
+        except KeyError:
+            pass
+
+        return formats
 
     def toggleWireframe(self):
         self.wireframeMode *= -1
@@ -1175,6 +1223,7 @@ class LibraryTab(QtWidgets.QWidget):
         exportUV = self.exportUv_checkBox.isChecked()
         exportOBJ = self.exportObj_checkBox.isChecked()
         exportFBX = self.exportFbx_checkBox.isChecked()
+        exportABC = self.exportABC_checkBox.isChecked()
         selectionOnly = self.selection_radioButton.isChecked()
         mbFormat = self.mb_radioButton.isChecked()
 
@@ -1182,6 +1231,7 @@ class LibraryTab(QtWidgets.QWidget):
                                exportUV=exportUV,
                                exportOBJ=exportOBJ,
                                exportFBX=exportFBX,
+                               exportABC=exportABC,
                                selectionOnly=selectionOnly,
                                mbFormat=mbFormat)
 
@@ -1198,10 +1248,38 @@ class LibraryTab(QtWidgets.QWidget):
         if assetName:
             self.library.importAsset(assetName)
 
-    def onImportObj(self):
+    # def onImportOther(self):
+    #     assetName = self._getCurrentAssetName()
+    #     if assetName:
+    #         self.library.importObj(assetName)
+
+    def onImportOther(self):
         assetName = self._getCurrentAssetName()
-        if assetName:
+        if not assetName:
+            return
+
+        assetData = self.library._getData(assetName)
+        otherFormats = self._getOtherFormats(assetData)
+        zortMenu = QtWidgets.QMenu()
+        for z in otherFormats:
+            tempAction = QtWidgets.QAction(z, self)
+            zortMenu.addAction(tempAction)
+            tempAction.triggered.connect(lambda item=z: self.multiImport(assetName, str(item)))
+        # if BoilerDict["Environment"] == "Standalone":
+        #     zortMenu.exec_((QtWidgets.QCursor.pos()))
+        # else:
+        #     zortMenu.exec_((QtGui.QCursor.pos()))
+        zortMenu.exec_((QtGui.QCursor.pos()))
+
+    def multiImport(self, assetName, format):
+        # print assetName, format
+        if format == "Obj":
             self.library.importObj(assetName)
+        elif format == "Fbx":
+            self.library.importFbx(assetName)
+        elif format == "Alembic":
+            self.library.importAbc(assetName)
+
 
     def onLoadAsset(self):
         assetName = self._getCurrentAssetName()
@@ -1214,7 +1292,7 @@ class LibraryTab(QtWidgets.QWidget):
         self.screenshot_label.clear()
         # self.screenshot_label.clearImage() # for using with QtImage class
         self.sourceProject_label.setText(("Source: "))
-        self.objCopy_label.setText(("Obj File: "))
+        self.objCopy_label.setText(("Other Formats: "))
         self.facesTriangles_label.setText(("Faces/Triangles: "))
         self.textures_label.setText(("Textures: "))
         self.assetNotes_label.setText(("Asset Notes: "))
@@ -1289,7 +1367,6 @@ class LibraryTab(QtWidgets.QWidget):
         #     self.library.replaceWithExternalFile(assetName, fname)
 
         self.onAssetChange()
-
 
     def _checkValidity(self, text, button, lineEdit, allowSpaces=False):
 

@@ -484,7 +484,8 @@ class MaxManager(RootManager):
         relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"]
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
-            fManager.Merge(absSceneFile, mergeAll=True, selectMerged=True)
+            # fManager.Merge(absSceneFile, mergeAll=True, selectMerged=True)
+            fManager.Merge(absSceneFile)
             # cmds.file(absSceneFile, i=True)
             return 0
         else:
@@ -725,7 +726,7 @@ class MainUI(baseUI):
         self.extraMenus()
 
     def extraMenus(self):
-        pass
+        self.scenes_rcItem_0.setText('Merge Scene')
 
     def onModeChange(self):
         """OVERRIDEN METHOD - This method is overriden to make the color changing compatible with 3ds max"""
@@ -740,4 +741,7 @@ class MainUI(baseUI):
             # self.scenes_listWidget.setStyleSheet("background-color: rgb(100,100,100);")
             self.scenes_listWidget.setStyleSheet("background-color: rgb(80,120,120); border-style: solid ; border-width: 2px; border-color: cyan;")
         self.populateBaseScenes()
+
+
+
 

@@ -5,6 +5,9 @@ Tik Manager Version History
 ---
 * **Fix.0** 3ds Max 2018-2019 support
 * **Update.0** Installation Update - Callback functions wont cause a crash if the tik_manager path is not valid anymore
+* **Update.4** Asset Library Alembic Support added
+* **Update.4** Asset Library - Software version check before importing source
+* **Fix.4** Import Base Scene option for 3ds Max fixed and renamed as Merge
 
 2.4
 ---

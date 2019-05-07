@@ -46,11 +46,16 @@ class AssetEditorMaya(object):
         self.directory=""
 
 
-    def saveAsset(self, assetName, exportUV=True, exportOBJ=True, exportFBX=True, selectionOnly=True, mbFormat=False, notes="N/A", **info):
+    def saveAsset(self, assetName, exportUV=True, exportOBJ=True, exportFBX=True, exportABC=True, selectionOnly=True, mbFormat=False, notes="N/A", **info):
         """
         Saves the selected object(s) as an asset into the predefined library
         """
         # self.ssResolution = 1000
+        if assetName == "":
+            msg = "Asset Name cannot be empty"
+            state = cmds.confirmDialog(title='Asset Exists', message=msg, button=['Ok'])
+            return
+
         if assetName in self.assetsList:
             msg = "This Asset already exists.\nDo you want to overwrite?"
             state = cmds.confirmDialog(title='Asset Exists', message=msg, button=['Ok', 'Cancel'])
@@ -173,20 +178,6 @@ class AssetEditorMaya(object):
             if not cmds.pluginInfo('fbxmaya', l=True, q=True):
                 cmds.loadPlugin('fbxmaya')
             fileName = "{0}.fbx".format(os.path.join(assetDirectory, assetName))
-            # mel.eval('FBXResetExport; '
-            #          'FBXExportInputConnections -v false; '
-            #          'FBXExportBakeComplexAnimation -v true; '
-            #          'FBXExportLights -v false; '
-            #          'FBXExportCameras -v false; '
-            #          'FBXExportInAscii -v true; '
-            #          'FBXExportFileVersion FBX201200; '
-            #          'FBXExportSmoothingGroups -v false; '
-            #          'FBXExportSmoothMesh -v false; '
-            #          'FBXExportApplyConstantKeyReducer -v false; '
-            #          'FBXExportBakeComplexAnimation -v true;  '
-            #          'FBXExportBakeComplexStep -v 1;  '
-            #          'FBXExportCameras -v false;')
-            # mel.eval('FBXExport -f "{0}" -s'.format(fileName))
             try:
                 cmds.file(fileName, force=True,
                           op="groups=1;ptgroups=1;materials=1;smoothing=1;normals=1", typ="FBX export", pr=True, es=True,
@@ -198,6 +189,28 @@ class AssetEditorMaya(object):
 
         else:
             fbxName = "N/A"
+
+        # EXPORT ALEMBIC
+        # --------------
+
+        if exportABC:
+            if not cmds.pluginInfo('AbcExport.mll', l=True, q=True):
+                cmds.loadPlugin('AbcExport.mll')
+            fileName = "{0}.abc".format(os.path.join(assetDirectory, assetName))
+            try:
+                frame = cmds.currentTime(query=True)
+                root = ""
+                for i in selection:
+                    root = "%s-root %s " % (root, i)
+                root = root[:-1]
+                command = "-frameRange {0} {1} -uvWrite -worldSpace {2} -file {3}".format(frame, frame, root, fileName)
+                cmds.AbcExport(j=command)
+                abcName = "{0}.abc".format(assetName)
+            except:
+                cmds.warning("Cannot export FBX for unknown reason. Skipping FBX export")
+                abcName = "N/A"
+        else:
+            abcName = "N/A"
 
         # NUMERIC DATA
         # ------------
@@ -214,6 +227,7 @@ class AssetEditorMaya(object):
         dataDict['assetName'] = assetName
         dataDict['objPath'] = objName
         dataDict['fbxPath'] = fbxName
+        dataDict['abcPath'] = abcName
         dataDict['sourcePath'] = os.path.basename(assetAbsPath)
         dataDict['thumbPath'] = os.path.basename(thumbPath)
         dataDict['ssPath'] = os.path.basename(ssPath)
@@ -221,7 +235,7 @@ class AssetEditorMaya(object):
         dataDict['textureFiles'] = [x["Texture"] for x in textureDatabase]
         dataDict['Faces/Triangles'] = ("%s/%s" % (str(polyCount), str(tiangleCount)))
         dataDict['origin'] = originalPath
-        dataDict['Notes'] = notes
+        dataDict['notes'] = notes
 
         self._setData(assetName, dataDict)
 
@@ -289,14 +303,6 @@ class AssetEditorMaya(object):
         # temporarily deselect
         cmds.select(d=True)
 
-        # else:
-        #     pbPanel = cmds.getPanel(wf=True)
-        #
-        #     if cmds.getPanel(to=pbPanel) != "modelPanel":
-        #         cmds.warning("The focus is not on a model panel, using the perspective view")
-        #         return None, None, None
-
-
         cmds.setAttr("defaultRenderGlobals.imageFormat", 8)  # This is the value for jpeg
 
         frame = cmds.currentTime(query=True)
@@ -320,9 +326,6 @@ class AssetEditorMaya(object):
         # print panel
         cmds.select(selection)
         return thumbPath, SSpath, WFpath
-
-    # def replaceWithCurrentView(self, assetName):
-    #     thumbPath, ssPath, swPath = self._createThumbnail(assetName, viewFit=False, selectionOnly=False)
 
     def replaceWithCurrentView(self, assetName):
 
@@ -383,8 +386,6 @@ class AssetEditorMaya(object):
             os.makedirs(os.path.normpath(UVdir))
 
         for i in range(0, len(validShapes)):
-            # print "validShape", validShapes[i]
-            # transformNode = validShapes[i].getParent()
             objName = validShapes[i].replace(":", "_")
             UVpath = os.path.join(UVdir, '%s_uv.jpg' % objName)
             cmds.select(validShapes[i])
@@ -410,8 +411,6 @@ class AssetEditorMaya(object):
 
             fileNodes = cmds.ls(uniqueInputs, type="file")
             if len(fileNodes) != 0:
-                # print "sdf", fileNodes
-                # yield fileNodes
                 returnList.extend(fileNodes)
         returnList = self.uniqueList(returnList)
         return returnList
@@ -422,12 +421,6 @@ class AssetEditorMaya(object):
             filePath, fileBase = os.path.split(oldAbsPath)
             newAbsPath = os.path.normpath(os.path.join(newRoot, fileBase))
 
-            # if oldAbsPath == newAbsPath:
-            #     cmds.warning("File Node copy skipped. Target Path and Source Path is same")
-            #     # textureName = self.pathOps(newLocation, "basename")
-            #     textureName = os.path.basename(newAbsPath)
-            #     # textures.append(textureName)
-            #     continue
             yield {"FileNode": file,
                    "Texture": os.path.basename(oldAbsPath),
                    "OldPath": oldAbsPath,
@@ -445,9 +438,23 @@ class AssetEditorMaya(object):
             # print data
             cmds.setAttr("%s.fileTextureName" % data["FileNode"], data["OldPath"], type="string")
 
+    def _checkVersionMatch(self, databaseVersion):
+        currentVersion = cmds.about(api=True)
+
+        if currentVersion != databaseVersion:
+            msg = "Database version ({0}) and Current version ({1}) are not matching. Do you want to try anyway?".format(databaseVersion, currentVersion)
+            state = cmds.confirmDialog(title='Version Mismatch', message=msg, button=['Yes', 'No'], defaultButton='Yes',
+                                       cancelButton='No', dismissString='No')
+            if state == "Yes":
+                return True
+            else:
+                return False
+
     def mergeAsset(self, assetName):
 
         assetData = self._getData(assetName)
+        if not self._checkVersionMatch(assetData["version"]):
+            return
         absSourcePath = os.path.join(self.directory, assetName, assetData["sourcePath"])
 
         textureList = assetData['textureFiles']
@@ -477,19 +484,31 @@ class AssetEditorMaya(object):
                     copyfile(path, newPath)
                     cmds.setAttr("%s.fileTextureName" %file, newPath)
 
-
     def importAsset(self, assetName):
         assetData = self._getData(assetName)
+        if not self._checkVersionMatch(assetData["version"]):
+            return
         absSourcePath = os.path.join(self.directory, assetName, assetData["sourcePath"])
 
         cmds.file(absSourcePath, i=True)
-
 
     def importObj(self, assetName):
         assetData = self._getData(assetName)
         absObjPath = os.path.join(self.directory, assetName, assetData["objPath"])
         if os.path.isfile(absObjPath):
             cmds.file(absObjPath, i=True)
+
+    def importAbc(self, assetName):
+        assetData = self._getData(assetName)
+        absAbcPath = os.path.join(self.directory, assetName, assetData["abcPath"])
+        if os.path.isfile(absAbcPath):
+            cmds.AbcImport(absAbcPath)
+
+    def importFbx(self, assetName):
+        assetData = self._getData(assetName)
+        absFbxPath = os.path.join(self.directory, assetName, assetData["fbxPath"])
+        if os.path.isfile(absFbxPath):
+            cmds.file(absFbxPath, i=True)
 
     def loadAsset(self, assetName):
         assetData = self._getData(assetName)
@@ -504,51 +523,6 @@ class AssetEditorMaya(object):
 
         if os.path.isfile(absSourcePath):
             cmds.file(absSourcePath, o=True, force=True)
-
-
-
-    # def _repathFileNodes(self, objList, newPath):
-    #     for obj in objList:
-    #         # Get the shading group from the selected mesh
-    #         sg = cmds.listConnections(obj, type='shadingEngine')
-    #         if not sg:
-    #             continue
-    #         allInputs = []
-    #         for i in sg:
-    #             allInputs += cmds.listHistory(i)
-    #
-    #         uniqueInputs =self.uniqueList(allInputs)
-    #         fileNodes = cmds.ls(uniqueInputs, type="file")
-    #         textures = self._filePass(fileNodes, newPath)
-    #         yield [x for x in textures]
-    #
-    # def _filePass(self, fileNodes, newPath, *args):
-    #     # textures = []
-    #     for file in fileNodes:
-    #         fullPath = os.path.normpath(cmds.getAttr("%s.fileTextureName" %file))
-    #         filePath, fileBase = os.path.split(fullPath)
-    #         newLocation = os.path.normpath(os.path.join(newPath, fileBase))
-    #
-    #         if fullPath == newLocation:
-    #             cmds.warning("File Node copy skipped")
-    #             # textureName = self.pathOps(newLocation, "basename")
-    #             textureName = os.path.basename(newLocation)
-    #             # textures.append(textureName)
-    #             yield textureName
-    #             continue
-    #
-    #         copyfile(fullPath, newLocation)
-    #
-    #         cmds.setAttr("%s.fileTextureName" %file, newLocation, type="string")
-    #         textureName = os.path.basename(newLocation)
-    #         # textures.append(textureName)
-    #         yield textureName
-    #     # return textures
-
-    # def uniqueList(self, seq):  # Dave Kirby
-    #     # Order preserving
-    #     seen = set()
-    #     return [x for x in seq if x not in seen and not seen.add(x)]
 
     def uniqueList(self, fList):
         keys = {}

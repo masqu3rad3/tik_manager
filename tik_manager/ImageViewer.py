@@ -232,9 +232,9 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.filterList = sum(self.extensionDictionary.values(), [])
 
-        self.setObjectName(BoilerDict["Environment"])
+        self.setObjectName(BoilerDict["WindowTitle"])
         self.resize(670, 624)
-        self.setWindowTitle(BoilerDict["Environment"])
+        self.setWindowTitle(BoilerDict["WindowTitle"])
         self.centralwidget = QtWidgets.QWidget(self)
         self.model = QtWidgets.QFileSystemModel()
         self.model.setRootPath(self.rootPath)
