@@ -34,7 +34,7 @@ import platform
 import datetime
 import os
 import logging
-import pprint
+# import pprint
 import hashlib
 
 import shutil
@@ -42,14 +42,25 @@ from glob import glob
 import json
 import filecmp
 import re
-import ctypes
+# import ctypes
 import socket
+
+import urllib
+
+import _version
+
+__author__ = "Arda Kutlu"
+__copyright__ = "Copyright 2018, Tik Manager Root Functions"
+__credits__ = []
+__license__ = "GPL"
+__maintainer__ = "Arda Kutlu"
+__email__ = "ardakutlu@gmail.com"
+__status__ = "Development"
 
 logging.basicConfig()
 logger = logging.getLogger('smRoot')
 logger.setLevel(logging.WARNING)
 
-# TODO : Make a project settings feature (Resolution, FPS, etc.)
 
 class RootManager(object):
     """Base of all Scene Manager Command Classes"""
@@ -74,7 +85,6 @@ class RootManager(object):
                          340: "Naming Error",
                          341: "Mandatory fields are not filled",
                          360: "Action not permitted"}
-
 
     def init_paths(self):
         """Initializes all the necessary paths"""
@@ -1732,7 +1742,44 @@ Elapsed Time:{6}
         self._dumpJson(pbSettings, self._pathsDict["pbSettingsFile"])
         return
 
+    def checkNewVersion(self):
 
+        url = "http://www.ardakutlu.com/Tik_Manager/versionCheck/versionInfo.json"
+
+        response = urllib.urlopen(url)
+        data = json.loads(response.read())
+        majorV_remote, minorV_remote, patch_remote = map(lambda x: int(x), data["CurrentVersion"].split("."))
+        versionStr_remote = data["CurrentVersion"]
+        downloadPath = data["DownloadPath"]
+        whatsNewPath = data["WhatsNew"]
+        # try:
+        #     response = urllib.urlopen(url)
+        #     data = json.loads(response.read())
+        #     majorV_remote, minorV_remote, patch_remote = map(lambda x: int(x) ,data["CurrentVersion"].split("."))
+        #     versionStr_remote = data["CurrentVersion"]
+        #     downloadPath = data["DownloadPath"]
+        #     whatsNewPath = data["WhatsNew"]
+        # except:
+        #     vMsg = "Cannot reach version information. Check you internet connection"
+        #     return vMsg, None, None
+
+        majorV, minorV, patch = map(lambda x: int(x) ,_version.__version__.split("."))
+
+        if majorV_remote > majorV:
+            vMsg = "New major version!\nTik Manager v{0} is now available".format(versionStr_remote)
+            return vMsg, downloadPath, whatsNewPath
+
+        elif minorV_remote > minorV:
+            vMsg = "Tik Manager v{0} is now available".format(versionStr_remote)
+            return vMsg, downloadPath, whatsNewPath
+
+        elif patch_remote > patch:
+            vMsg = "Tik Manager v{0} with minor bug fixes and improvements is now available".format(versionStr_remote)
+            return vMsg, downloadPath, whatsNewPath
+
+        else:
+            vMsg = "Tik Manager is up to date"
+            return vMsg, None, None
 
 
 

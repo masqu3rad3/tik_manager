@@ -64,7 +64,7 @@ import logging
 # from PyQt4 import QtWidgets, QtCore, QtGui, Qt
 
 __author__ = "Arda Kutlu"
-__copyright__ = "Copyright 2018, Scene Manager UI Boilerplate"
+__copyright__ = "Copyright 2018, Tik Manager UI Boilerplate"
 __credits__ = []
 __license__ = "GPL"
 __maintainer__ = "Arda Kutlu"
@@ -528,18 +528,20 @@ class MainUI(QtWidgets.QMainWindow):
         self.toolsMenu = self.menubar.addMenu("Tools")
         imageViewer_mi = QtWidgets.QAction("&Image Viewer", self)
         projectMaterials_mi = QtWidgets.QAction("&Project Materials", self)
-        assetLibrary_mi = QtWidgets.QAction("&Asset Library", self)
+        self.assetLibrary_mi = QtWidgets.QAction("&Asset Library", self)
         self.createPB = QtWidgets.QAction("&Create Preview", self)
 
         self.toolsMenu.addAction(imageViewer_mi)
         self.toolsMenu.addAction(projectMaterials_mi)
-        self.toolsMenu.addAction(assetLibrary_mi)
+        self.toolsMenu.addAction(self.assetLibrary_mi)
         self.toolsMenu.addAction(self.createPB)
 
         helpMenu = self.menubar.addMenu("Help")
         onlineHelp_mi = QtWidgets.QAction("&Online Help", self)
+        checkVersion_mi = QtWidgets.QAction("&Check for updates", self)
 
         helpMenu.addAction(onlineHelp_mi)
+        helpMenu.addAction(checkVersion_mi)
 
         # RIGHT CLICK MENUS
         # -----------------
@@ -631,10 +633,11 @@ class MainUI(QtWidgets.QMainWindow):
 
         imageViewer_mi.triggered.connect(self.onIviewer)
         projectMaterials_mi.triggered.connect(self.onPMaterials)
-        assetLibrary_mi.triggered.connect(self.onAssetLibrary)
+        self.assetLibrary_mi.triggered.connect(self.onAssetLibrary)
         self.createPB.triggered.connect(self.onCreatePreview)
 
         onlineHelp_mi.triggered.connect(lambda: webbrowser.open_new("http://www.ardakutlu.com/tik-manager-documentation/"))
+        checkVersion_mi.triggered.connect(self.onCheckNewVersion)
 
         self.statusBar().showMessage("Status | Idle")
 
@@ -3134,6 +3137,50 @@ class MainUI(QtWidgets.QMainWindow):
             self.showPreview_pushButton.setEnabled(True)
         else:
             self.showPreview_pushButton.setEnabled(False)
+
+    def onCheckNewVersion(self):
+        manager = self._getManager()
+        message, downloadPath, whatsNewPath = manager.checkNewVersion()
+
+        vCheck_mBox = QtWidgets.QMessageBox(parent=self)
+        vCheck_mBox.setIcon(QtWidgets.QMessageBox.Information)
+
+        vCheck_mBox.setWindowTitle("Check for updates")
+        vCheck_mBox.setText(message)
+        if downloadPath:
+            # downloadBtn = vCheck_mBox.addButton(QtWidgets.QPushButton('Download'), QtWidgets.QMessageBox.HelpRole)
+            # whatsNewBtn = vCheck_mBox.addButton(QtWidgets.QPushButton('Whats new'), QtWidgets.QMessageBox.HelpRole)
+            # cancelBtn = vCheck_mBox.addButton(QtWidgets.QPushButton('Cancel'), QtWidgets.QMessageBox.RejectRole)
+
+            vCheck_mBox.setStandardButtons(QtWidgets.QMessageBox.Save | QtWidgets.QMessageBox.Help | QtWidgets.QMessageBox.Cancel)
+            vCheck_mBox.button(QtWidgets.QMessageBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
+            vCheck_mBox.button(QtWidgets.QMessageBox.Save).setMinimumSize(QtCore.QSize(100, 30))
+            vCheck_mBox.button(QtWidgets.QMessageBox.Help).setMinimumSize(QtCore.QSize(100, 30))
+
+            buttonS = vCheck_mBox.button(QtWidgets.QMessageBox.Save)
+            buttonS.setText('Download')
+            buttonS = vCheck_mBox.button(QtWidgets.QMessageBox.Help)
+            buttonS.setText('Whats New?')
+
+            # ret = vCheck_mBox.exec_()
+            # print ret
+            # if ret == 0:
+            #     webbrowser.open_new(downloadPath)
+            # elif ret == 1:
+            #     webbrowser.open_new(whatsNewPath)
+        else:
+            vCheck_mBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            vCheck_mBox.button(QtWidgets.QMessageBox.Ok).setMinimumSize(QtCore.QSize(100, 30))
+
+        ret = vCheck_mBox.exec_()
+
+        if ret == QtWidgets.QMessageBox.Save:
+            webbrowser.open_new(downloadPath)
+        elif ret == QtWidgets.QMessageBox.Help:
+            webbrowser.open_new(whatsNewPath)
+
+
+
 
     def infoPop(self, textTitle="info", textHeader="", textInfo="", type="I"):
         self.msg = QtWidgets.QMessageBox(parent=self)

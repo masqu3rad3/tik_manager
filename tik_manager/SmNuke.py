@@ -550,7 +550,6 @@ class MainUI(baseUI):
         # self.callbackIDList=[]
         # if self.isCallback:
         #     self.callbackIDList = self.manager._createCallbacks(self.isCallback)
-
         self.buildUI()
         self.initMainUI(newborn=True)
         self.modify()
@@ -562,5 +561,10 @@ class MainUI(baseUI):
         self.reference_radioButton.setChecked(False)
         self.reference_radioButton.setVisible(False)
         self.makeReference_pushButton.setVisible(False)
-        # idk why this became necessary for houdini..
+
+        self.showPreview_pushButton.setVisible(False)
+        self.createPB.setVisible(False)
+        self.assetLibrary_mi.setVisible(False)
+
+        # idk why this became necessary for nuke..
         self.category_tabWidget.setMaximumSize(QtCore.QSize(16777215, 30))

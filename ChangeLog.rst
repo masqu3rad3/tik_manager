@@ -8,6 +8,11 @@ Tik Manager Version History
 * **Update.4** Asset Library Alembic Support added
 * **Update.4** Asset Library - Software version check before importing source
 * **Fix.4** Import Base Scene option for 3ds Max fixed and renamed as Merge
+* **New.5** Checking for updates and new versions option added
+* **New.5** Import Footage option added Image Viewer for creating Read nodes in Nuke
+* **Update.5** Default root path for Image Viewer changed to the project directory.
+* **Fix.5** The bug when browsing the root in Image Viewer fixed. Now it starts browsing from the current defined root.
+* **Update.5** Image Viewer default window sizes changed.
 
 2.4
 ---

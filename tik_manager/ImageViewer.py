@@ -119,6 +119,28 @@ except ImportError:
     pass
 
 
+def importSequence(pySeq_sequence):
+    if BoilerDict["Environment"] == "Nuke":
+        # format the sequence for <name>.<padding>.<extension>
+        seqFormatted = "{0}{1}{2}".format(pySeq_sequence.head(), pySeq_sequence._get_padding(), pySeq_sequence.tail())
+        seqPath = os.path.join(pySeq_sequence.dirname, seqFormatted)
+
+        firstFrame = pySeq_sequence.start()
+        lastFrame = pySeq_sequence.end()
+
+        print "helelo", firstFrame, lastFrame
+
+        readNode = nuke.createNode('Read')
+        readNode.knob('file').fromUserText(seqPath)
+        readNode.knob('first').setValue(firstFrame)
+        readNode.knob('last').setValue(lastFrame)
+        readNode.knob('origfirst').setValue(firstFrame)
+        readNode.knob('origlast').setValue(lastFrame)
+    else:
+        pass
+
+
+
 def getMainWindow():
     """This function should be overriden"""
     if BoilerDict["Environment"] == "Maya":
@@ -195,7 +217,9 @@ class MainUI(QtWidgets.QMainWindow):
         if relativePath:
             self.rootPath = os.path.join(self.projectPath, str(relativePath))
         else:
-            self.rootPath = os.path.join(self.projectPath, "images")
+            # self.rootPath = os.path.join(self.projectPath, "images")
+            # setting the project path as the root seems like a better option
+            self.rootPath = os.path.join(self.projectPath)
             if not os.path.isdir(self.rootPath):
                 self.rootPath = self.projectPath
 
@@ -233,7 +257,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.filterList = sum(self.extensionDictionary.values(), [])
 
         self.setObjectName(BoilerDict["WindowTitle"])
-        self.resize(670, 624)
+        self.resize(1000, 624)
         self.setWindowTitle(BoilerDict["WindowTitle"])
         self.centralwidget = QtWidgets.QWidget(self)
         self.model = QtWidgets.QFileSystemModel()
@@ -346,6 +370,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.sequences_treeWidget.setStatusTip((""))
         self.sequences_treeWidget.setSortingEnabled(True)
         header = QtWidgets.QTreeWidgetItem(["Name", "Date"])
+        self.sequences_treeWidget.setColumnWidth(0, 250)
         self.sequences_treeWidget.setHeaderItem(header)
         self.sequences_treeWidget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
 
@@ -382,7 +407,7 @@ class MainUI(QtWidgets.QMainWindow):
         # self.splitter.setStretchFactor(1, 0)
 
         self.gridLayout.addWidget(self.splitter, 3, 0, 1, 4)
-        self.splitter.setStretchFactor(0, 1)
+        self.splitter.setStretchFactor(0, 0)
 
         self.browse_pushButton.clicked.connect(self.onBrowse)
         # Below line causes to a segmentation fault, so splitted into two
@@ -406,8 +431,10 @@ class MainUI(QtWidgets.QMainWindow):
 
         rcAction_0 = QtWidgets.QAction('Show in Explorer', self)
         rcAction_1 = QtWidgets.QAction('Transfer Files to Raid', self)
+        rcAction_4 = QtWidgets.QAction('Import Sequences', self)
         self.popMenu.addAction(rcAction_0)
         self.popMenu.addAction(rcAction_1)
+        self.popMenu.addAction(rcAction_4)
 
         # ROOT and RAID Folder RC
         # -----------------------
@@ -425,6 +452,8 @@ class MainUI(QtWidgets.QMainWindow):
         ## SIGNAL CONNECTIONS
         rcAction_0.triggered.connect(lambda: self.onShowInExplorer())
         rcAction_1.triggered.connect(lambda: self.onTransferFiles())
+        rcAction_4.triggered.connect(lambda: self.onImportSequence())
+
 
         rcAction_2.triggered.connect(lambda: self.onShowInExplorer(path=unicode(self.rootFolder_lineEdit.text())))
         rcAction_3.triggered.connect(lambda: self.onShowInExplorer(path=unicode(self.raidFolder_lineEdit.text())))
@@ -508,7 +537,7 @@ class MainUI(QtWidgets.QMainWindow):
 
     def onBrowse(self):
         """Opens a directory select menu to define it as the root path"""
-        dir = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory"))
+        dir = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory", self.rootPath))
         if dir:
             self.setRootPath(dir)
         else:
@@ -537,6 +566,25 @@ class MainUI(QtWidgets.QMainWindow):
 
         seqCopy = SeqCopyProgress()
         seqCopy.copysequence(self.sequenceData, selectedItemNames, self.tLocation, logPath, self.rootPath)
+
+    def onImportSequence(self):
+        """Executes the import sequence command"""
+        selectedItemNames = [x.text(0) for x in self.sequences_treeWidget.selectedItems()]
+        # importSequence(selectedItemNames)
+
+        for itemName in selectedItemNames:
+            seq = self.sequenceData[str(itemName)]
+
+            #
+            # print "seq.head", seq.head()
+            # print "seq.tail", seq.tail()
+            # print "_get_padding", seq._get_padding()
+
+
+
+
+            importSequence(seq)
+
 
     def onShowInExplorer(self, path=None):
         """Open the folder of sequence in explorer"""

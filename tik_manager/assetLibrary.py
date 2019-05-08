@@ -434,11 +434,12 @@ class MainUI(QtWidgets.QMainWindow):
         self.refreshTab()
 
     def viewOnlyMode(self):
-        self.createNewAsset_mi.setVisible(False)
-        self.loadAsset_mi.setVisible(False)
-        self.mergeAsset_mi.setVisible(False)
-        self.importAsset_mi.setVisible(False)
-        self.importObj_mi.setVisible(False)
+        pass
+        # self.createNewAsset_mi.setVisible(False)
+        # self.loadAsset_mi.setVisible(False)
+        # self.mergeAsset_mi.setVisible(False)
+        # self.importAsset_mi.setVisible(False)
+        # self.importObj_mi.setVisible(False)
 
     def refreshTab(self):
         if self.tabWidget.currentWidget():
@@ -1159,17 +1160,26 @@ class LibraryTab(QtWidgets.QWidget):
     def _getOtherFormats(self, assetData):
         formats = []
         try:
-            if assetData["objPath"] != "NA": formats.append("Obj")
+            if assetData["objPath"] != "N/A":
+                formats.append("Obj")
+            else:
+                pass
         except KeyError:
             pass
 
         try:
-            if assetData["fbxPath"] != "NA": formats.append("Fbx")
+            if assetData["fbxPath"] != "N/A":
+                formats.append("Fbx")
+            else:
+                pass
         except KeyError:
             pass
 
         try:
-            if assetData["abcPath"] != "NA": formats.append("Alembic")
+            if assetData["abcPath"] != "N/A":
+                formats.append("Alembic")
+            else:
+                pass
         except KeyError:
             pass
 
