@@ -208,6 +208,12 @@ class RootManager(object):
         logger.debug("Func: subProject/getter")
         return self._subProjectsList[self.currentSubIndex]
 
+    @property
+    def scenesDir(self):
+        """Returns the absolute path of the scenes folder"""
+        logger.debug("Func: scenesDir/getter")
+        return self._pathsDict["scenesDir"]
+
     # @property
     # def baseScene(self):
     #     """Returns the name of the Base Scene at cursor position"""
@@ -286,6 +292,13 @@ class RootManager(object):
             self._exception(101, msg)
             return
         self._setCurrents("currentUser", name)
+
+    @property
+    def currentUserInitials(self):
+        """Returns the current user initials"""
+        logger.debug("Func: currentUserInitials/getter")
+        return self._usersDict[self.currentUser]
+
 
     @property
     def currentMode(self):

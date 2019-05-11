@@ -2251,6 +2251,8 @@ class MainUI(QtWidgets.QMainWindow):
         saveBaseScene_Dialog = QtWidgets.QDialog(parent=self)
         saveBaseScene_Dialog.setModal(True)
         saveBaseScene_Dialog.setObjectName(("save_Dialog"))
+        saveBaseScene_Dialog.setWindowTitle("Save Base Scene")
+        saveBaseScene_Dialog.resize(600, 350)
 
         horizontalLayout = QtWidgets.QHBoxLayout(saveBaseScene_Dialog)
 
@@ -2262,6 +2264,14 @@ class MainUI(QtWidgets.QMainWindow):
 
         left_verticalLayout = QtWidgets.QVBoxLayout(verticalLayoutWidget_2)
 
+        resolvedPath_label = QtWidgets.QLabel(verticalLayoutWidget_2)
+        # resolvedName_label.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        resolvedPath_label.setText((""))
+        resolvedPath_label.setIndent(12)
+        resolvedPath_label.setWordWrap(True)
+        resolvedPath_label.setFont(QtGui.QFont("Time", 7, QtGui.QFont.Bold))
+        left_verticalLayout.addWidget(resolvedPath_label)
+
         left_verticalLayout.setContentsMargins(0, -1, 12, 10)
 
         formLayout = QtWidgets.QFormLayout()
@@ -2269,9 +2279,14 @@ class MainUI(QtWidgets.QMainWindow):
         formLayout.setHorizontalSpacing(16)
         formLayout.setVerticalSpacing(20)
 
+        # resolvedName_label = QtWidgets.QLabel(verticalLayoutWidget_2)
+        # resolvedName_label.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        # resolvedName_label.setText(("Resolved Name "))
+        # formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, resolvedName_label)
+
         subProject_label = QtWidgets.QLabel(verticalLayoutWidget_2)
         subProject_label.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        subProject_label.setText(("Sub-Proect "))
+        subProject_label.setText(("Sub-Project "))
         formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, subProject_label)
 
         subProject_comboBox = QtWidgets.QComboBox(verticalLayoutWidget_2)
@@ -2361,6 +2376,27 @@ class MainUI(QtWidgets.QMainWindow):
         horizontalLayout.addWidget(splitter)
 
         ######
+        scenesDir = self.manager.scenesDir
+        projectDir = self.manager.projectDir
+        relScenesDir = os.path.relpath(scenesDir, projectDir)
+        def getResolvedPath():
+
+            category = category_comboBox.currentText()
+            name = lineEdit.text()
+            userInitials = self.manager.currentUserInitials
+            if self._checkValidity(lineEdit.text(), buttonBox, lineEdit):
+                subP=subProject_comboBox.currentText()
+                subProject = "" if subP == "None" else subP
+                sceneFormat = ""
+                for button in radioButtonList:
+                    if button.isChecked():
+                        sceneFormat = button.text()
+                        break
+                resolvedText = "{0}\{1}\{2}\{3}\{3}_{1}_{4}_v001.{5}".format(relScenesDir, category, subProject, name, userInitials, sceneFormat)
+                resolvedText = resolvedText.replace("\\\\", "\\")
+            else:
+                resolvedText = ""
+            resolvedPath_label.setText(resolvedText)
 
         def saveCommand():
             checklist = self.manager.preSaveChecklist()
@@ -2391,10 +2427,14 @@ class MainUI(QtWidgets.QMainWindow):
 
         # SIGNALS
         # -------
-        lineEdit.textChanged.connect(
-            lambda: self._checkValidity(lineEdit.text(), buttonBox, lineEdit))
+        lineEdit.textChanged.connect(getResolvedPath)
+        # lineEdit.textChanged.connect(lambda: self._checkValidity(lineEdit.text(), buttonBox, lineEdit))
+
 
         buttonBox.accepted.connect(saveCommand)
+
+        for rb in radioButtonList:
+            rb.toggled.connect(getResolvedPath)
 
 
         # self.sd_buttonBox.accepted.connect(self.save_Dialog.accept)
@@ -2409,15 +2449,24 @@ class MainUI(QtWidgets.QMainWindow):
         saveV_Dialog = QtWidgets.QDialog(parent=self)
         saveV_Dialog.setModal(True)
         saveV_Dialog.setObjectName(("saveV_Dialog"))
-        saveV_Dialog.resize(255, 290)
-        saveV_Dialog.setMinimumSize(QtCore.QSize(255, 290))
-        saveV_Dialog.setMaximumSize(QtCore.QSize(255, 290))
+        saveV_Dialog.resize(255, 365)
+        saveV_Dialog.setMinimumSize(QtCore.QSize(255, 365))
+        saveV_Dialog.setMaximumSize(QtCore.QSize(600, 600))
         saveV_Dialog.setWindowTitle(("Save As Version"))
 
         horizontalLayout = QtWidgets.QHBoxLayout(saveV_Dialog)
         right_verticalLayout = QtWidgets.QVBoxLayout()
         right_verticalLayout.setContentsMargins(-1, -1, 10, 10)
         right_verticalLayout.setSpacing(6)
+
+        resolvedPath_label = QtWidgets.QLabel(saveV_Dialog)
+        # resolvedPath_label.setIndent(12)
+        resolvedPath_label.setWordWrap(True)
+        # resolvedPath_label.setFont(QtGui.QFont("Time", 7, QtGui.QFont.Bold))
+
+        resolvedPath_label.setText("")
+        right_verticalLayout.addWidget(resolvedPath_label)
+
 
         notes_label = QtWidgets.QLabel(saveV_Dialog)
         notes_label.setText(("Notes"))
@@ -2470,45 +2519,13 @@ class MainUI(QtWidgets.QMainWindow):
         right_verticalLayout.addWidget(sv_buttonBox)
         horizontalLayout.addLayout(right_verticalLayout)
 
+
         buttonS = sv_buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
         buttonS.setText('Save As Version')
         buttonS.setMinimumSize(QtCore.QSize(100, 30))
         buttonC = sv_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel)
         buttonC.setText('Cancel')
         buttonC.setMinimumSize(QtCore.QSize(100, 30))
-
-        # svNotes_label = QtWidgets.QLabel(saveV_Dialog)
-        # svNotes_label.setGeometry(QtCore.QRect(15, 15, 100, 20))
-        # svNotes_label.setText(("Version Notes"))
-        # svNotes_label.setObjectName(("sdNotes_label"))
-        #
-        # self.svNotes_textEdit = QtWidgets.QTextEdit(saveV_Dialog)
-        # self.svNotes_textEdit.setGeometry(QtCore.QRect(15, 40, 215, 170))
-        # self.svNotes_textEdit.setObjectName(("sdNotes_textEdit"))
-        #
-        # self.svMakeReference_checkbox = QtWidgets.QCheckBox("Make it Reference", saveV_Dialog)
-        # self.svMakeReference_checkbox.setGeometry(QtCore.QRect(130, 215, 151, 22))
-        # self.svMakeReference_checkbox.setChecked(False)
-        #
-        # if BoilerDict["Environment"] == "Houdini" or BoilerDict["Environment"] == "Nuke":
-        #     self.svMakeReference_checkbox.setVisible(False)
-        # else:
-        #     self.svMakeReference_checkbox.setVisible(True)
-        #
-        #
-        # sv_buttonBox = QtWidgets.QDialogButtonBox(saveV_Dialog)
-        # sv_buttonBox.setGeometry(QtCore.QRect(20, 250, 220, 32))
-        # sv_buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        # sv_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Save | QtWidgets.QDialogButtonBox.Cancel)
-        # sv_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
-        # sv_buttonBox.button(QtWidgets.QDialogButtonBox.Save).setMinimumSize(QtCore.QSize(100, 30))
-        #
-        # buttonS = sv_buttonBox.button(QtWidgets.QDialogButtonBox.Save)
-        # buttonS.setText('Save As Version')
-        # buttonC = sv_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel)
-        # buttonC.setText('Cancel')
-        #
-        # sv_buttonBox.setObjectName(("sd_buttonBox"))
 
         def saveAsVersionCommand():
             # TODO : ref
@@ -2542,12 +2559,34 @@ class MainUI(QtWidgets.QMainWindow):
             self.scenes_listWidget.setCurrentRow(currentRow)
             saveV_Dialog.accept()
 
+        def getResolvedPath():
+            # Resolve and display filename info
+            sceneFormat = ""
+            for button in radioButtonList:
+                if button.isChecked():
+                    sceneFormat = button.text()
+                    break
+
+            sceneInfo = self.manager.getOpenSceneInfo()
+            jsonFile = sceneInfo["jsonFile"]
+            jsonInfo = self.manager._loadJson(jsonFile)
+
+            currentVersion = len(jsonInfo["Versions"]) + 1
+            sceneName = "{0}_{1}_{2}_v{3}".format(jsonInfo["Name"], jsonInfo["Category"],
+                                                  self.manager.currentUserInitials,
+                                                  str(currentVersion).zfill(3))
+            relSceneFile = os.path.join(jsonInfo["Path"], "{0}.{1}".format(sceneName, sceneFormat))
+            resolvedPath_label.setText("\\%s" %relSceneFile)
+
+        getResolvedPath()
+
         # SIGNALS
         # -------
         sv_buttonBox.accepted.connect(saveAsVersionCommand)
         sv_buttonBox.rejected.connect(saveV_Dialog.reject)
 
-
+        for rb in radioButtonList:
+            rb.toggled.connect(getResolvedPath)
 
         sceneInfo = self.manager.getOpenSceneInfo()
         if sceneInfo:
@@ -3113,12 +3152,16 @@ class MainUI(QtWidgets.QMainWindow):
 
 
     def _checkValidity(self, text, button, lineEdit, allowSpaces=False):
+        if text == "":
+            return False
         if self.manager.nameCheck(text, allowSpaces=allowSpaces):
             lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: white")
             button.setEnabled(True)
+            return True
         else:
             lineEdit.setStyleSheet("background-color: red; color: black")
             button.setEnabled(False)
+            return False
 
     def _vEnableDisable(self):
         manager = self._getManager()

@@ -15,6 +15,7 @@ Tik Manager Version History
 * **Update.5** Image Viewer default window sizes changed.
 * **Update.51** Basic Houdini hiplc compatibility added
 * **Fix.51** Linux and MacOs show in folder method fixed
+* **Update.52** File name resolves added to save base Scene and Save Version Screens
 
 2.4
 ---
