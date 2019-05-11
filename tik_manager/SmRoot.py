@@ -31,6 +31,7 @@
 # -----------------------------------------------------------------------------
 
 import platform
+import subprocess
 import datetime
 import os
 import logging
@@ -810,12 +811,18 @@ class RootManager(object):
 
         if self.currentPlatform == "Windows":
             os.startfile(path)
-        elif self.currentPlatform == "Linux":
-            os.system('nautilus %s' % path)
+        elif self.currentPlatform == "Darwin":
+            subprocess.Popen(["open", path])
         else:
-            msg = "%s is not supported" %self.currentPlatform
-            self._exception(210, msg)
-            return
+            print "HHH", path
+            subprocess.Popen(["xdg-open", path])
+
+        # elif self.currentPlatform == "Linux":
+        #     os.system('nautilus %s' % path)
+        # else:
+        #     msg = "%s is not supported" %self.currentPlatform
+        #     self._exception(210, msg)
+        #     return
 
     def scanBaseScenes(self, categoryAs=None, subProjectAs=None):
         """Returns the basescene database files in current category"""
