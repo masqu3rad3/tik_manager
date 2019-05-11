@@ -111,7 +111,7 @@ try:
     import hou
     BoilerDict["Environment"] = "Houdini"
     BoilerDict["WindowTitle"] = "Tik Manager Houdini v%s" %_version.__version__
-    BoilerDict["SceneFormats"] = ["hip"]
+    BoilerDict["SceneFormats"] = ["hip", "hiplc"]
 except ImportError:
     pass
 

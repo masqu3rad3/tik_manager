@@ -13,6 +13,8 @@ Tik Manager Version History
 * **Update.5** Default root path for Image Viewer changed to the project directory.
 * **Fix.5** The bug when browsing the root in Image Viewer fixed. Now it starts browsing from the current defined root.
 * **Update.5** Image Viewer default window sizes changed.
+* **Update.51** Basic Houdini hiplc compatibility added
+* **Fix.51** Linux and MacOs show in folder method fixed
 
 2.4
 ---

@@ -75,6 +75,8 @@ class HoudiniManager(RootManager):
     def __init__(self):
         super(HoudiniManager, self).__init__()
 
+        # self.formatDict = {"hip": ".hip", "hiplc": ".hiplc"}
+
         self.init_paths()
         self.init_database()
 
