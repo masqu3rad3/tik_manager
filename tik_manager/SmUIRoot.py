@@ -88,7 +88,7 @@ BoilerDict = {"Environment":"Standalone",
 try:
     from maya import OpenMayaUI as omui
     BoilerDict["Environment"] = "Maya"
-    BoilerDict["WindowTitle"] = "Scene Manager Maya v%s" %_version.__version__
+    BoilerDict["WindowTitle"] = "Tik Manager Maya v%s" %_version.__version__
     BoilerDict["SceneFormats"] = ["mb", "ma"]
     if Qt.__binding__ == "PySide":
         from shiboken import wrapInstance
@@ -102,7 +102,7 @@ except ImportError:
 try:
     import MaxPlus
     BoilerDict["Environment"] = "3dsMax"
-    BoilerDict["WindowTitle"] = "Scene Manager 3ds Max v%s" %_version.__version__
+    BoilerDict["WindowTitle"] = "Tik Manager 3ds Max v%s" %_version.__version__
     BoilerDict["SceneFormats"] = ["max"]
 except ImportError:
     pass
@@ -110,7 +110,7 @@ except ImportError:
 try:
     import hou
     BoilerDict["Environment"] = "Houdini"
-    BoilerDict["WindowTitle"] = "Scene Manager Houdini v%s" %_version.__version__
+    BoilerDict["WindowTitle"] = "Tik Manager Houdini v%s" %_version.__version__
     BoilerDict["SceneFormats"] = ["hip"]
 except ImportError:
     pass
@@ -118,10 +118,15 @@ except ImportError:
 try:
     import nuke
     BoilerDict["Environment"] = "Nuke"
-    BoilerDict["WindowTitle"] = "Scene Manager Nuke v%s" % _version.__version__
+    BoilerDict["WindowTitle"] = "Tik Manager Nuke v%s" % _version.__version__
     BoilerDict["SceneFormats"] = ["nk"]
 except ImportError:
     pass
+
+if bool(os.getenv("PS_APP")): # if the request is coming from the SmPhotoshop
+    BoilerDict["Environment"] = "Standalone" # technically it is still standalone...
+    BoilerDict["WindowTitle"] = "Tik Manager Photoshop v%s" % _version.__version__
+    BoilerDict["SceneFormats"] = ["psd", "psb"]
 
 
 

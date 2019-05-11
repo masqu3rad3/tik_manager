@@ -185,35 +185,6 @@ class SwViewer(RootManager):
         self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
         self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerDefaults.json"))
 
-    #
-    # def init_paths(self, commonFolder):
-    #     """Overriden function"""
-    #     self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(os.path.expanduser("~"), "Documents", "SceneManager", "Standalone"))
-    #     self._folderCheck(self._pathsDict["userSettingsDir"])
-    #
-    #     self._pathsDict["bookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smBookmarks.json"))
-    #     self._pathsDict["currentsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smCurrents.json"))
-    #     self._pathsDict["projectsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smProjects.json"))
-    #
-    #     self._pathsDict["commonFolderFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smCommonFolder.json"))
-    #
-    #     self._pathsDict["projectDir"] = self.getProjectDir()
-    #     self._pathsDict["sceneFile"] = ""
-    #
-    #     self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
-    #
-    #     self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
-    #
-    #     self._pathsDict["generalSettingsDir"] = commonFolder
-    #
-    #     self._pathsDict["generalSettingsDir"] = os.path.dirname(os.path.abspath(__file__))
-    #
-    #     self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerUsers.json"))
-    #
-    #     self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
-    #     self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerDefaults.json"))
-    #
-
     def getSoftwarePaths(self):
         """Overriden function"""
         return self.swDict
@@ -533,7 +504,6 @@ class StandaloneManager(RootManager):
 
         self.initSoftwares()
 
-
     def init_paths(self):
         """Overriden function"""
 
@@ -611,7 +581,6 @@ class StandaloneManager(RootManager):
         self.init_paths()
         self.init_database()
         self.initSoftwares()
-
 
     def initSoftwares(self):
         # We need to get which softwares are used in the current project
@@ -767,7 +736,6 @@ class StandaloneManager(RootManager):
             msg = "Cannot save common folder file"
             return -1, msg
 
-
     def _loadUserPrefs(self):
         """OVERRIDEN FUNCTION Load Last CategoryIndex, SubProject Index,
         User name and Access mode from file as dictionary"""
@@ -784,35 +752,6 @@ class StandaloneManager(RootManager):
                             "currentMode": 1} # for compatibility issues
             self._dumpJson(settingsData, self._pathsDict["currentsFile"])
         return settingsData
-
-
-
-
-    # def getAllBaseScenes(self):
-    #     """Collects all base scenes for each category at cursor category and subproject"""
-    #     pass
-
-    # def _folderCheck(self, folder):
-    #     if not os.path.isdir(os.path.normpath(folder)):
-    #         os.makedirs(os.path.normpath(folder))
-    #
-    # def _loadJson(self, file):
-    #     """Loads the given json file"""
-    #     if os.path.isfile(file):
-    #         try:
-    #             with open(file, 'r') as f:
-    #                 data = json.load(f)
-    #                 return data
-    #         except ValueError:
-    #             msg = "Corrupted JSON file => %s" % file
-    #             return -2 # code for corrupted json file
-    #     else:
-    #         return None
-    #
-    # def _dumpJson(self, data, file):
-    #     """Saves the data to the json file"""
-    #     with open(file, "w") as f:
-    #         json.dump(data, f, indent=4)
 
 class MainUI(baseUI):
     """Main UI Class. Inherits SmUIRoot.py"""
@@ -906,7 +845,6 @@ class MainUI(baseUI):
 
         self._vEnableDisable()
         self.category_tabWidget.blockSignals(False)
-
 
     def _getManager(self):
         """OVERRIDEN to select different software managers"""
