@@ -29,8 +29,10 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 # -----------------------------------------------------------------------------
-
+import datetime
+import socket
 import sys, os
+import shutil
 
 # Set the force pyqt environment variable to tell the other modulea not to use Qt.py module
 os.environ["FORCE_QT4"]="True"
@@ -126,6 +128,277 @@ class PsManager(RootManager):
     def getSceneFile(self):
         # """This method must be overridden to return the full scene path ('' for unsaved) of current scene"""
         logger.debug("Func: getSceneFile")
+        try:
+            activeDocument = psApp.Application.ActiveDocument
+            docName = activeDocument.name
+            docPath = activeDocument.path
+            return os.path.join(docPath, docName)
+        except:
+            return False
+
+    def saveBaseScene(self, categoryName, baseName, subProjectIndex=0, makeReference=False, versionNotes="", sceneFormat="psd", *args, **kwargs):
+        """
+        Saves the PS document with formatted name and creates a json file for the scene
+        Args:
+            category: (String) Category if the scene. Valid categories are 'Model', 'Animation', 'Rig', 'Shading', 'Other'
+            baseName: (String) Base name of the document. Eg. 'initialConcept', 'CharacterA', 'BookDesign' etc...
+            subProject: (Integer) The scene will be saved under the sub-project according to the given integer value. The 'self.subProjectList' will be
+                searched with that integer.
+            makeReference: (Boolean) This has no effect, needed for compatibility issues.
+            versionNotes: (String) This string will be stored in the json file as version notes.
+            *args:
+            **kwargs:
+
+        Returns: Scene DB Dictionary
+        """
+        logger.debug("Func: saveBaseScene")
+
+        now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
+        completeNote = "[%s] on %s\n%s\n" % (self.currentUser, now, versionNotes)
+
+        # Check if the base name is unique
+        scenesToCheck = self.scanBaseScenes(categoryAs=categoryName, subProjectAs=subProjectIndex)
+        for key in scenesToCheck.keys():
+            if baseName.lower() == key.lower():
+                msg = ("Base Scene Name is not unique!\nABORTING")
+                self._exception(360, msg)
+                return -1, msg
+
+        projectPath = self.projectDir
+        databaseDir = self._pathsDict["databaseDir"]
+        scenesPath = self._pathsDict["scenesDir"]
+        categoryPath = os.path.normpath(os.path.join(scenesPath, categoryName))
+        self._folderCheck(categoryPath)
+
+        ## if its going to be saved as a subproject
+        if not subProjectIndex == 0:
+            subProjectPath = os.path.normpath(os.path.join(categoryPath, self._subProjectsList[subProjectIndex]))
+            self._folderCheck(subProjectPath)
+            shotPath = os.path.normpath(os.path.join(subProjectPath, baseName))
+            self._folderCheck(shotPath)
+
+            jsonCategoryPath = os.path.normpath(os.path.join(databaseDir, categoryName))
+            self._folderCheck(jsonCategoryPath)
+            jsonCategorySubPath = os.path.normpath(os.path.join(jsonCategoryPath, self._subProjectsList[subProjectIndex]))
+            self._folderCheck(jsonCategorySubPath)
+            jsonFile = os.path.join(jsonCategorySubPath, "{}.json".format(baseName))
+
+        else:
+            shotPath = os.path.normpath(os.path.join(categoryPath, baseName))
+            self._folderCheck(shotPath)
+
+            jsonCategoryPath = os.path.normpath(os.path.join(databaseDir, categoryName))
+            self._folderCheck(jsonCategoryPath)
+            jsonFile = os.path.join(jsonCategoryPath, "{}.json".format(baseName))
+
+        version = 1
+        sceneName = "{0}_{1}_{2}_v{3}".format(baseName, categoryName, self._usersDict[self.currentUser], str(version).zfill(3))
+        sceneFile = os.path.join(shotPath, "{0}.{1}".format(sceneName, sceneFormat))
+        ## relativity update
+        relSceneFile = os.path.relpath(sceneFile, start=projectPath)
+
+        activeDocument = psApp.Application.ActiveDocument
+        PhotoshopSaveOptions=Dispatch("Photoshop.PhotoshopSaveOptions")
+        PhotoshopSaveOptions.AlphaChannels = True
+        PhotoshopSaveOptions.Annotations = True
+        PhotoshopSaveOptions.Layers = True
+        PhotoshopSaveOptions.SpotColors = True
+        activeDocument.SaveAs(sceneFile, PhotoshopSaveOptions, False)
+
+        thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=version)
+
+        jsonInfo = {}
+
+
+        jsonInfo["ReferenceFile"] = None
+        jsonInfo["ReferencedVersion"] = None
+
+        jsonInfo["ID"] = "SmNukeV02_sceneFile"
+        jsonInfo["PSVersion"] = psApp.Version
+        jsonInfo["Name"] = baseName
+        jsonInfo["Path"] = os.path.relpath(shotPath, start=projectPath)
+        jsonInfo["Category"] = categoryName
+        jsonInfo["Creator"] = self.currentUser
+        jsonInfo["CreatorHost"] = (socket.gethostname())
+        jsonInfo["Versions"] = [ # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
+            {"RelativePath": relSceneFile,
+             "Note": completeNote,
+             "User": self._usersDict[self.currentUser],
+             "Workstation": socket.gethostname(),
+             "Preview": {},
+             "Thumb": thumbPath,
+             "Ranges": ""
+             }
+        ]
+
+        jsonInfo["SubProject"] = self._subProjectsList[subProjectIndex]
+        self._dumpJson(jsonInfo, jsonFile)
+        return [0, ""]
+
+    def saveVersion(self, makeReference=False, versionNotes="", sceneFormat="mb", *args, **kwargs):
+        """
+        Saves a version for the predefined scene. The scene json file must be present at the /data/[Category] folder.
+        Args:
+            makeReference: (Boolean) ** Does nothing, consistency purposes
+            versionNotes: (String) This string will be hold in the json file as well. Notes about the changes in the version.
+            *args:
+            **kwargs:
+
+        Returns: Scene DB Dictionary
+
+        """
+        logger.debug("Func: saveVersion")
+
+        now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
+        completeNote = "[%s] on %s\n%s\n" % (self.currentUser, now, versionNotes)
+
+        sceneName = self.getSceneFile()
+        if not sceneName:
+            msg = "This is not a base scene (Untitled)"
+            self._exception(360, msg)
+            return -1, msg
+
+        sceneInfo = self.getOpenSceneInfo()
+
+        if sceneInfo: ## getCurrentJson returns None if the resolved json path is missing
+            jsonFile = sceneInfo["jsonFile"]
+            jsonInfo = self._loadJson(jsonFile)
+
+            currentVersion = len(jsonInfo["Versions"]) + 1
+            sceneName = "{0}_{1}_{2}_v{3}".format(jsonInfo["Name"], jsonInfo["Category"], self._usersDict[self.currentUser],
+                                                  str(currentVersion).zfill(3))
+            relSceneFile = os.path.join(jsonInfo["Path"], "{0}.{1}".format(sceneName, sceneFormat))
+
+            sceneFile = os.path.join(sceneInfo["projectPath"], relSceneFile)
+
+            # -- Save PSD
+            activeDocument = psApp.Application.ActiveDocument
+            PhotoshopSaveOptions=Dispatch("Photoshop.PhotoshopSaveOptions")
+            PhotoshopSaveOptions.AlphaChannels = True
+            PhotoshopSaveOptions.Annotations = True
+            PhotoshopSaveOptions.Layers = True
+            PhotoshopSaveOptions.SpotColors = True
+            activeDocument.SaveAs(sceneFile, PhotoshopSaveOptions, False)
+
+            thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=currentVersion)
+
+            jsonInfo["Versions"].append(
+                # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
+            # TODO : ref => Dict
+                {"RelativePath": relSceneFile,
+                 "Note": completeNote,
+                 "User": self._usersDict[self.currentUser],
+                 "Workstation": socket.gethostname(),
+                 "Preview": {},
+                 "Thumb": thumbPath,
+                 "Ranges": ""
+                 }
+                )
+
+            self._dumpJson(jsonInfo, jsonFile)
+        else:
+            msg = "This is not a base scene (Json file cannot be found)"
+            self._exception(360, msg)
+            return -1, msg
+        return jsonInfo
+
+    def exportAsSourceImage(self, format="jpg"):
+        # ???
+        # resolve path as <sourceImages folder>/<baseName>.<format>
+        pass
+
+
+    def loadBaseScene(self, force=False):
+        """Loads the scene at cursor position"""
+        logger.debug("Func: loadBaseScene")
+        relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"]
+        absSceneFile = os.path.join(self.projectDir, relSceneFile)
+        if os.path.isfile(absSceneFile):
+            psApp.Open(absSceneFile)
+            return 0
+        else:
+            msg = "File in Scene Manager database doesnt exist"
+            self._exception(201, msg)
+            return -1, msg
+
+    def createThumbnail(self, useCursorPosition=False, dbPath = None, versionInt = None):
+        """
+        Creates the thumbnail file.
+        :param databaseDir: (String) If defined, this folder will be used to store the created database.
+        :param version: (integer) if defined this version number will be used instead currently open scene version.
+        :return: (String) Relative path of the thumbnail file
+        """
+
+        logger.debug("Func: createThumbnail")
+        projectPath = self.projectDir
+        if useCursorPosition:
+            versionInt = self.currentVersionIndex
+            dbPath = self.currentDatabasePath
+        else:
+            if not dbPath or not versionInt:
+                msg = "Both dbPath and version must be defined if useCursorPosition=False"
+                raise Exception ([360, msg])
+
+        versionStr = "v%s" % (str(versionInt).zfill(3))
+        dbDir, shotNameWithExt = os.path.split(dbPath)
+        shotName = os.path.splitext(shotNameWithExt)[0]
+
+        thumbPath = "{0}_{1}_thumb.jpg".format(os.path.join(dbDir, shotName), versionStr)
+        relThumbPath = os.path.relpath(thumbPath, projectPath)
+
+        # create a thumbnail using playblast
+        thumbDir = os.path.split(thumbPath)[0]
+        if os.path.exists(thumbDir):
+            psApp.Preferences.RulerUnits = 1
+            activeDocument = psApp.Application.ActiveDocument
+            dupDocument = activeDocument.Duplicate("thumbnailCopy", True)
+            oWidth = 221
+            oHeight = 124
+            ratio = float(dupDocument.Width) / float(dupDocument.Height)
+            if ratio <= 1.782:
+                new_width = oHeight * ratio
+                new_height = oHeight
+            else:
+                new_width = oWidth
+                new_height = oWidth / ratio
+            dupDocument.ResizeImage(new_width, new_height)
+            dupDocument.ResizeCanvas(oWidth, oHeight)
+            jpgSaveOptions = Dispatch("Photoshop.JPEGSaveOptions")
+            jpgSaveOptions.EmbedColorProfile = True
+            jpgSaveOptions.FormatOptions = 1  # => psStandardBaseline
+            jpgSaveOptions.Matte = 1  # => No Matte
+            jpgSaveOptions.Quality = 6
+            dupDocument.SaveAs(thumbPath, jpgSaveOptions, True)
+            dupDocument.Close(2)  # 2 means without saving
+        else:
+            print ("something went wrong with thumbnail. Skipping thumbnail")
+            return ""
+        return relThumbPath
+
+    def preSaveChecklist(self):
+        """Checks the scene for inconsistencies"""
+        checklist = []
+
+        # TODO check for something?
+        # fpsValue_setting = self.getFPS()
+        # fpsValue_current = nuke.root().fps()
+        #
+        # if fpsValue_setting is not fpsValue_current:
+        #     msg = "FPS values are not matching with the project settings.\n Project FPS => {0}\n scene FPS => {1}\nDo you want to continue?".format(fpsValue_setting, fpsValue_current)
+        #     checklist.append(msg)
+
+        return checklist
+
+    def compareVersions(self):
+        """Compares the versions of current session and database version at cursor position"""
+        logger.debug("Func: compareVersions")
+
+        # assumes compatibilty maximized
+        return 0, ""
+
+    def isSceneModified(self):
+        """Checks the currently open scene saved or not"""
+        logger.debug("Func: isSceneModified")
         return False
 
     def _loadCategories(self):
@@ -141,6 +414,7 @@ class PsManager(RootManager):
             categoriesData = ["Concept", "Storyboard", "Texture", "Other"]
             self._dumpJson(categoriesData, self._pathsDict["categoriesFile"])
         return categoriesData
+
 
 class MainUI(baseUI):
     """Main UI Class. Inherits SmUIRoot.py"""

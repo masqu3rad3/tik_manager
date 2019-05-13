@@ -2269,7 +2269,7 @@ class MainUI(QtWidgets.QMainWindow):
         resolvedPath_label.setText((""))
         resolvedPath_label.setIndent(12)
         resolvedPath_label.setWordWrap(True)
-        resolvedPath_label.setFont(QtGui.QFont("Time", 7, QtGui.QFont.Bold))
+        # resolvedPath_label.setFont(QtGui.QFont("Time", 7, QtGui.QFont.Bold))
         left_verticalLayout.addWidget(resolvedPath_label)
 
         left_verticalLayout.setContentsMargins(0, -1, 12, 10)
@@ -2416,7 +2416,7 @@ class MainUI(QtWidgets.QMainWindow):
                     sceneFormat = button.text()
                     break
             AssertionError(sceneFormat)
-            state = self.manager.saveBaseScene(category, name, subIndex, makeReference, notes, sceneFormat)
+            state = self.manager.saveBaseScene(str(category), str(name), subIndex, makeReference, notes, sceneFormat)
             if state[0] != -1:
                 self.populateBaseScenes()
                 self.manager.getOpenSceneInfo()

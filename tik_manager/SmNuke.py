@@ -181,7 +181,6 @@ class NukeManager(RootManager):
         Saves the scene with formatted name and creates a json file for the scene
         Args:
             category: (String) Category if the scene. Valid categories are 'Model', 'Animation', 'Rig', 'Shading', 'Other'
-            userName: (String) Predefined user who initiates the process
             baseName: (String) Base name of the scene. Eg. 'Shot01', 'CharacterA', 'BookRig' etc...
             subProject: (Integer) The scene will be saved under the sub-project according to the given integer value. The 'self.subProjectList' will be
                 searched with that integer.
