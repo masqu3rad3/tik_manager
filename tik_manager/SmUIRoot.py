@@ -2568,6 +2568,8 @@ class MainUI(QtWidgets.QMainWindow):
                     break
 
             sceneInfo = self.manager.getOpenSceneInfo()
+            if not sceneInfo:
+                return
             jsonFile = sceneInfo["jsonFile"]
             jsonInfo = self.manager._loadJson(jsonFile)
 

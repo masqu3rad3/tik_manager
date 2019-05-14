@@ -40,3 +40,24 @@ jpeg => 8d-vc9_2
 libtiff => 4.0.6-vc9_2
 PyQt => 4.11.4-py27_7
 qt => 4.8.7_vc9_6
+
+
+-------------------------
+Photoshop extension dirs:
+-------------------------
+Product extension folder. Here is a suggestion, but each point product can decide where this folder should be. Third party extension can't be installed at this location.
+    - ${PP}/CEP/extensions (PPs may use different folder.)
+
+System extension folder
+    - Win(x86): C:\Program Files\Common Files\Adobe\CEP\extensions
+    - Win(x64): C:\Program Files (x86)\Common Files\Adobe\CEP\extensions, and C:\Program Files\Common Files\Adobe\CEP\extensions (since CEP 6.1)
+    - Mac: /Library/Application Support/Adobe/CEP/extensions
+
+Per-user extension folder
+    - Win: C:\Users\<USERNAME>\AppData\Roaming\Adobe\CEP/extensions
+    - Mac: ~/Library/Application Support/Adobe/CEP/extensions
+
+Reference:
+https://github.com/Adobe-CEP/CEP-Resources/blob/master/CEP_8.x/Documentation/CEP%208.0%20HTML%20Extension%20Cookbook.md#extension-folders
+
+

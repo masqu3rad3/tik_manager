@@ -75,6 +75,8 @@ class PsManager(RootManager):
         super(PsManager, self).__init__()
         # hard coded format dictionary to pass the format info to cmds
         self.formatDict = {"psd": "PSD", "psb": "PSB"}
+        self.exportFormats = ["png", "jpg", "tif", "tga", "psd", "bmp"]
+        self.textureTypes = ["Diffuse", "Opacity", "Reflection", "Subsurface", "Displacement", "Normal", "Cavity", "AO", "ID", "Mask", "Custom"]
         self.init_paths()
         self.init_database()
 
@@ -197,7 +199,11 @@ class PsManager(RootManager):
         ## relativity update
         relSceneFile = os.path.relpath(sceneFile, start=projectPath)
 
-        activeDocument = psApp.Application.ActiveDocument
+        openDocs = psApp.Application.Documents
+        if openDocs.Count == 0:
+            activeDocument = psApp.Documents.Add(2048, 2048, 72)
+        else:
+            activeDocument = psApp.Application.ActiveDocument
         PhotoshopSaveOptions=Dispatch("Photoshop.PhotoshopSaveOptions")
         PhotoshopSaveOptions.AlphaChannels = True
         PhotoshopSaveOptions.Annotations = True
@@ -302,9 +308,41 @@ class PsManager(RootManager):
             return -1, msg
         return jsonInfo
 
+    def getTextureVersions(self, baseSceneName):
+
+        #resolve the available texture versions and return the list
+
+        pass
+
     def exportAsSourceImage(self, format="jpg"):
         # ???
+        if format not in self.exportFormats:
+            msg = "Format is not valid. Valid formats are %s" %self.exportFormats
+            self._exception(101, msg)
+            return -1, msg
         # resolve path as <sourceImages folder>/<baseName>.<format>
+
+        activeDocument = psApp.Application.ActiveDocument
+        if format == "jpg":
+            pass
+            # jpgSaveOptions=Dispatch("Photoshop.JPEGSaveOptions")
+            # jpgSaveOptions.EmbedColorProfile = True
+            # jpgSaveOptions.FormatOptions = 1 # => psStandardBaseline
+            # jpgSaveOptions.Matte = 1 # => No Matte
+            # jpgSaveOptions.Quality = 12
+            # activeDocument.SaveAs("E:\\JPGCopy", jpgSaveOptions, True)
+        if format == "png":
+            pass
+        if format == "bmp":
+            pass
+        if format == "tga":
+            pass
+        if format == "psd":
+            pass
+        if format == "tif":
+            pass
+
+
         pass
 
 
@@ -436,6 +474,8 @@ class MainUI(baseUI):
         self.modify()
         self.initMainUI(newborn=True)
 
+        self.exportTextureUI()
+
     def extraMenus(self):
         """Adds extra menu and widgets to the base UI"""
         pass
@@ -454,6 +494,9 @@ class MainUI(baseUI):
         self.load_radioButton.setVisible(False)
         self.reference_radioButton.setChecked(False)
         self.reference_radioButton.setVisible(False)
+
+        self.makeReference_pushButton.setVisible(False)
+        self.showPreview_pushButton.setVisible(False)
         #
         # self.baseScene_label.setVisible(False)
         # self.baseScene_lineEdit.setVisible(False)
@@ -468,6 +511,136 @@ class MainUI(baseUI):
         #
         # self.changeCommonFolder.setVisible(True)
         # self.changeCommonFolder.triggered.connect(self.manager._defineCommonFolder)
+
+    def exportTextureUI(self):
+        self.exportTexture_Dialog = QtWidgets.QDialog(parent=self)
+        self.exportTexture_Dialog.resize(336, 194)
+        self.exportTexture_Dialog.setWindowTitle(("Export Textures"))
+
+        self.verticalLayout = QtWidgets.QVBoxLayout(self.exportTexture_Dialog)
+        self.verticalLayout.setObjectName(("verticalLayout"))
+
+        self.resolvedName_label = QtWidgets.QLabel(self.exportTexture_Dialog)
+        self.resolvedName_label.setText(("Resolved File Name"))
+        self.resolvedName_label.setWordWrap(True)
+        self.resolvedName_label.setObjectName(("resolvedName_label"))
+        self.verticalLayout.addWidget(self.resolvedName_label)
+
+        self.line = QtWidgets.QFrame(self.exportTexture_Dialog)
+        self.line.setFrameShape(QtWidgets.QFrame.HLine)
+        self.line.setFrameShadow(QtWidgets.QFrame.Sunken)
+        self.verticalLayout.addWidget(self.line)
+
+        self.formLayout = QtWidgets.QFormLayout()
+        self.formLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.ExpandingFieldsGrow)
+        self.formLayout.setRowWrapPolicy(QtWidgets.QFormLayout.DontWrapRows)
+        self.formLayout.setLabelAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.formLayout.setFormAlignment(QtCore.Qt.AlignCenter)
+        self.formLayout.setSpacing(12)
+
+        self.format_label = QtWidgets.QLabel(self.exportTexture_Dialog)
+        self.format_label.setText(("Format:"))
+        self.format_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.format_label)
+
+        self.format_layout = QtWidgets.QHBoxLayout()
+
+        self.format_comboBox = QtWidgets.QComboBox(self.exportTexture_Dialog)
+        self.format_comboBox.setMinimumSize(QtCore.QSize(60, 16777215))
+        self.format_comboBox.setMaximumSize(QtCore.QSize(200, 16777215))
+        self.format_comboBox.setObjectName(("format_comboBox"))
+        self.format_comboBox.addItems(self.manager.exportFormats)
+        self.format_layout.addWidget(self.format_comboBox)
+
+        self.alpha_checkBox = QtWidgets.QCheckBox(self.exportTexture_Dialog)
+        self.alpha_checkBox.setText(("Alpha"))
+        self.alpha_checkBox.setChecked(True)
+        self.format_layout.addWidget(self.alpha_checkBox)
+
+        self.formLayout.setLayout(0, QtWidgets.QFormLayout.FieldRole, self.format_layout)
+
+        self.type_label = QtWidgets.QLabel(self.exportTexture_Dialog)
+        self.type_label.setText(("Type:"))
+        self.type_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.type_label)
+
+        self.type_layout =  QtWidgets.QHBoxLayout()
+
+        self.type_comboBox = QtWidgets.QComboBox(self.exportTexture_Dialog)
+        self.type_comboBox.setMinimumSize(QtCore.QSize(75, 16777215))
+        self.type_comboBox.setMaximumSize(QtCore.QSize(200, 16777215))
+        self.type_comboBox.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.type_comboBox.setFrame(True)
+        self.type_comboBox.addItems(self.manager.textureTypes)
+        self.type_layout.addWidget(self.type_comboBox)
+
+        self.customType_lineEdit = QtWidgets.QLineEdit(self.exportTexture_Dialog)
+        self.type_layout.addWidget(self.customType_lineEdit)
+
+        self.formLayout.setLayout(1, QtWidgets.QFormLayout.FieldRole, self.type_layout)
+
+        self.version_label = QtWidgets.QLabel(self.exportTexture_Dialog)
+        self.version_label.setText(("Version:"))
+        self.version_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.version_label)
+
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+
+        version_spinBox = QtWidgets.QSpinBox(self.exportTexture_Dialog)
+        version_spinBox.setMaximumSize(QtCore.QSize(50, 16777215))
+        version_spinBox.setMinimum(1)
+        version_spinBox.setMaximum(999)
+        self.horizontalLayout.addWidget(version_spinBox)
+
+        self.incremental_checkBox = QtWidgets.QCheckBox(self.exportTexture_Dialog)
+        self.incremental_checkBox.setText(("Use Next Available Version"))
+        self.incremental_checkBox.setChecked(True)
+        self.horizontalLayout.addWidget(self.incremental_checkBox)
+
+        self.formLayout.setLayout(2, QtWidgets.QFormLayout.FieldRole, self.horizontalLayout)
+        self.verticalLayout.addLayout(self.formLayout)
+
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.verticalLayout.addItem(spacerItem)
+
+        buttonBox = QtWidgets.QDialogButtonBox(self.exportTexture_Dialog)
+        buttonBox.setGeometry(QtCore.QRect(20, 250, 220, 32))
+        buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
+        buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
+        buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setMinimumSize(QtCore.QSize(100, 30))
+
+        buttonE = buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
+        buttonE.setText('Export')
+        buttonC = buttonBox.button(QtWidgets.QDialogButtonBox.Cancel)
+        buttonC.setText('Cancel')
+
+
+        self.verticalLayout.addWidget(buttonBox)
+
+        def hideUnhideCustom():
+            if self.type_comboBox.currentText() == "Custom":
+                self.customType_lineEdit.setHidden(False)
+            else:
+                self.customType_lineEdit.setHidden(True)
+        hideUnhideCustom()
+
+        def enableDisableVersion():
+            version_spinBox.setDisabled(self.incremental_checkBox.isChecked())
+
+        enableDisableVersion()
+
+        # SIGNALS
+        # -------
+
+        self.type_comboBox.currentIndexChanged.connect(hideUnhideCustom)
+        self.incremental_checkBox.toggled.connect(enableDisableVersion)
+
+        buttonC.clicked.connect(self.exportTexture_Dialog.reject)
+        buttonE.clicked.connect(self.exportTexture_Dialog.accept)
+
+
+        self.exportTexture_Dialog.show()
 
 if __name__ == '__main__':
     selfLoc = os.path.dirname(os.path.abspath(__file__))
