@@ -1481,6 +1481,7 @@ Elapsed Time:{6}
 
         if not os.path.isdir(os.path.normpath(folder)):
             os.makedirs(os.path.normpath(folder))
+        return folder
 
     def nameCheck(self, text, allowSpaces=False):
         """Checks the text for illegal characters, Returns:  corrected Text or -1 for Error """

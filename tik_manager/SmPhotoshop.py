@@ -49,12 +49,13 @@ from SmUIRoot import MainUI as baseUI
 import _version
 # import subprocess
 
-from win32com.client import Dispatch
+# from win32com.client import Dispatch
+import comtypes.client as ct
 
 # import pprint
 import logging
 
-psApp = Dispatch("Photoshop.Application")
+psApp = ct.CreateObject('Photoshop.Application')
 
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Scene Manager for Photoshop"
@@ -75,7 +76,11 @@ class PsManager(RootManager):
         super(PsManager, self).__init__()
         # hard coded format dictionary to pass the format info to cmds
         self.formatDict = {"psd": "PSD", "psb": "PSB"}
-        self.exportFormats = ["png", "jpg", "tif", "tga", "psd", "bmp"]
+        # self.exportFormats = ["png", "jpg", "exr", "tif", "tga", "psd", "bmp"]
+        self.exportFormats8Bit =["png", "jpg", "tif", "tga", "bmp", "psd"]
+        self.exportFormats16Bit =["png", "jpg", "tif", "psd"]
+        self.exportFormats32Bit =["exr", "tif", "hdr", "psd"]
+
         self.textureTypes = ["Diffuse", "Opacity", "Reflection", "Subsurface", "Displacement", "Normal", "Cavity", "AO", "ID", "Mask", "Custom"]
         self.init_paths()
         self.init_database()
@@ -138,6 +143,23 @@ class PsManager(RootManager):
         except:
             return False
 
+    def getFormatOptions(self):
+        """returns the format options according to the bit depth of active document"""
+        try:
+            activeDocument = psApp.Application.ActiveDocument
+            bitDepth = activeDocument.bitsPerChannel
+        except:
+            return []
+
+        if bitDepth == 8:
+            return self.exportFormats8Bit
+        if bitDepth == 16:
+            return self.exportFormats16Bit
+        if bitDepth == 32:
+            return self.exportFormats32Bit
+
+
+
     def saveBaseScene(self, categoryName, baseName, subProjectIndex=0, makeReference=False, versionNotes="", sceneFormat="psd", *args, **kwargs):
         """
         Saves the PS document with formatted name and creates a json file for the scene
@@ -199,17 +221,41 @@ class PsManager(RootManager):
         ## relativity update
         relSceneFile = os.path.relpath(sceneFile, start=projectPath)
 
+
         openDocs = psApp.Application.Documents
         if openDocs.Count == 0:
             activeDocument = psApp.Documents.Add(2048, 2048, 72)
         else:
             activeDocument = psApp.Application.ActiveDocument
-        PhotoshopSaveOptions=Dispatch("Photoshop.PhotoshopSaveOptions")
-        PhotoshopSaveOptions.AlphaChannels = True
-        PhotoshopSaveOptions.Annotations = True
-        PhotoshopSaveOptions.Layers = True
-        PhotoshopSaveOptions.SpotColors = True
-        activeDocument.SaveAs(sceneFile, PhotoshopSaveOptions, False)
+
+        if sceneFormat == "psd":
+            # PhotoshopSaveOptions=ct.CreateObject("Photoshop.PhotoshopSaveOptions")
+            # PhotoshopSaveOptions.AlphaChannels = True
+            # PhotoshopSaveOptions.Annotations = True
+            # PhotoshopSaveOptions.Layers = True
+            # PhotoshopSaveOptions.SpotColors = True
+            # activeDocument.SaveAs(sceneFile, PhotoshopSaveOptions, False)
+
+            desc19 = ct.CreateObject("Photoshop.ActionDescriptor")
+            desc20 = ct.CreateObject("Photoshop.ActionDescriptor")
+            desc20.putBoolean(psApp.StringIDToTypeID('maximizeCompatibility'), True)
+            desc19.putObject(
+                psApp.CharIDToTypeID('As  '), psApp.CharIDToTypeID('Pht3'), desc20)
+            desc19.putPath(psApp.CharIDToTypeID('In  '), sceneFile)
+            desc19.putBoolean(psApp.CharIDToTypeID('LwCs'), True)
+            psApp.executeAction(psApp.CharIDToTypeID('save'), desc19, 3)
+
+        else:
+
+            desc19 = ct.CreateObject("Photoshop.ActionDescriptor")
+            desc20 = ct.CreateObject("Photoshop.ActionDescriptor")
+            desc20.putBoolean(psApp.StringIDToTypeID('maximizeCompatibility'), True)
+
+            desc19.putObject(
+                psApp.CharIDToTypeID('As  '), psApp.CharIDToTypeID('Pht8'), desc20)
+            desc19.putPath(psApp.CharIDToTypeID('In  '), sceneFile)
+            desc19.putBoolean(psApp.CharIDToTypeID('LwCs'), True)
+            psApp.executeAction(psApp.CharIDToTypeID('save'), desc19, 3)
 
         thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=version)
 
@@ -241,7 +287,7 @@ class PsManager(RootManager):
         self._dumpJson(jsonInfo, jsonFile)
         return [0, ""]
 
-    def saveVersion(self, makeReference=False, versionNotes="", sceneFormat="mb", *args, **kwargs):
+    def saveVersion(self, makeReference=False, versionNotes="", sceneFormat="psd", *args, **kwargs):
         """
         Saves a version for the predefined scene. The scene json file must be present at the /data/[Category] folder.
         Args:
@@ -278,13 +324,37 @@ class PsManager(RootManager):
             sceneFile = os.path.join(sceneInfo["projectPath"], relSceneFile)
 
             # -- Save PSD
-            activeDocument = psApp.Application.ActiveDocument
-            PhotoshopSaveOptions=Dispatch("Photoshop.PhotoshopSaveOptions")
-            PhotoshopSaveOptions.AlphaChannels = True
-            PhotoshopSaveOptions.Annotations = True
-            PhotoshopSaveOptions.Layers = True
-            PhotoshopSaveOptions.SpotColors = True
-            activeDocument.SaveAs(sceneFile, PhotoshopSaveOptions, False)
+
+            if sceneFormat == "psd":
+                # activeDocument = psApp.Application.ActiveDocument
+                # PhotoshopSaveOptions = ct.CreateObject("Photoshop.PhotoshopSaveOptions")
+                # PhotoshopSaveOptions.AlphaChannels = True
+                # PhotoshopSaveOptions.Annotations = True
+                # PhotoshopSaveOptions.Layers = True
+                # PhotoshopSaveOptions.SpotColors = True
+                # activeDocument.SaveAs(sceneFile, PhotoshopSaveOptions, False)
+
+                desc19 = ct.CreateObject("Photoshop.ActionDescriptor")
+                desc20 = ct.CreateObject("Photoshop.ActionDescriptor")
+                desc20.putBoolean(psApp.StringIDToTypeID('maximizeCompatibility'), True)
+
+                desc19.putObject(
+                    psApp.CharIDToTypeID('As  '), psApp.CharIDToTypeID('Pht3'), desc20)
+                desc19.putPath(psApp.CharIDToTypeID('In  '), sceneFile)
+                desc19.putBoolean(psApp.CharIDToTypeID('LwCs'), True)
+                psApp.executeAction(psApp.CharIDToTypeID('save'), desc19, 3)
+
+            else:
+
+                desc19 = ct.CreateObject("Photoshop.ActionDescriptor")
+                desc20 = ct.CreateObject("Photoshop.ActionDescriptor")
+                desc20.putBoolean(psApp.StringIDToTypeID('maximizeCompatibility'), True)
+
+                desc19.putObject(
+                    psApp.CharIDToTypeID('As  '), psApp.CharIDToTypeID('Pht8'), desc20)
+                desc19.putPath(psApp.CharIDToTypeID('In  '), sceneFile)
+                desc19.putBoolean(psApp.CharIDToTypeID('LwCs'), True)
+                psApp.executeAction(psApp.CharIDToTypeID('save'), desc19, 3)
 
             thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=currentVersion)
 
@@ -308,39 +378,139 @@ class PsManager(RootManager):
             return -1, msg
         return jsonInfo
 
-    def getTextureVersions(self, baseSceneName):
+    # def getTextureVersions(self, baseSceneName):
+    #
+    #     #resolve the available texture versions and return the list
+    #
+    #     pass
 
-        #resolve the available texture versions and return the list
-
-        pass
-
-    def exportAsSourceImage(self, format="jpg"):
+    def exportSourceimage(self, extension="jpg", textureType="diffuse", asNextRevision=True, revisionNumber=1):
         # ???
-        if format not in self.exportFormats:
-            msg = "Format is not valid. Valid formats are %s" %self.exportFormats
-            self._exception(101, msg)
-            return -1, msg
+        # if extension not in self.exportFormats:
+        #     msg = "Format is not valid. Valid formats are:\n\n %s" %self.exportFormats
+        #     self._exception(101, msg)
+        #     return -1, msg
+
         # resolve path as <sourceImages folder>/<baseName>.<format>
+        sceneName = self.getSceneFile()
+        if not sceneName:
+            msg = "Current document is not a Base Scene File.\n\nSave it as a Base Scene first."
+            self._exception(360, msg)
+            return -1, msg
+
+        sceneInfo = self.getOpenSceneInfo()
+        if not sceneInfo:
+            msg = "Current document is not a Base Scene File.\n\nSave it as a Base Scene first."
+            self._exception(360, msg)
+            return -1, msg
+
+        # TEMPLATE
+        # --------
+        # <sourceImagesPath>/<category>/<subProject(ifAny)/<baseName>_<version>/<baseName>_<type>_<revision>.<extension>
+
+        baseName = sceneInfo["shotName"]
+        version = sceneInfo["version"]
+        category = sceneInfo["category"]
+        subProject = "" if sceneInfo["subProject"] == "None" else sceneInfo["subProject"]
+        projectPath = sceneInfo["projectPath"]
+        sourceimagesPath = self._folderCheck(os.path.join(projectPath, "sourceimages"))
+
+        # resolve export folder
+        exportFolderPath = self._folderCheck(os.path.join(sourceimagesPath, category, subProject, "%s_%s" %(baseName, version)))
+
+        if asNextRevision:
+            # get all files in destination folder
+            wholeList = os.listdir(exportFolderPath)
+            # filter the files related with the particular export
+            revisionHistory = list(filter(lambda x: x.startswith("{0}_{1}_".format(baseName, textureType)), wholeList))
+
+            def tryGetNumber(xString):
+                try:
+                    number = int(os.path.splitext(xString)[0][-3:])
+                    return number
+                except ValueError:
+                    return 0
+
+            # find the maximum revision number and increment it by 1
+            revisionNumberList = (map(lambda x: tryGetNumber(x), revisionHistory))
+            revisionNumber = 1 if len(revisionNumberList) == 0 else max(revisionNumberList)+1
+
+        fileName = "{0}_{1}_r{2}.{3}".format(baseName, textureType, str(revisionNumber).zfill(3), extension)
+
+        filePath = os.path.join(exportFolderPath, fileName)
 
         activeDocument = psApp.Application.ActiveDocument
-        if format == "jpg":
+        if extension == "jpg":
+            saveOPT=ct.CreateObject("Photoshop.JPEGSaveOptions")
+            saveOPT.EmbedColorProfile = True
+            saveOPT.FormatOptions = 1 # => psStandardBaseline
+            saveOPT.Matte = 1 # => No Matte
+            saveOPT.Quality = 12
+            activeDocument.SaveAs(filePath, saveOPT, True)
+        if extension == "png":
+            saveOPT=ct.CreateObject("Photoshop.PNGSaveOptions")
+            activeDocument.SaveAs(filePath, saveOPT, True)
+        if extension == "bmp":
+            saveOPT=ct.CreateObject("Photoshop.BMPSaveOptions")
+            activeDocument.SaveAs(filePath, saveOPT, True)
+        if extension == "tga":
+            saveOPT=ct.CreateObject("Photoshop.TargaSaveOptions")
+            saveOPT.Resolution=32
+            saveOPT.AlphaChannels=True
+            saveOPT.RLECompression=True
+            activeDocument.SaveAs(filePath, saveOPT, True)
+        if extension == "psd":
+            saveOPT=ct.CreateObject("Photoshop.PhotoshopSaveOptions")
+            saveOPT.AlphaChannels = True
+            saveOPT.Annotations = True
+            saveOPT.Layers = True
+            saveOPT.SpotColors = True
+            activeDocument.SaveAs(filePath, saveOPT, True)
+        if extension == "tif":
+            saveOPT=ct.CreateObject("Photoshop.TiffSaveOptions")
+            saveOPT.AlphaChannels = True
+            saveOPT.EmbedColorProfile = True
+            saveOPT.Layers = False
+            activeDocument.SaveAs(filePath, saveOPT, True)
+        if extension == "exr":
+            # desc19 = ct.CreateObject("Photoshop.ActionDescriptor")
+            # desc20 = ct.CreateObject("Photoshop.ActionDescriptor")
+            # idBtDp = app.CharIDToTypeID(str('BtDp'))
+            # desc20.putInteger(idBtDp, 16)
+            # idCmpr = app.CharIDToTypeID('Cmpr')
+            # desc20.putInteger(idCmpr, 1)
+            # idAChn = app.CharIDToTypeID('AChn')
+            # desc20.putInteger(idAChn, 0)
+            # desc19.putObject(app.CharIDToTypeID('As  '), app.CharIDToTypeID('EXRf'), desc20)
+            # desc19.putPath(app.CharIDToTypeID('In  '), str(filePath))
+            # app.executeAction(app.CharIDToTypeID('save'), desc19, 3)
+            idsave = psApp.CharIDToTypeID("save")
+            desc182 = ct.CreateObject("Photoshop.ActionDescriptor")
+            idAs = psApp.CharIDToTypeID("As  ")
+            desc183 = ct.CreateObject("Photoshop.ActionDescriptor")
+            idBtDp = psApp.CharIDToTypeID("BtDp")
+            desc183.putInteger(idBtDp, 16);
+            idCmpr = psApp.CharIDToTypeID("Cmpr")
+            desc183.putInteger(idCmpr, 1)
+            idAChn = psApp.CharIDToTypeID("AChn")
+            desc183.putInteger(idAChn, 0)
+            idEXRf = psApp.CharIDToTypeID("EXRf")
+            desc182.putObject(idAs, idEXRf, desc183)
+            idIn = psApp.CharIDToTypeID("In  ")
+            desc182.putPath(idIn, (filePath))
+            idDocI = psApp.CharIDToTypeID("DocI")
+            desc182.putInteger(idDocI, 340)
+            idCpy = psApp.CharIDToTypeID("Cpy ")
+            desc182.putBoolean(idCpy, True)
+            idsaveStage = psApp.StringIDToTypeID("saveStage")
+            idsaveStageType = psApp.StringIDToTypeID("saveStageType")
+            idsaveSucceeded = psApp.StringIDToTypeID("saveSucceeded")
+            desc182.putEnumerated(idsaveStage, idsaveStageType, idsaveSucceeded)
+            psApp.executeAction(idsave, desc182, 3)
+
+        if extension == "hdr":
             pass
-            # jpgSaveOptions=Dispatch("Photoshop.JPEGSaveOptions")
-            # jpgSaveOptions.EmbedColorProfile = True
-            # jpgSaveOptions.FormatOptions = 1 # => psStandardBaseline
-            # jpgSaveOptions.Matte = 1 # => No Matte
-            # jpgSaveOptions.Quality = 12
-            # activeDocument.SaveAs("E:\\JPGCopy", jpgSaveOptions, True)
-        if format == "png":
-            pass
-        if format == "bmp":
-            pass
-        if format == "tga":
-            pass
-        if format == "psd":
-            pass
-        if format == "tif":
-            pass
+
 
 
         pass
@@ -390,6 +560,7 @@ class PsManager(RootManager):
             psApp.Preferences.RulerUnits = 1
             activeDocument = psApp.Application.ActiveDocument
             dupDocument = activeDocument.Duplicate("thumbnailCopy", True)
+            dupDocument.bitsPerChannel = 8
             oWidth = 221
             oHeight = 124
             ratio = float(dupDocument.Width) / float(dupDocument.Height)
@@ -401,7 +572,7 @@ class PsManager(RootManager):
                 new_height = oWidth / ratio
             dupDocument.ResizeImage(new_width, new_height)
             dupDocument.ResizeCanvas(oWidth, oHeight)
-            jpgSaveOptions = Dispatch("Photoshop.JPEGSaveOptions")
+            jpgSaveOptions = ct.CreateObject("Photoshop.JPEGSaveOptions")
             jpgSaveOptions.EmbedColorProfile = True
             jpgSaveOptions.FormatOptions = 1  # => psStandardBaseline
             jpgSaveOptions.Matte = 1  # => No Matte
@@ -453,6 +624,18 @@ class PsManager(RootManager):
             self._dumpJson(categoriesData, self._pathsDict["categoriesFile"])
         return categoriesData
 
+    def _exception(self, code, msg):
+        """OVERRIDEN"""
+
+        errorbox = QtWidgets.QMessageBox()
+        errorbox.setModal(True)
+        errorbox.setText(msg)
+        errorbox.setWindowTitle(self.errorCodeDict[code])
+        errorbox.exec_()
+
+        if (200 >= code < 210):
+            raise Exception(code, msg)
+
 
 class MainUI(baseUI):
     """Main UI Class. Inherits SmUIRoot.py"""
@@ -474,7 +657,7 @@ class MainUI(baseUI):
         self.modify()
         self.initMainUI(newborn=True)
 
-        self.exportTextureUI()
+
 
     def extraMenus(self):
         """Adds extra menu and widgets to the base UI"""
@@ -497,6 +680,9 @@ class MainUI(baseUI):
 
         self.makeReference_pushButton.setVisible(False)
         self.showPreview_pushButton.setVisible(False)
+
+        self.export_pushButton.setVisible(True)
+        self.export_pushButton.clicked.connect(self.exportSourceUI)
         #
         # self.baseScene_label.setVisible(False)
         # self.baseScene_lineEdit.setVisible(False)
@@ -512,7 +698,7 @@ class MainUI(baseUI):
         # self.changeCommonFolder.setVisible(True)
         # self.changeCommonFolder.triggered.connect(self.manager._defineCommonFolder)
 
-    def exportTextureUI(self):
+    def exportSourceUI(self):
         self.exportTexture_Dialog = QtWidgets.QDialog(parent=self)
         self.exportTexture_Dialog.resize(336, 194)
         self.exportTexture_Dialog.setWindowTitle(("Export Textures"))
@@ -549,7 +735,7 @@ class MainUI(baseUI):
         self.format_comboBox.setMinimumSize(QtCore.QSize(60, 16777215))
         self.format_comboBox.setMaximumSize(QtCore.QSize(200, 16777215))
         self.format_comboBox.setObjectName(("format_comboBox"))
-        self.format_comboBox.addItems(self.manager.exportFormats)
+        self.format_comboBox.addItems(self.manager.getFormatOptions())
         self.format_layout.addWidget(self.format_comboBox)
 
         self.alpha_checkBox = QtWidgets.QCheckBox(self.exportTexture_Dialog)
@@ -630,6 +816,13 @@ class MainUI(baseUI):
 
         enableDisableVersion()
 
+        def exportCommand():
+            extension = self.format_comboBox.currentText()
+            textureType = self.customType_lineEdit.text() if self.type_comboBox.currentText() == "Custom" else self.type_comboBox.currentText()
+            asNextRevision = self.incremental_checkBox.isChecked()
+            revisionNumber = version_spinBox.value()
+            self.manager.exportSourceimage(extension=extension, textureType=textureType, asNextRevision=asNextRevision, revisionNumber=revisionNumber)
+
         # SIGNALS
         # -------
 
@@ -637,7 +830,10 @@ class MainUI(baseUI):
         self.incremental_checkBox.toggled.connect(enableDisableVersion)
 
         buttonC.clicked.connect(self.exportTexture_Dialog.reject)
+
+        buttonE.clicked.connect(exportCommand)
         buttonE.clicked.connect(self.exportTexture_Dialog.accept)
+
 
 
         self.exportTexture_Dialog.show()

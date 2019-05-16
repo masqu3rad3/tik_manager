@@ -242,6 +242,14 @@ class MainUI(QtWidgets.QMainWindow):
         self.saveVersion_pushButton.setObjectName(("saveVersion_pushButton"))
         self.main_horizontalLayout.addWidget(self.saveVersion_pushButton)
 
+        self.export_pushButton = QtWidgets.QPushButton(self.centralwidget)
+        self.export_pushButton.setMinimumSize(QtCore.QSize(150, 45))
+        self.export_pushButton.setMaximumSize(QtCore.QSize(150, 45))
+        self.export_pushButton.setText(("Export"))
+        self.main_horizontalLayout.addWidget(self.export_pushButton)
+        # make it invisible
+        self.export_pushButton.setVisible(False)
+
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.main_horizontalLayout.addItem(spacerItem)
 
