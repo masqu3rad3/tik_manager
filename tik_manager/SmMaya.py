@@ -30,13 +30,15 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -----------------------------------------------------------------------------
 
+import os
+os.environ["FORCE_QT4"]="0"
+
 # DELETE
 import SmUIRoot
 reload(SmUIRoot)
 # ------
 
 from SmUIRoot import MainUI as baseUI
-import os
 # import SmRoot
 # reload(SmRoot)
 from SmRoot import RootManager
@@ -891,6 +893,11 @@ class MainUI(baseUI):
         self.buildUI()
         self.initMainUI(newborn=True)
         self.extraMenus()
+        self.modify()
+
+    def modify(self):
+        self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager._pathsDict["generalSettingsDir"], "icons", "iconMaya.png"))
+        self.managerIcon_label.setPixmap(self.mIconPixmap)
 
     def closeEvent(self, event):
         if self.isCallback:

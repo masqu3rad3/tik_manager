@@ -41,7 +41,7 @@ from glob import glob
 
 import _version
 
-FORCE_QT4 = bool(os.getenv("FORCE_QT4"))
+FORCE_QT4 = bool(int(os.environ["FORCE_QT4"]))
 
 # Enabele FORCE_QT4 for compiling with pyinstaller
 # FORCE_QT4 = True

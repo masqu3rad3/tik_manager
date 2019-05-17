@@ -36,7 +36,7 @@ import os
 import webbrowser
 
 # PyInstaller and Standalone version compatibility
-FORCE_QT4 = bool(os.getenv("FORCE_QT4"))
+FORCE_QT4 = bool(int(os.getenv("FORCE_QT4")))
 
 # Somehow Pyinstaller is not working with Qt.py module. Following lines forces to use PyQt4
 # instead of Qt module to make it compatible with PyInstaller.
@@ -325,6 +325,19 @@ class MainUI(QtWidgets.QMainWindow):
         self.baseScene_lineEdit.setObjectName(("baseScene_lineEdit"))
         self.baseScene_lineEdit.setReadOnly(True)
         self.r1_gridLayout.addWidget(self.baseScene_lineEdit, 0, 1, 1, 1)
+
+        self.managerIcon_label = QtWidgets.QLabel(self.centralwidget)
+        # if FORCE_QT4:
+        #     self.mIconPixmap = QtWidgets.QPixmap("")
+        # else:
+        #     self.mIconPixmap = QtGui.QPixmap("")
+        # self.managerIcon_label.setPixmap(self.mIconPixmap)
+        self.managerIcon_label.setText("")
+        # self.managerIcon_label.setFixedHeight(30)
+        # self.managerIcon_label.setFixedWidth(30)
+        self.managerIcon_label.setFixedSize(30, 30)
+        self.managerIcon_label.setScaledContents(True)
+        self.r1_gridLayout.addWidget(self.managerIcon_label, 0, 2, 1, 1)
 
         self.project_label = QtWidgets.QLabel(self.centralwidget)
         self.project_label.setText(("Project:"))

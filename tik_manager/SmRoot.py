@@ -817,7 +817,6 @@ class RootManager(object):
         self.currentSubIndex = len(self._subProjectsList)-1
         return self._subProjectsList
 
-
     def showInExplorer(self, path):
         """Opens the path in Windows Explorer(Windows) or Nautilus(Linux)"""
         logger.debug("Func: showInExplorer")
@@ -827,7 +826,6 @@ class RootManager(object):
         elif self.currentPlatform == "Darwin":
             subprocess.Popen(["open", path])
         else:
-            print "HHH", path
             subprocess.Popen(["xdg-open", path])
 
         # elif self.currentPlatform == "Linux":

@@ -30,8 +30,10 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -----------------------------------------------------------------------------
 
-from SmUIRoot import MainUI as baseUI
 import os
+os.environ["FORCE_QT4"]="0"
+
+from SmUIRoot import MainUI as baseUI
 from SmRoot import RootManager
 
 import shutil
@@ -724,9 +726,14 @@ class MainUI(baseUI):
         self.buildUI()
         self.initMainUI(newborn=True)
         self.extraMenus()
+        self.modify()
 
     def extraMenus(self):
         self.scenes_rcItem_0.setText('Merge Scene')
+
+    def modify(self):
+        self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager._pathsDict["generalSettingsDir"], "icons", "iconMax.png"))
+        self.managerIcon_label.setPixmap(self.mIconPixmap)
 
     def onModeChange(self):
         """OVERRIDEN METHOD - This method is overriden to make the color changing compatible with 3ds max"""

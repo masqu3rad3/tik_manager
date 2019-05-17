@@ -8,6 +8,15 @@
     "Render",
     "Other"
   ],
+  "defaultNukeCategories": [
+    "Comp"
+  ],
+  "defaultPSCategories": [
+    "Concept",
+    "Storyboard",
+    "Texture",
+    "Other"
+  ],
   "defaultPreviewSettings": {
     "Resolution": [
     1280, 720
@@ -30,5 +39,18 @@
   },
   "defaultUsers": {
     "Generic": "gn"
-  }
+  },
+  "exportTextureTypes": [
+    "Diffuse",
+    "Opacity",
+    "Reflection",
+    "Subsurface",
+    "Displacement",
+    "Normal",
+    "Cavity",
+    "AO",
+    "ID",
+    "Mask",
+    "Custom"
+  ]
 }

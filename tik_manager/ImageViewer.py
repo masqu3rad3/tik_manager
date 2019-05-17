@@ -45,7 +45,7 @@ import _version
 # import pprint
 
 # PyInstaller and Standalone version compatibility
-FORCE_QT4 = bool(os.getenv("FORCE_QT4"))
+FORCE_QT4 = bool(int(os.environ["FORCE_QT4"]))
 if FORCE_QT4:
     from PyQt4 import QtCore, Qt
     from PyQt4 import QtGui as QtWidgets

@@ -33,7 +33,7 @@
 import sys, os
 
 # Set the force pyqt environment variable to tell the other modulea not to use Qt.py module
-os.environ["FORCE_QT4"]="True"
+os.environ["FORCE_QT4"]="1"
 
 from PyQt4 import QtCore, Qt
 from PyQt4 import QtGui as QtWidgets

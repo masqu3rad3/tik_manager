@@ -51,7 +51,7 @@ from glob import glob
 import subprocess
 import platform
 
-from Qt import QtCore
+from Qt import QtWidgets, QtCore, QtGui
 # from PySide2 import QtWidgets
 # from PySide2 import QtGui
 
@@ -832,5 +832,8 @@ class MainUI(baseUI):
         self.makeReference_pushButton.setVisible(False)
         # idk why this became necessary for houdini..
         self.category_tabWidget.setMaximumSize(QtCore.QSize(16777215, 30))
+
+        self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager._pathsDict["generalSettingsDir"], "icons", "iconHoudini.png"))
+        self.managerIcon_label.setPixmap(self.mIconPixmap)
 
 

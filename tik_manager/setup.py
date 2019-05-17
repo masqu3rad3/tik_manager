@@ -729,7 +729,8 @@ projectMaterials.MainUI().show()]]></script>
 def maxSetup(prompt=True):
 
     # TODO Prevent installation for unsupported versions
-
+    print "Starting 3ds Max Setup"
+    print "Checking files..."
     networkDir = os.path.dirname(os.path.abspath(__file__))
     upNetworkDir = os.path.abspath(os.path.join(networkDir, os.pardir))
     fileList = ["__init__.py",
@@ -905,6 +906,10 @@ icon: #("SceneManager",6)
 
     if prompt:
         raw_input("Press Enter to continue...")
+
+def photoshopSetup():
+    print "Starting Photoshop Setup"
+    print "Checking files..."
 
 def installAll():
     mayaSetup(prompt=False)

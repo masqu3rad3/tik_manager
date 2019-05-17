@@ -54,11 +54,11 @@ Double Clicking on warnings open up the related dialog.
 # # ------------------------
 #
 
-
 import _version
 # import pymel.core as pm
 import maya.cmds as cmds
 import os
+os.environ["FORCE_QT4"]="0"
 import maya.mel as mel
 
 import SmRoot

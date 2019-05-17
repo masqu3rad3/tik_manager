@@ -1,6 +1,9 @@
 =============================
 Tik Manager Version History
 =============================
+* **New.0** Photoshop module added
+* **Update.0** Software icons added to each software
+
 2.5
 ---
 * **Fix.0** 3ds Max 2018-2019 support
