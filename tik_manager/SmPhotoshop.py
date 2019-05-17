@@ -88,47 +88,48 @@ class PsManager(RootManager):
         # self.psApp = ct.CreateObject('Photoshop.Application')
         self.psApp = Dispatch('Photoshop.Application')
 
-    def init_paths(self):
-        """Overriden function"""
-        logger.debug("Func: init_paths")
-        _softwarePathsDict = self.getSoftwarePaths()
-        self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDirectory(), _softwarePathsDict["userSettingsDir"]))
-        self._folderCheck(self._pathsDict["userSettingsDir"])
-
-        self._pathsDict["bookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smBookmarks.json"))
-        self._pathsDict["currentsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smCurrents.json"))
-        self._pathsDict["projectsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smProjects.json"))
-
-        self._pathsDict["commonFolderFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smCommonFolder.json"))
-
-        self._pathsDict["projectDir"] = self.getProjectDir()
-        self._pathsDict["sceneFile"] = ""
-
-        self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
-        self._folderCheck(self._pathsDict["masterDir"])
-
-        self._pathsDict["databaseDir"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], _softwarePathsDict["databaseDir"]))
-        self._folderCheck(self._pathsDict["databaseDir"])
-
-        self._pathsDict["scenesDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], _softwarePathsDict["scenesDir"]))
-        self._folderCheck(self._pathsDict["scenesDir"])
-
-        self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
-
-        self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "subPdata.json"))
-        self._pathsDict["categoriesFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], _softwarePathsDict["categoriesFile"]))
-        self._pathsDict["previewsDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "Playblasts", _softwarePathsDict["niceName"])) # dont change
-        self._pathsDict["pbSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["previewsDir"], _softwarePathsDict["pbSettingsFile"]))
-
-        self._pathsDict["generalSettingsDir"] = self._getCommonFolder()
-        if self._pathsDict["generalSettingsDir"] == -1:
-            self._exception(201, "Cannot Continue Without Common Database")
-            return -1
-
-        self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerUsers.json"))
-
-        self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
-        self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerDefaults.json"))
+    # def init_paths(self):
+    #     """Overriden function"""
+    #     logger.debug("Func: init_paths")
+    #     _softwarePathsDict = self.getSoftwarePaths()
+    #     self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDirectory(), _softwarePathsDict["userSettingsDir"]))
+    #     self._folderCheck(self._pathsDict["userSettingsDir"])
+    #
+    #     self._pathsDict["bookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smBookmarks.json"))
+    #     self._pathsDict["currentsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smCurrents.json"))
+    #     self._pathsDict["projectsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smProjects.json"))
+    #
+    #     self._pathsDict["commonFolder"] = os.path.abspath(os.path.join(self._pathsDict["userSettingsDir"], os.pardir))
+    #     self._pathsDict["commonFolderFile"] = os.path.normpath(os.path.join(self._pathsDict["commonFolder"], "smCommonFolder.json"))
+    #
+    #     self._pathsDict["projectDir"] = self.getProjectDir()
+    #     self._pathsDict["sceneFile"] = ""
+    #
+    #     self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
+    #     self._folderCheck(self._pathsDict["masterDir"])
+    #
+    #     self._pathsDict["databaseDir"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], _softwarePathsDict["databaseDir"]))
+    #     self._folderCheck(self._pathsDict["databaseDir"])
+    #
+    #     self._pathsDict["scenesDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], _softwarePathsDict["scenesDir"]))
+    #     self._folderCheck(self._pathsDict["scenesDir"])
+    #
+    #     self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
+    #
+    #     self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "subPdata.json"))
+    #     self._pathsDict["categoriesFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], _softwarePathsDict["categoriesFile"]))
+    #     self._pathsDict["previewsDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "Playblasts", _softwarePathsDict["niceName"])) # dont change
+    #     self._pathsDict["pbSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["previewsDir"], _softwarePathsDict["pbSettingsFile"]))
+    #
+    #     self._pathsDict["generalSettingsDir"] = self._getCommonFolder()
+    #     if self._pathsDict["generalSettingsDir"] == -1:
+    #         self._exception(201, "Cannot Continue Without Common Database")
+    #         return -1
+    #
+    #     self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerUsers.json"))
+    #
+    #     self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
+    #     self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerDefaults.json"))
 
     def _checkCommonFolder(self, folder):
         checkList = [os.path.join(folder, "sceneManagerDefaults.json"),
@@ -158,7 +159,6 @@ class PsManager(RootManager):
             q = QtWidgets.QMessageBox()
             q.setIcon(QtWidgets.QMessageBox.Question)
             q.setText("Please define the Common Database Folder which contains general database files\n\nPress Ok to continue")
-            # q.setInformativeText(textInfo)
             q.setWindowTitle("Select the Common Database Folder")
             q.setDetailedText(
                 "Common Database Folder is the one which has the common modules for all software modules. Common Database Folder must include:\n"
@@ -168,10 +168,8 @@ class PsManager(RootManager):
             q.setStandardButtons(
                 QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Abort)
 
-            # q.button(QtWidgets.QMessageBox.Ok).setFixedHeight(30)
             q.button(QtWidgets.QMessageBox.Ok).setFixedWidth(100)
             #
-            # q.button(QtWidgets.QMessageBox.Abort).setFixedHeight(30)
             q.button(QtWidgets.QMessageBox.Abort).setFixedWidth(100)
             ret = q.exec_()
             if ret == QtWidgets.QMessageBox.Ok:
@@ -193,7 +191,6 @@ class PsManager(RootManager):
                 q = QtWidgets.QMessageBox()
                 q.setIcon(QtWidgets.QMessageBox.Information)
                 q.setText("Common Database Defined Successfully")
-                # q.setInformativeText(textInfo)
                 q.setWindowTitle("Success")
                 q.exec_()
 
@@ -202,7 +199,6 @@ class PsManager(RootManager):
                 return self._getCommonFolder()
         else:
             return self._getCommonFolder()
-            # self._getCommonFolder()
 
     def _saveCommonFolder(self, data):
         try:

@@ -509,7 +509,7 @@ class MainUI(QtWidgets.QMainWindow):
         changeAdminPass_fm = QtWidgets.QAction("&Change Admin Password", self)
 
         self.changeCommonFolder =  QtWidgets.QAction("&Change Common Database", self)
-        self.changeCommonFolder.setVisible(False)
+        # self.changeCommonFolder.setVisible(False)
 
 
         deleteFile_fm = QtWidgets.QAction("&Delete Selected Base Scene", self)
@@ -635,6 +635,12 @@ class MainUI(QtWidgets.QMainWindow):
 
         # SIGNAL CONNECTIONS
         # ------------------
+
+        self.changeCommonFolder.triggered.connect(self.manager._defineCommonFolder)
+        self.changeCommonFolder.triggered.connect(self.manager.init_paths)
+        self.changeCommonFolder.triggered.connect(self.manager.init_database)
+        self.changeCommonFolder.triggered.connect(self._initUsers)
+        self.changeCommonFolder.triggered.connect(self.onUserChange)
 
         createProject_fm.triggered.connect(self.createProjectUI)
 

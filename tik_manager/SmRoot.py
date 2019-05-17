@@ -100,17 +100,14 @@ class RootManager(object):
         self._pathsDict["currentsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smCurrents.json"))
         self._pathsDict["projectsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smProjects.json"))
 
+        self._pathsDict["commonFolderDir"] = os.path.abspath(os.path.join(self._pathsDict["userSettingsDir"], os.pardir))
+        self._pathsDict["commonFolderFile"] = os.path.normpath(os.path.join(self._pathsDict["commonFolderDir"], "smCommonFolder.json"))
+
         self._pathsDict["projectDir"] = self.getProjectDir()
         self._pathsDict["sceneFile"] = ""
-        # _softwarePathsDict = self.getSoftwarePaths()
-        if self._pathsDict["projectDir"] == -1 or self._pathsDict["sceneFile"] == -1 or _softwarePathsDict == -1:
-            msg = "The following functions must be overridden in inherited class:\n'getSoftware'\n'getProjectDir'\n'getSceneFile'"
-            logger.error(msg)
-            raise Exception([102, msg])
 
         self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
         self._folderCheck(self._pathsDict["masterDir"])
-
 
         self._pathsDict["databaseDir"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], _softwarePathsDict["databaseDir"]))
         self._folderCheck(self._pathsDict["databaseDir"])
@@ -128,12 +125,120 @@ class RootManager(object):
 
         self._pathsDict["pbSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["previewsDir"], _softwarePathsDict["pbSettingsFile"]))
 
-        self._pathsDict["generalSettingsDir"] = os.path.dirname(os.path.abspath(__file__))
+        self._pathsDict["generalSettingsDir"] = self._getCommonFolder()
+        if self._pathsDict["generalSettingsDir"] == -1:
+            self._exception(201, "Cannot Continue Without Common Database")
+            return -1
+
+        # self._pathsDict["generalSettingsDir"] = os.path.dirname(os.path.abspath(__file__))
 
         self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerUsers.json"))
 
         self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
         self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerDefaults.json"))
+
+
+    def _checkCommonFolder(self, folder):
+        checkList = [os.path.join(folder, "sceneManagerDefaults.json"),
+                     os.path.join(folder, "sceneManagerUsers.json"),
+                     os.path.join(folder, "softwareDatabase.json")]
+        missingList = [os.path.basename(path) for path in checkList if not os.path.isfile(path)]
+        if len(missingList) > 0:
+            logger.error("Common Database Folder missing some necessary files\nFollowing files are missing:\n %s" %(missingList))
+            return False
+        else:
+            return True
+
+    def _getCommonFolder(self):
+        """prompts input for the common folder"""
+        if os.path.isfile(self._pathsDict["commonFolderFile"]):
+            commonFolder = self._loadJson(self._pathsDict["commonFolderFile"])
+            if commonFolder == -2:
+                return -2
+
+        else:
+            yes = {'yes','y', 'ye', ''}
+            no = {'no','n'}
+            choice = raw_input("Common Folder is not defined, Do you want to define now? [y/n]").lower()
+            if choice in yes:
+                commonFolder = self._defineCommonFolder()
+            else:
+                return -1
+
+        return commonFolder
+
+    def _defineCommonFolder(self):
+
+        selectedDir = os.path.normpath(raw_input("Enter Path for the Common Directory:"))
+
+        if os.path.isdir(selectedDir):
+            if self._checkCommonFolder(selectedDir):
+                commonFolder = selectedDir
+                self._saveCommonFolder(commonFolder)
+                print "Dommon Database Defined Successfully"
+                return commonFolder
+            else:
+                return self._getCommonFolder()
+        else:
+            return self._getCommonFolder()
+
+    def _saveCommonFolder(self, data):
+        try:
+            self._dumpJson(data, self._pathsDict["commonFolderFile"])
+            msg = ""
+            return 0, msg
+        except:
+            msg = "Cannot save common folder file"
+            return -1, msg
+
+
+    # def init_paths(self):
+    #     """Initializes all the necessary paths"""
+    #     logger.debug("Func: init_paths")
+    #     # all paths in here must be absolute paths
+    #     _softwarePathsDict = self.getSoftwarePaths()
+    #
+    #     self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDirectory(), _softwarePathsDict["userSettingsDir"]))
+    #     self._folderCheck(self._pathsDict["userSettingsDir"])
+    #
+    #     self._pathsDict["bookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smBookmarks.json"))
+    #     self._pathsDict["currentsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smCurrents.json"))
+    #     self._pathsDict["projectsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smProjects.json"))
+    #
+    #     self._pathsDict["projectDir"] = self.getProjectDir()
+    #     self._pathsDict["sceneFile"] = ""
+    #     # _softwarePathsDict = self.getSoftwarePaths()
+    #     if self._pathsDict["projectDir"] == -1 or self._pathsDict["sceneFile"] == -1 or _softwarePathsDict == -1:
+    #         msg = "The following functions must be overridden in inherited class:\n'getSoftware'\n'getProjectDir'\n'getSceneFile'"
+    #         logger.error(msg)
+    #         raise Exception([102, msg])
+    #
+    #     self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
+    #     self._folderCheck(self._pathsDict["masterDir"])
+    #
+    #
+    #     self._pathsDict["databaseDir"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], _softwarePathsDict["databaseDir"]))
+    #     self._folderCheck(self._pathsDict["databaseDir"])
+    #
+    #     self._pathsDict["scenesDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], _softwarePathsDict["scenesDir"]))
+    #     self._folderCheck(self._pathsDict["scenesDir"])
+    #
+    #     self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
+    #     # self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], "subPdata.json"))
+    #     self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "subPdata.json"))
+    #     self._pathsDict["categoriesFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], _softwarePathsDict["categoriesFile"]))
+    #
+    #     self._pathsDict["previewsDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "Playblasts", _softwarePathsDict["niceName"])) # dont change
+    #     self._folderCheck(self._pathsDict["previewsDir"])
+    #
+    #     self._pathsDict["pbSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["previewsDir"], _softwarePathsDict["pbSettingsFile"]))
+    #
+    #     self._pathsDict["generalSettingsDir"] = os.path.dirname(os.path.abspath(__file__))
+    #
+    #     self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerUsers.json"))
+    #
+    #     self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
+    #     self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerDefaults.json"))
 
     def getSoftwarePaths(self):
         """This method must be overridden to return the software currently working on"""

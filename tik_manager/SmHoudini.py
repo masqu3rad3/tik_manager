@@ -30,8 +30,10 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # -----------------------------------------------------------------------------
 
-from SmUIRoot import MainUI as baseUI
 import os
+os.environ["FORCE_QT4"]="0"
+
+from SmUIRoot import MainUI as baseUI
 import sys
 import SmRoot
 reload(SmRoot)

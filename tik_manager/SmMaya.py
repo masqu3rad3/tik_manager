@@ -69,6 +69,7 @@ class MayaManager(RootManager):
         self.init_paths()
         self.backwardcompatibility()  # DO NOT RUN UNTIL RELEASE
         self.init_database()
+        print "asnan", self._pathsDict["generalSettingsDir"]
 
 
     def getSoftwarePaths(self):
@@ -768,6 +769,42 @@ class MayaManager(RootManager):
             return True
         else:
             return False
+
+    def _getCommonFolder(self):
+        """prompts input for the common folder"""
+        if os.path.isfile(self._pathsDict["commonFolderFile"]):
+            commonFolder = self._loadJson(self._pathsDict["commonFolderFile"])
+            if commonFolder == -2:
+                return -2
+
+        else:
+            choice = self._question("Common Folder is not defined.\nDo you want to define now?")
+            if choice:
+                commonFolder = self._defineCommonFolder()
+            else:
+                return -1
+
+        return commonFolder
+
+    def _defineCommonFolder(self):
+        dlg = QtWidgets.QFileDialog.getExistingDirectory()
+        if dlg:
+            selectedDir = os.path.normpath(str(dlg))
+            if self._checkCommonFolder(selectedDir):
+                commonFolder = selectedDir
+                self._saveCommonFolder(commonFolder)
+
+                q = QtWidgets.QMessageBox()
+                q.setIcon(QtWidgets.QMessageBox.Information)
+                q.setText("Common Database Defined Successfully")
+                q.setWindowTitle("Success")
+                q.exec_()
+
+                return commonFolder
+            else:
+                return self._getCommonFolder()
+        else:
+            return self._getCommonFolder()
 
     def _getTimelineRanges(self):
         # TODO : Make sure the time ranges are INTEGERS
