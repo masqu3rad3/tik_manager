@@ -198,6 +198,7 @@ class MainUI(QtWidgets.QMainWindow):
                             "3dsMax": "rgb(150, 247, 81, 255)",
                             "Houdini": "rgb(247, 172, 81, 255)",
                             "Nuke": "rgb(246, 100, 100, 255)",
+                            "Photoshop": "rgb(60, 60, 250, 255)",
                             "":  "rgb(0, 0, 0, 0)"
                             }
         # self.initMainUI(newborn=True)
@@ -2810,7 +2811,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         row = self.scenes_listWidget.currentRow()
         if row == -1:
-
+            self.scenes_rcItem_0.setEnabled(False)
             self.scenes_rcItem_1.setEnabled(False)
             self.scenes_rcItem_2.setEnabled(False)
             self.scenes_rcItem_3.setEnabled(False)
@@ -2818,6 +2819,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.scenes_rcItem_5.setEnabled(False)
             self.scenes_rcItem_6.setEnabled(True)
         else:
+            self.scenes_rcItem_0.setEnabled(True)
             self.scenes_rcItem_1.setEnabled(os.path.isdir(manager.currentBaseScenePath))
             self.scenes_rcItem_2.setEnabled(os.path.isdir(manager.currentPreviewPath))
             self.scenes_rcItem_3.setEnabled(True)

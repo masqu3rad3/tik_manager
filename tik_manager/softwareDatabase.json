@@ -77,10 +77,10 @@
   },
     "Photoshop": {
     "niceName": "Photoshop",
-    "root": "",
+    "root": "Adobe",
     "relPath": "",
-    "exeList": [],
-    "searchWord": "Photoshop",
+    "exeList": ["Photoshop.exe"],
+    "searchWord": "Adobe Photoshop CC",
     "databaseDir": "photoshopDB",
     "scenesDir": "photoshop",
     "pbSettingsFile": "pbSettings_ps.json",

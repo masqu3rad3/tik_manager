@@ -139,12 +139,15 @@ class RootManager(object):
 
 
     def _checkCommonFolder(self, folder):
+        # checkList = [os.path.join(folder, "sceneManagerDefaults.json"),
+        #              os.path.join(folder, "sceneManagerUsers.json"),
+        #              os.path.join(folder, "softwareDatabase.json")]
         checkList = [os.path.join(folder, "sceneManagerDefaults.json"),
-                     os.path.join(folder, "sceneManagerUsers.json"),
-                     os.path.join(folder, "softwareDatabase.json")]
+                     os.path.join(folder, "sceneManagerUsers.json"),]
         missingList = [os.path.basename(path) for path in checkList if not os.path.isfile(path)]
         if len(missingList) > 0:
-            logger.error("Common Database Folder missing some necessary files\nFollowing files are missing:\n %s" %(missingList))
+            self._info("This folder cannot be set as Common Database Folder.\n\n It is missing necessary files:\n\nFollowing files are missing:\n %s" %(missingList))
+            # logger.error("Common Database Folder missing some necessary files\nFollowing files are missing:\n %s" %(missingList))
             return False
         else:
             return True
@@ -157,10 +160,8 @@ class RootManager(object):
                 return -2
 
         else:
-            yes = {'yes','y', 'ye', ''}
-            no = {'no','n'}
-            choice = raw_input("Common Folder is not defined, Do you want to define now? [y/n]").lower()
-            if choice in yes:
+            msg = "Common Folder is not defined.\n\nDo you want to define now?"
+            if self._question(msg):
                 commonFolder = self._defineCommonFolder()
             else:
                 return -1
@@ -169,13 +170,13 @@ class RootManager(object):
 
     def _defineCommonFolder(self):
 
-        selectedDir = os.path.normpath(raw_input("Enter Path for the Common Directory:"))
+        selectedDir = self._inputDir()
 
         if os.path.isdir(selectedDir):
             if self._checkCommonFolder(selectedDir):
                 commonFolder = selectedDir
                 self._saveCommonFolder(commonFolder)
-                print "Dommon Database Defined Successfully"
+                self._info("Common Database Defined Successfully")
                 return commonFolder
             else:
                 return self._getCommonFolder()
@@ -1904,6 +1905,36 @@ Elapsed Time:{6}
         else:
             vMsg = "Tik Manager is up to date"
             return vMsg, None, None
+
+    def _question(self, msg, *args, **kwargs):
+        """Yes/No question terminal"""
+        yes = {'yes', 'y', 'ye', ''}
+        no = {'no', 'n'}
+
+        msg = "%s [y/n]" %msg
+        choice = raw_input(msg).lower()
+        if choice in yes:
+            return True
+        elif choice in no:
+            return False
+        else:
+            print("Please respond with 'yes' or 'no'")
+            self._question(msg)
+
+    def _info(self, msg):
+        """Information"""
+        print msg
+
+    def _inputDir(self):
+        """Input directory terminal"""
+        inputDir = os.path.normpath(raw_input("Enter Path for the Common Directory:"))
+        normInputDir = os.path.normpath(inputDir)
+        if os.path.isdir(normInputDir):
+            return normInputDir
+        else:
+            return False
+
+
 
 
 

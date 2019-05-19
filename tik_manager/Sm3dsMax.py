@@ -696,6 +696,15 @@ class MaxManager(RootManager):
         state = rt.queryBox( msg, title='Manager Question')
         return state
 
+    def _info(self, msg):
+        rt.messageBox(msg, title='Info')
+
+    def _inputDir(self):
+        """OVERRIDEN METHOD"""
+        # Qt File dialog is preferred because it is faster
+        inputDir = QtWidgets.QFileDialog.getExistingDirectory()
+        return os.path.normpath(inputDir)
+
     def _getTimelineRanges(self):
         R_ast = int(rt.animationRange.start)
         R_min = int(rt.animationRange.start)

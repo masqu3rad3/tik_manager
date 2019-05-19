@@ -3,6 +3,7 @@ Tik Manager Version History
 =============================
 * **New.0** Photoshop module added
 * **Update.0** Software icons added to each software
+* **Update.0** Common database folder seperated from core files
 
 2.5
 ---

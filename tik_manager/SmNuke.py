@@ -507,6 +507,21 @@ class NukeManager(RootManager):
         if (200 >= code < 210):
             raise Exception(code, msg)
 
+    def _question(self, msg):
+        """OVERRIDEN METHOD"""
+        state = nuke.ask(msg)
+        return state
+
+    def _info(self, msg):
+        """OVERRIDEN METHOD"""
+        nuke.message(msg)
+
+    def _inputDir(self):
+        """OVERRIDEN METHOD"""
+        # Qt File dialog is preferred because it is faster
+        inputDir = QtWidgets.QFileDialog.getExistingDirectory()
+        return os.path.normpath(inputDir)
+
     def _getTimelineRanges(self):
         # TODO : Make sure the time ranges are INTEGERS
         firstFrame = nuke.Root().firstFrame()

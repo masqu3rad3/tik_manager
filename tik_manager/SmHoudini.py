@@ -741,6 +741,21 @@ class HoudiniManager(RootManager):
         if (200 >= code < 210):
             raise Exception(code, msg)
 
+    def _question(self, msg):
+        """OVERRIDEN METHOD"""
+        state = hou.ui.displayConfirmation(msg, title='Manager Question')
+        return state
+
+    def _info(self, msg):
+        """OVERRIDEN METHOD"""
+        hou.ui.displayMessage(msg)
+
+    def _inputDir(self):
+        """OVERRIDEN METHOD"""
+        # Qt File dialog is preferred because it is faster
+        inputDir = QtWidgets.QFileDialog.getExistingDirectory()
+        return os.path.normpath(inputDir)
+
     def _getTimelineRanges(self):
         pass
         R_ast = int(hou.playbar.frameRange()[0])

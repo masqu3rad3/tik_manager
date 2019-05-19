@@ -758,53 +758,64 @@ class MayaManager(RootManager):
         return checklist
 
     def _exception(self, code, msg):
-        """Overriden Function"""
+        """OVERRIDEN METHOD"""
         cmds.confirmDialog(title=self.errorCodeDict[code], message=msg, button=['Ok'])
         if (200 >= code < 210):
             raise Exception(code, msg)
 
     def _question(self, msg):
+        """OVERRIDEN METHOD"""
         state = cmds.confirmDialog( title='Manager Question', message=msg, button=['Yes','No'], defaultButton='Yes', cancelButton='No', dismissString='No' )
         if state == "Yes":
             return True
         else:
             return False
 
-    def _getCommonFolder(self):
-        """prompts input for the common folder"""
-        if os.path.isfile(self._pathsDict["commonFolderFile"]):
-            commonFolder = self._loadJson(self._pathsDict["commonFolderFile"])
-            if commonFolder == -2:
-                return -2
+    def _info(self, msg):
+        """OVERRIDEN METHOD"""
+        cmds.confirmDialog(title='Info', message=msg)
 
-        else:
-            choice = self._question("Common Folder is not defined.\nDo you want to define now?")
-            if choice:
-                commonFolder = self._defineCommonFolder()
-            else:
-                return -1
+    def _inputDir(self):
+        """OVERRIDEN METHOD"""
+        # Qt File dialog is preferred because it is faster
+        inputDir = QtWidgets.QFileDialog.getExistingDirectory()
+        return os.path.normpath(inputDir)
 
-        return commonFolder
-
-    def _defineCommonFolder(self):
-        dlg = QtWidgets.QFileDialog.getExistingDirectory()
-        if dlg:
-            selectedDir = os.path.normpath(str(dlg))
-            if self._checkCommonFolder(selectedDir):
-                commonFolder = selectedDir
-                self._saveCommonFolder(commonFolder)
-
-                q = QtWidgets.QMessageBox()
-                q.setIcon(QtWidgets.QMessageBox.Information)
-                q.setText("Common Database Defined Successfully")
-                q.setWindowTitle("Success")
-                q.exec_()
-
-                return commonFolder
-            else:
-                return self._getCommonFolder()
-        else:
-            return self._getCommonFolder()
+    # def _getCommonFolder(self):
+    #     """prompts input for the common folder"""
+    #     if os.path.isfile(self._pathsDict["commonFolderFile"]):
+    #         commonFolder = self._loadJson(self._pathsDict["commonFolderFile"])
+    #         if commonFolder == -2:
+    #             return -2
+    #
+    #     else:
+    #         choice = self._question("Common Folder is not defined.\nDo you want to define now?")
+    #         if choice:
+    #             commonFolder = self._defineCommonFolder()
+    #         else:
+    #             return -1
+    #
+    #     return commonFolder
+    #
+    # def _defineCommonFolder(self):
+    #     dlg = QtWidgets.QFileDialog.getExistingDirectory()
+    #     if dlg:
+    #         selectedDir = os.path.normpath(str(dlg))
+    #         if self._checkCommonFolder(selectedDir):
+    #             commonFolder = selectedDir
+    #             self._saveCommonFolder(commonFolder)
+    #
+    #             q = QtWidgets.QMessageBox()
+    #             q.setIcon(QtWidgets.QMessageBox.Information)
+    #             q.setText("Common Database Defined Successfully")
+    #             q.setWindowTitle("Success")
+    #             q.exec_()
+    #
+    #             return commonFolder
+    #         else:
+    #             return self._getCommonFolder()
+    #     else:
+    #         return self._getCommonFolder()
 
     def _getTimelineRanges(self):
         # TODO : Make sure the time ranges are INTEGERS
