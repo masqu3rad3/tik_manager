@@ -45,6 +45,9 @@ import _version
 # import pprint
 
 # PyInstaller and Standalone version compatibility
+
+## SAFE BLOCK
+## ----------
 FORCE_QT4 = bool(int(os.environ["FORCE_QT4"]))
 if FORCE_QT4:
     from PyQt4 import QtCore, Qt
@@ -52,6 +55,12 @@ if FORCE_QT4:
 else:
     import Qt
     from Qt import QtWidgets, QtCore, QtGui
+## ----------
+
+# for standalone compatibility uncomment following 3 and disable safe block
+# FORCE_QT4 = True
+# from PyQt4 import QtCore, Qt
+# from PyQt4 import QtGui as QtWidgets
 
 import pyseq as seq
 
