@@ -40,16 +40,12 @@ FORCE_QT4 = bool(int(os.getenv("FORCE_QT4")))
 
 # Somehow Pyinstaller is not working with Qt.py module. Following lines forces to use PyQt4
 # instead of Qt module to make it compatible with PyInstaller.
-# if FORCE_QT4:
-#     from PyQt5 import QtCore, Qt
-#     from PyQt5 import QtGui as QtWidgets
-# else:
-#     import Qt
-#     from Qt import QtWidgets, QtCore, QtGui
-
-FORCE_QT4 = False
-import Qt
-from Qt import QtWidgets, QtCore, QtGui
+if FORCE_QT4:
+    from PyQt4 import QtCore, Qt
+    from PyQt4 import QtGui as QtWidgets
+else:
+    import Qt
+    from Qt import QtWidgets, QtCore, QtGui
 
 import _version
 import pprint
@@ -2973,10 +2969,8 @@ class MainUI(QtWidgets.QMainWindow):
                     self.scenes_listWidget.addItem(key)
         else:
             if BoilerDict["Environment"] == "Standalone":
-                # codeDict = {-1: QtWidgets.QColor(255, 0, 0, 255), 1: QtWidgets.QColor(0, 255, 0, 255),
-                #             0: QtWidgets.QColor(255, 255, 0, 255), -2: QtWidgets.QColor(20, 20, 20, 255)}
-                codeDict = {-1: QtGui.QColor(255, 0, 0, 255), 1: QtGui.QColor(0, 255, 0, 255),
-                            0: QtGui.QColor(255, 255, 0, 255), -2: QtGui.QColor(20, 20, 20, 255)}
+                codeDict = {-1: QtWidgets.QColor(255, 0, 0, 255), 1: QtWidgets.QColor(0, 255, 0, 255),
+                            0: QtWidgets.QColor(255, 255, 0, 255), -2: QtWidgets.QColor(20, 20, 20, 255)}
             else:
                 codeDict = {-1: QtGui.QColor(255, 0, 0, 255), 1: QtGui.QColor(0, 255, 0, 255),
                             0: QtGui.QColor(255, 255, 0, 255), -2: QtGui.QColor(20, 20, 20, 255)}  # dictionary for color codes red, green, yellow
