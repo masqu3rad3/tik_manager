@@ -835,7 +835,7 @@ class MainUI(baseUI):
         self.formLayout.setLayout(1, QtWidgets.QFormLayout.FieldRole, self.type_layout)
 
         self.version_label = QtWidgets.QLabel(self.exportTexture_Dialog)
-        self.version_label.setText(("Version:"))
+        self.version_label.setText(("Revision:"))
         self.version_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.version_label)
 
@@ -848,7 +848,7 @@ class MainUI(baseUI):
         self.horizontalLayout.addWidget(version_spinBox)
 
         self.incremental_checkBox = QtWidgets.QCheckBox(self.exportTexture_Dialog)
-        self.incremental_checkBox.setText(("Use Next Available Version"))
+        self.incremental_checkBox.setText(("Use Next Available Revision"))
         self.incremental_checkBox.setChecked(True)
         self.horizontalLayout.addWidget(self.incremental_checkBox)
 

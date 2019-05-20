@@ -675,11 +675,11 @@ class HoudiniManager(RootManager):
         messageList = []
 
         if vIsApprentice and not dbIsApprentice:
-            msg = "Base Scene Created with Apprentice version. Current Houdini session is Commercial. Are you sure you want to continue?"
+            msg = "Base Scene Created with Commercial License. Current Houdini session is Apprentice. Are you sure you want to continue?"
             messageList.append(msg)
 
         if not vIsApprentice and dbIsApprentice:
-            msg = "Base Scene Created with commercial version. Current Houdini session is Apprentice. Are you sure you want to continue?"
+            msg = "Base Scene Created with Apprentice License. Current Houdini session is Commercial. Are you sure you want to continue?"
             messageList.append(msg)
 
         if currentVersion == baseSceneVersion:

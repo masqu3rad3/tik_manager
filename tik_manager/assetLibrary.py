@@ -41,10 +41,10 @@ import datetime
 
 
 # FORCE_QT4 = bool(os.getenv("FORCE_QT4"))
-FORCE_QT4 = bool(int(os.environ["FORCE_QT4"]))
+# FORCE_QT4 = bool(int(os.environ["FORCE_QT4"]))
 
 # Enabele FORCE_QT4 for compiling with pyinstaller
-# FORCE_QT4 = True
+FORCE_QT4 = True
 
 if FORCE_QT4:
     from PyQt4 import QtCore, Qt
@@ -52,6 +52,9 @@ if FORCE_QT4:
 else:
     import Qt
     from Qt import QtWidgets, QtCore, QtGui
+
+# import Qt
+# from Qt import QtWidgets, QtCore, QtGui
 
 import json
 import os, fnmatch
@@ -1629,7 +1632,7 @@ class QtImageViewer(QtWidgets.QGraphicsView):
 
 
 if __name__ == '__main__':
-    os.environ["FORCE_QT4"] = "True"
+    os.environ["FORCE_QT4"] = "1"
     app = QtWidgets.QApplication(sys.argv)
     selfLoc = os.path.dirname(os.path.abspath(__file__))
     stylesheetFile = os.path.join(selfLoc, "CSS", "darkorange.stylesheet")

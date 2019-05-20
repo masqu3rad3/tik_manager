@@ -2509,16 +2509,18 @@ class MainUI(QtWidgets.QMainWindow):
         spacerItem = QtWidgets.QSpacerItem(80, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         formats_horizontalLayout.addItem(spacerItem)
 
-
+        ext = os.path.splitext(self.manager.getSceneFile())[1][1:]
         radioButtonList = []
         for format in BoilerDict["SceneFormats"]:
             radioButton = QtWidgets.QRadioButton(saveV_Dialog)
             radioButton.setText(format)
             formats_horizontalLayout.addWidget(radioButton)
             radioButtonList.append(radioButton)
+            if format == ext:
+                radioButton.setChecked(True)
 
         # select the first radio button
-        radioButtonList[0].setChecked(True)
+        # radioButtonList[0].setChecked(True)
 
         # hide radiobutton if only one format exists
         if len(radioButtonList) == 1:

@@ -759,9 +759,9 @@ class RootManager(object):
             logger.error(msg)
             return None
 
-    def getSceneInfoAsText(self):
-        name = self._currentSceneInfo["Name"]
-        pass
+    # def getSceneInfoAsText(self):
+    #     name = self._currentSceneInfo["Name"]
+    #     pass
 
     # def getFavorites(self):
     #     """returns List of favorite projects"""
