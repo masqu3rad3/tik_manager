@@ -48,19 +48,23 @@ import _version
 
 ## SAFE BLOCK
 ## ----------
-FORCE_QT4 = bool(int(os.environ["FORCE_QT4"]))
-if FORCE_QT4:
-    from PyQt4 import QtCore, Qt
-    from PyQt4 import QtGui as QtWidgets
-else:
-    import Qt
-    from Qt import QtWidgets, QtCore, QtGui
+# FORCE_QT4 = bool(int(os.environ["FORCE_QT4"]))
+# if FORCE_QT4:
+#     from PyQt5 import QtCore, Qt
+#     from PyQt5 import QtGui as QtWidgets
+# else:
+#     import Qt
+#     from Qt import QtWidgets, QtCore, QtGui
 ## ----------
 
 # for standalone compatibility uncomment following 3 and disable safe block
 # FORCE_QT4 = True
 # from PyQt4 import QtCore, Qt
 # from PyQt4 import QtGui as QtWidgets
+
+FORCE_QT4 = False
+import Qt
+from Qt import QtWidgets, QtCore, QtGui
 
 import pyseq as seq
 

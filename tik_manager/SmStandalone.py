@@ -35,8 +35,12 @@ import sys, os
 # Set the force pyqt environment variable to tell the other modulea not to use Qt.py module
 os.environ["FORCE_QT4"]="1"
 
-from PyQt4 import QtCore, Qt
-from PyQt4 import QtGui as QtWidgets
+# from PyQt5 import QtCore, Qt
+# from PyQt5 import QtGui as QtWidgets
+
+FORCE_QT4 = False
+import Qt
+from Qt import QtWidgets, QtCore, QtGui
 
 import SmUIRoot
 reload(SmUIRoot)
