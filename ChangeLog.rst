@@ -4,6 +4,7 @@ Tik Manager Version History
 * **New.0** Photoshop module added
 * **Update.0** Software icons added to each software
 * **Update.0** Common database folder seperated from core files
+* **Fix.0** Fixed Error in asset library Maya preventing the merge option.
 
 2.5
 ---

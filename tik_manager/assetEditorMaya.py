@@ -449,11 +449,13 @@ class AssetEditorMaya(object):
                 return True
             else:
                 return False
+        else:
+            return True
 
     def mergeAsset(self, assetName):
-
         assetData = self._getData(assetName)
         if not self._checkVersionMatch(assetData["version"]):
+            print "versionMatching"
             return
         absSourcePath = os.path.join(self.directory, assetName, assetData["sourcePath"])
 
@@ -482,7 +484,7 @@ class AssetEditorMaya(object):
                     newPath = os.path.normpath(os.path.join(newLocation, fileBase))
 
                     copyfile(path, newPath)
-                    cmds.setAttr("%s.fileTextureName" %file, newPath)
+                    cmds.setAttr("%s.fileTextureName" %file, newPath, type="string")
 
     def importAsset(self, assetName):
         assetData = self._getData(assetName)

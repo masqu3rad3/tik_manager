@@ -1,8 +1,11 @@
-import sys
+#!/usr/bin/python
+
+import sys, getopt
 import os
 import shutil
 import psutil
 import _version
+import json
 
 def checkRuninngInstances(sw):
     running = True
@@ -156,38 +159,6 @@ def inject(file, newContentList, between=None, after=None, before=None, matchMod
 
     _dumpContent(file, injectedContent)
     return True
-
-
-# def createOrReplace(file, newContentList, startLine="# start Scene Manager\n", endLine="# end Scene Manager\n"):
-#     # if there is no file
-#     if os.path.isfile(file):
-#         contentList = _loadContent(file)
-#
-#         # if the file is empty ->
-#         if not contentList:
-#             _dumpContent(file, newContentList)
-#             return
-#
-#         # make sure last line ends with a break line
-#         if "\n" not in contentList[-1] and contentList[-1] is not "":
-#             contentList[-1] = "%s\n" % (contentList[-1])
-#         # find start / end of previous content
-#         startIndex = -1
-#         endIndex = -1
-#         for i in contentList:
-#             if i == startLine:
-#                 startIndex = contentList.index(i)
-#             if i == endLine:
-#                 endIndex = contentList.index(i)
-#
-#         if ((startIndex == -1) and (endIndex != -1)) or ((startIndex != -1) and (endIndex == -1)):
-#             raise Exception("Cannot edit %s. Edit it manually" % file)
-#         del contentList[startIndex: endIndex + 1]
-#         dumpList = contentList + newContentList
-#         _dumpContent(file, dumpList)
-#
-#     else:
-#         _dumpContent(file, newContentList)
 
 def nukeSetup(prompt=True):
     print "Starting Nuke Setup"
@@ -907,15 +878,27 @@ icon: #("SceneManager",6)
     if prompt:
         raw_input("Press Enter to continue...")
 
-def photoshopSetup():
+def photoshopSetup(prompt=True):
     print "Starting Photoshop Setup"
     print "Checking files..."
+    networkDir = os.path.dirname(os.path.abspath(__file__))
+
+    # check for running instances
+    state = checkRuninngInstances("Photoshop")
+    if state == -1:
+        print "Installation Aborted by User"
+        return # user aborts
+
+    print "Photoshop setup is not yet implemented"
+    if prompt:
+        raw_input("Press Enter to continue...")
 
 def installAll():
     mayaSetup(prompt=False)
     houdiniSetup(prompt=False)
     maxSetup(prompt=False)
     nukeSetup(prompt=False)
+    photoshopSetup(prompt=False)
     raw_input("Setup Completed. Press Enter to Exit...")
     sys.exit()
 
@@ -923,13 +906,39 @@ def folderCheck(folder):
     if not os.path.isdir(folder):
         os.makedirs(os.path.normpath(folder))
 
+def decideNetworkPath():
+    """Yes/No question terminal"""
+    yes = {'yes', 'y', 'ye', ''}
+    no = {'no', 'n'}
+
+    currentPath = os.path.dirname(os.path.abspath(__file__))
+
+    print """
+Select Common Folder
+--------------------"""
+    print "Current file path is %s" %currentPath
+    msg = "Do you want to use this as common folder?  [y/n]"
+    choice = raw_input(msg).lower()
+    if choice in yes:
+        return currentPath
+    elif choice in no:
+        cf_path = ""
+        while not os.path.isdir(cf_path):
+            cf_path = raw_input("Enter the common folder path:")
+            if not os.path.isdir(cf_path):
+                print "invalid path. Try again"
+            else:
+                return cf_path
+        else:
+            pass
+    else:
+        print("Please respond with 'yes' or 'no'")
+        return ""
 
 header = """
 ---------------------------
 Scene Manager Setup v%s
----------------------------
-
-Choose the software you want to setup Scene Manager:""" % _version.__version__
+---------------------------""" % _version.__version__
 
 
 menuItems = [
@@ -937,6 +946,7 @@ menuItems = [
     { "Houdini": houdiniSetup },
     { "3dsMax": maxSetup },
     { "Nuke": nukeSetup },
+    { "Photoshop": photoshopSetup },
     { "Install All": installAll },
     { "Exit": sys.exit}
 ]
@@ -951,23 +961,100 @@ def okCancel(msg):
     else:
         return okCancel(msg)
 
-
-def main():
+def cli():
+    print (header)
+    networkPath = ""
+    while networkPath == "":
+        networkPath = decideNetworkPath()
+    userHomeDir = os.path.normpath(os.path.join(os.path.expanduser("~")))
+    localSettingsDir = os.path.join(userHomeDir, "Documents", "SceneManager")
+    if not os.path.isdir(os.path.normpath(localSettingsDir)):
+        os.makedirs(os.path.normpath(localSettingsDir))
+    smFile = os.path.join(localSettingsDir, "smCommonFolder.json")
+    _dumpJson(os.path.normpath(networkPath), smFile)
     while True:
-        print (header)
+        print """
+    Choose the software you want to setup Scene Manager:
+    ----------------------------------------------------"""
         for item in menuItems:
             print ("[" + str(menuItems.index(item)) + "] ") + item.keys()[0]
         choice = raw_input(">> ")
         try:
-            if int(choice) < 0 : raise ValueError
+            if int(choice) < 0: raise ValueError
             # Call the matching function
             menuItems[int(choice)].values()[0]()
             os.system('cls')
-
-
         except (ValueError, IndexError):
             pass
 
+def noCli(networkPath, softwareList):
+    userHomeDir = os.path.normpath(os.path.join(os.path.expanduser("~")))
+    localSettingsDir = os.path.join(userHomeDir,"Documents","SceneManager")
+    if not os.path.isdir(os.path.normpath(localSettingsDir)):
+        os.makedirs(os.path.normpath(localSettingsDir))
+    smFile = os.path.join(localSettingsDir, "smCommonFolder.json")
+
+    _dumpJson(os.path.normpath(networkPath), smFile)
+
+    swDictionary = {
+        "maya": mayaSetup,
+        "houdini": houdiniSetup,
+        "3dsmax": maxSetup,
+        "nuke": nukeSetup,
+        "photoshop": photoshopSetup
+    }
+
+    for sw in softwareList:
+        print sw
+        if sw.lower() not in swDictionary.keys():
+            print "%s is not in the supported product list. Skipping" %sw
+            continue
+
+        swDictionary[sw.lower()](prompt=False)
+    raw_input("Setup Completed. Press Enter to Exit...")
+
+
+def main(argv):
+    # parse the arguments
+    opts, args = getopt.getopt(argv, "n:h:v", ["networkpath", "help", "verbose"])
+
+    if not opts and not args:
+        cli()
+    else:
+        if not opts and args:
+            print "You must enter -n argument"
+            sys.exit()
+
+        networkPath = ""
+        for o, a in opts:
+            if o == "-n":
+                networkPath = a
+            else:
+                assert False, "unhandled option"
+        softwareList = args
+
+        if not os.path.isdir(networkPath):
+            print "invalid network path"
+            sys.exit()
+
+        print "networkPath", networkPath
+        print "softwareList", softwareList
+        noCli(networkPath, softwareList)
+
+        # isCli = True
+        # if isCli:
+        #     cli()
+        # else:
+        #     noCli("C:\\", ["Maya", "3dsMax", "Houdini", "Nuke"])
+
+def _dumpJson(data, file):
+    """Saves the data to the json file"""
+    name, ext = os.path.splitext(file)
+    tempFile = "{0}.tmp".format(name)
+    with open(tempFile, "w") as f:
+        json.dump(data, f, indent=4)
+    shutil.copyfile(tempFile, file)
+    os.remove(tempFile)
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
