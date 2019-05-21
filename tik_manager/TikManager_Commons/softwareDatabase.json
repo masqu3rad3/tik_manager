@@ -1,0 +1,91 @@
+{
+  "Maya": {
+    "niceName": "Maya",
+    "root": "Autodesk",
+    "relPath": "bin",
+    "exeList": [
+      "maya.exe"
+    ],
+    "searchWord": "Maya",
+    "databaseDir": "mayaDB",
+    "scenesDir": "scenes",
+    "pbSettingsFile": "pbSettings.json",
+    "categoriesFile": "categoriesMaya.json",
+    "userSettingsDir": "TikManager\\Maya"
+  },
+  "3dsMax": {
+    "niceName": "3dsMax",
+    "root": "Autodesk",
+    "relPath": "",
+    "exeList": [
+      "3dsmax.exe"
+    ],
+    "searchWord": "3ds",
+    "databaseDir": "maxDB",
+    "scenesDir": "scenes_3dsMax",
+    "pbSettingsFile": "pbSettings_3dsMax.json",
+    "categoriesFile": "categories3dsMax.json",
+    "userSettingsDir": "TikManager\\3dsMax"
+  },
+  "Houdini": {
+    "niceName": "Houdini",
+    "root": "Side Effects Software",
+    "relPath": "bin",
+    "exeList": [
+      "houdini.exe",
+      "houdinifx.exe"
+    ],
+    "searchWord": "Hou",
+    "databaseDir": "houdiniDB",
+    "scenesDir": "scenes_houdini",
+    "pbSettingsFile": "pbSettings_houdini.json",
+    "categoriesFile": "categoriesHoudini.json",
+    "userSettingsDir": "TikManager\\Houdini"
+  },
+  "Nuke": {
+    "niceName": "Nuke",
+    "root": "",
+    "relPath": "",
+    "exeList": [
+      "Nuke10.0.exe",
+      "Nuke10.1.exe",
+      "Nuke10.2.exe",
+      "Nuke10.3.exe",
+      "Nuke10.4.exe",
+      "Nuke10.5.exe",
+      "Nuke10.6.exe",
+      "Nuke10.7.exe",
+      "Nuke10.8.exe",
+      "Nuke10.9.exe",
+      "Nuke11.0.exe",
+      "Nuke11.1.exe",
+      "Nuke11.2.exe",
+      "Nuke11.3.exe",
+      "Nuke11.4.exe",
+      "Nuke11.5.exe",
+      "Nuke11.6.exe",
+      "Nuke11.7.exe",
+      "Nuke11.8.exe",
+      "Nuke11.9.exe"
+    ],
+    "searchWord": "Nuke",
+    "databaseDir": "nukeDB",
+    "scenesDir": "scenes_nuke",
+    "pbSettingsFile": "pbSettings_nuke.json",
+    "categoriesFile": "categoriesNuke.json",
+    "userSettingsDir": "TikManager\\Nuke"
+  },
+    "Photoshop": {
+    "niceName": "Photoshop",
+    "root": "Adobe",
+    "relPath": "",
+    "exeList": ["Photoshop.exe"],
+    "searchWord": "Adobe Photoshop CC",
+    "databaseDir": "photoshopDB",
+    "scenesDir": "photoshop",
+    "pbSettingsFile": "pbSettings_ps.json",
+    "categoriesFile": "categoriesPs.json",
+    "userSettingsDir": "TikManager\\Photoshop"
+  }
+  
+}
