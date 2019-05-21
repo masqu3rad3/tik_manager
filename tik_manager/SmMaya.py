@@ -66,17 +66,17 @@ class MayaManager(RootManager):
         super(MayaManager, self).__init__()
         # hard coded format dictionary to pass the format info to cmds
         self.formatDict = {"ma": "mayaAscii", "mb": "mayaBinary"}
-        self.init_paths()
+        self.init_paths("Maya")
         self.backwardcompatibility()  # DO NOT RUN UNTIL RELEASE
         self.init_database()
-        print "asnan", self._pathsDict["generalSettingsDir"]
 
 
     def getSoftwarePaths(self):
         """Overriden function"""
         logger.debug("Func: getSoftwarePaths")
-
-        softwareDatabaseFile = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "softwareDatabase.json"))
+        self._pathsDict["generalSettingsDir"]
+        # softwareDatabaseFile = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "softwareDatabase.json"))
+        softwareDatabaseFile = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
         softwareDB = self._loadJson(softwareDatabaseFile)
         # To tell the base class maya specific path names
         # print softwareDB

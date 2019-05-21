@@ -86,14 +86,14 @@ class RootManager(object):
                          340: "Naming Error",
                          341: "Mandatory fields are not filled",
                          360: "Action not permitted"}
-
-    def init_paths(self):
+    def init_paths(self, nicename):
         """Initializes all the necessary paths"""
         logger.debug("Func: init_paths")
         # all paths in here must be absolute paths
-        _softwarePathsDict = self.getSoftwarePaths()
+        # _softwarePathsDict = self.getSoftwarePaths()
 
-        self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDirectory(), _softwarePathsDict["userSettingsDir"]))
+        # self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDirectory(), _softwarePathsDict["userSettingsDir"]))
+        self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDirectory(), "TikManager", nicename))
         self._folderCheck(self._pathsDict["userSettingsDir"])
 
         self._pathsDict["bookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smBookmarks.json"))
@@ -102,6 +102,12 @@ class RootManager(object):
 
         self._pathsDict["commonFolderDir"] = os.path.abspath(os.path.join(self._pathsDict["userSettingsDir"], os.pardir))
         self._pathsDict["commonFolderFile"] = os.path.normpath(os.path.join(self._pathsDict["commonFolderDir"], "smCommonFolder.json"))
+
+        self._pathsDict["generalSettingsDir"] = self._getCommonFolder()
+        if self._pathsDict["generalSettingsDir"] == -1:
+            self._exception(201, "Cannot Continue Without Common Database")
+            return -1
+        _softwarePathsDict = self.getSoftwarePaths()
 
         self._pathsDict["projectDir"] = self.getProjectDir()
         self._pathsDict["sceneFile"] = ""
@@ -125,10 +131,6 @@ class RootManager(object):
 
         self._pathsDict["pbSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["previewsDir"], _softwarePathsDict["pbSettingsFile"]))
 
-        self._pathsDict["generalSettingsDir"] = self._getCommonFolder()
-        if self._pathsDict["generalSettingsDir"] == -1:
-            self._exception(201, "Cannot Continue Without Common Database")
-            return -1
 
         # self._pathsDict["generalSettingsDir"] = os.path.dirname(os.path.abspath(__file__))
 
@@ -137,13 +139,63 @@ class RootManager(object):
         self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
         self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerDefaults.json"))
 
+    # def init_paths(self):
+    #     """Initializes all the necessary paths"""
+    #     logger.debug("Func: init_paths")
+    #     # all paths in here must be absolute paths
+    #     _softwarePathsDict = self.getSoftwarePaths()
+    #
+    #     self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDirectory(), _softwarePathsDict["userSettingsDir"]))
+    #     self._folderCheck(self._pathsDict["userSettingsDir"])
+    #
+    #     self._pathsDict["bookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smBookmarks.json"))
+    #     self._pathsDict["currentsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smCurrents.json"))
+    #     self._pathsDict["projectsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smProjects.json"))
+    #
+    #     self._pathsDict["commonFolderDir"] = os.path.abspath(os.path.join(self._pathsDict["userSettingsDir"], os.pardir))
+    #     self._pathsDict["commonFolderFile"] = os.path.normpath(os.path.join(self._pathsDict["commonFolderDir"], "smCommonFolder.json"))
+    #
+    #     self._pathsDict["projectDir"] = self.getProjectDir()
+    #     self._pathsDict["sceneFile"] = ""
+    #
+    #     self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
+    #     self._folderCheck(self._pathsDict["masterDir"])
+    #
+    #     self._pathsDict["databaseDir"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], _softwarePathsDict["databaseDir"]))
+    #     self._folderCheck(self._pathsDict["databaseDir"])
+    #
+    #     self._pathsDict["scenesDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], _softwarePathsDict["scenesDir"]))
+    #     self._folderCheck(self._pathsDict["scenesDir"])
+    #
+    #     self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
+    #     # self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], "subPdata.json"))
+    #     self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "subPdata.json"))
+    #     self._pathsDict["categoriesFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], _softwarePathsDict["categoriesFile"]))
+    #
+    #     self._pathsDict["previewsDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "Playblasts", _softwarePathsDict["niceName"])) # dont change
+    #     self._folderCheck(self._pathsDict["previewsDir"])
+    #
+    #     self._pathsDict["pbSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["previewsDir"], _softwarePathsDict["pbSettingsFile"]))
+    #
+    #     self._pathsDict["generalSettingsDir"] = self._getCommonFolder()
+    #     if self._pathsDict["generalSettingsDir"] == -1:
+    #         self._exception(201, "Cannot Continue Without Common Database")
+    #         return -1
+    #
+    #     # self._pathsDict["generalSettingsDir"] = os.path.dirname(os.path.abspath(__file__))
+    #
+    #     self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerUsers.json"))
+    #
+    #     self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
+    #     self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerDefaults.json"))
+
 
     def _checkCommonFolder(self, folder):
-        # checkList = [os.path.join(folder, "sceneManagerDefaults.json"),
-        #              os.path.join(folder, "sceneManagerUsers.json"),
-        #              os.path.join(folder, "softwareDatabase.json")]
         checkList = [os.path.join(folder, "sceneManagerDefaults.json"),
-                     os.path.join(folder, "sceneManagerUsers.json"),]
+                     os.path.join(folder, "sceneManagerUsers.json"),
+                     os.path.join(folder, "softwareDatabase.json")]
+        # checkList = [os.path.join(folder, "sceneManagerDefaults.json"),
+        #              os.path.join(folder, "sceneManagerUsers.json"),]
         missingList = [os.path.basename(path) for path in checkList if not os.path.isfile(path)]
         if len(missingList) > 0:
             self._info("This folder cannot be set as Common Database Folder.\n\n It is missing necessary files:\n\nFollowing files are missing:\n %s" %(missingList))
@@ -625,6 +677,10 @@ class RootManager(object):
         if not "Documents" in dir:
             dir = os.path.join(dir, "Documents")
         return os.path.normpath(dir)
+
+    def getGeneralSettingsDirectory(self):
+        """Returns the general settings Directory where common settings are"""
+        return self._pathsDict["generalSettingsDir"]
 
     def getOpenSceneInfo(self):
         """

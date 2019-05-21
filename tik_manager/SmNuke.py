@@ -113,14 +113,17 @@ class NukeManager(RootManager):
         super(NukeManager, self).__init__()
         # hard coded format dictionary to pass the format info to cmds
         # self.formatDict = {"ma": "mayaAscii", "mb": "mayaBinary"}
-        self.init_paths()
+        self.init_paths("Nuke")
         self.init_database()
 
 
     def getSoftwarePaths(self):
         """Overriden function"""
         logger.debug("Func: getSoftwarePaths")
-        softwareDatabaseFile = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "softwareDatabase.json"))
+        self._pathsDict["generalSettingsDir"]
+        # softwareDatabaseFile = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "softwareDatabase.json"))
+        softwareDatabaseFile = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
+        # softwareDatabaseFile = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "softwareDatabase.json"))
         softwareDB = self._loadJson(softwareDatabaseFile)
         return softwareDB["Nuke"]
         # # To tell the base class maya specific path names

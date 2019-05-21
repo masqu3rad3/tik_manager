@@ -423,16 +423,16 @@ class StandaloneManager(RootManager):
         super(StandaloneManager, self).__init__()
 
         self.swList = []
-        self.init_paths()
+        self.init_paths("Standalone")
         self.init_database()
 
         self.initSoftwares()
 
-    def init_paths(self):
+    def init_paths(self, nicename):
         """Overriden function"""
 
 
-        self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(os.path.expanduser("~"), "Documents", "SceneManager", "Standalone"))
+        self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDirectory(), "TikManager", nicename))
         self._folderCheck(self._pathsDict["userSettingsDir"])
 
         self._pathsDict["bookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smBookmarks.json"))

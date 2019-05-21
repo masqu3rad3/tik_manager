@@ -82,7 +82,7 @@ class PsManager(RootManager):
         self.exportFormats16Bit =["png", "jpg", "tif", "psd"]
         self.exportFormats32Bit =["exr", "tif", "hdr", "psd"]
 
-        self.init_paths()
+        self.init_paths("Photoshop")
         self.init_database()
         self.textureTypes = self._sceneManagerDefaults["exportTextureTypes"]
         # self.psApp = ct.CreateObject('Photoshop.Application')
@@ -91,8 +91,11 @@ class PsManager(RootManager):
     def getSoftwarePaths(self):
         """Overriden function"""
         logger.debug("Func: getSoftwarePaths")
+        self._pathsDict["generalSettingsDir"]
+        # softwareDatabaseFile = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "softwareDatabase.json"))
+        softwareDatabaseFile = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
 
-        softwareDatabaseFile = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "softwareDatabase.json"))
+        # softwareDatabaseFile = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "softwareDatabase.json"))
         # softwareDatabaseFile = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
         softwareDB = self._loadJson(softwareDatabaseFile)
         # To tell the base class maya specific path names

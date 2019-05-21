@@ -75,14 +75,18 @@ class MaxManager(RootManager):
     def __init__(self):
         super(MaxManager, self).__init__()
 
-        self.init_paths()
+        self.init_paths("3dsMax")
         # self.backwardcompatibility()  # DO NOT RUN UNTIL RELEASE
         self.init_database()
 
 
     def getSoftwarePaths(self):
         """Overriden function"""
-        softwareDatabaseFile = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "softwareDatabase.json"))
+        logger.debug("Func: getSoftwarePaths")
+        self._pathsDict["generalSettingsDir"]
+        # softwareDatabaseFile = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "softwareDatabase.json"))
+        softwareDatabaseFile = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
+        # softwareDatabaseFile = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "softwareDatabase.json"))
         softwareDB = self._loadJson(softwareDatabaseFile)
         return softwareDB["3dsMax"]
         # To tell the base class maya specific path names

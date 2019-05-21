@@ -113,7 +113,7 @@ class ImageManager(RootManager):
     def __init__(self):
         super(ImageManager, self).__init__()
 
-        self.init_paths()
+        self.init_paths("Maya")
         self.init_database()
 
         self.sceneInfo = self.getOpenSceneInfo()
@@ -148,13 +148,21 @@ class ImageManager(RootManager):
 
     def getSoftwarePaths(self):
         """Overriden function"""
-        # To tell the base class maya specific path names
-        return {"niceName": "Maya",
-                "databaseDir": "mayaDB",
-                "scenesDir": "scenes",
-                "pbSettingsFile": "pbSettings.json",
-                "categoriesFile": "categoriesMaya.json",
-                "userSettingsDir": "SceneManager\\Maya"}
+        logger.debug("Func: getSoftwarePaths")
+        self._pathsDict["generalSettingsDir"]
+        softwareDatabaseFile = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
+        softwareDB = self._loadJson(softwareDatabaseFile)
+        return softwareDB["Maya"]
+
+    # def getSoftwarePaths(self):
+    #     """Overriden function"""
+    #     # To tell the base class maya specific path names
+    #     return {"niceName": "Maya",
+    #             "databaseDir": "mayaDB",
+    #             "scenesDir": "scenes",
+    #             "pbSettingsFile": "pbSettings.json",
+    #             "categoriesFile": "categoriesMaya.json",
+    #             "userSettingsDir": "SceneManager\\Maya"}
 
     def getProjectDir(self):
         """Overriden function"""
@@ -663,8 +671,10 @@ class ImageManager(RootManager):
         # print "Warning Level:", warningLevel
 
     def callDeadlineScript(self):
-        scriptLocation = os.path.dirname(os.path.abspath(__file__))
-        scriptPath = os.path.join(scriptLocation, "SubmitMayaToDeadlineCustom.mel")
+        # scriptLocation = os.path.dirname(os.path.abspath(__file__))
+        # scriptPath = os.path.join(scriptLocation, "SubmitMayaToDeadlineCustom.mel")
+        scriptPath = os.path.join(self.getGeneralSettingsDirectory(), "SubmitMayaToDeadlineCustom.mel")
+
         if os.path.isfile(scriptPath):
             scriptPath = scriptPath.replace("\\", "//") ## for compatibility with mel syntax.
             # mel.eval('source "%s//SubmitMayaToDeadlineCustom.mel";' % compatibility)
@@ -674,7 +684,7 @@ class ImageManager(RootManager):
             mel.eval('SubmitJobToDeadline()')
             return None, None
         else:
-            msg = "SubmitMayaToDeadlineCustom.mel is not exist under the tik_manager directory"
+            msg = "SubmitMayaToDeadlineCustom.mel is not exist under the Common Directory"
             # pm.warning(msg)
             cmds.warning(msg)
             return -1, msg
