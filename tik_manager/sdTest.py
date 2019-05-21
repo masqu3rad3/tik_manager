@@ -36,22 +36,35 @@ import os
 import webbrowser
 
 # PyInstaller and Standalone version compatibility
-FORCE_QT4 = bool(int(os.getenv("FORCE_QT4")))
+# FORCE_QT4 = bool(int(os.getenv("FORCE_QT4")))
 
 # Somehow Pyinstaller is not working with Qt.py module. Following lines forces to use PyQt4
 # instead of Qt module to make it compatible with PyInstaller.
-if FORCE_QT4:
-    from PyQt4 import QtCore, Qt
-    from PyQt4 import QtGui as QtWidgets
-else:
-    import Qt
-    from Qt import QtWidgets, QtCore, QtGui
+
+
+## SUBSTANCE DESIGNER COMMANDS
+## ---------------------------
+
+#import sys
+#sys.path.append("C:/Users/kutlu/Documents/maya/scripts/tik_manager")
+#sys.path.append("C:/Users/kutlu/Documents/maya/scripts/tik_manager/tik_manager")
+
+# import importlib
+# from tik_manager import sdTest
+# importlib.reload(sdTest)
+# r=sdTest.MainUI()
+# r.show()
+## ---------------------------
+
+
+import Qt
+from Qt import QtWidgets, QtCore, QtGui
 
 import _version
 import pprint
 
-import ImageViewer
-reload(ImageViewer)
+# import ImageViewer
+# reload(ImageViewer)
 
 # from tik_manager.CSS import darkorange
 # reload(darkorange)
@@ -168,30 +181,14 @@ class MainUI(QtWidgets.QMainWindow):
                 pass
         parent = getMainWindow()
         super(MainUI, self).__init__(parent=parent)
-        # self.manager = MayaManager()
-        # problem, msg = self.manager._checkRequirements()
-        # if problem:
-        #     q = QtWidgets.QMessageBox()
-        #     q.setIcon(QtWidgets.QMessageBox.Information)
-        #     q.setText(msg[0])
-        #     q.setInformativeText(msg[1])
-        #     q.setWindowTitle(msg[2])
-        #     q.setStandardButtons(QtWidgets.QMessageBox.Ok)
-        #
-        #     ret = q.exec_()
-        #     if ret == QtWidgets.QMessageBox.Ok:
-        #         self.close()
-        #         self.deleteLater()
 
         # Set Stylesheet
         dirname = os.path.dirname(os.path.abspath(__file__))
         stylesheetFile = os.path.join(dirname, "CSS", "darkorange.stylesheet")
-        # stylesheetFile = os.path.join(dirname, "CSS", BoilerDict["Stylesheet"])
 
         with open(stylesheetFile, "r") as fh:
             self.setStyleSheet(fh.read())
         #
-        # self.setStyleSheet(darkorange.getStyleSheet())
 
 
         self.swColorDict = {"Maya": "rgb(81, 230, 247, 255)",
@@ -201,10 +198,9 @@ class MainUI(QtWidgets.QMainWindow):
                             "Photoshop": "rgb(60, 60, 250, 255)",
                             "":  "rgb(0, 0, 0, 0)"
                             }
-        # self.initMainUI(newborn=True)
 
-
-        # super(MainUI, self).closeEvent(event)
+        self.buildUI()
+        self.initMainUI(newborn=True)
 
     def buildUI(self):
 
@@ -402,10 +398,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.verticalLayout.addWidget(self.notes_textEdit)
 
         # PyInstaller and Standalone version compatibility
-        if FORCE_QT4:
-            self.tPixmap = QtWidgets.QPixmap("")
-        else:
-            self.tPixmap = QtGui.QPixmap("")
+
+        self.tPixmap = QtGui.QPixmap("")
         # self.tPixmap = QtGui.QPixmap("")
         self.thumbnail_label = ImageWidget(self.frame)
         self.thumbnail_label.setPixmap(self.tPixmap)
@@ -629,17 +623,15 @@ class MainUI(QtWidgets.QMainWindow):
         # ---------
 
         # PyInstaller and Standalone version compatibility
-        if FORCE_QT4:
-            shortcutRefresh = Qt.QShortcut(QtWidgets.QKeySequence("F5"), self, self.refresh)
-        else:
-            shortcutRefresh = QtWidgets.QShortcut(QtGui.QKeySequence("F5"), self, self.refresh)
+
+        shortcutRefresh = QtWidgets.QShortcut(QtGui.QKeySequence("F5"), self, self.refresh)
 
         # SIGNAL CONNECTIONS
         # ------------------
 
-        self.changeCommonFolder.triggered.connect(self.manager._defineCommonFolder)
-        self.changeCommonFolder.triggered.connect(self.manager.init_paths)
-        self.changeCommonFolder.triggered.connect(self.manager.init_database)
+        # self.changeCommonFolder.triggered.connect(self.manager._defineCommonFolder)
+        # self.changeCommonFolder.triggered.connect(self.manager.init_paths)
+        # self.changeCommonFolder.triggered.connect(self.manager.init_database)
         self.changeCommonFolder.triggered.connect(self._initUsers)
         self.changeCommonFolder.triggered.connect(self.onUserChange)
 
@@ -2699,9 +2691,9 @@ class MainUI(QtWidgets.QMainWindow):
     def initMainUI(self, newborn=False):
         """Initialization Method for MainUI. Needs to be overriden for Standalone Version"""
 
-        self.load_radioButton.setChecked(self.manager.currentMode)
-        self.reference_radioButton.setChecked(not self.manager.currentMode)
-        self.category_tabWidget.setCurrentIndex(self.manager.currentTabIndex)
+        # self.load_radioButton.setChecked(self.manager.currentMode)
+        # self.reference_radioButton.setChecked(not self.manager.currentMode)
+        # self.category_tabWidget.setCurrentIndex(self.manager.currentTabIndex)
 
 
         if not newborn:
@@ -2710,12 +2702,12 @@ class MainUI(QtWidgets.QMainWindow):
 
         self._initCategories()
 
-        self.manager.getOpenSceneInfo()
+        # self.manager.getOpenSceneInfo()
 
-        self._initOpenScene()
+        # self._initOpenScene()
 
         # init project
-        self.project_lineEdit.setText(self.manager.projectDir)
+        # self.project_lineEdit.setText(self.manager.projectDir)
 
         # init subproject
 
@@ -2892,7 +2884,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.loadScene_pushButton.setText("Reference Scene")
             self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: cyan;")
 
-        self.manager.currentMode = self.load_radioButton.isChecked()
+        # self.manager.currentMode = self.load_radioButton.isChecked()
         self.populateBaseScenes()
 
     def onBaseSceneChange(self):
@@ -3128,7 +3120,8 @@ class MainUI(QtWidgets.QMainWindow):
 
     def _getManager(self):
         """Returns current manager"""
-        return self.manager
+        # return self.manager
+        return None
 
 
     def _initSubProjects(self):
@@ -3167,21 +3160,21 @@ class MainUI(QtWidgets.QMainWindow):
         self.user_comboBox.blockSignals(True)
 
         self.user_comboBox.clear()
-        self.user_comboBox.addItems(self.manager.getUsers())
-        index = self.user_comboBox.findText(self.manager.currentUser, QtCore.Qt.MatchFixedString)
-        if index >= 0:
-            self.user_comboBox.setCurrentIndex(index)
+        # self.user_comboBox.addItems(self.manager.getUsers())
+        # index = self.user_comboBox.findText(self.manager.currentUser, QtCore.Qt.MatchFixedString)
+        # if index >= 0:
+        #     self.user_comboBox.setCurrentIndex(index)
 
         self.user_comboBox.blockSignals(False)
 
-    def _initOpenScene(self):
-        openSceneInfo = self.manager._openSceneInfo
-        if openSceneInfo: ## getSceneInfo returns None if there is no json database fil
-            self.baseScene_lineEdit.setText("%s ==> %s ==> %s" % (openSceneInfo["subProject"], openSceneInfo["category"], openSceneInfo["shotName"]))
-            self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: cyan")
-        else:
-            self.baseScene_lineEdit.setText("Current Scene is not a Base Scene")
-            self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: yellow")
+    # def _initOpenScene(self):
+    #     openSceneInfo = self.manager._openSceneInfo
+    #     if openSceneInfo: ## getSceneInfo returns None if there is no json database fil
+    #         self.baseScene_lineEdit.setText("%s ==> %s ==> %s" % (openSceneInfo["subProject"], openSceneInfo["category"], openSceneInfo["shotName"]))
+    #         self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: cyan")
+    #     else:
+    #         self.baseScene_lineEdit.setText("Current Scene is not a Base Scene")
+    #         self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: yellow")
 
 
     def _checkValidity(self, text, button, lineEdit, allowSpaces=False):
@@ -3214,10 +3207,10 @@ class MainUI(QtWidgets.QMainWindow):
             self.addNote_pushButton.setEnabled(False)
             self.version_label.setEnabled(False)
 
-        if manager.getPreviews():
-            self.showPreview_pushButton.setEnabled(True)
-        else:
-            self.showPreview_pushButton.setEnabled(False)
+        # if manager.getPreviews():
+        #     self.showPreview_pushButton.setEnabled(True)
+        # else:
+        #     self.showPreview_pushButton.setEnabled(False)
 
     def onCheckNewVersion(self):
         manager = self._getManager()
@@ -3371,10 +3364,8 @@ class DropListWidget(QtWidgets.QListWidget):
     # dropped = Qt.QtCore.Signal(str)
     # dropped = QtCore.Signal(str)
     # PyInstaller and Standalone version compatibility
-    if FORCE_QT4:
-        dropped = QtCore.pyqtSignal(str)
-    else:
-        dropped = QtCore.Signal(str)
+
+    dropped = QtCore.Signal(str)
 
     def __init__(self, type, parent=None):
         super(DropListWidget, self).__init__(parent)

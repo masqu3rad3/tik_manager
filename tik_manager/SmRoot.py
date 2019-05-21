@@ -1102,7 +1102,7 @@ class RootManager(object):
                 # print v
                 usersList.append(v["User"])
 
-        print uniqueList(usersList)
+        print(uniqueList(usersList))
 
 
 
@@ -1125,7 +1125,7 @@ Oldest Scene File:{4}
 Most Recent Scene File:{5}
 Elapsed Time:{6}
         """.format(self.currentUser, formattedDate, "2", formattedUsedSoftwares, oldestFile, newestFile, "6")
-        print ReportText
+        print(ReportText)
         pass
     # def getProjectReport(self):
     #     # TODO This function should be re-written considering all possible softwares
@@ -1323,7 +1323,7 @@ Elapsed Time:{6}
     def playPreview(self, camera):
         """Runs the playblast at cursor position"""
         logger.debug("Func: playPreview")
-        print "cam", camera
+        print("cam", camera)
         # absPath = os.path.join(self.projectDir, self._currentPreviewsDict[self._currentPreviewCamera])
         absPath = os.path.join(self.projectDir, self._currentPreviewsDict[camera])
         if self.currentPlatform == "Windows":
@@ -1482,7 +1482,7 @@ Elapsed Time:{6}
                     # copy over the forReference file
                     try:
                         shutil.copyfile(self._pathsDict["sceneFile"], absRefFile)
-                        print "Scene Manager Update:\nReference File Updated"
+                        print("Scene Manager Update:\nReference File Updated")
                     except:
                         pass
 
@@ -1979,7 +1979,7 @@ Elapsed Time:{6}
 
     def _info(self, msg):
         """Information"""
-        print msg
+        print(msg)
 
     def _inputDir(self):
         """Input directory terminal"""

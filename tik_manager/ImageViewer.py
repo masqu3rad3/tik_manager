@@ -137,8 +137,6 @@ def importSequence(pySeq_sequence):
         firstFrame = pySeq_sequence.start()
         lastFrame = pySeq_sequence.end()
 
-        print "helelo", firstFrame, lastFrame
-
         readNode = nuke.createNode('Read')
         readNode.knob('file').fromUserText(seqPath)
         readNode.knob('first').setValue(firstFrame)
@@ -583,15 +581,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         for itemName in selectedItemNames:
             seq = self.sequenceData[str(itemName)]
-
-            #
-            # print "seq.head", seq.head()
-            # print "seq.tail", seq.tail()
-            # print "_get_padding", seq._get_padding()
-
-
-
-
             importSequence(seq)
 
 
@@ -659,28 +648,6 @@ class MainUI(QtWidgets.QMainWindow):
         self._generator = self.listingLoop(genList)  # start the loop
         self._timerId = self.startTimer(0)  # idle timer
 
-    # def listingLoop(self, gen):
-    #     """Add found sequences to the List widget"""
-    #     for x in gen:
-    #         for i in x[2]:
-    #             QtWidgets.QApplication.processEvents(QtCore.QEventLoop.ExcludeUserInputEvents)
-    #             # filtertest
-    #             filterWord = str(self.nameFilter_lineEdit.text())
-    #             # print filterWord
-    #             if filterWord != "" and filterWord.lower() not in i.lower():
-    #                 continue
-    #
-    #             itemName = i.format('%h%t %R')
-    #             self.sequenceData[itemName] = i
-    #             # self.sequenceData.append(i)
-    #             # self.sequences_listWidget.addItem(i.format('%h%t %R'))
-    #             firstImagePath = os.path.join(os.path.normpath(i.dirname), i.name)
-    #             timestamp = os.path.getmtime(firstImagePath)
-    #             timestampFormatted = datetime.datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
-    #             item = QtWidgets.QTreeWidgetItem(self.sequences_treeWidget, [itemName, str(timestampFormatted)])
-    #             self.sequences_treeWidget.sortItems(1, QtCore.Qt.AscendingOrder)  # 1 is Date Column, 0 is Ascending order
-    #
-    #             yield
 
     def listingLoop(self, genList):
         """Add found sequences to the List widget"""
@@ -690,7 +657,6 @@ class MainUI(QtWidgets.QMainWindow):
                     QtWidgets.QApplication.processEvents(QtCore.QEventLoop.ExcludeUserInputEvents)
                     # filtertest
                     filterWord = str(self.nameFilter_lineEdit.text())
-                    # print filterWord
                     if filterWord != "" and filterWord.lower() not in i.lower():
                         continue
 
