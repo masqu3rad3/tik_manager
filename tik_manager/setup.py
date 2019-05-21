@@ -6,6 +6,8 @@ import shutil
 import psutil
 import _version
 import json
+import _winreg as reg
+
 
 def checkRuninngInstances(sw):
     running = True
@@ -44,12 +46,28 @@ def _loadContent(filePath):
     f.close()
     return contentList
 
+# def _dumpContent(filePath, contentList, backup=False):
+#     if backup:
+#         shutil.copyfile(filePath)
+#     name, ext = os.path.splitext(filePath)
+#     if backup:
+#         if os.path.isdir(filePath):
+#             backupFile = "{0}.bak".format(name)
+#             shutil.copyfile(filePath, backupFile)
+#             print "Backup complete\n%s => %s" %(filePath, backupFile)
+#     tempFile = "{0}_TMP{1}".format(name, ext)
+#     f = open(tempFile, "w+")
+#     f.writelines(contentList)
+#     f.close()
+#     shutil.copyfile(tempFile, filePath)
+#     os.remove(tempFile)
+
 def _dumpContent(filePath, contentList, backup=False):
-    if backup:
-        shutil.copyfile(filePath)
+    # if backup:
+    #     shutil.copyfile(filePath)
     name, ext = os.path.splitext(filePath)
     if backup:
-        if os.path.isdir(filePath):
+        if os.path.isfile(filePath):
             backupFile = "{0}.bak".format(name)
             shutil.copyfile(filePath, backupFile)
             print "Backup complete\n%s => %s" %(filePath, backupFile)
@@ -881,13 +899,85 @@ icon: #("SceneManager",6)
 def photoshopSetup(prompt=True):
     print "Starting Photoshop Setup"
     print "Checking files..."
-    networkDir = os.path.dirname(os.path.abspath(__file__))
-
     # check for running instances
     state = checkRuninngInstances("Photoshop")
     if state == -1:
         print "Installation Aborted by User"
         return # user aborts
+
+    def copy_and_overwrite(from_path, to_path):
+        # TODO make this method better
+        if os.path.exists(to_path):
+            shutil.rmtree(to_path)
+        shutil.copytree(from_path, to_path)
+
+    sourceDir = os.path.dirname(os.path.abspath(__file__))
+    extensionSourceDir = os.path.join(sourceDir, "setupFiles", "Photoshop", "extensionFolder", "tikManager")
+    if not os.path.isdir(extensionSourceDir):
+        print "Photoshop installation error.\nCannot locate the extension folder."
+        raw_input("Press Enter to continue")
+        return
+
+    ## EDIT HTML FILE
+    ## --------------
+
+    indexHTMLFile = os.path.join(extensionSourceDir, "client", "index.html")
+
+    managerIcon = os.path.join(sourceDir, "icons", "manager_ICON.png")
+    saveVersionIcon = os.path.join(sourceDir, "icons", "saveVersion_ICON.png")
+
+    indexHTMLContent = """<!DOCTYPE html>
+<html>
+<body style="background-color:black;">
+<head>
+    <meta charset="utf-8">
+    <title>Tik Manager</title>
+</head>
+<body>
+    <input type="image" id="tikManager-button" src="{0}" />
+    <input type="image" id="version-button" src="{1}" />
+    <!-- Do not display this at the moment
+    <button id="open-button">Open</button>
+    -->
+    <script type="text/javascript" src="CSInterface.js"></script>
+    <script type="text/javascript" src="index.js"></script>
+</body>
+</html>""".format(managerIcon, saveVersionIcon)
+
+    _dumpContent(indexHTMLFile, indexHTMLContent, backup=True)
+
+    ## EDIT HOST FILE
+    ## --------------
+
+    hostFile = os.path.join(extensionSourceDir, "host", "index.jsx")
+    appLocation = os.path.join(sourceDir, "bin", "SmPhotoshop.exe").replace("\\", "//")
+    hostContent = """function tikUI(){
+    var bat = new File("%s");
+    bat.execute();
+}
+""" % (appLocation)
+
+    _dumpContent(hostFile, hostContent, backup=True)
+
+    userHomeDir = os.path.normpath(os.path.join(os.path.expanduser("~")))
+    extensionTargetDir = os.path.join(userHomeDir, "AppData", "Roaming", "Adobe", "CEP", "extensions", "tikManager")
+
+    print "extSource", extensionSourceDir
+    print "extTarger", extensionTargetDir
+    copy_and_overwrite(extensionSourceDir, extensionTargetDir)
+
+    # edit registry
+    def getCSXkey(val):
+        try:
+            key = reg.OpenKey(reg.HKEY_CURRENT_USER, r'Software\Adobe\CSXS.%s' % val, 0, reg.KEY_ALL_ACCESS)
+            reg.SetValueEx(key, "PlayerDebugMode", 1, reg.REG_SZ, "1")
+            reg.CloseKey(key)
+            return key
+        except WindowsError:
+            return None
+
+    # map the function for all keys between CSXS.0 - CSXS.19
+    map(lambda x: getCSXkey(x), range(20))
 
     print "Photoshop setup is not yet implemented"
     if prompt:
