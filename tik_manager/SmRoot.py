@@ -138,6 +138,7 @@ class RootManager(object):
 
         self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
         self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerDefaults.json"))
+        self._pathsDict["tikConventions"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "tikConventions.json"))
 
     # def init_paths(self):
     #     """Initializes all the necessary paths"""
@@ -244,55 +245,6 @@ class RootManager(object):
             msg = "Cannot save common folder file"
             return -1, msg
 
-
-    # def init_paths(self):
-    #     """Initializes all the necessary paths"""
-    #     logger.debug("Func: init_paths")
-    #     # all paths in here must be absolute paths
-    #     _softwarePathsDict = self.getSoftwarePaths()
-    #
-    #     self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDirectory(), _softwarePathsDict["userSettingsDir"]))
-    #     self._folderCheck(self._pathsDict["userSettingsDir"])
-    #
-    #     self._pathsDict["bookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smBookmarks.json"))
-    #     self._pathsDict["currentsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smCurrents.json"))
-    #     self._pathsDict["projectsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smProjects.json"))
-    #
-    #     self._pathsDict["projectDir"] = self.getProjectDir()
-    #     self._pathsDict["sceneFile"] = ""
-    #     # _softwarePathsDict = self.getSoftwarePaths()
-    #     if self._pathsDict["projectDir"] == -1 or self._pathsDict["sceneFile"] == -1 or _softwarePathsDict == -1:
-    #         msg = "The following functions must be overridden in inherited class:\n'getSoftware'\n'getProjectDir'\n'getSceneFile'"
-    #         logger.error(msg)
-    #         raise Exception([102, msg])
-    #
-    #     self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
-    #     self._folderCheck(self._pathsDict["masterDir"])
-    #
-    #
-    #     self._pathsDict["databaseDir"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], _softwarePathsDict["databaseDir"]))
-    #     self._folderCheck(self._pathsDict["databaseDir"])
-    #
-    #     self._pathsDict["scenesDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], _softwarePathsDict["scenesDir"]))
-    #     self._folderCheck(self._pathsDict["scenesDir"])
-    #
-    #     self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
-    #     # self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], "subPdata.json"))
-    #     self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "subPdata.json"))
-    #     self._pathsDict["categoriesFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], _softwarePathsDict["categoriesFile"]))
-    #
-    #     self._pathsDict["previewsDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "Playblasts", _softwarePathsDict["niceName"])) # dont change
-    #     self._folderCheck(self._pathsDict["previewsDir"])
-    #
-    #     self._pathsDict["pbSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["previewsDir"], _softwarePathsDict["pbSettingsFile"]))
-    #
-    #     self._pathsDict["generalSettingsDir"] = os.path.dirname(os.path.abspath(__file__))
-    #
-    #     self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerUsers.json"))
-    #
-    #     self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
-    #     self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerDefaults.json"))
-
     def getSoftwarePaths(self):
         """This method must be overridden to return the software currently working on"""
         # This function should return a dictionary which includes string values for:
@@ -315,7 +267,8 @@ class RootManager(object):
         logger.debug("Func: init_database")
 
         # defaults dictionary holding "defaultCategories", "defaultPreviewSettings", "defaultUsers"
-        self._sceneManagerDefaults = self._loadJson(self._pathsDict["sceneManagerDefaults"])
+        self._sceneManagerDefaults = self._loadManagerDefaults()
+        self._nameConventions = self._loadNameConventions()
 
         # self.currentPlatform = platform.system()
         self._categories = self._loadCategories()
@@ -338,6 +291,7 @@ class RootManager(object):
         self._openSceneInfo = ""
 
         self.scanBaseScenes()
+
 
     def _setCurrents(self, att, newdata):
         """Sets the database stored cursor positions and saves them to the database file"""
@@ -1792,6 +1746,48 @@ Elapsed Time:{6}
         del bookmarksData[index]
         self._dumpJson(bookmarksData, self._pathsDict["bookmarksFile"])
         return bookmarksData
+
+    # def getNamingDictionary(self):
+    #     return self._nameConventions["validItems"]
+
+    def resolveSaveName(self, nameDict, version):
+        # cnvDict = self._nameConventions["validItems"]
+
+        # get the template defined in tikConventions.json file under Common Folder
+        template = "%s_v%s" %(self._nameConventions["fileName"], str(version).zfill(3))
+
+        items = re.findall(r'<(.*?)\>', template)
+
+        for i in items:
+            if i in nameDict.keys():
+                template = template.replace("<%s>" %i, nameDict[i])
+
+        return template
+
+
+    def _loadManagerDefaults(self):
+        """returns the scene manager defaults from the common folder"""
+        # print("PATH", self._pathsDict["sceneManagerDefaults"])
+        # print("DATA", self._loadJson(self._pathsDict["sceneManagerDefaults"]))
+        return self._loadJson(self._pathsDict["sceneManagerDefaults"])
+
+    def _loadNameConventions(self):
+        if os.path.isfile(self._pathsDict["tikConventions"]):
+            nameConventions = self._loadJson(self._pathsDict["tikConventions"])
+            return nameConventions
+        else:
+            ## return and dump default name extensions:
+            defaultNameConventions = {
+                "validItems": {
+                    "baseName": "",
+                    "categoryName": "",
+                    "userInitials": "",
+                    "date": ""
+                },
+                "fileName": "<baseName>_<categoryName>_<userInitials>"
+            }
+            self._dumpJson(defaultNameConventions, self._pathsDict["tikConventions"])
+            return defaultNameConventions
 
     def _loadCategories(self):
         """Load Categories from file"""

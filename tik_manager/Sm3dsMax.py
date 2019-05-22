@@ -203,7 +203,16 @@ class MaxManager(RootManager):
 
 
         version = 1
-        sceneName = "{0}_{1}_{2}_v{3}".format(baseName, categoryName, self._usersDict[self.currentUser], str(version).zfill(3))
+        ## Naming Dictionary
+        nameDict = {
+            "baseName": baseName,
+            "categoryName": categoryName,
+            "userInitials": self._usersDict[self.currentUser],
+            "date": now
+        }
+        sceneName = self.resolveSaveName(nameDict, version)
+
+        # sceneName = "{0}_{1}_{2}_v{3}".format(baseName, categoryName, self._usersDict[self.currentUser], str(version).zfill(3))
 
         sceneFile = os.path.join(shotPath, "{0}.{1}".format(sceneName, sceneFormat))
         ## relativity update
@@ -275,8 +284,8 @@ class MaxManager(RootManager):
         now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
         completeNote = "[%s] on %s\n%s\n" % (self.currentUser, now, versionNotes)
 
-        sceneName = self.getSceneFile()
-        if not sceneName:
+        currentSceneName = self.getSceneFile()
+        if not currentSceneName:
             msg = "This is not a base scene (Untitled)"
             logger.warning(msg)
             return -1, msg
@@ -291,8 +300,17 @@ class MaxManager(RootManager):
                 return -1, msg
 
             currentVersion = len(jsonInfo["Versions"]) + 1
-            sceneName = "{0}_{1}_{2}_v{3}".format(jsonInfo["Name"], jsonInfo["Category"], self._usersDict[self.currentUser],
-                                                  str(currentVersion).zfill(3))
+            ## Naming Dictionary
+            nameDict = {
+                "baseName": jsonInfo["Name"],
+                "categoryName": jsonInfo["Category"],
+                "userInitials": self._usersDict[self.currentUser],
+                "date": now
+            }
+            sceneName = self.resolveSaveName(nameDict, currentVersion)
+
+            # sceneName = "{0}_{1}_{2}_v{3}".format(jsonInfo["Name"], jsonInfo["Category"], self._usersDict[self.currentUser],
+            #                                       str(currentVersion).zfill(3))
             relSceneFile = os.path.join(jsonInfo["Path"], "{0}.{1}".format(sceneName, sceneFormat))
 
             sceneFile = os.path.join(sceneInfo["projectPath"], relSceneFile)
