@@ -728,7 +728,7 @@ class MainUI(baseUI):
     """Main UI Class. Inherits SmUIRoot.py"""
     def __init__(self):
         super(MainUI, self).__init__()
-
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.manager = PsManager()
         # self.manager = self._getManager()
         # problem, msg = self.manager._checkRequirements()
