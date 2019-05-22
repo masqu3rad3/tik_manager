@@ -128,6 +128,8 @@ class SwViewer(RootManager):
 
         self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
         self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerDefaults.json"))
+        self._pathsDict["tikConventions"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "tikConventions.json"))
+
 
     def getSoftwarePaths(self):
         """Overriden function"""
