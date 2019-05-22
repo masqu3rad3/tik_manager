@@ -66,7 +66,8 @@ class MayaManager(RootManager):
         super(MayaManager, self).__init__()
         # hard coded format dictionary to pass the format info to cmds
         self.formatDict = {"ma": "mayaAscii", "mb": "mayaBinary"}
-        self.init_paths("Maya")
+        self.swName = "Maya"
+        self.init_paths(self.swName)
         self.backwardcompatibility()  # DO NOT RUN UNTIL RELEASE
         self.init_database()
 

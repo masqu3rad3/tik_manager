@@ -74,8 +74,8 @@ logger.setLevel(logging.WARNING)
 class MaxManager(RootManager):
     def __init__(self):
         super(MaxManager, self).__init__()
-
-        self.init_paths("3dsMax")
+        self.swName = "3dsMax"
+        self.init_paths(self.swName)
         # self.backwardcompatibility()  # DO NOT RUN UNTIL RELEASE
         self.init_database()
 

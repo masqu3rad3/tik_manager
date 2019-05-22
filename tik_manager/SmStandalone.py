@@ -505,7 +505,7 @@ class StandaloneManager(RootManager):
             projectsDict["StandaloneProject"] = path
         self._saveProjects(projectsDict)
         self.projectDir = path
-        self.init_paths()
+        self.init_paths("Standalone")
         self.init_database()
         self.initSoftwares()
 
@@ -771,7 +771,7 @@ class MainUI(baseUI):
         """OVERRIDEN METHOD"""
 
         if not newborn:
-            self.manager.init_paths()
+            self.manager.init_paths("Standalone")
             self.manager.init_database()
         # init softwares
         self.manager.initSoftwares()

@@ -78,8 +78,8 @@ class HoudiniManager(RootManager):
         super(HoudiniManager, self).__init__()
 
         # self.formatDict = {"hip": ".hip", "hiplc": ".hiplc"}
-
-        self.init_paths("Houdini")
+        self.swName = "Houdini"
+        self.init_paths(self.swName)
         self.init_database()
 
 

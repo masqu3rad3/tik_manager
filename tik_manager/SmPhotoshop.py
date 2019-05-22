@@ -81,8 +81,8 @@ class PsManager(RootManager):
         self.exportFormats8Bit =["png", "jpg", "tif", "tga", "bmp", "psd"]
         self.exportFormats16Bit =["png", "jpg", "tif", "psd"]
         self.exportFormats32Bit =["exr", "tif", "hdr", "psd"]
-
-        self.init_paths("Photoshop")
+        self.swName = "Photoshop"
+        self.init_paths(self.swName)
         self.init_database()
         self.textureTypes = self._sceneManagerDefaults["exportTextureTypes"]
         # self.psApp = ct.CreateObject('Photoshop.Application')
@@ -135,7 +135,7 @@ class PsManager(RootManager):
             projectsDict["PhotoshopProject"] = path
         self._saveProjects(projectsDict)
         self.projectDir = path
-        self.init_paths()
+        self.init_paths("Photoshop")
         self.init_database()
         # self.initSoftwares()
 

@@ -191,9 +191,7 @@ def nukeSetup(prompt=True):
                 "SmUIRoot.py",
                 "SmNuke.py",
                 "SmRoot.py",
-                "adminPass.psw",
                 "projectMaterials.py",
-                "softwareDatabase.json"
                 ]
     for file in fileList:
         if not os.path.isfile(os.path.join(networkDir, file)):
@@ -289,10 +287,7 @@ def mayaSetup(prompt=True):
                 "SmUIRoot.py",
                 "SmMaya.py",
                 "SmRoot.py",
-                "SubmitMayaToDeadlineCustom.mel",
-                "adminPass.psw",
                 "projectMaterials.py",
-                "softwareDatabase.json"
                 ]
     for file in fileList:
         if not os.path.isfile(os.path.join(networkDir, file)):
@@ -586,9 +581,7 @@ def houdiniSetup(prompt=True):
                 "ImageViewer.py",
                 "SmUIRoot.py",
                 "SmRoot.py",
-                "adminPass.psw",
                 "projectMaterials.py",
-                "softwareDatabase.json"
                 ]
     for file in fileList:
         if not os.path.isfile(os.path.join(networkDir, file)):
@@ -729,10 +722,7 @@ def maxSetup(prompt=True):
                 "SmUIRoot.py",
                 "SmRoot.py",
                 "Sm3dsMax.py",
-                "SubmitMayaToDeadlineCustom.mel",
-                "adminPass.psw",
                 "projectMaterials.py",
-                "softwareDatabase.json"
                 ]
 
     for file in fileList:
@@ -992,6 +982,47 @@ def installAll():
     raw_input("Setup Completed. Press Enter to Exit...")
     sys.exit()
 
+def prepareCommonFolder(targetCommonFolderPath):
+    """Copy common files to the common folder if they are not already exist"""
+    currentCommonPath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "TikManager_Commons")
+
+    # if the initial install folder will be used as common folder:
+    if os.path.normpath(currentCommonPath) == os.path.normpath(targetCommonFolderPath):
+        return True
+    folderCheck(targetCommonFolderPath)
+    folderCheck(os.path.join(targetCommonFolderPath, "icons"))
+
+    files = [
+        ["", "sceneManagerDefaults.json"],
+        ["", "sceneManagerUsers.json"],
+        ["", "softwareDatabase.json"],
+        ["", "SubmitMayaToDeadlineCustom.mel"],
+        ["", "tikConventions.json"],
+        ["icons", "iconHoudini.png"],
+        ["icons", "iconMax.png"],
+        ["icons", "iconMaya.png"],
+        ["icons", "iconNuke.png"],
+        ["icons", "iconPS.png"],
+    ]
+
+    for file in files:
+        # check if the folder exists, create if it doesnt
+        folderCheck(os.path.join(targetCommonFolderPath, file[0]))
+        # check if the file exists, copy if it doesnt
+        targetFile = os.path.join(targetCommonFolderPath, file[0], file[1])
+        if os.path.isfile(targetFile):
+            continue
+        else:
+            sourceFile = os.path.join(currentCommonPath, file[0], file[1])
+            try:
+                shutil.copyfile(sourceFile, targetFile)
+            except:
+                print "Cannot copy %s to %s" %(file[1], os.path.join(targetCommonFolderPath, file[0]))
+                raw_input("ABORTING")
+
+                return False
+    return True
+
 def folderCheck(folder):
     if not os.path.isdir(folder):
         os.makedirs(os.path.normpath(folder))
@@ -1001,16 +1032,16 @@ def decideNetworkPath():
     yes = {'yes', 'y', 'ye', ''}
     no = {'no', 'n'}
 
-    currentPath = os.path.dirname(os.path.abspath(__file__))
+    currentCommonPath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "TikManager_Commons")
 
     print """
 Select Common Folder
 --------------------"""
-    print "Current file path is %s" %currentPath
+    print "Current file path is %s" %currentCommonPath
     msg = "Do you want to use this as common folder?  [y/n]"
     choice = raw_input(msg).lower()
     if choice in yes:
-        return currentPath
+        return currentCommonPath
     elif choice in no:
         cf_path = ""
         while not os.path.isdir(cf_path):
@@ -1056,8 +1087,10 @@ def cli():
     networkPath = ""
     while networkPath == "":
         networkPath = decideNetworkPath()
+    print "Preparing Common Folder"
+    prepareCommonFolder(networkPath)
     userHomeDir = os.path.normpath(os.path.join(os.path.expanduser("~")))
-    localSettingsDir = os.path.join(userHomeDir, "Documents", "SceneManager")
+    localSettingsDir = os.path.join(userHomeDir, "Documents", "TikManager")
     if not os.path.isdir(os.path.normpath(localSettingsDir)):
         os.makedirs(os.path.normpath(localSettingsDir))
     smFile = os.path.join(localSettingsDir, "smCommonFolder.json")
@@ -1078,8 +1111,10 @@ def cli():
             pass
 
 def noCli(networkPath, softwareList):
+    print "Preparing Common Folder"
+    prepareCommonFolder(networkPath)
     userHomeDir = os.path.normpath(os.path.join(os.path.expanduser("~")))
-    localSettingsDir = os.path.join(userHomeDir,"Documents","SceneManager")
+    localSettingsDir = os.path.join(userHomeDir,"Documents","TikManager")
     if not os.path.isdir(os.path.normpath(localSettingsDir)):
         os.makedirs(os.path.normpath(localSettingsDir))
     smFile = os.path.join(localSettingsDir, "smCommonFolder.json")
@@ -1121,14 +1156,14 @@ def main(argv):
                 networkPath = a
             else:
                 assert False, "unhandled option"
+                raw_input("Something went wrong.. Try manual installation")
         softwareList = args
 
-        if not os.path.isdir(networkPath):
-            print "invalid network path"
-            sys.exit()
 
+        folderCheck(networkPath)
         print "networkPath", networkPath
         print "softwareList", softwareList
+
         noCli(networkPath, softwareList)
 
         # isCli = True

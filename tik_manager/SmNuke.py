@@ -113,7 +113,8 @@ class NukeManager(RootManager):
         super(NukeManager, self).__init__()
         # hard coded format dictionary to pass the format info to cmds
         # self.formatDict = {"ma": "mayaAscii", "mb": "mayaBinary"}
-        self.init_paths("Nuke")
+        self.swName = "Nuke"
+        self.init_paths(self.swName)
         self.init_database()
 
 

@@ -638,7 +638,7 @@ class MainUI(QtWidgets.QMainWindow):
         # ------------------
 
         self.changeCommonFolder.triggered.connect(self.manager._defineCommonFolder)
-        self.changeCommonFolder.triggered.connect(self.manager.init_paths)
+        self.changeCommonFolder.triggered.connect(lambda: self.manager.init_paths(self.manager.swName))
         self.changeCommonFolder.triggered.connect(self.manager.init_database)
         self.changeCommonFolder.triggered.connect(self._initUsers)
         self.changeCommonFolder.triggered.connect(self.onUserChange)
@@ -2705,7 +2705,8 @@ class MainUI(QtWidgets.QMainWindow):
 
 
         if not newborn:
-            self.manager.init_paths()
+            swName = self.manager.swName
+            self.manager.init_paths(swName)
             self.manager.init_database()
 
         self._initCategories()
