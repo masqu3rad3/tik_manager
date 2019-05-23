@@ -32,32 +32,92 @@
 
 
 # Module to view and organize project materials
+# ---------------
+# GET ENVIRONMENT
+# ---------------
+import _version
+BoilerDict = {"Environment": "Standalone",
+              "MainWindow": None,
+              "WindowTitle": "Project Materials - Standalone v%s" % _version.__version__,
+              "Stylesheet": "mayaDark.stylesheet"}
 
+try:
+    from maya import OpenMayaUI as omui
+    import maya.cmds as cmds
+    import Qt
+    from Qt import QtWidgets, QtCore, QtGui
+
+    BoilerDict["Environment"] = "Maya"
+    BoilerDict["WindowTitle"] = "Project Materials Maya v%s" % _version.__version__
+    if Qt.__binding__ == "PySide":
+        from shiboken import wrapInstance
+    elif Qt.__binding__.startswith('PyQt'):
+        from sip import wrapinstance as wrapInstance
+    else:
+        from shiboken2 import wrapInstance
+except ImportError:
+    pass
+
+try:
+    import MaxPlus
+    import Qt
+    from Qt import QtWidgets, QtCore, QtGui
+    BoilerDict["Environment"] = "3dsMax"
+    BoilerDict["WindowTitle"] = "Project Materials 3ds Max v%s" % _version.__version__
+except ImportError:
+    pass
+
+try:
+    import hou
+    import Qt
+    from Qt import QtWidgets, QtCore, QtGui
+    BoilerDict["Environment"] = "Houdini"
+    BoilerDict["WindowTitle"] = "Project Materials Houdini v%s" % _version.__version__
+except ImportError:
+    pass
+
+try:
+    import nuke
+    import Qt
+    from Qt import QtWidgets, QtCore, QtGui
+    BoilerDict["Environment"] = "Nuke"
+    BoilerDict["WindowTitle"] = "Project Materials Nuke v%s" % _version.__version__
+except ImportError:
+    pass
+
+try:
+    from PyQt4 import QtCore, Qt
+    from PyQt4 import QtGui as QtWidgets
+    BoilerDict["Environment"] = "Standalone"
+    BoilerDict["WindowTitle"] = "Project Materials Standalone v%s" % _version.__version__
+    FORCE_QT4 = True
+except ImportError:
+    FORCE_QT4 = False
 
 import os
 import sys
 import unicodedata
 from glob import glob
 
-import _version
 
-FORCE_QT4 = bool(int(os.environ["FORCE_QT4"]))
+
+# FORCE_QT4 = bool(int(os.environ["FORCE_QT4"]))
 
 # Enabele FORCE_QT4 for compiling with pyinstaller
 # FORCE_QT4 = True
 
-if FORCE_QT4:
-    from PyQt4 import QtCore, Qt
-    from PyQt4 import QtGui as QtWidgets
-else:
-    import Qt
-    from Qt import QtWidgets, QtCore, QtGui
+# if FORCE_QT4:
+#     from PyQt4 import QtCore, Qt
+#     from PyQt4 import QtGui as QtWidgets
+# else:
+#     import Qt
+#     from Qt import QtWidgets, QtCore, QtGui
 
 from SmRoot import RootManager
 
-import pyseq as seq
+# import pyseq as seq
 
-import json
+# import json
 import datetime
 # from shutil import copyfile
 import shutil
@@ -75,10 +135,7 @@ __maintainer__ = "Arda Kutlu"
 __email__ = "ardakutlu@gmail.com"
 __status__ = "Development"
 
-BoilerDict = {"Environment": "Standalone",
-              "MainWindow": None,
-              "WindowTitle": "Project Materials - Standalone v%s" % _version.__version__,
-              "Stylesheet": "mayaDark.stylesheet"}
+
 
 ColorStyleDict = {"Storyboard": "border: 2px solid #ff7b00",
              "Brief": "border: 2px solid #faff00",
@@ -95,47 +152,7 @@ ColorStyleDict = {"Storyboard": "border: 2px solid #ff7b00",
 #              "Other": "background: #dc00ff"
 #              }
 
-# ---------------
-# GET ENVIRONMENT
-# ---------------
-try:
-    from maya import OpenMayaUI as omui
-    import maya.cmds as cmds
 
-    BoilerDict["Environment"] = "Maya"
-    BoilerDict["WindowTitle"] = "Project Materials Maya v%s" % _version.__version__
-    if Qt.__binding__ == "PySide":
-        from shiboken import wrapInstance
-    elif Qt.__binding__.startswith('PyQt'):
-        from sip import wrapinstance as wrapInstance
-    else:
-        from shiboken2 import wrapInstance
-except ImportError:
-    pass
-
-try:
-    import MaxPlus
-
-    BoilerDict["Environment"] = "3dsMax"
-    BoilerDict["WindowTitle"] = "Project Materials 3ds Max v%s" % _version.__version__
-except ImportError:
-    pass
-
-try:
-    import hou
-
-    BoilerDict["Environment"] = "Houdini"
-    BoilerDict["WindowTitle"] = "Project Materials Houdini v%s" % _version.__version__
-except ImportError:
-    pass
-
-try:
-    import nuke
-
-    BoilerDict["Environment"] = "Nuke"
-    BoilerDict["WindowTitle"] = "Project Materials Nuke v%s" % _version.__version__
-except ImportError:
-    pass
 
 
 def getMainWindow():
@@ -407,34 +424,6 @@ class QtImageViewer(QtWidgets.QGraphicsView):
                 self.updateViewer()
             self.rightMouseButtonDoubleClicked.emit(scenePos.x(), scenePos.y())
         QtWidgets.QGraphicsView.mouseDoubleClickEvent(self, event)
-
-
-# class QtImageViewer(QtWidgets.QLabel):
-#     """Custom class for thumbnail section. Keeps the aspect ratio when resized."""
-#     def __init__(self, parent=None):
-#         super(QtImageViewer, self).__init__(parent)
-#         self.aspectRatio = 1.78
-#         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-#         sizePolicy.setHeightForWidth(True)
-#         self.setSizePolicy(sizePolicy)
-#
-#     def resizeEvent(self, r):
-#         # print r
-#         x = r.oldSize()
-#         w = x.width()
-#         h = x.height()
-#         # print r.size()
-#
-#         # h = self.width()
-#         # self.setFixedHeight(h/self.aspectRatio)
-#         # self.set(self.width(), self.width()/self.aspectRatio)
-#         self.setMinimumHeight(w/self.aspectRatio)
-#
-#         self.setMaximumHeight(w/self.aspectRatio)
-#         # self.heightForWidth(h/self.aspectRatio)
-#         # self.setBaseSize(50, 50)
-#         # self.set
-
 
 class CopyProgress(QtWidgets.QWidget):
     """Custom Widget for visualizing progress of file transfer"""
@@ -799,7 +788,6 @@ class CopyProgress(QtWidgets.QWidget):
         #     )
         # except:
         #     return s
-
 
 class ProjectMaterials(RootManager):
     def __init__(self, projectPath=None):
@@ -1464,14 +1452,17 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.popMenu = QtWidgets.QMenu()
         rcA = QtWidgets.QAction('Show in Explorer', self)
+        rcB = QtWidgets.QAction('Delete Item', self)
         for tree in tabTrees:
             tree.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
             # lambda y: (tree.customContextMenuRequested.connect(lambda x: self.onContextMenu(x, tree)))
             # tree.customContextMenuRequested.connect(lambda x: self.onContextMenu(x, tree))
             # rcA = QtWidgets.QAction('Show in Explorer', self)
+            self.popMenu.addAction(rcB)
             self.popMenu.addAction(rcA)
 
         rcA.triggered.connect(lambda: self.onRightClick("showInExplorer"))
+        rcB.triggered.connect(lambda: self.onRightClick("deleteItem"))
 
 
 
@@ -1538,7 +1529,7 @@ class MainUI(QtWidgets.QMainWindow):
     def onContextMenu(self, point, treeWidget):
         """Method to pop the menu at the position of the mouse cursor"""
         # print se
-        if not treeWidget.currentIndex() is -1:
+        if treeWidget.currentItem():
             self.popMenu.exec_(treeWidget.mapToGlobal(point))
 
     def initMainUI(self):
@@ -1601,11 +1592,11 @@ class MainUI(QtWidgets.QMainWindow):
             return
 
         try:
-            matDBpath = self.promat.materialsInCategory[str(item.text(0))]
+            self.matDBpath = self.promat.materialsInCategory[str(item.text(0))]
         except KeyError:
             return
 
-        self.promat._loadMaterialInfo(matDBpath)
+        self.promat._loadMaterialInfo(self.matDBpath)
 
         if self.matCategory == "Storyboard":
             # print item
@@ -1625,7 +1616,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         elif self.matCategory == "Reference":
             # print item
-            self.promat._loadMaterialInfo(matDBpath)
+            self.promat._loadMaterialInfo(self.matDBpath)
             pic = self.promat.getMaterialPath()
             # update thumb
             if FORCE_QT4:
@@ -1641,6 +1632,31 @@ class MainUI(QtWidgets.QMainWindow):
         if cmd == "showInExplorer":
             pathDir = os.path.dirname(self.promat.getMaterialPath())
             self.promat.showInExplorer(pathDir)
+
+        if cmd == "deleteItem":
+            title = "Are you Sure?"
+            header = "The selected item and its database will be deleted if you continue"
+            msg = "Choose OK to confirm"
+
+            q = QtWidgets.QMessageBox(parent=self)
+            q.setIcon(QtWidgets.QMessageBox.Question)
+            q.setWindowTitle(title)
+            q.setInformativeText(header)
+            q.setText(msg)
+            q.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
+            q.button(QtWidgets.QMessageBox.Ok).setFixedHeight(30)
+            q.button(QtWidgets.QMessageBox.Ok).setFixedWidth(100)
+            q.button(QtWidgets.QMessageBox.Cancel).setFixedHeight(30)
+            q.button(QtWidgets.QMessageBox.Cancel).setFixedWidth(100)
+            ret = q.exec_()
+            if ret == QtWidgets.QMessageBox.Ok:
+                # print("HedeHot")
+                # print(self.matDBpath)
+                self.promat.deleteMaterial(self.matDBpath)
+                self.initCategoryItems()
+            elif ret == QtWidgets.QMessageBox.Cancel:
+                return
+
 
     def droppedPath(self, paths, material):
         # paths = [os.path.normpath(str(path)) for path in paths ]

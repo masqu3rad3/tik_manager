@@ -220,7 +220,8 @@ def nukeSetup(prompt=True):
 
     if not os.path.isdir(pluginDir):
         print "No Nuke version can be found, try manual installation"
-        raw_input("Press Enter to continue...")
+        if prompt:
+            raw_input("Press Enter to continue...")
         return
 
     managerIcon = os.path.join(networkDir, "icons", "manager_ICON.png").replace("\\", "\\\\")
@@ -612,7 +613,8 @@ def houdiniSetup(prompt=True):
         print "Found Houdini Versions: %s " % str(houdiniVersions)
     else:
         print "No Houdini version can be found, try manual installation"
-        raw_input("Press Enter to continue...")
+        if prompt:
+            raw_input("Press Enter to continue...")
         return
     # ICON PATHS
     managerIcon = os.path.join(networkDir, "icons", "manager_ICON.png").replace("\\", "\\\\")
@@ -773,7 +775,8 @@ def maxSetup(prompt=True):
         print "Found 3ds Max Versions: %s " % str(maxVersions)
     else:
         print "No 3ds Max version can be found, try manual installation"
-        raw_input("Press Enter to continue...")
+        if prompt:
+            raw_input("Press Enter to continue...")
         return
 
 
@@ -952,8 +955,8 @@ def photoshopSetup(prompt=True):
     userHomeDir = os.path.normpath(os.path.join(os.path.expanduser("~")))
     extensionTargetDir = os.path.join(userHomeDir, "AppData", "Roaming", "Adobe", "CEP", "extensions", "tikManager")
 
-    print "extSource", extensionSourceDir
-    print "extTarger", extensionTargetDir
+    # print "extSource", extensionSourceDir
+    # print "extTarger", extensionTargetDir
     copy_and_overwrite(extensionSourceDir, extensionTargetDir)
 
     # edit registry
@@ -969,7 +972,6 @@ def photoshopSetup(prompt=True):
     # map the function for all keys between CSXS.0 - CSXS.19
     map(lambda x: getCSXkey(x), range(20))
 
-    print "Photoshop setup is not yet implemented"
     if prompt:
         raw_input("Press Enter to continue...")
 

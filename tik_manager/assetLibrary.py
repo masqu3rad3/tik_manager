@@ -32,32 +32,105 @@
 
 # Module to access Library of global assets
 
+# ---------------
+# GET ENVIRONMENT
+# ---------------
+import _version
+
+BoilerDict = {"Environment": "Standalone",
+              "MainWindow": None,
+              "WindowTitle": "Asset Library Standalone v%s" % _version.__version__,
+              "Stylesheet": "mayaDark.stylesheet"}
+
+try:
+    from maya import OpenMayaUI as omui
+    import maya.cmds as cmds
+    import Qt
+    from Qt import QtWidgets, QtCore, QtGui
+
+    ##
+    ## EDITOR CLASS
+    import assetEditorMaya # for dev
+    reload(assetEditorMaya)# for dev
+
+    from assetEditorMaya import AssetEditorMaya as AssetEditor
+
+
+    BoilerDict["Environment"] = "Maya"
+    BoilerDict["WindowTitle"] = "Asset Library Maya v%s" % _version.__version__
+    if Qt.__binding__ == "PySide":
+        from shiboken import wrapInstance
+    elif Qt.__binding__.startswith('PyQt'):
+        from sip import wrapinstance as wrapInstance
+    else:
+        from shiboken2 import wrapInstance
+except ImportError:
+    pass
+
+try:
+    import MaxPlus
+    import Qt
+    from Qt import QtWidgets, QtCore, QtGui
+    BoilerDict["Environment"] = "3dsMax"
+    BoilerDict["WindowTitle"] = "Asset Library 3ds Max v%s" % _version.__version__
+except ImportError:
+    pass
+
+try:
+    import hou
+    import Qt
+    from Qt import QtWidgets, QtCore, QtGui
+    BoilerDict["Environment"] = "Houdini"
+    BoilerDict["WindowTitle"] = "Asset Library Houdini v%s" % _version.__version__
+except ImportError:
+    pass
+
+try:
+    import nuke
+    import Qt
+    from Qt import QtWidgets, QtCore, QtGui
+    BoilerDict["Environment"] = "Nuke"
+    BoilerDict["WindowTitle"] = "Asset Library Nuke v%s" % _version.__version__
+except ImportError:
+    pass
+
+try:
+    from PyQt4 import QtCore, Qt
+    from PyQt4 import QtGui as QtWidgets
+    FORCE_QT4 = True
+    BoilerDict["Environment"] = "Standalone"
+    BoilerDict["WindowTitle"] = "Asset Library Standalone v%s" % _version.__version__
+except ImportError:
+    FORCE_QT4 = False
+
+
+
+
 import os
 import sys
 import shutil
 import re
-import _version
-import datetime
 
+import datetime
 
 # FORCE_QT4 = bool(os.getenv("FORCE_QT4"))
 # FORCE_QT4 = bool(int(os.environ["FORCE_QT4"]))
 
 # Enabele FORCE_QT4 for compiling with pyinstaller
-FORCE_QT4 = True
-
-if FORCE_QT4:
-    from PyQt4 import QtCore, Qt
-    from PyQt4 import QtGui as QtWidgets
-else:
-    import Qt
-    from Qt import QtWidgets, QtCore, QtGui
+# FORCE_QT4 = True
+#
+# if FORCE_QT4:
+#     from PyQt4 import QtCore, Qt
+#     from PyQt4 import QtGui as QtWidgets
+# else:
+#     import Qt
+#     from Qt import QtWidgets, QtCore, QtGui
 
 # import Qt
 # from Qt import QtWidgets, QtCore, QtGui
 
 import json
-import os, fnmatch
+# import os, fnmatch
 import logging
 
 __author__ = "Arda Kutlu"
@@ -72,10 +145,7 @@ logging.basicConfig()
 logger = logging.getLogger('AssetLibrary')
 logger.setLevel(logging.WARNING)
 
-BoilerDict = {"Environment": "Standalone",
-              "MainWindow": None,
-              "WindowTitle": "Asset Library Standalone v%s" % _version.__version__,
-              "Stylesheet": "mayaDark.stylesheet"}
+
 
 class AssetEditor(object):
     def __init__(self):
@@ -101,55 +171,6 @@ class AssetEditor(object):
     def saveAsset(self, *args, **kwargs):
         logger.warning("saving Asset is not defined")
 
-# ---------------
-# GET ENVIRONMENT
-# ---------------
-try:
-    from maya import OpenMayaUI as omui
-    import maya.cmds as cmds
-
-    ##
-    ## EDITOR CLASS
-    import assetEditorMaya # for dev
-    reload(assetEditorMaya)# for dev
-
-    from assetEditorMaya import AssetEditorMaya as AssetEditor
-
-
-    BoilerDict["Environment"] = "Maya"
-    BoilerDict["WindowTitle"] = "Asset Library Maya v%s" % _version.__version__
-    if Qt.__binding__ == "PySide":
-        from shiboken import wrapInstance
-    elif Qt.__binding__.startswith('PyQt'):
-        from sip import wrapinstance as wrapInstance
-    else:
-        from shiboken2 import wrapInstance
-except ImportError:
-    pass
-
-try:
-    import MaxPlus
-
-    BoilerDict["Environment"] = "3dsMax"
-    BoilerDict["WindowTitle"] = "Asset Library 3ds Max v%s" % _version.__version__
-except ImportError:
-    pass
-
-try:
-    import hou
-
-    BoilerDict["Environment"] = "Houdini"
-    BoilerDict["WindowTitle"] = "Asset Library Houdini v%s" % _version.__version__
-except ImportError:
-    pass
-
-try:
-    import nuke
-
-    BoilerDict["Environment"] = "Nuke"
-    BoilerDict["WindowTitle"] = "Asset Library Nuke v%s" % _version.__version__
-except ImportError:
-    pass
 
 def getMainWindow():
     """This function should be overriden"""

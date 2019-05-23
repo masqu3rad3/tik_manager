@@ -38,23 +38,83 @@ Meaning all the sequence under the selected folder will be listed
 recursively.
 Double clicking on the seguence will execute the file on the defined application
 """
+
+# ---------------
+# GET ENVIRONMENT
+# ---------------
+import _version
+BoilerDict = {"Environment": "Standalone",
+              "MainWindow": None,
+              "WindowTitle": "Image Viewer Standalone v%s" % _version.__version__,
+              "Stylesheet": "mayaDark.stylesheet"}
+try:
+    from maya import OpenMayaUI as omui
+    import maya.cmds as cmds
+    import Qt
+    from Qt import QtWidgets, QtCore, QtGui
+    BoilerDict["Environment"] = "Maya"
+    BoilerDict["WindowTitle"] = "Image Viewer Maya v%s" % _version.__version__
+    if Qt.__binding__ == "PySide":
+        from shiboken import wrapInstance
+    elif Qt.__binding__.startswith('PyQt'):
+        from sip import wrapinstance as wrapInstance
+    else:
+        from shiboken2 import wrapInstance
+except ImportError:
+    pass
+
+try:
+    import MaxPlus
+    import Qt
+    from Qt import QtWidgets, QtCore, QtGui
+    BoilerDict["Environment"] = "3dsMax"
+    BoilerDict["WindowTitle"] = "Image Viewer 3ds Max v%s" % _version.__version__
+except ImportError:
+    pass
+
+try:
+    import hou
+    import Qt
+    from Qt import QtWidgets, QtCore, QtGui
+    BoilerDict["Environment"] = "Houdini"
+    BoilerDict["WindowTitle"] = "Image Viewer Houdini v%s" % _version.__version__
+except ImportError:
+    pass
+
+try:
+    import nuke
+    import Qt
+    from Qt import QtWidgets, QtCore, QtGui
+    BoilerDict["Environment"] = "Nuke"
+    BoilerDict["WindowTitle"] = "Image Viewer Nuke v%s" % _version.__version__
+except ImportError:
+    pass
+
+try:
+    from PyQt4 import QtCore, Qt
+    from PyQt4 import QtGui as QtWidgets
+    BoilerDict["Environment"] = "Standalone"
+    BoilerDict["WindowTitle"] = "Image Viewer Standalone v%s" % _version.__version__
+    FORCE_QT4 = True
+except ImportError:
+    FORCE_QT4 = False
+
 import os
 import sys
-import _version
 
-# import pprint
+
 
 # PyInstaller and Standalone version compatibility
 
 ## SAFE BLOCK
 ## ----------
-FORCE_QT4 = bool(int(os.environ["FORCE_QT4"]))
-if FORCE_QT4:
-    from PyQt4 import QtCore, Qt
-    from PyQt4 import QtGui as QtWidgets
-else:
-    import Qt
-    from Qt import QtWidgets, QtCore, QtGui
+# FORCE_QT4 = bool(int(os.environ["FORCE_QT4"]))
+# if FORCE_QT4:
+#     from PyQt4 import QtCore, Qt
+#     from PyQt4 import QtGui as QtWidgets
+# else:
+#     import Qt
+#     from Qt import QtWidgets, QtCore, QtGui
 ## ----------
 
 # for standalone compatibility uncomment following 3 and disable safe block
@@ -80,52 +140,9 @@ __maintainer__ = "Arda Kutlu"
 __email__ = "ardakutlu@gmail.com"
 __status__ = "Development"
 
-BoilerDict = {"Environment": "Standalone",
-              "MainWindow": None,
-              "WindowTitle": "Image Viewer Standalone v%s" % _version.__version__,
-              "Stylesheet": "mayaDark.stylesheet"}
 
-# ---------------
-# GET ENVIRONMENT
-# ---------------
-try:
-    from maya import OpenMayaUI as omui
-    import maya.cmds as cmds
 
-    BoilerDict["Environment"] = "Maya"
-    BoilerDict["WindowTitle"] = "Image Viewer Maya v%s" % _version.__version__
-    if Qt.__binding__ == "PySide":
-        from shiboken import wrapInstance
-    elif Qt.__binding__.startswith('PyQt'):
-        from sip import wrapinstance as wrapInstance
-    else:
-        from shiboken2 import wrapInstance
-except ImportError:
-    pass
 
-try:
-    import MaxPlus
-
-    BoilerDict["Environment"] = "3dsMax"
-    BoilerDict["WindowTitle"] = "Image Viewer 3ds Max v%s" % _version.__version__
-except ImportError:
-    pass
-
-try:
-    import hou
-
-    BoilerDict["Environment"] = "Houdini"
-    BoilerDict["WindowTitle"] = "Image Viewer Houdini v%s" % _version.__version__
-except ImportError:
-    pass
-
-try:
-    import nuke
-
-    BoilerDict["Environment"] = "Nuke"
-    BoilerDict["WindowTitle"] = "Image Viewer Nuke v%s" % _version.__version__
-except ImportError:
-    pass
 
 
 def importSequence(pySeq_sequence):
@@ -476,6 +493,15 @@ class MainUI(QtWidgets.QMainWindow):
         self.nameFilterApply_pushButton.clicked.connect(self.populate)
         self.nameFilter_lineEdit.returnPressed.connect(self.populate)
 
+        # SHORTCUTS
+        # ---------
+
+        # PyInstaller and Standalone version compatibility
+        if FORCE_QT4:
+            shortcutRefresh = Qt.QShortcut(QtWidgets.QKeySequence("F5"), self, self.populate)
+        else:
+            shortcutRefresh = QtWidgets.QShortcut(QtGui.QKeySequence("F5"), self, self.populate)
+
         self.populate()
 
     def deselectTree(self):
@@ -788,7 +814,7 @@ class SeqCopyProgress(QtWidgets.QWidget):
         self.build_ui()
         self.terminated = False
         self.cancelAll = False
-        self.errorFlag = False
+        self.errorFlag = False['']
         # self.copyfileobj(src=self.src, dst=self.dest)
 
     def build_ui(self):
@@ -973,7 +999,7 @@ class SeqCopyProgress(QtWidgets.QWidget):
             i.close()
 
 if __name__ == '__main__':
-    os.environ["FORCE_QT4"] = "True"
+    # os.environ["FORCE_QT4"] = "True"
     app = QtWidgets.QApplication(sys.argv)
     selfLoc = os.path.dirname(os.path.abspath(__file__))
     stylesheetFile = os.path.join(selfLoc, "CSS", "darkorange.stylesheet")
@@ -986,3 +1012,5 @@ if __name__ == '__main__':
     # window = MainUI(projectPath= os.path.normpath("E:\\SceneManager_Projects\\SceneManager_DemoProject_None_181101"))
     # window.show()
     sys.exit(app.exec_())
+
+

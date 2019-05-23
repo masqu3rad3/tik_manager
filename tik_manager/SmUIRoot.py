@@ -900,30 +900,34 @@ class MainUI(QtWidgets.QMainWindow):
         iconFont.setWeight(75)
 
         self.setProject_Dialog = QtWidgets.QDialog(parent=self)
-        self.setProject_Dialog.setObjectName(("setProject_Dialog"))
         self.setProject_Dialog.resize(982, 450)
         self.setProject_Dialog.setWindowTitle(("Set Project"))
+        self.setProject_Dialog.setFocus()
 
         gridLayout = QtWidgets.QGridLayout(self.setProject_Dialog)
         gridLayout.setObjectName(("gridLayout"))
 
         M1_horizontalLayout = QtWidgets.QHBoxLayout()
-        M1_horizontalLayout.setObjectName(("M1_horizontalLayout"))
 
         lookIn_label = QtWidgets.QLabel(self.setProject_Dialog)
         lookIn_label.setText(("Look in:"))
-        lookIn_label.setObjectName(("lookIn_label"))
+        lookIn_label.setFocusPolicy(QtCore.Qt.StrongFocus)
+        # lookIn_label.setFocus()
 
         M1_horizontalLayout.addWidget(lookIn_label)
 
         self.lookIn_lineEdit = QtWidgets.QLineEdit(self.setProject_Dialog)
         self.lookIn_lineEdit.setText((""))
         self.lookIn_lineEdit.setPlaceholderText((""))
-        self.lookIn_lineEdit.setObjectName(("lookIn_lineEdit"))
         self.lookIn_lineEdit.setStyleSheet("background-color: rgb(80,80,80); color: white")
 
 
         M1_horizontalLayout.addWidget(self.lookIn_lineEdit)
+
+        # a fake button which actually does nothing
+        fakeButton = QtWidgets.QPushButton(self.setProject_Dialog)
+        fakeButton.setVisible(False)
+
 
         browse_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -933,7 +937,6 @@ class MainUI(QtWidgets.QMainWindow):
         browse_pushButton.setSizePolicy(sizePolicy)
         browse_pushButton.setMaximumSize(QtCore.QSize(50, 16777215))
         browse_pushButton.setText("Browse")
-        browse_pushButton.setObjectName(("browse_pushButton"))
 
         M1_horizontalLayout.addWidget(browse_pushButton)
 
@@ -947,7 +950,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.back_pushButton.setFont(iconFont)
         self.back_pushButton.setText(("<"))
         self.back_pushButton.setShortcut((""))
-        self.back_pushButton.setObjectName(("back_pushButton"))
 
         M1_horizontalLayout.addWidget(self.back_pushButton)
 
@@ -956,7 +958,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.forward_pushButton.setFont(iconFont)
         self.forward_pushButton.setText((">"))
         self.forward_pushButton.setShortcut((""))
-        self.forward_pushButton.setObjectName(("forward_pushButton"))
 
         M1_horizontalLayout.addWidget(self.forward_pushButton)
 
@@ -964,18 +965,15 @@ class MainUI(QtWidgets.QMainWindow):
         up_pushButton.setMaximumSize(QtCore.QSize(30, 16777215))
         up_pushButton.setText(("Up"))
         up_pushButton.setShortcut((""))
-        up_pushButton.setObjectName(("up_pushButton"))
 
         M1_horizontalLayout.addWidget(up_pushButton)
 
         gridLayout.addLayout(M1_horizontalLayout, 0, 0, 1, 1)
 
         M2_horizontalLayout = QtWidgets.QHBoxLayout()
-        M2_horizontalLayout.setObjectName(("M2_horizontalLayout"))
 
         M2_splitter = QtWidgets.QSplitter(self.setProject_Dialog)
         M2_splitter.setHandleWidth(10)
-        M2_splitter.setObjectName(("M2_splitter"))
 
 
         # self.folders_tableView = QtWidgets.QTableView(self.M2_splitter)
@@ -984,7 +982,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.folders_treeView.setDragEnabled(True)
         self.folders_treeView.setDragDropMode(QtWidgets.QAbstractItemView.DragOnly)
         self.folders_treeView.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-        self.folders_treeView.setObjectName(("folders_tableView"))
+        # self.folders_treeView.setObjectName(("folders_tableView"))
 
         self.folders_treeView.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.folders_treeView.setItemsExpandable(False)
@@ -994,12 +992,10 @@ class MainUI(QtWidgets.QMainWindow):
         self.folders_treeView.setStyleSheet("background-color: rgb(80,80,80); color: white")
 
         verticalLayoutWidget = QtWidgets.QWidget(M2_splitter)
-        verticalLayoutWidget.setObjectName(("verticalLayoutWidget"))
 
         M2_S2_verticalLayout = QtWidgets.QVBoxLayout(verticalLayoutWidget)
         M2_S2_verticalLayout.setContentsMargins(0, 10, 0, 10)
         M2_S2_verticalLayout.setSpacing(6)
-        M2_S2_verticalLayout.setObjectName(("M2_S2_verticalLayout"))
 
         favorites_label = QtWidgets.QLabel(verticalLayoutWidget)
         if FORCE_QT4:
