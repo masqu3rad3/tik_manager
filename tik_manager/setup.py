@@ -937,20 +937,33 @@ def photoshopSetup(prompt=True):
 </body>
 </html>""".format(managerIcon, saveVersionIcon)
 
-    _dumpContent(indexHTMLFile, indexHTMLContent, backup=True)
+    _dumpContent(indexHTMLFile, indexHTMLContent, backup=False)
 
-    ## EDIT HOST FILE
+    ## EDIT VBS FILE
+    appLocation = os.path.join(sourceDir, "bin", "SmPhotoshop.exe").replace("\\", "//")
+    vbsFilePath = os.path.join(sourceDir, "bin", "saveVersion.vbs").replace("\\", "//")
+    vbsContent = """Set oShell = CreateObject ("Wscript.Shell") 
+Dim strArgs
+strArgs = "%comspec% /K ""{0}"" saveVersion"
+oShell.Run strArgs, 0, false""".format(appLocation)
+
+    _dumpContent(vbsFilePath, vbsContent, backup=False)
+
+    ## EDIT HOST (index.jsx) FILE
     ## --------------
 
     hostFile = os.path.join(extensionSourceDir, "host", "index.jsx")
-    appLocation = os.path.join(sourceDir, "bin", "SmPhotoshop.exe").replace("\\", "//")
     hostContent = """function tikUI(){
     var bat = new File("%s");
     bat.execute();
 }
-""" % (appLocation)
+function tikSaveVersion(){
+    var ver = new File("%s");
+    ver.execute();
+}
+""" % (appLocation, vbsFilePath)
 
-    _dumpContent(hostFile, hostContent, backup=True)
+    _dumpContent(hostFile, hostContent, backup=False)
 
     userHomeDir = os.path.normpath(os.path.join(os.path.expanduser("~")))
     extensionTargetDir = os.path.join(userHomeDir, "AppData", "Roaming", "Adobe", "CEP", "extensions", "tikManager")

@@ -72,7 +72,7 @@ __email__ = "ardakutlu@gmail.com"
 __status__ = "Development"
 
 logging.basicConfig()
-logger = logging.getLogger('sm3dsMax')
+logger = logging.getLogger('smPhotoshop')
 logger.setLevel(logging.WARNING)
 
 
@@ -2408,6 +2408,16 @@ class MainUI(QtWidgets.QMainWindow):
             category = category_comboBox.currentText()
             name = lineEdit.text()
             userInitials = self.manager.currentUserInitials
+
+            ## Naming Dictionary
+            nameDict = {
+                "baseName": name,
+                "categoryName": category,
+                "userInitials": userInitials,
+                "date": "" # date is unnecessary since it will be calculated in SmRoot->resolveSaveName
+            }
+            sceneName = self.manager.resolveSaveName(nameDict, 1)
+
             if self._checkValidity(lineEdit.text(), buttonBox, lineEdit):
                 subP=subProject_comboBox.currentText()
                 subProject = "" if subP == "None" else subP
@@ -2416,7 +2426,7 @@ class MainUI(QtWidgets.QMainWindow):
                     if button.isChecked():
                         sceneFormat = button.text()
                         break
-                resolvedText = "{0}\{1}\{2}\{3}\{3}_{1}_{4}_v001.{5}".format(relScenesDir, category, subProject, name, userInitials, sceneFormat)
+                resolvedText = "{0}\{1}\{2}\{3}\{4}.{5}".format(relScenesDir, category, subProject, name, sceneName, sceneFormat)
                 resolvedText = resolvedText.replace("\\\\", "\\")
             else:
                 resolvedText = ""
@@ -2484,11 +2494,10 @@ class MainUI(QtWidgets.QMainWindow):
         right_verticalLayout.setSpacing(6)
 
         resolvedPath_label = QtWidgets.QLabel(saveV_Dialog)
-        # resolvedPath_label.setIndent(12)
+        resolvedPath_label.setText((""))
+        resolvedPath_label.setIndent(12)
         resolvedPath_label.setWordWrap(True)
         # resolvedPath_label.setFont(QtGui.QFont("Time", 7, QtGui.QFont.Bold))
-
-        resolvedPath_label.setText("")
         right_verticalLayout.addWidget(resolvedPath_label)
 
 
@@ -2600,9 +2609,18 @@ class MainUI(QtWidgets.QMainWindow):
             jsonInfo = self.manager._loadJson(jsonFile)
 
             currentVersion = len(jsonInfo["Versions"]) + 1
-            sceneName = "{0}_{1}_{2}_v{3}".format(jsonInfo["Name"], jsonInfo["Category"],
-                                                  self.manager.currentUserInitials,
-                                                  str(currentVersion).zfill(3))
+            ## Naming Dictionary
+            nameDict = {
+                "baseName": jsonInfo["Name"],
+                "categoryName": jsonInfo["Category"],
+                "userInitials": self.manager.currentUserInitials,
+                "date": "" # date is unnecessary since it will be calculated in SmRoot->resolveSaveName
+            }
+            sceneName = self.manager.resolveSaveName(nameDict, currentVersion)
+
+            # sceneName = "{0}_{1}_{2}_v{3}".format(jsonInfo["Name"], jsonInfo["Category"],
+            #                                       self.manager.currentUserInitials,
+            #                                       str(currentVersion).zfill(3))
             relSceneFile = os.path.join(jsonInfo["Path"], "{0}.{1}".format(sceneName, sceneFormat))
             resolvedPath_label.setText("\\%s" %relSceneFile)
 

@@ -139,6 +139,7 @@ class RootManager(object):
         self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
         self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerDefaults.json"))
         self._pathsDict["tikConventions"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "tikConventions.json"))
+        self._pathsDict["adminPass"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "adminPass.psw"))
 
     # def init_paths(self):
     #     """Initializes all the necessary paths"""
@@ -194,7 +195,9 @@ class RootManager(object):
     def _checkCommonFolder(self, folder):
         checkList = [os.path.join(folder, "sceneManagerDefaults.json"),
                      os.path.join(folder, "sceneManagerUsers.json"),
-                     os.path.join(folder, "softwareDatabase.json")]
+                     os.path.join(folder, "softwareDatabase.json"),
+                     os.path.join(folder, "adminPass.psw")
+                     ]
         # checkList = [os.path.join(folder, "sceneManagerDefaults.json"),
         #              os.path.join(folder, "sceneManagerUsers.json"),]
         missingList = [os.path.basename(path) for path in checkList if not os.path.isfile(path)]
@@ -1518,7 +1521,9 @@ Elapsed Time:{6}
     def checkPassword(self, password):
         """Compares the given password with the hashed password file. Returns True if matches else False"""
         # get the hash
-        pswFile = os.path.join(os.path.dirname(os.path.abspath(__file__)), "adminPass.psw")
+        print "DEBUG", self._pathsDict["adminPass"]
+        pswFile = self._pathsDict["adminPass"]
+
         if os.path.isfile(pswFile):
             f = open(pswFile, "r")
             if f.mode == "r":
@@ -1545,8 +1550,8 @@ Elapsed Time:{6}
         :return: (bool) True if successfull
         """
         if self.checkPassword(oldPassword):
-            pswFile = os.path.join(os.path.dirname(os.path.abspath(__file__)), "adminPass.psw")
-            tempFile = os.path.join(os.path.dirname(os.path.abspath(__file__)), "adminPassTmp.psw")
+            pswFile = self._pathsDict["adminPass"]
+            tempFile = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "adminPassTmp.psw"))
             newHash = (hashlib.sha1(str(newPassword).encode('utf-8')).hexdigest())
 
             f = open(tempFile, "w+")
@@ -1751,6 +1756,7 @@ Elapsed Time:{6}
     #     return self._nameConventions["validItems"]
 
     def resolveSaveName(self, nameDict, version):
+        nameDict["date"] = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
         # cnvDict = self._nameConventions["validItems"]
 
         # get the template defined in tikConventions.json file under Common Folder

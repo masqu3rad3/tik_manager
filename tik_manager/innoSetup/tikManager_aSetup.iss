@@ -11,12 +11,13 @@
 AppName={#appName}
 AppVersion={#appVersion}
 WizardStyle=modern
-DefaultDirName={commonpf}\TikWorks
+DefaultDirName={commonpf}\TikWorks\tik_manager
 DefaultGroupName=Tik Works
 UninstallDisplayIcon={app}\MyProg.exe
 Compression=lzma2
 SolidCompression=yes
-OutputDir=userdocs:Inno Setup Examples Output
+OutputBaseFilename=TikManager_v{#appVersion}
+OutputDir="..\..\"
 
 DisableWelcomePage=no
 LicenseFile="..\..\LICENSE"
@@ -28,36 +29,35 @@ DisableProgramGroupPage=yes
 InfoAfterFile="..\..\README.md"
 
 [Files]
-Source: "..\__init__.pyc"; DestDir: "{app}\tik_manager"; Flags: ignoreversion
-Source: "..\_version.pyc"; DestDir: "{app}\tik_manager"; Flags: ignoreversion
-Source: "..\adminPass.psw"; DestDir: "{app}\tik_manager"; Flags: ignoreversion
-Source: "..\assetEditorMaya.pyc"; DestDir: "{app}\tik_manager"; Flags: ignoreversion
-Source: "..\assetLibrary.pyc"; DestDir: "{app}\tik_manager"; Flags: ignoreversion
-Source: "..\ImageViewer.pyc"; DestDir: "{app}\tik_manager"; Flags: ignoreversion
-Source: "..\ImMaya.pyc"; DestDir: "{app}\tik_manager"; Flags: ignoreversion
-Source: "..\projectMaterials.pyc"; DestDir: "{app}\tik_manager"; Flags: ignoreversion
-Source: "..\pyseq.pyc"; DestDir: "{app}\tik_manager"; Flags: ignoreversion
-Source: "..\Qt.pyc"; DestDir: "{app}\tik_manager"; Flags: ignoreversion
-Source: "..\seqCopyProgress.pyc"; DestDir: "{app}\tik_manager"; Flags: ignoreversion
-Source: "..\setup.exe"; DestDir: "{app}\tik_manager"; Flags: ignoreversion;
-Source: "..\test.bat"; DestDir: "{app}\tik_manager"; Flags: ignoreversion; 
-Source: "..\Sm3dsMax.pyc"; DestDir: "{app}\tik_manager"; Flags: ignoreversion
-Source: "..\SmHoudini.pyc"; DestDir: "{app}\tik_manager"; Flags: ignoreversion
-Source: "..\SmMaya.pyc"; DestDir: "{app}\tik_manager"; Flags: ignoreversion
-Source: "..\SmNuke.pyc"; DestDir: "{app}\tik_manager"; Flags: ignoreversion
-Source: "..\SmRoot.pyc"; DestDir: "{app}\tik_manager"; Flags: ignoreversion
-Source: "..\SmUIRoot.pyc"; DestDir: "{app}\tik_manager"; Flags: ignoreversion
-Source: "..\CSS\darkorange.stylesheet"; DestDir: "{app}\tik_manager\CSS"; Flags: ignoreversion
+Source: "..\__init__.pyc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\_version.pyc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\assetEditorMaya.pyc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\assetLibrary.pyc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\ImageViewer.pyc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\ImMaya.pyc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\projectMaterials.pyc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\pyseq.pyc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\Qt.pyc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\seqCopyProgress.pyc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\setup.exe"; DestDir: "{app}"; Flags: ignoreversion;
+Source: "..\test.bat"; DestDir: "{app}"; Flags: ignoreversion; 
+Source: "..\Sm3dsMax.pyc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\SmHoudini.pyc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\SmMaya.pyc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\SmNuke.pyc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\SmRoot.pyc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\SmUIRoot.pyc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\CSS\darkorange.stylesheet"; DestDir: "{app}\CSS"; Flags: ignoreversion
 
-Source: "..\icons\*"; DestDir: "{app}\tik_manager\icons"; Flags: ignoreversion createallsubdirs recursesubdirs
-Source: "..\setupFiles\*"; DestDir: "{app}\tik_manager\setupFiles"; Flags: ignoreversion createallsubdirs recursesubdirs
-Source: "..\TikManager_Commons\*"; DestDir: "{app}\tik_manager\TikManager_Commons"; Flags: ignoreversion createallsubdirs recursesubdirs
-Source: "..\bin\*"; DestDir: "{app}\tik_manager\bin"; Flags: ignoreversion createallsubdirs recursesubdirs
+Source: "..\icons\*"; DestDir: "{app}\icons"; Flags: ignoreversion createallsubdirs recursesubdirs
+Source: "..\setupFiles\*"; DestDir: "{app}\setupFiles"; Flags: ignoreversion createallsubdirs recursesubdirs
+Source: "..\TikManager_Commons\*"; DestDir: "{app}\TikManager_Commons"; Flags: ignoreversion createallsubdirs recursesubdirs
+Source: "..\bin\*"; DestDir: "{app}\bin"; Flags: ignoreversion createallsubdirs recursesubdirs
 
 [Icons]
 Name: "{group}\{#appName}"; Filename: "{app}\MyProg.exe"
-Name: "{autoprograms}\{#appName}"; Filename: "{app}\tik_manager\bin\SmStandalone.exe"
-Name: "{autodesktop}\{#appName}"; Filename: "{app}\tik_manager\bin\SmStandalone.exe"; Tasks: desktopicon
+Name: "{autoprograms}\{#appName}"; Filename: "{app}\bin\SmStandalone.exe"
+Name: "{autodesktop}\{#appName}"; Filename: "{app}\bin\SmStandalone.exe"; Tasks: desktopicon
 
 ;[Components]
 ;Name: "Standalone"; Description: "Standalone";
@@ -150,7 +150,7 @@ end;
 
 
 [Run]
-Filename: "{app}\tik_manager\setup.exe"; Parameters: """-n"" ""{code:GetDataDir}"" {code:GetActiveTasks}";
+Filename: "{app}\setup.exe"; Parameters: """-n"" ""{code:GetDataDir}"" {code:GetActiveTasks}";
 
 
 

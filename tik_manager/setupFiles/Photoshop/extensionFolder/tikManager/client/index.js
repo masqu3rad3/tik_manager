@@ -4,11 +4,11 @@ var csInterface = new CSInterface();
 var openButton = document.querySelector("#tikManager-button");
 openButton.addEventListener("click", tikUI);
 var versionButton = document.querySelector("#version-button");
-versionButton.addEventListener("click", saveAsVersion);
+versionButton.addEventListener("click", tikSaveVersion);
 /* Write a helper function to pass instructions to the ExtendScript side. */
 function tikUI() {
   csInterface.evalScript("tikUI()");
 }
-function saveAsVersion() {
-  csInterface.evalScript("saveAsVersion()");
+function tikSaveVersion() {
+  csInterface.evalScript("tikSaveVersion()");
 }

@@ -814,7 +814,7 @@ class SeqCopyProgress(QtWidgets.QWidget):
         self.build_ui()
         self.terminated = False
         self.cancelAll = False
-        self.errorFlag = False['']
+        self.errorFlag = False
         # self.copyfileobj(src=self.src, dst=self.dest)
 
     def build_ui(self):

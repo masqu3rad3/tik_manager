@@ -148,7 +148,7 @@ class PsManager(RootManager):
             docPath = activeDocument.path
             return os.path.join(docPath, docName)
         except:
-            return False
+            return "Untitled"
 
     def getFormatOptions(self):
         """returns the format options according to the bit depth of active document"""
@@ -980,6 +980,13 @@ if __name__ == '__main__':
     if os.path.isfile(stylesheetFile):
         with open(stylesheetFile, "r") as fh:
             app.setStyleSheet(fh.read())
-    window = MainUI()
-    window.show()
+    if len(sys.argv) > 1:
+        arg = sys.argv[1]
+        if arg == "saveVersion":
+            window = MainUI().saveAsVersionDialog()
+        else:
+            print("Argument %s is invalid" %(sys.argv[1]))
+    else:
+        window = MainUI()
+        window.show()
     sys.exit(app.exec_())
