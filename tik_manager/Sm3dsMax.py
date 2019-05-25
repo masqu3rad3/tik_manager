@@ -52,7 +52,7 @@ from Qt import QtWidgets, QtCore, QtGui
 
 import _version
 
-import pprint
+# import pprint
 
 
 

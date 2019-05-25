@@ -34,10 +34,10 @@
 import os
 # import pymel.core as pm
 import maya.cmds as cmds
-import maya.mel as mel
+# import maya.mel as mel
 from shutil import copyfile
-import json
-import logging
+# import json
+# import logging
 
 
 class AssetEditorMaya(object):
@@ -102,8 +102,6 @@ class AssetEditorMaya(object):
 
         assetAbsPath = os.path.join(assetDirectory, "%s%s" %(assetName, ext))
 
-
-        # return
 
         if selectionOnly:
             selection = cmds.ls(sl=True, type="transform")
