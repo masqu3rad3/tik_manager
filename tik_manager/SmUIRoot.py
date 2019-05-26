@@ -982,13 +982,11 @@ class MainUI(QtWidgets.QMainWindow):
         self.folders_treeView.setDragEnabled(True)
         self.folders_treeView.setDragDropMode(QtWidgets.QAbstractItemView.DragOnly)
         self.folders_treeView.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-        # self.folders_treeView.setObjectName(("folders_tableView"))
 
         self.folders_treeView.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.folders_treeView.setItemsExpandable(False)
         self.folders_treeView.setRootIsDecorated(False)
         self.folders_treeView.setSortingEnabled(True)
-        # self.folders_tableView.sortByColumn(0, QtCore.Qt.SortOrder.AscendingOrder)
         self.folders_treeView.setStyleSheet("background-color: rgb(80,80,80); color: white")
 
         verticalLayoutWidget = QtWidgets.QWidget(M2_splitter)
@@ -1255,7 +1253,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.forward_pushButton.clicked.connect(lambda: navigate("forward"))
         browse_pushButton.clicked.connect(lambda: navigate("browse"))
         self.lookIn_lineEdit.returnPressed.connect(lambda: navigate("lineEnter"))
-        self.folders_treeView.doubleClicked.connect(lambda index: navigate("folder", index=index))
+        # self.folders_treeView.doubleClicked.connect(lambda index: navigate("folder", index=index))
 
 
 

@@ -372,7 +372,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.directories_treeView.setSortingEnabled(True)
         self.directories_treeView.sortByColumn(0, QtCore.Qt.AscendingOrder)
         self.directories_treeView.setColumnWidth(0, 250)
-        self.directories_treeView.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        # self.directories_treeView.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.directories_treeView.hideColumn(1)
         self.directories_treeView.hideColumn(2)
         self.directories_treeView.setContentsMargins(0, 0, 0, 0)
