@@ -1,0 +1,9 @@
+{
+    "validItems": {
+        "date": "", 
+        "baseName": "", 
+        "categoryName": "", 
+        "userInitials": ""
+    }, 
+    "fileName": "<baseName>_<categoryName>_<userInitials>"
+}
