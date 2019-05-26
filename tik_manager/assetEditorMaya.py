@@ -205,7 +205,7 @@ class AssetEditorMaya(object):
                 cmds.AbcExport(j=command)
                 abcName = "{0}.abc".format(assetName)
             except:
-                cmds.warning("Cannot export FBX for unknown reason. Skipping FBX export")
+                cmds.warning("Cannot export Alembic for unknown reason. Skipping FBX export")
                 abcName = "N/A"
         else:
             abcName = "N/A"

@@ -81,44 +81,61 @@ class AssetEditor3dsMax(object):
         if not os.path.exists(assetDirectory):
             os.mkdir(assetDirectory)
 
-        ################
-        ## RESEARCH ####
-        ################
-
-        from MaxPlus import FileManager as fManager
-        from MaxPlus import PathManager as pManager
-        from pymxs import runtime as rt
-
-        selection = rt.execute("selection as array")
-        texArr = []
-
-        # for x in selection:
-        #	for i in (rt.usedMaps(x)):
-        #		texArr.append(i)
-
-        # print "old", texArr
-
-        # for x in selection:
-        #	map(lambda i: (texArr.append(i)), rt.usedMaps(x))
-
-        texArr = [map(lambda i: i, rt.usedMaps(x)) for x in selection]
-
-        print texArr
-
-        ######################################
+        # ################
+        # ## RESEARCH ####
+        # ################
+        #
+        # def getBitmapTextures(objectList):
+        #     bDict = {}
+        #     for i in objectList:
+        #         bDict[i] = rt.getClassInstances(rt.bitmapTexture, target=i, asTrackViewPick=False)
+        #     # print rt.getClassInstances(rt.bitmapTexture, target=i, asTrackViewPick=False)
+        #     return bDict
+        #
+        # def getBitmapTexturesZ(objectList):
+        #     """Returns the list of objects with bitmap textures as [[Object1, BitmapTexture1], [Object2, BitmapTexture2]]"""
+        #     bDict = [(str(i), rt.getClassInstances(rt.bitmapTexture, target=i, asTrackViewPick=False)) for i in
+        #              objectList if len(rt.usedMaps(i)) > 0]
+        #     return bDict
+        #
+        # from MaxPlus import FileManager as fManager
+        # from MaxPlus import PathManager as pManager
+        # from pymxs import runtime as rt
+        #
+        # selection = rt.execute("selection as array")
+        # texArr = []
+        #
+        # # for x in selection:
+        # #	for i in (rt.usedMaps(x)):
+        # #		texArr.append(i)
+        #
+        # # print "old", texArr
+        #
+        # # for x in selection:
+        # #	map(lambda i: (texArr.append(i)), rt.usedMaps(x))
+        #
+        # texArr = [map(lambda i: i, rt.usedMaps(x)) for x in selection]
+        #
+        # print texArr
+        #
+        # ######################################
 
 
 
         # GET TEXTURES
         # ------------
-
         if selectionOnly:
+            possibleFileHolders = rt.execute("selection as Array")
+            filteredBitmaps = self._getFileNodes(possibleFileHolders)
+
+        else:
+            allTexture = rt.usedMaps()
+            allBitmap = rt.getClassInstances(rt.bitmapTexture)
+            # this makes sure only the USED bitmaps will stored
+            filteredBitmaps = [x for x in allBitmap if x.filename in allTexture]
 
 
-        possibleFileHolders = cmds.listRelatives(selection, ad=True, type=["mesh", "nurbsSurface"], fullPath=True)
-        allFileNodes = self._getFileNodes(possibleFileHolders)
-
-        textureDatabase = [x for x in self._buildPathDatabase(allFileNodes, assetDirectory)]
+        textureDatabase = [x for x in self._buildPathDatabase(filteredBitmaps, assetDirectory)]
 
         self._copyTextures(textureDatabase)
 
@@ -133,7 +150,10 @@ class AssetEditor3dsMax(object):
 
         # SAVE SOURCE
         # -----------
-        cmds.file(assetAbsPath, type=saveFormat, exportSelected=True, force=True)
+        if selectionOnly:
+            fManager.SaveSelected(assetAbsPath)
+        else:
+            fManager.Save(assetAbsPath)
 
         # if selectionOnly:
         #     cmds.file(assetPath, type=saveFormat, exportSelected=True)
@@ -145,11 +165,11 @@ class AssetEditor3dsMax(object):
         # ----------
 
         if exportOBJ:
-            if not cmds.pluginInfo('objExport', l=True, q=True):
-                cmds.loadPlugin('objExport')
 
-            cmds.file(os.path.join(assetDirectory, assetName), pr=True, force=True, typ="OBJexport", es=True,
-                                op="groups=0; ptgroups=0; materials=0; smoothing=0; normals=0")
+            # Set OBJ Options
+            # TODO : //
+
+            rt.exportFile(os.path.join(assetDirectory, assetName), rt.Name("NoPrompt"), selectedOnly=selectionOnly, using=rt.ObjExp)
             objName = "{0}.obj".format(assetName)
         else:
             objName = "N/A"
@@ -157,16 +177,18 @@ class AssetEditor3dsMax(object):
         # EXPORT FBX
         # ----------
         if exportFBX:
-            if not cmds.pluginInfo('fbxmaya', l=True, q=True):
-                cmds.loadPlugin('fbxmaya')
+
+            # Set FBX Options
+            # TODO : //
+
             fileName = "{0}.fbx".format(os.path.join(assetDirectory, assetName))
             try:
-                cmds.file(fileName, force=True,
-                          op="groups=1;ptgroups=1;materials=1;smoothing=1;normals=1", typ="FBX export", pr=True, es=True,
-                          pmt=False)
+                rt.exportFile(fileName, rt.Name("NoPrompt"), selectedOnly=selectionOnly,
+                              using=rt.FBXEXP)
                 fbxName = "{0}.fbx".format(assetName)
             except:
-                cmds.warning("Cannot export FBX for unknown reason. Skipping FBX export")
+                msg = "Cannot export FBX for unknown reason. Skipping FBX export"
+                rt.messageBox(msg, title='Info')
                 fbxName = "N/A"
 
         else:
@@ -176,26 +198,66 @@ class AssetEditor3dsMax(object):
         # --------------
 
         if exportABC:
-            if not cmds.pluginInfo('AbcExport.mll', l=True, q=True):
-                cmds.loadPlugin('AbcExport.mll')
+
             fileName = "{0}.abc".format(os.path.join(assetDirectory, assetName))
-            try:
-                frame = cmds.currentTime(query=True)
-                root = ""
-                for i in selection:
-                    root = "%s-root %s " % (root, i)
-                root = root[:-1]
-                command = "-frameRange {0} {1} -uvWrite -worldSpace {2} -file {3}".format(frame, frame, root, fileName)
-                cmds.AbcExport(j=command)
-                abcName = "{0}.abc".format(assetName)
-            except:
-                cmds.warning("Cannot export FBX for unknown reason. Skipping FBX export")
+            # Set Alembic Options according to the Max Version:
+            v = rt.maxVersion()[0]
+            if v < 18000: # 3ds Max 2015 and before
+                # no alembic support
+                rt.messageBox("There is no alembic support for this version. Skipping", title="Alembic not supported")
                 abcName = "N/A"
+
+            elif 18000 <= v < 21000: # between versions 2016 - 2018
+                rt.AlembicExport.CoordinateSystem = rt.Name("YUp")
+                rt.AlembicExport.ArchiveType = rt.Name("Ogawa")
+                rt.AlembicExport.ParticleAsMesh = True
+                rt.AlembicExport.CacheTimeRange = rt.Name("CurrentFrame")
+                rt.AlembicExport.ShapeName = False
+                rt.AlembicExport.StepFrameTime = 1
+
+                rt.exportFile(fileName, rt.Name("NoPrompt"), selectedOnly=selectionOnly,
+                              using=rt.Alembic_Export)
+
+                abcName = "{0}.abc".format(assetName)
+
+            elif v >=21000: # version 2019 and up
+                rt.AlembicExport.CoordinateSystem = rt.Name("YUp")
+                rt.AlembicExport.ArchiveType = rt.Name("Ogawa")
+                rt.AlembicExport.ParticleAsMesh = True
+                rt.AlembicExport.AnimTimeRange = rt.Name("CurrentFrame")
+                rt.AlembicExport.ShapeSuffix = False
+                rt.AlembicExport.SamplesPerFrame = 1
+                rt.AlembicExport.Hidden = False
+                rt.AlembicExport.UVs = True
+                rt.AlembicExport.Normals = True
+                rt.AlembicExport.VertexColors = True
+                rt.AlembicExport.ExtraChannels = True
+                rt.AlembicExport.Velocity = True
+                rt.AlembicExport.MaterialIDs = True
+                rt.AlembicExport.Visibility = True
+                rt.AlembicExport.LayerName = True
+                rt.AlembicExport.MaterialName = True
+                rt.AlembicExport.ObjectID = True
+                rt.AlembicExport.CustomAttributes = True
+
+                rt.exportFile(fileName, rt.Name("NoPrompt"), selectedOnly=selectionOnly,
+                              using=rt.Alembic_Export)
+
+                abcName = "{0}.abc".format(assetName)
+
         else:
             abcName = "N/A"
 
         # NUMERIC DATA
         # ------------
+
+        ## RESEARCH BLOCK START
+        # TODO//
+        rt.getPolygonCount(selection)
+        $.mesh.numfaces
+        (GetTriMeshFaceCount selection[1])[1]
+        ## RESEARCH BLOCK END
+
         cmds.select(hi=True)
         polyCount = cmds.polyEvaluate(f=True)
         tiangleCount = cmds.polyEvaluate(t=True)
@@ -380,26 +442,13 @@ class AssetEditor3dsMax(object):
 
     def _getFileNodes(self, objList):
         returnList = []
-        for obj in objList:
-            # Get the shading group from the selected mesh
-            sg = cmds.listConnections(obj, type='shadingEngine')
-            if not sg:
-                continue
-            allInputs = []
-            for i in sg:
-                allInputs.extend(cmds.listHistory(i))
-
-            uniqueInputs =self.uniqueList(allInputs)
-
-            fileNodes = cmds.ls(uniqueInputs, type="file")
-            if len(fileNodes) != 0:
-                returnList.extend(fileNodes)
-        returnList = self.uniqueList(returnList)
+        for x in objList:
+            map(lambda x:(returnList.append(i)),rt.getClassInstances(rt.bitmapTexture, target=x, asTrackViewPick=False))
         return returnList
 
     def _buildPathDatabase(self, fileNodeList, newRoot):
         for file in fileNodeList:
-            oldAbsPath = os.path.normpath(cmds.getAttr("%s.fileTextureName" %file))
+            oldAbsPath = os.path.normpath(file.filename)
             filePath, fileBase = os.path.split(oldAbsPath)
             newAbsPath = os.path.normpath(os.path.join(newRoot, fileBase))
 
@@ -413,21 +462,20 @@ class AssetEditor3dsMax(object):
         for data in pathDatabase:
             if data["OldPath"] != data["NewPath"]:
                 copyfile(data["OldPath"], data["NewPath"])
-                cmds.setAttr("%s.fileTextureName" % data["FileNode"], data["NewPath"], type="string")
+                data["FileNode"].filename = data["NewPath"]
 
     def _returnOriginal(self, pathDatabase):
         for data in pathDatabase:
             # print data
-            cmds.setAttr("%s.fileTextureName" % data["FileNode"], data["OldPath"], type="string")
+            data["FileNode"].filename = data["OldPath"]
 
     def _checkVersionMatch(self, databaseVersion):
-        currentVersion = cmds.about(api=True)
+        currentVersion = rt.maxversion()
 
         if currentVersion != databaseVersion:
             msg = "Database version ({0}) and Current version ({1}) are not matching. Do you want to try anyway?".format(databaseVersion, currentVersion)
-            state = cmds.confirmDialog(title='Version Mismatch', message=msg, button=['Yes', 'No'], defaultButton='Yes',
-                                       cancelButton='No', dismissString='No')
-            if state == "Yes":
+            state = rt.queryBox(msg, title='Version Mismatch')
+            if state:
                 return True
             else:
                 return False

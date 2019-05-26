@@ -109,9 +109,12 @@ addButton("assetLibrary", command=cmd, icon=icon )
 #     sys.path.append(targetFolder)
 #
 # def smUpdate(*args):
-#     from tik_manager import SmMaya
-#     m = SmMaya.MayaManager()
-#     m.saveCallback()
+#    try:
+#        from tik_manager import SmMaya
+#        m = SmMaya.MayaManager()
+#        m.saveCallback()
+#    except:
+#        pass
 #
 #
 # maya.utils.executeDeferred('initFolder("M:\\Projects\\__database\\scripts")')
