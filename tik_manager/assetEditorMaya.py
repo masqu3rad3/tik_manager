@@ -65,7 +65,6 @@ class AssetEditorMaya(object):
             elif state == "Cancel":
                 return
 
-
         if mbFormat:
             ext = u'.mb'
             saveFormat = "mayaBinary"

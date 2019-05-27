@@ -32,22 +32,97 @@
 
 # Abstract Module for main UI
 
+# ---------------
+# GET ENVIRONMENT
+# ---------------
 import os
+import _version
+
+# Below is the standard dictionary for Scene Manager Standalone
+BoilerDict = {"Environment":"Standalone",
+              "MainWindow":None,
+              "WindowTitle":"Scene Manager Standalone v%s" %_version.__version__,
+              "Stylesheet":"mayaDark.stylesheet",
+              "SceneFormats":None
+              }
+
+FORCE_QT4 = False
+# Get Environment and edit the dictionary according to the Environment
+try:
+    from maya import OpenMayaUI as omui
+    import Qt
+    from Qt import QtWidgets, QtCore, QtGui
+    BoilerDict["Environment"] = "Maya"
+    BoilerDict["WindowTitle"] = "Tik Manager Maya v%s" %_version.__version__
+    BoilerDict["SceneFormats"] = ["mb", "ma"]
+    if Qt.__binding__ == "PySide":
+        from shiboken import wrapInstance
+    elif Qt.__binding__.startswith('PyQt'):
+        from sip import wrapinstance as wrapInstance
+    else:
+        from shiboken2 import wrapInstance
+except ImportError:
+    pass
+
+try:
+    import MaxPlus
+    import Qt
+    from Qt import QtWidgets, QtCore, QtGui
+    BoilerDict["Environment"] = "3dsMax"
+    BoilerDict["WindowTitle"] = "Tik Manager 3ds Max v%s" %_version.__version__
+    BoilerDict["SceneFormats"] = ["max"]
+except ImportError:
+    pass
+
+try:
+    import hou
+    import Qt
+    from Qt import QtWidgets, QtCore, QtGui
+    BoilerDict["Environment"] = "Houdini"
+    BoilerDict["WindowTitle"] = "Tik Manager Houdini v%s" %_version.__version__
+    BoilerDict["SceneFormats"] = ["hip", "hiplc"]
+except ImportError:
+    pass
+
+try:
+    import nuke
+    import Qt
+    from Qt import QtWidgets, QtCore, QtGui
+    BoilerDict["Environment"] = "Nuke"
+    BoilerDict["WindowTitle"] = "Tik Manager Nuke v%s" % _version.__version__
+    BoilerDict["SceneFormats"] = ["nk"]
+except ImportError:
+    pass
+
+try:
+    from PyQt4 import QtCore, Qt
+    from PyQt4 import QtGui as QtWidgets
+    FORCE_QT4 = True
+    if bool(os.getenv("PS_APP")):  # if the request is coming from the SmPhotoshop
+        BoilerDict["Environment"] = "Standalone"  # technically it is still standalone...
+        BoilerDict["WindowTitle"] = "Tik Manager Photoshop v%s" % _version.__version__
+        BoilerDict["SceneFormats"] = ["psd", "psb"]
+    else:
+        BoilerDict["Environment"] = "Standalone"
+        BoilerDict["WindowTitle"] = "Tik Manager Standalone v%s" % _version.__version__
+        BoilerDict["SceneFormats"] = None
+except ImportError:
+    pass
+
 import webbrowser
 
 # PyInstaller and Standalone version compatibility
-FORCE_QT4 = bool(int(os.getenv("FORCE_QT4")))
+# FORCE_QT4 = bool(int(os.getenv("FORCE_QT4")))
 
 # Somehow Pyinstaller is not working with Qt.py module. Following lines forces to use PyQt4
 # instead of Qt module to make it compatible with PyInstaller.
-if FORCE_QT4:
-    from PyQt4 import QtCore, Qt
-    from PyQt4 import QtGui as QtWidgets
-else:
-    import Qt
-    from Qt import QtWidgets, QtCore, QtGui
+# if FORCE_QT4:
+#     from PyQt4 import QtCore, Qt
+#     from PyQt4 import QtGui as QtWidgets
+# else:
+#     import Qt
+#     from Qt import QtWidgets, QtCore, QtGui
 
-import _version
 import pprint
 
 import ImageViewer
@@ -76,57 +151,7 @@ logger = logging.getLogger('smPhotoshop')
 logger.setLevel(logging.WARNING)
 
 
-# Below is the standard dictionary for Scene Manager Standalone
-BoilerDict = {"Environment":"Standalone",
-              "MainWindow":None,
-              "WindowTitle":"Scene Manager Standalone v%s" %_version.__version__,
-              "Stylesheet":"mayaDark.stylesheet",
-              "SceneFormats":None
-              }
 
-# Get Environment and edit the dictionary according to the Environment
-try:
-    from maya import OpenMayaUI as omui
-    BoilerDict["Environment"] = "Maya"
-    BoilerDict["WindowTitle"] = "Tik Manager Maya v%s" %_version.__version__
-    BoilerDict["SceneFormats"] = ["mb", "ma"]
-    if Qt.__binding__ == "PySide":
-        from shiboken import wrapInstance
-    elif Qt.__binding__.startswith('PyQt'):
-        from sip import wrapinstance as wrapInstance
-    else:
-        from shiboken2 import wrapInstance
-except ImportError:
-    pass
-
-try:
-    import MaxPlus
-    BoilerDict["Environment"] = "3dsMax"
-    BoilerDict["WindowTitle"] = "Tik Manager 3ds Max v%s" %_version.__version__
-    BoilerDict["SceneFormats"] = ["max"]
-except ImportError:
-    pass
-
-try:
-    import hou
-    BoilerDict["Environment"] = "Houdini"
-    BoilerDict["WindowTitle"] = "Tik Manager Houdini v%s" %_version.__version__
-    BoilerDict["SceneFormats"] = ["hip", "hiplc"]
-except ImportError:
-    pass
-
-try:
-    import nuke
-    BoilerDict["Environment"] = "Nuke"
-    BoilerDict["WindowTitle"] = "Tik Manager Nuke v%s" % _version.__version__
-    BoilerDict["SceneFormats"] = ["nk"]
-except ImportError:
-    pass
-
-if bool(os.getenv("PS_APP")): # if the request is coming from the SmPhotoshop
-    BoilerDict["Environment"] = "Standalone" # technically it is still standalone...
-    BoilerDict["WindowTitle"] = "Tik Manager Photoshop v%s" % _version.__version__
-    BoilerDict["SceneFormats"] = ["psd", "psb"]
 
 
 

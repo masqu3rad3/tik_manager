@@ -155,68 +155,90 @@ class AssetEditor3dsMax(object):
         else:
             fManager.Save(assetAbsPath)
 
-        # if selectionOnly:
-        #     cmds.file(assetPath, type=saveFormat, exportSelected=True)
-        # else:
-        #     cmds.file(rename=assetPath)
-        #     cmds.file(save=True, type=saveFormat)
 
         # EXPORT OBJ
         # ----------
+        exportSettings = self.getExportSettings()
 
         if exportOBJ:
+            if rt.pluginManager.loadclass(rt.ObjExp):
+                # Set OBJ Options
+                ObjSettings = exportSettings["objExport"]
 
-            # Set OBJ Options
-            rt.FBXExporterSetParam(rt.Name("Animation"), True)
-            rt.FBXExporterSetParam(rt.Name("ASCII"), False)
-            rt.FBXExporterSetParam(rt.Name("AxisConversionMethod"), "Fbx_Root")
-            rt.FBXExporterSetParam(rt.Name("BakeAnimation"), True)
-            rt.FBXExporterSetParam(rt.Name("BakeFrameStart"), 0)
-            rt.FBXExporterSetParam(rt.Name("BakeFrameEnd"), 100)
-            rt.FBXExporterSetParam(rt.Name("BakeFrameStep"), 1)
-            rt.FBXExporterSetParam(rt.Name("BakeResampleAnimation"), False)
-            rt.FBXExporterSetParam(rt.Name("CAT2HIK"), False)
-            rt.FBXExporterSetParam(rt.Name("ColladaTriangulate"), False)
-            rt.FBXExporterSetParam(rt.Name("ColladaSingleMatrix"), True)
-            rt.FBXExporterSetParam(rt.Name("ColladaFrameRate"), float(rt.framerate))
-            rt.FBXExporterSetParam(rt.Name("Convert2Tiff"), False)
-            rt.FBXExporterSetParam(rt.Name("ConvertUnit"), "in")
-            rt.FBXExporterSetParam(rt.Name("EmbedTextures"), True)
-            rt.FBXExporterSetParam(rt.Name("FileVersion"), "FBX201400")
-            rt.FBXExporterSetParam(rt.Name("FilterKeyReducer"), False)
-            rt.FBXExporterSetParam(rt.Name("GeomAsBone"), True)
-            rt.FBXExporterSetParam(rt.Name("GenerateLog"), False)
-            rt.FBXExporterSetParam(rt.Name("Lights"), True)
-            rt.FBXExporterSetParam(rt.Name("NormalsPerPoly"), True)
-            rt.FBXExporterSetParam(rt.Name("PointCache"), False)
-            rt.FBXExporterSetParam(rt.Name("Preserveinstances"), False)
-            rt.FBXExporterSetParam(rt.Name("Removesinglekeys"), False)
-            rt.FBXExporterSetParam(rt.Name("Resampling"), float(rt.framerate))
-            rt.FBXExporterSetParam(rt.Name("ScaleFactor"), 1.0)
-            rt.FBXExporterSetParam(rt.Name("SelectionSetExport"), False)
-            rt.FBXExporterSetParam(rt.Name("Shape"), True)
-            rt.FBXExporterSetParam(rt.Name("Skin"), True)
-            rt.FBXExporterSetParam(rt.Name("ShowWarnings"), False)
-            rt.FBXExporterSetParam(rt.Name("SmoothingGroups"), True)
-            rt.FBXExporterSetParam(rt.Name("SmoothMeshExport"), True)
-            rt.FBXExporterSetParam(rt.Name("SplitAnimationIntoTakes"), True)
-            rt.FBXExporterSetParam(rt.Name("TangentSpaceExport"), False)
-            rt.FBXExporterSetParam(rt.Name("Triangulate"), False)
-            rt.FBXExporterSetParam(rt.Name("UpAxis"), "Y")
-            rt.FBXExporterSetParam(rt.Name("UseSceneName"), False)
+                iniPath_exportSettings = rt.objExp.getIniName()
+                rt.setINISetting(iniPath_exportSettings, "Geometry", "FlipZyAxis", ObjSettings["FlipZyAxis"])
+                rt.setINISetting(iniPath_exportSettings, "Geometry", "Shapes", ObjSettings["Shapes"])
+                rt.setINISetting(iniPath_exportSettings, "Geometry", "ExportHiddenObjects", ObjSettings["ExportHiddenObjects"])
+                rt.setINISetting(iniPath_exportSettings, "Geometry", "FaceType", ObjSettings["FaceType"])
+                rt.setINISetting(iniPath_exportSettings, "Geometry", "TextureCoords", ObjSettings["TextureCoords"])
+                rt.setINISetting(iniPath_exportSettings, "Geometry", "Normals", ObjSettings["Normals"])
+                rt.setINISetting(iniPath_exportSettings, "Geometry", "SmoothingGroups", ObjSettings["SmoothingGroups"])
+                rt.setINISetting(iniPath_exportSettings, "Geometry", "ObjScale", ObjSettings["ObjScale"])
+
+                rt.setINISetting(iniPath_exportSettings, "Output", "RelativeIndex", ObjSettings["RelativeIndex"])
+                rt.setINISetting(iniPath_exportSettings, "Output", "Target", ObjSettings["Target"])
+                rt.setINISetting(iniPath_exportSettings, "Output", "Precision", ObjSettings["Precision"])
+
+                rt.setINISetting(iniPath_exportSettings, "Optimize", "optVertex", ObjSettings["optVertex"])
+                rt.setINISetting(iniPath_exportSettings, "Optimize", "optNormals", ObjSettings["optNormals"])
+                rt.setINISetting(iniPath_exportSettings, "Optimize", "optTextureCoords", ObjSettings["optTextureCoords"])
 
 
-            rt.exportFile(os.path.join(assetDirectory, assetName), rt.Name("NoPrompt"), selectedOnly=selectionOnly, using=rt.ObjExp)
-            objName = "{0}.obj".format(assetName)
+                rt.exportFile(os.path.join(assetDirectory, assetName), rt.Name("NoPrompt"), selectedOnly=selectionOnly, using=rt.ObjExp)
+                objName = "{0}.obj".format(assetName)
+            else:
+                msg = "Wavefront(Obj) Export Plugin cannot be initialized. Skipping Obj export"
+                rt.messageBox(msg, title='Info')
+                objName = "N/A"
         else:
             objName = "N/A"
 
         # EXPORT FBX
         # ----------
         if exportFBX:
+            FBXSettings = exportSettings["fbxExport"]
             if rt.pluginManager.loadclass(rt.FBXEXP):
                 # Set FBX Options
-                rt.FBXExporterSetParam.Cameras = True
+                for item in FBXSettings.items():
+                    rt.FBXExporterSetParam(rt.Name(item[0]), item[1])
+
+                # rt.FBXExporterSetParam(rt.Name("Animation"), True)
+                # rt.FBXExporterSetParam(rt.Name("ASCII"), False)
+                # rt.FBXExporterSetParam(rt.Name("AxisConversionMethod"), "Fbx_Root")
+                # rt.FBXExporterSetParam(rt.Name("BakeAnimation"), True)
+                # rt.FBXExporterSetParam(rt.Name("BakeFrameStart"), 0)
+                # rt.FBXExporterSetParam(rt.Name("BakeFrameEnd"), 100)
+                # rt.FBXExporterSetParam(rt.Name("BakeFrameStep"), 1)
+                # rt.FBXExporterSetParam(rt.Name("BakeResampleAnimation"), False)
+                # rt.FBXExporterSetParam(rt.Name("CAT2HIK"), False)
+                # rt.FBXExporterSetParam(rt.Name("ColladaTriangulate"), False)
+                # rt.FBXExporterSetParam(rt.Name("ColladaSingleMatrix"), True)
+                # rt.FBXExporterSetParam(rt.Name("ColladaFrameRate"), float(rt.framerate))
+                # rt.FBXExporterSetParam(rt.Name("Convert2Tiff"), False)
+                # rt.FBXExporterSetParam(rt.Name("ConvertUnit"), "in")
+                # rt.FBXExporterSetParam(rt.Name("EmbedTextures"), True)
+                # rt.FBXExporterSetParam(rt.Name("FileVersion"), "FBX201400")
+                # rt.FBXExporterSetParam(rt.Name("FilterKeyReducer"), False)
+                # rt.FBXExporterSetParam(rt.Name("GeomAsBone"), True)
+                # rt.FBXExporterSetParam(rt.Name("GenerateLog"), False)
+                # rt.FBXExporterSetParam(rt.Name("Lights"), True)
+                # rt.FBXExporterSetParam(rt.Name("NormalsPerPoly"), True)
+                # rt.FBXExporterSetParam(rt.Name("PointCache"), False)
+                # rt.FBXExporterSetParam(rt.Name("Preserveinstances"), False)
+                # rt.FBXExporterSetParam(rt.Name("Removesinglekeys"), False)
+                # rt.FBXExporterSetParam(rt.Name("Resampling"), float(rt.framerate))
+                # rt.FBXExporterSetParam(rt.Name("ScaleFactor"), 1.0)
+                # rt.FBXExporterSetParam(rt.Name("SelectionSetExport"), False)
+                # rt.FBXExporterSetParam(rt.Name("Shape"), True)
+                # rt.FBXExporterSetParam(rt.Name("Skin"), True)
+                # rt.FBXExporterSetParam(rt.Name("ShowWarnings"), False)
+                # rt.FBXExporterSetParam(rt.Name("SmoothingGroups"), True)
+                # rt.FBXExporterSetParam(rt.Name("SmoothMeshExport"), True)
+                # rt.FBXExporterSetParam(rt.Name("SplitAnimationIntoTakes"), True)
+                # rt.FBXExporterSetParam(rt.Name("TangentSpaceExport"), False)
+                # rt.FBXExporterSetParam(rt.Name("Triangulate"), False)
+                # rt.FBXExporterSetParam(rt.Name("UpAxis"), "Y")
+                # rt.FBXExporterSetParam(rt.Name("UseSceneName"), False)
 
                 fileName = "{0}.fbx".format(os.path.join(assetDirectory, assetName))
                 try:
@@ -239,6 +261,7 @@ class AssetEditor3dsMax(object):
         # --------------
 
         if exportABC:
+            ABCSettings = exportSettings["alembicExport"]
             fileName = "{0}.abc".format(os.path.join(assetDirectory, assetName))
             abcName = "{0}.abc".format(assetName)
             # Set Alembic Options according to the Max Version:
@@ -246,32 +269,32 @@ class AssetEditor3dsMax(object):
             if v > 17000: # Alembic export is not supported before 3ds Max 2016
                 if rt.pluginManager.loadclass(rt.Alembic_Export):
                     if 18000 <= v < 21000: # between versions 2016 - 2018
-                        rt.AlembicExport.CoordinateSystem = rt.Name("YUp")
-                        rt.AlembicExport.ArchiveType = rt.Name("Ogawa")
-                        rt.AlembicExport.ParticleAsMesh = True
-                        rt.AlembicExport.CacheTimeRange = rt.Name("CurrentFrame")
-                        rt.AlembicExport.ShapeName = False
-                        rt.AlembicExport.StepFrameTime = 1
+                        rt.AlembicExport.CoordinateSystem = rt.Name(ABCSettings["CoordinateSystem"])
+                        rt.AlembicExport.ArchiveType = rt.Name(ABCSettings["ArchiveType"])
+                        rt.AlembicExport.ParticleAsMesh = ABCSettings["ParticleAsMesh"]
+                        rt.AlembicExport.CacheTimeRange = rt.Name(ABCSettings["CacheTimeRange"])
+                        rt.AlembicExport.ShapeName = ABCSettings["ShapeName"]
+                        rt.AlembicExport.StepFrameTime = ABCSettings["StepFrameTime"]
 
                     elif v >=21000: # version 2019 and up
-                        rt.AlembicExport.CoordinateSystem = rt.Name("YUp")
-                        rt.AlembicExport.ArchiveType = rt.Name("Ogawa")
-                        rt.AlembicExport.ParticleAsMesh = True
-                        rt.AlembicExport.AnimTimeRange = rt.Name("CurrentFrame")
-                        rt.AlembicExport.ShapeSuffix = False
-                        rt.AlembicExport.SamplesPerFrame = 1
-                        rt.AlembicExport.Hidden = False
-                        rt.AlembicExport.UVs = True
-                        rt.AlembicExport.Normals = True
-                        rt.AlembicExport.VertexColors = True
-                        rt.AlembicExport.ExtraChannels = True
-                        rt.AlembicExport.Velocity = True
-                        rt.AlembicExport.MaterialIDs = True
-                        rt.AlembicExport.Visibility = True
-                        rt.AlembicExport.LayerName = True
-                        rt.AlembicExport.MaterialName = True
-                        rt.AlembicExport.ObjectID = True
-                        rt.AlembicExport.CustomAttributes = True
+                        rt.AlembicExport.CoordinateSystem = rt.Name(ABCSettings["CoordinateSystem"])
+                        rt.AlembicExport.ArchiveType = rt.Name(ABCSettings["ArchiveType"])
+                        rt.AlembicExport.ParticleAsMesh = ABCSettings["ParticleAsMesh"]
+                        rt.AlembicExport.AnimTimeRange = rt.Name(ABCSettings["AnimTimeRange"])
+                        rt.AlembicExport.ShapeSuffix = ABCSettings["ShapeSuffix"]
+                        rt.AlembicExport.SamplesPerFrame = ABCSettings["SamplesPerFrame"]
+                        rt.AlembicExport.Hidden = ABCSettings["Hidden"]
+                        rt.AlembicExport.UVs = ABCSettings["UVs"]
+                        rt.AlembicExport.Normals = ABCSettings["Normals"]
+                        rt.AlembicExport.VertexColors = ABCSettings["VertexColors"]
+                        rt.AlembicExport.ExtraChannels = ABCSettings["ExtraChannels"]
+                        rt.AlembicExport.Velocity = ABCSettings["Velocity"]
+                        rt.AlembicExport.MaterialIDs = ABCSettings["MaterialIDs"]
+                        rt.AlembicExport.Visibility = ABCSettings["Visibility"]
+                        rt.AlembicExport.LayerName = ABCSettings["LayerName"]
+                        rt.AlembicExport.MaterialName = ABCSettings["MaterialName"]
+                        rt.AlembicExport.ObjectID = ABCSettings["ObjectID"]
+                        rt.AlembicExport.CustomAttributes = ABCSettings["CustomAttributes"]
 
                     # Export
                     rt.exportFile(fileName, rt.Name("NoPrompt"), selectedOnly=selectionOnly,
@@ -296,16 +319,18 @@ class AssetEditor3dsMax(object):
         (GetTriMeshFaceCount selection[1])[1]
         ## RESEARCH BLOCK END
 
-        cmds.select(hi=True)
-        polyCount = cmds.polyEvaluate(f=True)
+        # cmds.select(hi=True)
+
+
+        polyCount =
         tiangleCount = cmds.polyEvaluate(t=True)
 
         # DATABASE
         # --------
 
         dataDict = {}
-        dataDict['sourceProject'] = "Maya(%s)" %ext
-        dataDict['version'] = cmds.about(q=True, api=True)
+        dataDict['sourceProject'] = "3dsMax"
+        dataDict['version'] = rt.maxVersion()
         dataDict['assetName'] = assetName
         dataDict['objPath'] = objName
         dataDict['fbxPath'] = fbxName
@@ -325,8 +350,7 @@ class AssetEditor3dsMax(object):
         self._returnOriginal(textureDatabase)
 
         # self.scanAssets() # scanning issued at populate function on ui class
-
-        cmds.confirmDialog(title="Success", message="Asset Created Successfully", button=['Ok'])
+        rt.messageBox("Asset Created Successfully", title='Info')
 
     def _createThumbnail(self, assetName, selectionOnly=True, viewFit=True):
         ssResolution = 1000
@@ -563,6 +587,17 @@ class AssetEditor3dsMax(object):
         cmds.file(absSourcePath, i=True)
 
     def importObj(self, assetName):
+
+        # import Settings
+        #     iniPath_importSettings = objImp.getIniName()
+        #     setINISetting iniPath_importSettings "General" "ResetScene" "0"
+        #
+        #     setINISetting iniPath_importSettings "Objects" "SingleMesh" "1"
+        #     setINISetting iniPath_importSettings "Objects" "Retriangulate" "0"
+        #     setINISetting iniPath_importSettings "Objects" "AsEditablePoly" "1"--get it back as a poly
+        #     setINISetting iniPath_importSettings "Geometry" "SmoothingGroups" "0"
+        #     setINISetting iniPath_importSettings "Geometry" "TextureCoords" "1"
+
         assetData = self._getData(assetName)
         absObjPath = os.path.join(self.directory, assetName, assetData["objPath"])
         if os.path.isfile(absObjPath):

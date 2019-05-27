@@ -32,6 +32,33 @@
 
 # Module to access Library of global assets
 
+# Define the empty editor object for "View Only Mode"
+class AssetEditor(object):
+    def __init__(self):
+        super(AssetEditor, self).__init__()
+        pass
+
+    def mergeAsset(self, assetName):
+        logger.warning("merging Asset is not defined")
+
+    def importAsset(self, assetName):
+        logger.warning("importing Asset is not defined")
+
+    def importObj(self, assetName):
+        logger.warning("importing obj is not defined")
+
+    def importAbc(self, assetName):
+        logger.warning("importing alembic is not defined")
+
+    def importFbx(self, assetName):
+        logger.warning("importing fbx is not defined")
+
+    def loadAsset(self, assetName):
+        logger.warning("loading Asset is not defined")
+
+    def saveAsset(self, *args, **kwargs):
+        logger.warning("saving Asset is not defined")
+
 # ---------------
 # GET ENVIRONMENT
 # ---------------
@@ -41,6 +68,8 @@ BoilerDict = {"Environment": "Standalone",
               "MainWindow": None,
               "WindowTitle": "Asset Library Standalone v%s" % _version.__version__,
               "Stylesheet": "mayaDark.stylesheet"}
+
+FORCE_QT4 = False
 
 try:
     from maya import OpenMayaUI as omui
@@ -101,7 +130,7 @@ try:
     BoilerDict["Environment"] = "Standalone"
     BoilerDict["WindowTitle"] = "Asset Library Standalone v%s" % _version.__version__
 except ImportError:
-    FORCE_QT4 = False
+    pass
 
 
 
@@ -147,29 +176,7 @@ logger.setLevel(logging.WARNING)
 
 
 
-class AssetEditor(object):
-    def __init__(self):
-        super(AssetEditor, self).__init__()
-        pass
 
-    def mergeAsset(self, assetName):
-        logger.warning("merging Asset is not defined")
-
-
-    def importAsset(self, assetName):
-        logger.warning("importing Asset is not defined")
-
-
-    def importObj(self, assetName):
-        logger.warning("importing obj is not defined")
-
-
-    def loadAsset(self, assetName):
-        logger.warning("loading Asset is not defined")
-
-
-    def saveAsset(self, *args, **kwargs):
-        logger.warning("saving Asset is not defined")
 
 
 def getMainWindow():
@@ -194,32 +201,14 @@ def getMainWindow():
     else:
         return None
 
-def _loadJson(file):
-    """Loads the given json file"""
-    try:
-        with open(file, 'r') as f:
-            data = json.load(f)
-            return data
-    except ValueError:
-        # msg = "Corrupted JSON file => %s" % file
-        # logger.error(msg)
-        # self._exception(200, msg)
-        return(-1) # code for corrupted json file
+# class AssetEditor(AssetEditor):
+#     def __init__(self, directory):
+#         super(AssetEditor, self).__init__()
 
-def _dumpJson(data, file):
-    """Saves the data to the json file"""
-    name, ext = os.path.splitext(file)
-    tempFile = "{0}.tmp".format(name)
-    with open(tempFile, "w") as f:
-        json.dump(data, f, indent=4)
-    shutil.copyfile(tempFile, file)
-    os.remove(tempFile)
+from SmRoot import RootManager
 
-class AssetEditor(AssetEditor):
-    def __init__(self, directory):
-        super(AssetEditor, self).__init__()
 
-class AssetLibrary(AssetEditor):
+class AssetLibrary(AssetEditor, RootManager):
     """
     Asset Library Logical operations Class. This Class holds the main functions (view only)
     """
@@ -241,6 +230,109 @@ class AssetLibrary(AssetEditor):
                          360: "Action not permitted"}
 
         self.assetsList=[]
+        self._pathsDict={}
+        self.init_paths()
+
+    def init_paths(self):
+        self._pathsDict["localSettingsDir"] = os.path.normpath(os.path.join(self.getUserDirectory(), "TikManager"))
+        self._pathsDict["commonFolderDir"] = os.path.abspath(os.path.join(self._pathsDict["localSettingsDir"]))
+        self._pathsDict["commonFolderFile"] = os.path.normpath(os.path.join(self._pathsDict["commonFolderDir"], "smCommonFolder.json"))
+
+        self._pathsDict["generalSettingsDir"] = self._getCommonFolder()
+        if self._pathsDict["generalSettingsDir"] == -1:
+            self._exception(201, "Cannot Continue Without Common Database")
+            return -1
+        self._pathsDict["exportSettingsFile"] = os.path.join(self._pathsDict["generalSettingsDir"], "exportSettings.json")
+
+
+    def getExportSettings(self):
+        """Load Export Setting options from file in Common Folder"""
+
+        if os.path.isfile(self._pathsDict["exportSettingsFile"]):
+            exportSettings = self._loadJson(self._pathsDict["exportSettingsFile"])
+            if exportSettings == -2:
+                return -2
+        else:
+            exportSettings = {
+                "objExport": {
+                    "FlipZyAxis": "0",
+                    "Shapes": "0",
+                    "ExportHiddenObjects": "0",
+                    "FaceType": "2",
+                    "TextureCoords": "1",
+                    "Normals": "1",
+                    "SmoothingGroups": "1",
+                    "ObjScale": "1.0",
+                    "RelativeIndex": "0",
+                    "Target": "0",
+                    "Precision": "4",
+                    "optVertex": "0",
+                    "optNormals": "0",
+                    "optTextureCoords": "0",
+                },
+                "fbxExport": {
+                    "Animation": True,
+                    "ASCII": False,
+                    "AxisConversionMethod": "Fbx_Root",
+                    "BakeAnimation": True,
+                    "BakeFrameStart": 0,
+                    "BakeFrameEnd": 100,
+                    "BakeFrameStep": 1,
+                    "BakeResampleAnimation": False,
+                    "CAT2HIK": False,
+                    "ColladaTriangulate": False,
+                    "ColladaSingleMatrix": True,
+                    # "ColladaFrameRate": float(rt.framerate),
+                    "Convert2Tiff": False,
+                    "ConvertUnit": "in",
+                    "EmbedTextures": True,
+                    "FileVersion": "FBX201400",
+                    "FilterKeyReducer": False,
+                    "GeomAsBone": True,
+                    "GenerateLog": False,
+                    "Lights": True,
+                    "NormalsPerPoly": True,
+                    "PointCache": False,
+                    "Preserveinstances": False,
+                    "Removesinglekeys": False,
+                    # "Resampling": float(rt.framerate),
+                    "ScaleFactor": 1.0,
+                    "SelectionSetExport": False,
+                    "Shape": True,
+                    "Skin": True,
+                    "ShowWarnings": False,
+                    "SmoothingGroups": True,
+                    "SmoothMeshExport": True,
+                    "SplitAnimationIntoTakes": True,
+                    "TangentSpaceExport": False,
+                    "Triangulate": False,
+                    "UpAxis": "Y",
+                    "UseSceneName": False
+                },
+                "alembicExport": {
+                    "CoordinateSystem": "YUp",
+                    "ArchiveType": "Ogawa",
+                    "ParticleAsMesh": True,
+                    "AnimTimeRange": "CurrentFrame",
+                    "ShapeSuffix": False,
+                    "SamplesPerFrame": 1,
+                    "Hidden": False,
+                    "UVs": True,
+                    "Normals": True,
+                    "VertexColors": True,
+                    "ExtraChannels": True,
+                    "Velocity": True,
+                    "MaterialIDs": True,
+                    "Visibility": True,
+                    "LayerName": True,
+                    "MaterialName": True,
+                    "ObjectID": True,
+                    "CustomAttributes": True
+                }
+            }
+            # categoriesData = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
+            self._dumpJson(exportSettings, self._pathsDict["exportSettingsFile"])
+        return exportSettings
 
     def scanAssets(self):
         """
@@ -256,10 +348,6 @@ class AssetLibrary(AssetEditor):
             return
         # first collect all the json files from second level subfolders
         subDirs = next(os.walk(self.directory))[1]
-        # for dir in subDirs:
-        #     filePath = os.path.join(self.directory, dir, "%s.json" %dir)
-        #     if os.path.isfile(filePath):
-        #         self[dir]={"dataPath": filePath}
         self.assetsList = [d for d in subDirs if os.path.isfile(os.path.join(self.directory, d, "%s.json" %d))]
 
     def getThumbnail(self, assetName):
@@ -313,12 +401,12 @@ class AssetLibrary(AssetEditor):
 
     def _getData(self, assetName):
         jsonFile = os.path.join(self.directory, assetName, "%s.json" %assetName)
-        data = _loadJson(jsonFile)
+        data = self._loadJson(jsonFile)
         return data
 
     def _setData(self, assetName, data):
         jsonFile = os.path.join(self.directory, assetName, "%s.json" % assetName)
-        _dumpJson(data, jsonFile)
+        self._dumpJson(data, jsonFile)
 
 
     def _savePreviews(self, name, assetDirectory, uvSnap=True, selectionOnly=True):
@@ -345,6 +433,8 @@ class AssetLibrary(AssetEditor):
         logger.error("Exception %s" %self.errorCodeDict[code])
         logger.error(msg)
         raise Exception (code, msg)
+
+
 
 
 class MainUI(QtWidgets.QMainWindow):
@@ -568,10 +658,10 @@ class MainUI(QtWidgets.QMainWindow):
 
     def getLibraryPaths(self):
         try:
-            libraryPaths = _loadJson(self.settingsFile)
+            libraryPaths = self._loadJson(self.settingsFile)
         except IOError: # it file does not exist
             libraryPaths = []
-            _dumpJson(libraryPaths, self.settingsFile)
+            self._dumpJson(libraryPaths, self.settingsFile)
         return libraryPaths
 
     def addLibrary(self, path, name):
@@ -629,6 +719,27 @@ class MainUI(QtWidgets.QMainWindow):
         self.msg.button(QtWidgets.QMessageBox.Ok).setFixedHeight(30)
         self.msg.button(QtWidgets.QMessageBox.Ok).setFixedWidth(100)
         self.msg.show()
+
+    def _loadJson(self, file):
+        """Loads the given json file"""
+        try:
+            with open(file, 'r') as f:
+                data = json.load(f)
+                return data
+        except ValueError:
+            # msg = "Corrupted JSON file => %s" % file
+            # logger.error(msg)
+            # self._exception(200, msg)
+            return (-1)  # code for corrupted json file
+
+    def _dumpJson(self, data, file):
+        """Saves the data to the json file"""
+        name, ext = os.path.splitext(file)
+        tempFile = "{0}.tmp".format(name)
+        with open(tempFile, "w") as f:
+            json.dump(data, f, indent=4)
+        shutil.copyfile(tempFile, file)
+        os.remove(tempFile)
 
 
 
