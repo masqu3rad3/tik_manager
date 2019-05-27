@@ -312,18 +312,14 @@ class AssetEditor3dsMax(object):
         # NUMERIC DATA
         # ------------
 
-        ## RESEARCH BLOCK START
-        # TODO//
-        rt.getPolygonCount(selection)
-        $.mesh.numfaces
-        (GetTriMeshFaceCount selection[1])[1]
-        ## RESEARCH BLOCK END
+        if selectionOnly:
+            countLoop = originalSelection
 
-        # cmds.select(hi=True)
+        else:
+            countLoop = rt.execute("geometry as array")
 
-
-        polyCount =
-        tiangleCount = cmds.polyEvaluate(t=True)
+        polyCount = sum(rt.getPolygonCount(x)[0] for x in countLoop)
+        tiangleCount = sum(rt.getPolygonCount(x)[1] for x in countLoop)
 
         # DATABASE
         # --------
@@ -346,91 +342,86 @@ class AssetEditor3dsMax(object):
 
         self._setData(assetName, dataDict)
 
-        cmds.select(d=True)
+        rt.clearSelection()
         self._returnOriginal(textureDatabase)
-
         # self.scanAssets() # scanning issued at populate function on ui class
         rt.messageBox("Asset Created Successfully", title='Info')
 
     def _createThumbnail(self, assetName, selectionOnly=True, viewFit=True):
-        ssResolution = 1000
+        # ssResolution = 1000
+
         thumbPath = os.path.join(self.directory, assetName, "%s_thumb.jpg" % assetName)
         SSpath = os.path.join(self.directory, assetName, "%s_s.jpg" % assetName)
         WFpath = os.path.join(self.directory, assetName, "%s_w.jpg" % assetName)
 
-        selection = cmds.ls(sl=True)
-
-        # if not update:
-
-        if not selectionOnly:
-            # deselect if you dont want to focus only on the selection
-            selection = cmds.ls(type="transform")
-            cmds.select(d=True)
-
-
-        ## CREATE A CUSTOM PANEL WITH DESIRED SETTINGS
-
-        try:
-            currentCam = cmds.modelPanel(cmds.getPanel(wf=True), q=True, cam=True)
-            vRenderer = cmds.modelEditor(cmds.getPanel(wf=True), q=True, rnm=True)
-        except RuntimeError:
-            currentCam = u'persp'
-            vRenderer = 'vp2Renderer'
-
-        tempWindow = cmds.window(title="AssetLibrary_SS",
-                               widthHeight=(ssResolution * 1.1, ssResolution * 1.1),
-                               tlc=(0, 0))
-
-        cmds.paneLayout()
-        pbPanel = cmds.modelPanel(camera=currentCam)
-        cmds.showWindow(tempWindow)
-        cmds.setFocus(pbPanel)
-        cmds.modelEditor(pbPanel, edit=True, rendererName=vRenderer)
-
-        ########################################
-
-        # make sure the viewport display is suitable
-        # panel = cmds.getPanel(wf=True)
-        #
-        # if cmds.getPanel(to=panel) != "modelPanel":
-        #     panel = cmds.getPanel(wl="Persp View")
-
-
-        cmds.modelEditor(pbPanel, e=1, allObjects=1)
-        cmds.modelEditor(pbPanel, e=1, da="smoothShaded")
-        cmds.modelEditor(pbPanel, e=1, displayTextures=1)
-        cmds.modelEditor(pbPanel, e=1, wireframeOnShaded=0)
-        if viewFit:
-            cmds.viewFit()
+        selection = rt.execute("selection as array")
+        rt.clearSelection()
 
         if selectionOnly:
-            cmds.isolateSelect(pbPanel, state=1)
-            cmds.isolateSelect(pbPanel, addSelected=True)
-        # temporarily deselect
-        cmds.select(d=True)
+            rt.IsolateSelection.EnterIsolateSelectionMode()
 
-        cmds.setAttr("defaultRenderGlobals.imageFormat", 8)  # This is the value for jpeg
+        originalState = rt.viewport.GetRenderLevel()
+        oWidth = 1600
+        oHeight = 1600
 
-        frame = cmds.currentTime(query=True)
-        # thumb
-        cmds.playblast(completeFilename=thumbPath, forceOverwrite=True, format='image', width=200, height=200,
-                     showOrnaments=False, frame=[frame], viewer=False)
+        rt.viewport.SetRenderLevel(rt.Name("smoothhighlights"))
+        grabShaded = rt.gw.getViewportDib()
+        rt.viewport.SetRenderLevel(rt.Name("smoothhighlights"))
+        grabWire = rt.gw.getViewportDib()
 
-        # screenshot
-        cmds.playblast(completeFilename=SSpath, forceOverwrite=True, format='image', width=1600, height=1600,
-                     showOrnaments=False, frame=[frame], viewer=False)
 
-        # Wireframe
-        cmds.modelEditor(pbPanel, e=1, displayTextures=0)
-        cmds.modelEditor(pbPanel, e=1, wireframeOnShaded=1)
-        cmds.playblast(completeFilename=WFpath, forceOverwrite=True, format='image', width=1600, height=1600,
-                     showOrnaments=False, frame=[frame], viewer=False)
+        ratio = float(grabShaded.width) / float(grabShaded.height)
 
-        ## remove window when pb is donw
-        cmds.deleteUI(tempWindow)
+        if ratio < 1.0:
+            new_width = oHeight * ratio
+            new_height = oHeight
+        elif ratio > 1.0:
+            new_width = oWidth
+            new_height = oWidth / ratio
+        else:
+            new_width = oWidth
+            new_height = oWidth
 
-        # print panel
-        cmds.select(selection)
+        resizeFrameShaded = rt.bitmap(new_width, new_height, color=rt.color(0, 0, 0))
+        rt.copy(grabShaded, resizeFrameShaded)
+
+        resizeFrameWire = rt.bitmap(new_width, new_height, color=rt.color(0, 0, 0))
+        rt.copy(grabWire, resizeFrameWire)
+
+        ssFrame = rt.bitmap(oWidth, oHeight, color=rt.color(0, 0, 0))
+        wfFrame = rt.bitmap(oWidth, oHeight, color=rt.color(0, 0, 0))
+
+        xOffset = (oWidth - resizeFrameShaded.width) / 2
+        yOffset = (oHeight - resizeFrameShaded.height) / 2
+
+        rt.pasteBitmap(resizeFrameShaded, ssFrame, rt.point2(0, 0), rt.point2(xOffset, yOffset))
+        rt.pasteBitmap(resizeFrameWire, wfFrame, rt.point2(0, 0), rt.point2(xOffset, yOffset))
+
+        # rt.display(ssFrame)
+        # rt.display(wfFrame)
+
+        thumbFrame = rt.bitmap(200, 200, color=rt.color(0, 0, 0))
+        rt.copy(ssFrame, thumbFrame)
+
+        rt.display(thumbFrame)
+
+        thumbFrame.filename = thumbPath
+        rt.save(thumbFrame)
+        rt.close(thumbFrame)
+
+        ssFrame.filename = SSpath
+        rt.save(ssFrame)
+        rt.close(ssFrame)
+
+        wfFrame.filename = WFpath
+        rt.save(wfFrame)
+        rt.close(wfFrame)
+
+        # switch to original view
+        rt.viewport.SetRenderLevel(originalState)
+
+        rt.IsolateSelection.ExitIsolateSelectionMode()
+
         return thumbPath, SSpath, WFpath
 
     def replaceWithCurrentView(self, assetName):
@@ -439,35 +430,7 @@ class AssetEditor3dsMax(object):
         SSpath = os.path.join(self.directory, assetName, "%s_s.jpg" % assetName)
         WFpath = os.path.join(self.directory, assetName, "%s_w.jpg" % assetName)
 
-        pbPanel = cmds.getPanel(wf=True)
-        if cmds.getPanel(to=pbPanel) != "modelPanel":
-            cmds.warning("The focus is not on a model panel. Cancelling")
-            return None, None, None
-        wireMode = cmds.modelEditor(pbPanel, q=1, wireframeOnShaded=1)
-        textureMode = cmds.modelEditor(pbPanel, q=1, displayTextures=1)
-
-        cmds.setAttr("defaultRenderGlobals.imageFormat", 8)  # This is the value for jpeg
-
-        frame = cmds.currentTime(query=True)
-        # thumb
-        cmds.modelEditor(pbPanel, e=1, displayTextures=1)
-        cmds.modelEditor(pbPanel, e=1, wireframeOnShaded=0)
-        cmds.playblast(completeFilename=thumbPath, forceOverwrite=True, format='image', width=200, height=200,
-                     showOrnaments=False, frame=[frame], viewer=False)
-
-        # screenshot
-        cmds.playblast(completeFilename=SSpath, forceOverwrite=True, format='image', width=1600, height=1600,
-                     showOrnaments=False, frame=[frame], viewer=False)
-
-        # Wireframe
-        cmds.modelEditor(pbPanel, e=1, displayTextures=0)
-        cmds.modelEditor(pbPanel, e=1, wireframeOnShaded=1)
-        cmds.playblast(completeFilename=WFpath, forceOverwrite=True, format='image', width=1600, height=1600,
-                     showOrnaments=False, frame=[frame], viewer=False)
-
-        # leave it as it was
-        cmds.modelEditor(pbPanel, e=1, wireframeOnShaded=wireMode)
-        cmds.modelEditor(pbPanel, e=1, displayTextures=textureMode)
+        self._createThumbnail(assetName, selectionOnly=False)
 
     def replaceWithExternalFile(self, assetName, FilePath):
         # TODO
@@ -505,7 +468,7 @@ class AssetEditor3dsMax(object):
     def _getFileNodes(self, objList):
         returnList = []
         for x in objList:
-            map(lambda x:(returnList.append(i)),rt.getClassInstances(rt.bitmapTexture, target=x, asTrackViewPick=False))
+            map(lambda x:(returnList.append(x)), rt.getClassInstances(rt.bitmapTexture, target=x, asTrackViewPick=False))
         return returnList
 
     def _buildPathDatabase(self, fileNodeList, newRoot):
