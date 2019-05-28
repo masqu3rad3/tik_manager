@@ -72,6 +72,15 @@ BoilerDict = {"Environment": "Standalone",
 FORCE_QT4 = False
 
 try:
+    from PyQt4 import QtCore, Qt
+    from PyQt4 import QtGui as QtWidgets
+    FORCE_QT4 = True
+    BoilerDict["Environment"] = "Standalone"
+    BoilerDict["WindowTitle"] = "Asset Library Standalone v%s" % _version.__version__
+except ImportError:
+    pass
+
+try:
     from maya import OpenMayaUI as omui
     import maya.cmds as cmds
     import Qt
@@ -79,8 +88,8 @@ try:
 
     ##
     ## EDITOR CLASS
-    import assetEditorMaya # for dev
-    reload(assetEditorMaya)# for dev
+    # import assetEditorMaya # for dev
+    # reload(assetEditorMaya)# for dev
 
     from assetEditorMaya import AssetEditorMaya as AssetEditor
 
@@ -100,6 +109,7 @@ try:
     import MaxPlus
     import Qt
     from Qt import QtWidgets, QtCore, QtGui
+    from assetEditor3dsMax import AssetEditor3dsMax as AssetEditor
     BoilerDict["Environment"] = "3dsMax"
     BoilerDict["WindowTitle"] = "Asset Library 3ds Max v%s" % _version.__version__
 except ImportError:
@@ -123,14 +133,6 @@ try:
 except ImportError:
     pass
 
-try:
-    from PyQt4 import QtCore, Qt
-    from PyQt4 import QtGui as QtWidgets
-    FORCE_QT4 = True
-    BoilerDict["Environment"] = "Standalone"
-    BoilerDict["WindowTitle"] = "Asset Library Standalone v%s" % _version.__version__
-except ImportError:
-    pass
 
 
 
@@ -141,6 +143,8 @@ import shutil
 import re
 
 import datetime
+
+from SmRoot import RootManager
 
 # FORCE_QT4 = bool(os.getenv("FORCE_QT4"))
 # FORCE_QT4 = bool(int(os.environ["FORCE_QT4"]))
@@ -205,7 +209,7 @@ def getMainWindow():
 #     def __init__(self, directory):
 #         super(AssetEditor, self).__init__()
 
-from SmRoot import RootManager
+
 
 
 class AssetLibrary(AssetEditor, RootManager):
@@ -303,7 +307,6 @@ class AssetLibrary(AssetEditor, RootManager):
                     "ShowWarnings": False,
                     "SmoothingGroups": True,
                     "SmoothMeshExport": True,
-                    "SplitAnimationIntoTakes": True,
                     "TangentSpaceExport": False,
                     "Triangulate": False,
                     "UpAxis": "Y",
@@ -451,8 +454,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         if BoilerDict["Environment"]=="Standalone" or\
                 BoilerDict["Environment"]=="Houdini" or \
-                BoilerDict["Environment"] == "Nuke" or \
-                BoilerDict["Environment"] == "3dsMax":
+                BoilerDict["Environment"] == "Nuke":
             self.viewOnly = True
         else:
             self.viewOnly = False
@@ -682,7 +684,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         newItem = [name, path]
         libraryPaths.append(newItem)
-        _dumpJson(libraryPaths, self.settingsFile)
+        self._dumpJson(libraryPaths, self.settingsFile)
 
         # add the tab
         preTab = LibraryTab(path, viewOnly=self.viewOnly)
@@ -696,7 +698,7 @@ class MainUI(QtWidgets.QMainWindow):
         for p in libraryPaths:
             if p[0] == name:
                 libraryPaths.pop(libraryPaths.index(p))
-                _dumpJson(libraryPaths, self.settingsFile)
+                self._dumpJson(libraryPaths, self.settingsFile)
                 tabIndexToRemove = self.tabWidget.currentIndex()
                 self.tabWidget.removeTab(tabIndexToRemove)
                 return
