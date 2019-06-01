@@ -915,37 +915,67 @@ class LibraryTab(QtWidgets.QWidget):
 
         self.gridLayout_2.addLayout(self.rightBelow_verticalLayout, 3, 0, 1, 1)
 
+        rightUp_vLayout = QtWidgets.QVBoxLayout()
+        self.gridLayout_2.addLayout(rightUp_vLayout, 0, 0, 1, 1)
+
+        importSceneSubLay = QtWidgets.QHBoxLayout()
+        rightUp_vLayout.addLayout(importSceneSubLay)
+
+        self.mergeScene_pushButton = QtWidgets.QPushButton(self.frame_right)
+        # self.importScene_pushButton.setMinimumSize(QtCore.QSize(100, 30))
+        # self.importScene_pushButton.setMaximumSize(QtCore.QSize(150, 30))
+        self.mergeScene_pushButton.setText(("Merge Scene"))
+        importSceneSubLay.addWidget(self.mergeScene_pushButton)
+
+        self.importWithTextures_checkbox = QtWidgets.QCheckBox(self.frame_right)
+        self.importWithTextures_checkbox.setText("Copy Textures")
+        importSceneSubLay.addWidget(self.importWithTextures_checkbox)
+
+        self.load_pushButton = QtWidgets.QPushButton(self.frame_right)
+        # self.load_pushButton.setMinimumSize(QtCore.QSize(100, 30))
+        # self.load_pushButton.setMaximumSize(QtCore.QSize(150, 30))
+        self.load_pushButton.setText(("Load"))
+        rightUp_vLayout.addWidget(self.load_pushButton)
+
+        self.importOther_pushButton = QtWidgets.QPushButton(self.frame_right)
+        # self.importOther_pushButton.setMinimumSize(QtCore.QSize(100, 30))
+        # self.importOther_pushButton.setMaximumSize(QtCore.QSize(150, 30))
+        self.importOther_pushButton.setText(("Import Other"))
+        rightUp_vLayout.addWidget(self.importOther_pushButton)
+
         self.rightUp_gridLayout = QtWidgets.QGridLayout()
         self.rightUp_gridLayout.setContentsMargins(-1, -1, 10, 10)
 
-        self.import_pushButton = QtWidgets.QPushButton(self.frame_right)
-        self.import_pushButton.setMinimumSize(QtCore.QSize(100, 30))
-        self.import_pushButton.setMaximumSize(QtCore.QSize(150, 30))
-        self.import_pushButton.setText(("Import Only"))
 
-        self.rightUp_gridLayout.addWidget(self.import_pushButton, 1, 0, 1, 1)
 
-        self.load_pushButton = QtWidgets.QPushButton(self.frame_right)
-        self.load_pushButton.setMinimumSize(QtCore.QSize(100, 30))
-        self.load_pushButton.setMaximumSize(QtCore.QSize(150, 30))
-        self.load_pushButton.setText(("Load"))
-
-        self.rightUp_gridLayout.addWidget(self.load_pushButton, 0, 3, 1, 1)
-
-        self.importObj_pushButton = QtWidgets.QPushButton(self.frame_right)
-        self.importObj_pushButton.setMinimumSize(QtCore.QSize(100, 30))
-        self.importObj_pushButton.setMaximumSize(QtCore.QSize(150, 30))
-        self.importObj_pushButton.setText(("Import Other"))
-
-        self.rightUp_gridLayout.addWidget(self.importObj_pushButton, 1, 3, 1, 1)
-
-        self.merge_pushButton = QtWidgets.QPushButton(self.frame_right)
-        self.merge_pushButton.setMinimumSize(QtCore.QSize(100, 30))
-        self.merge_pushButton.setMaximumSize(QtCore.QSize(150, 30))
-        self.merge_pushButton.setText(("Merge"))
-        self.rightUp_gridLayout.addWidget(self.merge_pushButton, 0, 0, 1, 1)
-
-        self.gridLayout_2.addLayout(self.rightUp_gridLayout, 0, 0, 1, 1)
+        # self.import_pushButton = QtWidgets.QPushButton(self.frame_right)
+        # self.import_pushButton.setMinimumSize(QtCore.QSize(100, 30))
+        # self.import_pushButton.setMaximumSize(QtCore.QSize(150, 30))
+        # self.import_pushButton.setText(("Import Only"))
+        #
+        # self.rightUp_gridLayout.addWidget(self.import_pushButton, 1, 0, 1, 1)
+        #
+        # self.load_pushButton = QtWidgets.QPushButton(self.frame_right)
+        # self.load_pushButton.setMinimumSize(QtCore.QSize(100, 30))
+        # self.load_pushButton.setMaximumSize(QtCore.QSize(150, 30))
+        # self.load_pushButton.setText(("Load"))
+        #
+        # self.rightUp_gridLayout.addWidget(self.load_pushButton, 0, 3, 1, 1)
+        #
+        # self.importObj_pushButton = QtWidgets.QPushButton(self.frame_right)
+        # self.importObj_pushButton.setMinimumSize(QtCore.QSize(100, 30))
+        # self.importObj_pushButton.setMaximumSize(QtCore.QSize(150, 30))
+        # self.importObj_pushButton.setText(("Import Other"))
+        #
+        # self.rightUp_gridLayout.addWidget(self.importObj_pushButton, 1, 3, 1, 1)
+        #
+        # self.merge_pushButton = QtWidgets.QPushButton(self.frame_right)
+        # self.merge_pushButton.setMinimumSize(QtCore.QSize(100, 30))
+        # self.merge_pushButton.setMaximumSize(QtCore.QSize(150, 30))
+        # self.merge_pushButton.setText(("Merge"))
+        # self.rightUp_gridLayout.addWidget(self.merge_pushButton, 0, 0, 1, 1)
+        #
+        # self.gridLayout_2.addLayout(self.rightUp_gridLayout, 0, 0, 1, 1)
 
         self.filter_lineEdit.textChanged.connect(self.populate)
 
@@ -1008,6 +1038,18 @@ class LibraryTab(QtWidgets.QWidget):
         # self.assets_rcItem_3 = QtWidgets.QAction('Show Wireframe', self)
         # self.popMenu_assets.addAction(self.assets_rcItem_3)
 
+        # def buttonUpdate():
+        #     assetName = self._getCurrentAssetName()
+        #     if not assetName:
+        #         self.mergeScene_pushButton.setEnabled(False)
+        #         self.importOther_pushButton.setEnabled(False)
+        #         self.load_pushButton.setEnabled(False)
+        #         return
+        #
+        #     assetData = self.library._getData(assetName)
+        #     otherFormats = self._getOtherFormats(assetData)
+        #
+        # buttonUpdate()
 
         # SIGNAL CONNECTIONS
         # ------------------
@@ -1030,9 +1072,9 @@ class LibraryTab(QtWidgets.QWidget):
 
         self.splitter.setSizes([375, 25])
 
-        self.import_pushButton.clicked.connect(self.onImportAsset)
-        self.merge_pushButton.clicked.connect(self.onMergeAsset)
-        self.importObj_pushButton.clicked.connect(self.onImportOther)
+        # self.import_pushButton.clicked.connect(self.onImportAsset)
+        self.mergeScene_pushButton.clicked.connect(self.onMergeAsset)
+        self.importOther_pushButton.clicked.connect(self.onImportOther)
         self.load_pushButton.clicked.connect(self.onLoadAsset)
         self.createNewAsset_pushButton.clicked.connect(self.createNewAssetUI)
 
@@ -1267,11 +1309,24 @@ class LibraryTab(QtWidgets.QWidget):
         facesTriangles = assetData["Faces/Triangles"]
         self.facesTriangles_label.setText("Faces/Triangles: %s" %facesTriangles)
         sourceProject = assetData["sourceProject"]
+
+        if sourceProject.startswith(BoilerDict["Environment"]):
+            self.mergeScene_pushButton.setEnabled(True)
+            self.load_pushButton.setEnabled(True)
+        else:
+            self.mergeScene_pushButton.setEnabled(False)
+            self.load_pushButton.setEnabled(False)
+
         version = assetData["version"]
         self.sourceProject_label.setText("Source: %s Version: %s" %(sourceProject, version))
         # isObjExist = False if assetData["objPath"] == "NA" else True
         otherFormats = ", ".join(self._getOtherFormats(assetData))
         self.objCopy_label.setText("Other Formats: %s" %otherFormats)
+
+        if len(otherFormats) == 0:
+            self.importOther_pushButton.setEnabled(False)
+        else:
+            self.importOther_pushButton.setEnabled(True)
 
     # def _getOtherFormats(self, assetData):
     #     formats = ""
@@ -1387,12 +1442,15 @@ class LibraryTab(QtWidgets.QWidget):
     def onMergeAsset(self):
         assetName = self._getCurrentAssetName()
         if assetName:
-            self.library.mergeAsset(assetName)
+            if self.importWithTextures_checkbox.isChecked():
+                self.library.mergeAsset(assetName)
+            else:
+                self.library.importAsset(assetName)
 
-    def onImportAsset(self):
-        assetName = self._getCurrentAssetName()
-        if assetName:
-            self.library.importAsset(assetName)
+    # def onImportAsset(self):
+    #     assetName = self._getCurrentAssetName()
+    #     if assetName:
+    #         self.library.importAsset(assetName)
 
     # def onImportOther(self):
     #     assetName = self._getCurrentAssetName()
