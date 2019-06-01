@@ -153,7 +153,7 @@ class AssetEditor3dsMax(object):
         if selectionOnly:
             fManager.SaveSelected(assetAbsPath)
         else:
-            fManager.Save(assetAbsPath)
+            fManager.SaveSceneAsVersion(assetAbsPath)
 
 
         # EXPORT OBJ
@@ -200,6 +200,7 @@ class AssetEditor3dsMax(object):
             if rt.pluginManager.loadclass(rt.FBXEXP):
                 # Set FBX Options
                 for item in FBXSettings.items():
+                    print item[0], " => ", item[1]
                     rt.FBXExporterSetParam(rt.Name(item[0]), item[1])
 
                 # rt.FBXExporterSetParam(rt.Name("Animation"), True)
@@ -321,12 +322,15 @@ class AssetEditor3dsMax(object):
         polyCount = sum(rt.getPolygonCount(x)[0] for x in countLoop)
         tiangleCount = sum(rt.getPolygonCount(x)[1] for x in countLoop)
 
+        versionInfo = rt.maxversion()
+        vInfo = [versionInfo[0], versionInfo[1], versionInfo[2]]
+
         # DATABASE
         # --------
 
         dataDict = {}
         dataDict['sourceProject'] = "3dsMax"
-        dataDict['version'] = rt.maxVersion()
+        dataDict['version'] = vInfo
         dataDict['assetName'] = assetName
         dataDict['objPath'] = objName
         dataDict['fbxPath'] = fbxName
@@ -340,6 +344,7 @@ class AssetEditor3dsMax(object):
         dataDict['origin'] = originalPath
         dataDict['notes'] = notes
 
+        print dataDict
         self._setData(assetName, dataDict)
 
         rt.clearSelection()
