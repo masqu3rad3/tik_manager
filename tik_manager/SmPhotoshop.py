@@ -769,6 +769,7 @@ class MainUI(baseUI):
         self.showPreview_pushButton.setVisible(False)
 
         self.export_pushButton.setVisible(True)
+        self.export_pushButton.setText("Export Texture")
         self.export_pushButton.clicked.connect(self.exportSourceUI)
 
 

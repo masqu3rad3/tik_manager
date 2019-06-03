@@ -158,14 +158,28 @@ class AssetEditorMaya(object):
 
         # EXPORT OBJ
         # ----------
+        exportSettings = self.getExportSettings()
 
         if exportOBJ:
             if not cmds.pluginInfo('objExport', l=True, q=True):
                 cmds.loadPlugin('objExport')
 
-            cmds.file(os.path.join(assetDirectory, assetName), pr=True, force=True, typ="OBJexport", es=True,
-                                op="groups=0; ptgroups=0; materials=0; smoothing=0; normals=0")
+            objSettings = exportSettings["objExport"]
+
+            # opFlag = "groups={0}; ptgroups={1}; materials={2}; smoothing={3}; normals={4}".format(
+            #     ObjSettings["SmoothingGroups"],
+            #     ObjSettings["SmoothingGroups"],
+            #     0,
+            #     ObjSettings["SmoothingGroups"],
+            #     ObjSettings["Normals"]
+            # )
+            #
+            # cmds.file(os.path.join(assetDirectory, assetName), pr=True, force=True, typ="OBJexport", es=True,
+            #                     op=opFlag)
             objName = "{0}.obj".format(assetName)
+            objPath = (os.path.join(assetDirectory, objName))
+            self.exportObj(objPath, objSettings)
+
         else:
             objName = "N/A"
 
@@ -175,14 +189,18 @@ class AssetEditorMaya(object):
             if not cmds.pluginInfo('fbxmaya', l=True, q=True):
                 cmds.loadPlugin('fbxmaya')
             fileName = "{0}.fbx".format(os.path.join(assetDirectory, assetName))
-            try:
-                cmds.file(fileName, force=True,
-                          op="groups=1;ptgroups=1;materials=1;smoothing=1;normals=1", typ="FBX export", pr=True, es=True,
-                          pmt=False)
-                fbxName = "{0}.fbx".format(assetName)
-            except:
-                cmds.warning("Cannot export FBX for unknown reason. Skipping FBX export")
-                fbxName = "N/A"
+
+            fbxSettings = exportSettings["objExport"]
+            self.exportFbx(fileName, fbxSettings)
+            fbxName = "{0}.fbx".format(assetName)
+            # try:
+            #     cmds.file(fileName, force=True,
+            #               op="groups=1;ptgroups=1;materials=1;smoothing=1;normals=1", typ="FBX export", pr=True, es=True,
+            #               pmt=False)
+            #     fbxName = "{0}.fbx".format(assetName)
+            # except:
+            #     cmds.warning("Cannot export FBX for unknown reason. Skipping FBX export")
+            #     fbxName = "N/A"
 
         else:
             fbxName = "N/A"
@@ -508,6 +526,38 @@ class AssetEditorMaya(object):
         absFbxPath = os.path.join(self.directory, assetName, assetData["fbxPath"])
         if os.path.isfile(absFbxPath):
             cmds.file(absFbxPath, i=True)
+
+    def exportObj(self, exportPath, exportSettings, exportSelected=True):
+        opFlag = "groups={0}; ptgroups={1}; materials={2}; smoothing={3}; normals={4}".format(
+            exportSettings["SmoothingGroups"],
+            exportSettings["SmoothingGroups"],
+            0,
+            exportSettings["SmoothingGroups"],
+            exportSettings["Normals"]
+        )
+        cmds.file(exportPath, pr=True, force=True, typ="OBJexport", es=exportSelected,
+                  op=opFlag)
+
+    def exportAlembic(self, exportPath, exportSettings, exportSelected=True):
+        pass
+
+    def exportFbx(self, exportPath, exportSettings, exportSelected=True):
+        opFlag = ""
+        for item in exportSettings.items():
+            print item[0], type(item[1])
+            if type(item[1]) == bool:
+                opFlag += "%s=%s; " % (item[0], int(item[1]))
+            elif type(item[1]) == str:
+                opFlag += "%s='%s'; " % (item[0], item[1])
+            else:
+                opFlag += "%s=%s; " % (item[0], item[1])
+        opFlag = opFlag[:-2]
+
+        cmds.file(exportPath, force=True, op=opFlag, typ="FBX export", pr=True, es=exportSelected, pmt=False)
+        pass
+
+
+
 
     def loadAsset(self, assetName):
         assetData = self._getData(assetName)

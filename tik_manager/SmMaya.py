@@ -346,6 +346,24 @@ class MayaManager(RootManager):
             return -1, msg
         return jsonInfo
 
+    def transferExport(self, name, isSelection=True, isObj=True, isAlembic=True, isFbx=True, timeRange=[1,10]):
+
+        if isObj:
+            objPath = os.path.join(self._pathsDict["transferDir"],"OBJ","%s.obj" %name)
+            self._folderCheck(objPath)
+            if not cmds.pluginInfo('objExport', l=True, q=True):
+                cmds.loadPlugin('objExport')
+
+        if isAlembic:
+            alembicPath = os.path.join(self._pathsDict["transferDir"],"ALEMBIC","%s.abc" %name)
+            self._folderCheck(alembicPath)
+
+        if isFbx:
+            fbxPath = os.path.join(self._pathsDict["transferDir"],"FBX","%s.fbx" %name)
+            self._folderCheck(fbxPath)
+
+
+
     def createPreview(self, *args, **kwargs):
         """Creates a Playblast preview from currently open scene"""
         logger.debug("Func: createPreview")

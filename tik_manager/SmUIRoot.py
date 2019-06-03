@@ -271,10 +271,10 @@ class MainUI(QtWidgets.QMainWindow):
         self.export_pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.export_pushButton.setMinimumSize(QtCore.QSize(150, 45))
         self.export_pushButton.setMaximumSize(QtCore.QSize(150, 45))
-        self.export_pushButton.setText(("Export"))
+        self.export_pushButton.setText(("Transfer Central"))
         self.main_horizontalLayout.addWidget(self.export_pushButton)
         # make it invisible
-        self.export_pushButton.setVisible(False)
+        self.export_pushButton.setVisible(True)
 
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.main_horizontalLayout.addItem(spacerItem)
@@ -732,6 +732,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.loadScene_pushButton.clicked.connect(self.onLoadScene)
 
         self.addNote_pushButton.clicked.connect(self.addNoteDialog)
+
+        self.export_pushButton.clicked.connect(self.transferCentralUI)
 
 
 
@@ -1298,6 +1300,263 @@ class MainUI(QtWidgets.QMainWindow):
         # set_pushButton.clicked.connect(self.setProject_Dialog.close)
 
         self.setProject_Dialog.show()
+
+    def transferCentralUI(self):
+        transferCentral_Dialog = QtWidgets.QDialog(parent=self)
+        transferCentral_Dialog.resize(460, 320)
+        transferCentral_Dialog.setWindowTitle(("Transfer Central"))
+        transferCentral_Dialog.setFocus()
+
+        tc_verticalLayout = QtWidgets.QVBoxLayout(transferCentral_Dialog)
+
+        tabWidget = QtWidgets.QTabWidget(transferCentral_Dialog)
+        exportTab = QtWidgets.QWidget()
+
+        exp_verticalLayout = QtWidgets.QVBoxLayout(exportTab)
+        currentProject_label = QtWidgets.QLabel(exportTab)
+        currentProject_label.setAlignment(QtCore.Qt.AlignTop)
+        currentProject_label.setText("Current Project:")
+        exp_verticalLayout.addWidget(currentProject_label)
+
+        formLayout = QtWidgets.QFormLayout()
+        formLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
+        formLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
+        formLayout.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignTop)
+        formLayout.setAlignment(QtCore.Qt.AlignTop)
+
+        name_label = QtWidgets.QLabel(exportTab)
+        name_label.setText(("Name:"))
+        formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, name_label)
+
+        name_horizontalLayout = QtWidgets.QHBoxLayout()
+        autoName_radioButton = QtWidgets.QRadioButton(exportTab)
+        autoName_radioButton.setText(("Auto from Scene/Object"))
+        autoName_radioButton.setChecked(True)
+
+        customName_radioButton = QtWidgets.QRadioButton(exportTab)
+        customName_radioButton.setText(("Custom"))
+
+        naming_buttonGroup = QtWidgets.QButtonGroup(transferCentral_Dialog)
+        naming_buttonGroup.addButton(autoName_radioButton)
+        naming_buttonGroup.addButton(customName_radioButton)
+        name_horizontalLayout.addWidget(autoName_radioButton)
+        name_horizontalLayout.addWidget(customName_radioButton)
+
+        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+
+        name_horizontalLayout.addItem(spacerItem)
+        formLayout.setLayout(0, QtWidgets.QFormLayout.FieldRole, name_horizontalLayout)
+
+        customName_lineEdit = QtWidgets.QLineEdit(exportTab)
+        customName_lineEdit.setFrame(True)
+        customName_lineEdit.setPlaceholderText(("Custom Export Name"))
+        formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, customName_lineEdit)
+
+        selection_label = QtWidgets.QLabel(exportTab)
+        selection_label.setText(("Selection:"))
+        formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, selection_label)
+
+        selection_horizontalLayout = QtWidgets.QHBoxLayout()
+        selection_radioButton = QtWidgets.QRadioButton(exportTab)
+        selection_radioButton.setText(("Selection"))
+        selection_radioButton.setChecked(True)
+        selection_radioButton.setObjectName(("selection_radioButton"))
+
+        scene_radioButton = QtWidgets.QRadioButton(exportTab)
+        scene_radioButton.setText(("Scene"))
+
+        sel_buttonGroup = QtWidgets.QButtonGroup(transferCentral_Dialog)
+        sel_buttonGroup.addButton(selection_radioButton)
+        selection_horizontalLayout.addWidget(selection_radioButton)
+        sel_buttonGroup.addButton(scene_radioButton)
+        selection_horizontalLayout.addWidget(scene_radioButton)
+
+        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+
+        selection_horizontalLayout.addItem(spacerItem1)
+
+        formLayout.setLayout(2, QtWidgets.QFormLayout.FieldRole, selection_horizontalLayout)
+        format_label = QtWidgets.QLabel(exportTab)
+        format_label.setText(("Format:"))
+        formLayout.setWidget(3, QtWidgets.QFormLayout.LabelRole, format_label)
+
+        format_horizontalLayout = QtWidgets.QHBoxLayout()
+
+        obj_checkBox = QtWidgets.QCheckBox(exportTab)
+        obj_checkBox.setText(("Obj"))
+        obj_checkBox.setChecked(True)
+        format_horizontalLayout.addWidget(obj_checkBox)
+
+        alembic_checkBox = QtWidgets.QCheckBox(exportTab)
+        alembic_checkBox.setText(("Alembic"))
+        alembic_checkBox.setChecked(False)
+        format_horizontalLayout.addWidget(alembic_checkBox)
+
+        fbx_checkBox = QtWidgets.QCheckBox(exportTab)
+        fbx_checkBox.setText(("FBX"))
+        fbx_checkBox.setChecked(False)
+        format_horizontalLayout.addWidget(fbx_checkBox)
+
+        spacerItem2 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        format_horizontalLayout.addItem(spacerItem2)
+        formLayout.setLayout(3, QtWidgets.QFormLayout.FieldRole, format_horizontalLayout)
+
+        range_label = QtWidgets.QLabel(exportTab)
+        range_label.setText(("Time Range:"))
+        formLayout.setWidget(4, QtWidgets.QFormLayout.LabelRole, range_label)
+
+        timeRange_horizontalLayout1 = QtWidgets.QHBoxLayout()
+
+        timeSlider_radioButton = QtWidgets.QRadioButton(exportTab)
+        timeSlider_radioButton.setText(("Time Slider"))
+        timeSlider_radioButton.setShortcut((""))
+        timeSlider_radioButton.setChecked(True)
+
+        timerange_buttonGroup = QtWidgets.QButtonGroup(transferCentral_Dialog)
+        timerange_buttonGroup.addButton(timeSlider_radioButton)
+        timeRange_horizontalLayout1.addWidget(timeSlider_radioButton)
+
+        singleFrame_radioButton = QtWidgets.QRadioButton(exportTab)
+        singleFrame_radioButton.setText(("Single Frame"))
+        singleFrame_radioButton.setChecked(False)
+        timerange_buttonGroup.addButton(singleFrame_radioButton)
+        timeRange_horizontalLayout1.addWidget(singleFrame_radioButton)
+
+        customRange_radioButton = QtWidgets.QRadioButton(exportTab)
+        customRange_radioButton.setText(("Custom"))
+        customRange_radioButton.setChecked(False)
+
+        timerange_buttonGroup.addButton(customRange_radioButton)
+        timeRange_horizontalLayout1.addWidget(customRange_radioButton)
+        spacerItem3 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        timeRange_horizontalLayout1.addItem(spacerItem3)
+        formLayout.setLayout(4, QtWidgets.QFormLayout.FieldRole, timeRange_horizontalLayout1)
+
+        timeRange_horizontalLayout2 = QtWidgets.QHBoxLayout()
+
+        frameStart_label = QtWidgets.QLabel(exportTab)
+        frameStart_label.setText(("Start"))
+
+        timeRange_horizontalLayout2.addWidget(frameStart_label)
+
+        frameStart_doubleSpinBox = QtWidgets.QDoubleSpinBox(exportTab)
+        frameStart_doubleSpinBox.setWrapping(False)
+        frameStart_doubleSpinBox.setFrame(True)
+        frameStart_doubleSpinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        frameStart_doubleSpinBox.setSpecialValueText((""))
+        frameStart_doubleSpinBox.setKeyboardTracking(True)
+        timeRange_horizontalLayout2.addWidget(frameStart_doubleSpinBox)
+        spacerItem4 = QtWidgets.QSpacerItem(10, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+        timeRange_horizontalLayout2.addItem(spacerItem4)
+
+        frameEnd_label = QtWidgets.QLabel(exportTab)
+        frameEnd_label.setText(("End"))
+        timeRange_horizontalLayout2.addWidget(frameEnd_label)
+
+        frameEnd_doubleSpinBox = QtWidgets.QDoubleSpinBox(exportTab)
+        frameEnd_doubleSpinBox.setWrapping(False)
+        frameEnd_doubleSpinBox.setFrame(True)
+        frameEnd_doubleSpinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        frameEnd_doubleSpinBox.setSpecialValueText((""))
+        frameEnd_doubleSpinBox.setKeyboardTracking(True)
+        frameEnd_doubleSpinBox.setProperty("value", 10.0)
+        timeRange_horizontalLayout2.addWidget(frameEnd_doubleSpinBox)
+
+        spacerItem5 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        timeRange_horizontalLayout2.addItem(spacerItem5)
+        formLayout.setLayout(5, QtWidgets.QFormLayout.FieldRole, timeRange_horizontalLayout2)
+
+        # options_label = QtWidgets.QLabel(exportTab)
+        # options_label.setEnabled(True)
+        # options_label.setInputMethodHints(QtCore.Qt.ImhNone)
+        # options_label.setText(("Options:"))
+        # formLayout.setWidget(6, QtWidgets.QFormLayout.LabelRole, options_label)
+
+        # options_horizontalLayout = QtWidgets.QHBoxLayout()
+        #
+        # useAssetLibrarySettings_radioButton = QtWidgets.QRadioButton(exportTab)
+        # useAssetLibrarySettings_radioButton.setText(("Use Asset Library Settings"))
+        # useAssetLibrarySettings_radioButton.setChecked(False)
+        #
+        # options_buttonGroup = QtWidgets.QButtonGroup(transferCentral_Dialog)
+        # options_buttonGroup.addButton(useAssetLibrarySettings_radioButton)
+        # options_horizontalLayout.addWidget(useAssetLibrarySettings_radioButton)
+        # openExportOptions_radioButton = QtWidgets.QRadioButton(exportTab)
+        # openExportOptions_radioButton.setText(("Open Export Options"))
+        # openExportOptions_radioButton.setChecked(True)
+        # options_buttonGroup.addButton(openExportOptions_radioButton)
+        # options_horizontalLayout.addWidget(openExportOptions_radioButton)
+        # spacerItem6 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        # options_horizontalLayout.addItem(spacerItem6)
+        # formLayout.setLayout(6, QtWidgets.QFormLayout.FieldRole, options_horizontalLayout)
+        #
+        #
+        exp_verticalLayout.addLayout(formLayout)
+
+        spacerItem_m = QtWidgets.QSpacerItem(40, 40, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        exp_verticalLayout.addItem(spacerItem_m)
+
+        expButtons_horizontalLayout = QtWidgets.QHBoxLayout()
+        export_pushButton = QtWidgets.QPushButton(exportTab)
+        export_pushButton.setText(("Export"))
+        expButtons_horizontalLayout.addWidget(export_pushButton)
+        exp_verticalLayout.addLayout(expButtons_horizontalLayout)
+        cancel_pushButton = QtWidgets.QPushButton(exportTab)
+        cancel_pushButton.setText(("Cancel"))
+        expButtons_horizontalLayout.addWidget(cancel_pushButton)
+        tabWidget.addTab(exportTab, ("Export"))
+
+        ## ------------------
+        ## ---IMPORT TAB-----
+        ## ------------------
+
+        importTab = QtWidgets.QWidget()
+        imp_verticalLayout = QtWidgets.QVBoxLayout(importTab)
+        transfers_treeWidget = QtWidgets.QTreeWidget(importTab)
+        item_0 = QtWidgets.QTreeWidgetItem(transfers_treeWidget)
+        item_1 = QtWidgets.QTreeWidgetItem(item_0)
+        item_1 = QtWidgets.QTreeWidgetItem(item_0)
+        item_0 = QtWidgets.QTreeWidgetItem(transfers_treeWidget)
+        item_1 = QtWidgets.QTreeWidgetItem(item_0)
+        item_1 = QtWidgets.QTreeWidgetItem(item_0)
+        item_0 = QtWidgets.QTreeWidgetItem(transfers_treeWidget)
+        item_1 = QtWidgets.QTreeWidgetItem(item_0)
+        item_1 = QtWidgets.QTreeWidgetItem(item_0)
+        imp_verticalLayout.addWidget(transfers_treeWidget)
+        impButtons_horizontalLayout = QtWidgets.QHBoxLayout()
+        import_pushButton = QtWidgets.QPushButton(importTab)
+        import_pushButton.setText(("Import"))
+        impButtons_horizontalLayout.addWidget(import_pushButton)
+        imp_verticalLayout.addLayout(impButtons_horizontalLayout)
+        cancel_pushButton_2 = QtWidgets.QPushButton(importTab)
+        cancel_pushButton_2.setText(("Cancel"))
+        impButtons_horizontalLayout.addWidget(cancel_pushButton_2)
+        tabWidget.addTab(importTab, ("Import"))
+        tc_verticalLayout.addWidget(tabWidget)
+
+        tabWidget.setCurrentIndex(0)
+
+        def formatProof():
+            if alembic_checkBox.isChecked() or fbx_checkBox.isChecked():
+                timeRangeState = True
+
+            timeSlider_radioButton.setEnabled(timeRangeState)
+            singleFrame_radioButton.setEnabled(timeRangeState)
+            customRange_radioButton.setEnabled(timeRangeState)
+            frameStart_label.setEnabled(timeRangeState)
+            frameStart_doubleSpinBox.setEnabled(timeRangeState)
+            frameEnd_label.setEnabled(timeRangeState)
+            frameEnd_doubleSpinBox.setEnabled(timeRangeState)
+
+        ## ------------------
+        ## SIGNAL CONNECTIONS
+        ## ------------------
+
+        obj_checkBox.toggled.connect(formatProof)
+        alembic_checkBox.toggled.connect(formatProof)
+        fbx_checkBox.toggled.connect(formatProof)
+
+        transferCentral_Dialog.show()
 
     def filterDirectories(self):
         filterWord = self.dirFilter_lineEdit.text()

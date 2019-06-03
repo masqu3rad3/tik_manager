@@ -1267,9 +1267,10 @@ class LibraryTab(QtWidgets.QWidget):
 
 
     def viewOnlyMode(self):
-        self.importObj_pushButton.setHidden(True)
-        self.merge_pushButton.setHidden(True)
-        self.import_pushButton.setHidden(True)
+        # self.importObj_pushButton.setHidden(True)
+        self.mergeScene_pushButton.setHidden(True)
+        self.importWithTextures_checkbox.setHidden(True)
+        self.importOther_pushButton.setHidden(True)
         self.load_pushButton.setHidden(True)
         self.createNewAsset_pushButton.setHidden(True)
         self.screenshot_rcItem_1.setVisible(False)
