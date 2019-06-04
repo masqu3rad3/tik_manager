@@ -1548,13 +1548,45 @@ class MainUI(QtWidgets.QMainWindow):
             frameEnd_label.setEnabled(timeRangeState)
             frameEnd_doubleSpinBox.setEnabled(timeRangeState)
 
+        def executeExport():
+            # TODO : TESTING STAGE - resolve name and timeRanges
+
+            # get time range:
+            if timeSlider_radioButton.isChecked():
+                wideRange = self.manager._getTimelineRanges()
+                timeRange = wideRange[1:-1]
+            elif customRange_radioButton.isChecked():
+                timeRange = [frameStart_doubleSpinBox.value(), frameEnd_doubleSpinBox.value()]
+            else:
+                timeRange = [self.manager._getCurrentFrame(), self.manager_getCurrentFrame()]
+
+
+            isSelection = selection_radioButton.isChecked()
+            isObj = obj_checkBox.isChecked()
+            isAlembic = alembic_checkBox.isChecked()
+            isFbx = fbx_checkBox.isChecked()
+            self.manager.transferExport("test",
+                                        isSelection=isSelection,
+                                        isObj=isObj,
+                                        isAlembic=isAlembic,
+                                        isFbx=isFbx,
+                                        timeRange=timeRange
+                                        )
+
         ## ------------------
         ## SIGNAL CONNECTIONS
         ## ------------------
 
+        # Export Signals
         obj_checkBox.toggled.connect(formatProof)
         alembic_checkBox.toggled.connect(formatProof)
         fbx_checkBox.toggled.connect(formatProof)
+
+        export_pushButton.clicked.connect(executeExport)
+        cancel_pushButton.clicked.connect(transferCentral_Dialog.close)
+
+        # Import Signals
+        cancel_pushButton_2.clicked.connect(transferCentral_Dialog.close)
 
         transferCentral_Dialog.show()
 

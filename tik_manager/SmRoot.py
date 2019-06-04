@@ -139,7 +139,7 @@ class RootManager(object):
         self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerDefaults.json"))
         self._pathsDict["tikConventions"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "tikConventions.json"))
         self._pathsDict["adminPass"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "adminPass.psw"))
-
+        self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "exportSettings.json"))
 
     def _checkCommonFolder(self, folder):
         checkList = [os.path.join(folder, "sceneManagerDefaults.json"),
@@ -1835,6 +1835,96 @@ Elapsed Time:{6}
         logger.debug("Func: _saveProjects %s")
 
         self._dumpJson(data, self._pathsDict["projectsFile"])
+
+    def _loadExportSettings(self):
+        """Load Export Setting options from file in Common Folder"""
+
+        if os.path.isfile(self._pathsDict["exportSettingsFile"]):
+            exportSettings = self._loadJson(self._pathsDict["exportSettingsFile"])
+            if exportSettings == -2:
+                return -2
+        else:
+            exportSettings = {
+                "objExport": {
+                    "FlipZyAxis": "0",
+                    "Shapes": "0",
+                    "ExportHiddenObjects": "0",
+                    "FaceType": "2",
+                    "TextureCoords": "1",
+                    "Normals": "1",
+                    "SmoothingGroups": "1",
+                    "ObjScale": "1.0",
+                    "RelativeIndex": "0",
+                    "Target": "0",
+                    "Precision": "4",
+                    "optVertex": "0",
+                    "optNormals": "0",
+                    "optTextureCoords": "0",
+                },
+                "fbxExport": {
+                    "Animation": True,
+                    "ASCII": False,
+                    "AxisConversionMethod": "Fbx_Root",
+                    "BakeAnimation": True,
+                    "BakeFrameStart": 0,
+                    "BakeFrameEnd": 100,
+                    "BakeFrameStep": 1,
+                    "BakeResampleAnimation": False,
+                    "CAT2HIK": False,
+                    "ColladaTriangulate": False,
+                    "ColladaSingleMatrix": True,
+                    # "ColladaFrameRate": float(rt.framerate),
+                    "Convert2Tiff": False,
+                    "ConvertUnit": "in",
+                    "EmbedTextures": True,
+                    "FileVersion": "FBX201400",
+                    "FilterKeyReducer": False,
+                    "GeomAsBone": True,
+                    "GenerateLog": False,
+                    "Lights": True,
+                    "NormalsPerPoly": True,
+                    "PointCache": False,
+                    "Preserveinstances": False,
+                    "Removesinglekeys": False,
+                    # "Resampling": float(rt.framerate),
+                    "ScaleFactor": 1.0,
+                    "SelectionSetExport": False,
+                    "Shape": True,
+                    "Skin": True,
+                    "ShowWarnings": False,
+                    "SmoothingGroups": True,
+                    "SmoothMeshExport": True,
+                    "TangentSpaceExport": False,
+                    "Triangulate": False,
+                    "UpAxis": "Y",
+                    "UseSceneName": False
+                },
+                "alembicExport": {
+                    "CoordinateSystem": "YUp",
+                    "ArchiveType": "Ogawa",
+                    "ParticleAsMesh": True,
+                    "AnimTimeRange": "CurrentFrame",
+                    "StartFrame": 1,
+                    "EndFrame": 10,
+                    "SamplesPerFrame": 1,
+                    "ShapeSuffix": False,
+                    "Hidden": False,
+                    "UVs": True,
+                    "Normals": True,
+                    "VertexColors": True,
+                    "ExtraChannels": True,
+                    "Velocity": True,
+                    "MaterialIDs": True,
+                    "Visibility": True,
+                    "LayerName": True,
+                    "MaterialName": True,
+                    "ObjectID": True,
+                    "CustomAttributes": True
+                }
+            }
+            # categoriesData = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
+            self._dumpJson(exportSettings, self._pathsDict["exportSettingsFile"])
+        return exportSettings
 
     def loadPBSettings(self):
         """Loads the preview settings data"""

@@ -39,7 +39,7 @@ from shutil import copyfile
 # import json
 # import logging
 
-
+# TODO : Subclass MayaCoreFunctions
 class AssetEditorMaya(object):
     def __init__(self):
         super(AssetEditorMaya, self).__init__()
@@ -409,7 +409,6 @@ class AssetEditorMaya(object):
             except:
                 cmds.warning("Cannot create UV snapshot for %s" % validShapes[i])
         cmds.select(selection)
-
 
     def _getFileNodes(self, objList):
         returnList = []

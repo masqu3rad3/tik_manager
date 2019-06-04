@@ -61,7 +61,176 @@ logging.basicConfig()
 logger = logging.getLogger('smMaya')
 logger.setLevel(logging.WARNING)
 
-class MayaManager(RootManager):
+class MayaCoreFunctions(object):
+    def __init__(self):
+        super(MayaCoreFunctions, self).__init__()
+
+    def _save(self, *args, **kwargs):
+        cmds.file(save=True)
+
+    def _saveAs(self, filePath, format, *args, **kwargs):
+        cmds.file(rename=filePath)
+        cmds.file(save=True, type=format)
+
+    def _load(self, filePath, force=True, *args, **kwargs):
+        cmds.file(filePath, o=True, force=force)
+
+    def _import(self, filePath, *args, **kwargs):
+        cmds.file(filePath, i=True)
+
+    def _importObj(self, filePath, *args, **kwargs):
+        cmds.file(filePath, i=True)
+
+    def _importAlembic(self, filePath, *args, **kwargs):
+        cmds.AbcImport(filePath)
+
+    def _importFbx(self, filePath, *args, **kwargs):
+        cmds.file(filePath, i=True)
+
+    def _exportObj(self, filePath, exportSettings=None, exportSelected=True):
+        """
+        Exports wavefront Obj file
+        Args:
+            filePath: (String) Absolute File path for exported file
+            exportSettings: (Dictionary) settings file (see getExportSettings)
+            exportSelected: (Boolean) If True, exports only currently selected objects, else whole scene. Default True
+
+        Returns: (Boolean) True for success False for failure
+
+        """
+        if not cmds.pluginInfo('objExport', l=True, q=True):
+            try:
+                cmds.loadPlugin('objExport')
+            except:
+                msg = "Wavefront(Obj) Export Plugin cannot be initialized. Skipping Obj export"
+                cmds.confirmDialog(title='Plugin Error', message=msg)
+                return False
+
+        opFlag = "groups={0}; ptgroups={1}; materials={2}; smoothing={3}; normals={4}".format(
+            exportSettings["SmoothingGroups"],
+            exportSettings["SmoothingGroups"],
+            0,
+            exportSettings["SmoothingGroups"],
+            exportSettings["Normals"]
+        )
+        try:
+            cmds.file(filePath, pr=True, force=True, typ="OBJexport", es=exportSelected, op=opFlag)
+            return True
+        except:
+            msg = "Cannot export OBJ for unknown reason. Skipping OBJ export"
+            cmds.confirmDialog(title='Unknown Error', message=msg)
+            return False
+
+    def _exportAlembic(self, filePath, exportSettings=None, exportSelected=True):
+        """
+        Exports Alembic (.abc) file
+        Args:
+            filePath: (String) Absolute File path for exported file
+            exportSettings: (Dictionary) settings file (see getExportSettings)
+            exportSelected: (Boolean) If True, exports only currently selected objects, else whole scene. Default True
+
+        Returns: (Boolean) True for success False for failure
+
+        """
+        if not cmds.pluginInfo('AbcExport.mll', l=True, q=True):
+            try:
+                cmds.loadPlugin('AbcExport.mll')
+            except:
+                msg = "Alembic Export Plugin cannot be initialized. Skipping Alembic export"
+                cmds.confirmDialog(title='Plugin Error', message=msg)
+                return False
+
+        if exportSelected:
+            root = ""
+            selection = cmds.ls(sl=True)
+            for x in selection:
+                root = "%s-root %s " % (root, x)
+            root = root[:-1]
+        else:
+            root = ""
+
+        file = "-file %s" % filePath
+        dataFormat = "-dataFormat '%s'" % exportSettings["ArchiveType"]
+        frameRange = "-frameRange %s %s" % (exportSettings["StartFrame"], exportSettings["EndFrame"])
+        noNormal = "" if exportSettings["Normals"] else "-noNormals"
+        renderableOnly = "" if exportSettings["Hidden"] else "-renderableOnly"
+        step = "-step %s" % float(exportSettings["SamplesPerFrame"])
+        # selection = "-selection" if exportSelected else ""
+        selection = ""
+        uv = "-uvWrite" if exportSettings["UVs"] else ""
+        visibility = "-writeVisibility" if exportSettings["Visibility"] else ""
+
+        command = "{0} {1} {2} {3} {4} {5} {6} {7} {8} {9}".format(file,
+                                                               dataFormat,
+                                                               frameRange,
+                                                               noNormal,
+                                                               renderableOnly,
+                                                               step,
+                                                               selection,
+                                                               uv,
+                                                               visibility,
+                                                               root)
+        try:
+            cmds.AbcExport(j=command)
+            return True
+        except:
+            msg = "Cannot export Alembic for unknown reason. Skipping Alembic export"
+            cmds.confirmDialog(title='Unknown Error', message=msg)
+            return False
+
+    def _exportFbx(self, filePath, exportSettings=None, exportSelected=True):
+        """
+        Exports FBX (.fbx) file
+        Args:
+            filePath: (String) Absolute File path for exported file
+            exportSettings: (Dictionary) settings file (see getExportSettings)
+            exportSelected: (Boolean) If True, exports only currently selected objects, else whole scene. Default True
+
+        Returns: (Boolean) True for success False for failure
+
+        """
+        if not cmds.pluginInfo('fbxmaya', l=True, q=True):
+            try:
+                cmds.loadPlugin('fbxmaya')
+            except:
+                msg = "FBX Export Plugin cannot be initialized. Skipping FBX export"
+                cmds.confirmDialog(title='Plugin Error', message=msg)
+                return False
+
+        opFlag = ""
+        for item in exportSettings.items():
+            if type(item[1]) == bool:
+                opFlag += "%s=%s; " % (item[0], int(item[1]))
+            elif type(item[1]) == str:
+                opFlag += "%s='%s'; " % (item[0], item[1])
+            else:
+                opFlag += "%s=%s; " % (item[0], item[1])
+        opFlag = opFlag[:-2]
+
+        try:
+            cmds.file(filePath, force=True, op=opFlag, typ="FBX export", pr=True, es=exportSelected, pmt=False)
+            return True
+        except:
+            msg = "Cannot export FBX for unknown reason. Skipping FBX export"
+            cmds.confirmDialog(title='Unknown Error', message=msg)
+            return False
+
+    def _getSceneFile(self):
+        s_path = cmds.file(q=True, sn=True)
+        norm_s_path = os.path.normpath(s_path)
+        return norm_s_path
+
+    def _getProject(self):
+        pPath = cmds.workspace(q=1, rd=1)
+        return os.path.normpath(pPath)
+
+    def _getVersion(self):
+        return cmds.about(api=True)
+
+    def _getCurrentFrame(self):
+        return cmds.currentTime(query=True)
+
+class MayaManager(RootManager, MayaCoreFunctions):
     def __init__(self):
         super(MayaManager, self).__init__()
         # hard coded format dictionary to pass the format info to cmds
@@ -97,8 +266,8 @@ class MayaManager(RootManager):
 
         # This function gets the current maya project and informs the base class
         # In addition it updates the projects file for (planned) interactivities with concurrent softwares
-        p_path = cmds.workspace(q=1, rd=1)
-        norm_p_path = os.path.normpath(p_path)
+        # p_path = cmds.workspace(q=1, rd=1)
+        norm_p_path = self._getProject()
         projectsDict = self._loadProjects()
 
         if not projectsDict: # if there is no project database file at all
@@ -128,11 +297,11 @@ class MayaManager(RootManager):
     def getSceneFile(self):
         """Overriden function"""
         logger.debug("Func: getSceneFile")
-
+        return self._getSceneFile()
         # Gets the current scene path ("" if untitled)
-        s_path = cmds.file(q=True, sn=True)
-        norm_s_path = os.path.normpath(s_path)
-        return norm_s_path
+        # s_path = cmds.file(q=True, sn=True)
+        # norm_s_path = os.path.normpath(s_path)
+        # return norm_s_path
 
     def setProject(self, path):
         """Sets the project"""
@@ -219,8 +388,9 @@ class MayaManager(RootManager):
         # killTurtle()
         # TODO // cmds may be used instead
         # pm.saveAs(sceneFile)
-        cmds.file(rename=sceneFile)
-        cmds.file(save=True, type=self.formatDict[sceneFormat])
+        # cmds.file(rename=sceneFile)
+        # cmds.file(save=True, type=self.formatDict[sceneFormat])
+        self._saveAs(sceneFile, format=self.formatDict[sceneFormat])
 
         thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=version)
 
@@ -313,8 +483,9 @@ class MayaManager(RootManager):
             # TODO // cmds?
             # pm.saveAs(sceneFile)
 
-            cmds.file(rename=sceneFile)
-            cmds.file(save=True, type=self.formatDict[sceneFormat])
+            # cmds.file(rename=sceneFile)
+            # cmds.file(save=True, type=self.formatDict[sceneFormat])
+            self._saveAs(sceneFile, format=self.formatDict[sceneFormat])
 
             thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=currentVersion)
 
@@ -348,19 +519,40 @@ class MayaManager(RootManager):
 
     def transferExport(self, name, isSelection=True, isObj=True, isAlembic=True, isFbx=True, timeRange=[1,10]):
 
+        exportSettings = self._loadExportSettings()
         if isObj:
-            objPath = os.path.join(self._pathsDict["transferDir"],"OBJ","%s.obj" %name)
-            self._folderCheck(objPath)
-            if not cmds.pluginInfo('objExport', l=True, q=True):
-                cmds.loadPlugin('objExport')
+            objSettings = exportSettings["objExport"]
+            objDir = os.path.join(self._pathsDict["transferDir"],"OBJ")
+            self._folderCheck(objDir)
+            objFilePath = os.path.join(objDir,"%s.obj" %name)
+            self._exportObj(objFilePath, exportSettings=objSettings, exportSelected=isSelection)
 
         if isAlembic:
-            alembicPath = os.path.join(self._pathsDict["transferDir"],"ALEMBIC","%s.abc" %name)
-            self._folderCheck(alembicPath)
+            alembicSettings = exportSettings["alembicExport"]
+            # edit in - out
+            alembicSettings["AnimTimeRange"] = "StartEnd"
+            alembicSettings["StartFrame"] = timeRange[0]
+            alembicSettings["EndFrame"] = timeRange[1]
+
+
+            alembicDir = os.path.join(self._pathsDict["transferDir"],"ALEMBIC")
+            self._folderCheck(alembicDir)
+            alembicFilePath = os.path.join(alembicDir,"%s.abc" %name)
+            self._exportAlembic(alembicFilePath, exportSettings=alembicSettings, exportSelected=isSelection)
 
         if isFbx:
-            fbxPath = os.path.join(self._pathsDict["transferDir"],"FBX","%s.fbx" %name)
-            self._folderCheck(fbxPath)
+            fbxSettings = exportSettings["fbxExport"]
+            if timeRange[0] is not timeRange[1]:
+                fbxSettings["Animation"]=True
+                fbxSettings["BakeFrameStart"]=timeRange[0]
+                fbxSettings["BakeFrameEnd"]=timeRange[1]
+            else:
+                fbxSettings["Animation"] = False
+
+            fbxDir = os.path.join(self._pathsDict["transferDir"],"FBX")
+            self._folderCheck(fbxDir)
+            fbxFilePath = os.path.join(fbxDir,"%s.fbx" %name)
+            self._exportFbx(fbxFilePath, exportSettings=fbxSettings, exportSelected=isSelection)
 
 
 
@@ -569,7 +761,8 @@ class MayaManager(RootManager):
         relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"]
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
-            cmds.file(absSceneFile, o=True, force=force)
+            # cmds.file(absSceneFile, o=True, force=force)
+            self._load(absSceneFile, force=True)
             return 0
         else:
             msg = "File in Scene Manager database doesnt exist"
@@ -582,7 +775,8 @@ class MayaManager(RootManager):
         relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"]
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
-            cmds.file(absSceneFile, i=True)
+            # cmds.file(absSceneFile, i=True)
+            self._import(absSceneFile)
             return 0
         else:
             msg = "File in Scene Manager database doesnt exist"
@@ -640,7 +834,7 @@ class MayaManager(RootManager):
         thumbDir = os.path.split(thumbPath)[0]
         if os.path.exists(thumbDir):
             # frame = pm.currentTime(query=True)
-            frame = cmds.currentTime(query=True)
+            frame = self._getCurrentFrame()
             # store = pm.getAttr("defaultRenderGlobals.imageFormat")
             store = cmds.getAttr("defaultRenderGlobals.imageFormat")
             # pm.setAttr("defaultRenderGlobals.imageFormat", 8)  # This is the value for jpeg
@@ -741,7 +935,8 @@ class MayaManager(RootManager):
                        }
 
         # currentVersion = pm.versions.current()
-        currentVersion = cmds.about(api=True)
+        # currentVersion = cmds.about(api=True)
+        currentVersion = self._getVersion()
         try:
             niceVName=versionDict[self._currentSceneInfo["MayaVersion"]]
         except KeyError:
@@ -766,9 +961,9 @@ class MayaManager(RootManager):
     def saveSimple(self):
         """Save the currently open file"""
         logger.debug("Func: saveSimple")
-        # TODO // cmds?
         # pm.saveFile()
-        cmds.file(save=True)
+        # cmds.file(save=True)
+        self._save()
 
     def getFormatsAndCodecs(self):
         """Returns the codecs which can be used in current workstation"""
@@ -817,42 +1012,6 @@ class MayaManager(RootManager):
         # Qt File dialog is preferred because it is faster
         inputDir = QtWidgets.QFileDialog.getExistingDirectory()
         return os.path.normpath(inputDir)
-
-    # def _getCommonFolder(self):
-    #     """prompts input for the common folder"""
-    #     if os.path.isfile(self._pathsDict["commonFolderFile"]):
-    #         commonFolder = self._loadJson(self._pathsDict["commonFolderFile"])
-    #         if commonFolder == -2:
-    #             return -2
-    #
-    #     else:
-    #         choice = self._question("Common Folder is not defined.\nDo you want to define now?")
-    #         if choice:
-    #             commonFolder = self._defineCommonFolder()
-    #         else:
-    #             return -1
-    #
-    #     return commonFolder
-    #
-    # def _defineCommonFolder(self):
-    #     dlg = QtWidgets.QFileDialog.getExistingDirectory()
-    #     if dlg:
-    #         selectedDir = os.path.normpath(str(dlg))
-    #         if self._checkCommonFolder(selectedDir):
-    #             commonFolder = selectedDir
-    #             self._saveCommonFolder(commonFolder)
-    #
-    #             q = QtWidgets.QMessageBox()
-    #             q.setIcon(QtWidgets.QMessageBox.Information)
-    #             q.setText("Common Database Defined Successfully")
-    #             q.setWindowTitle("Success")
-    #             q.exec_()
-    #
-    #             return commonFolder
-    #         else:
-    #             return self._getCommonFolder()
-    #     else:
-    #         return self._getCommonFolder()
 
     def _getTimelineRanges(self):
         # TODO : Make sure the time ranges are INTEGERS
