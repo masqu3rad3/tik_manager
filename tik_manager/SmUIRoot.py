@@ -1491,6 +1491,27 @@ class MainUI(QtWidgets.QMainWindow):
         # formLayout.setLayout(6, QtWidgets.QFormLayout.FieldRole, options_horizontalLayout)
         #
         #
+
+        revision_label = QtWidgets.QLabel(exportTab)
+        revision_label.setText(("Revision:"))
+        revision_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        formLayout.setWidget(6, QtWidgets.QFormLayout.LabelRole, revision_label)
+
+        rev_horizontalLayout = QtWidgets.QHBoxLayout()
+
+        revision_Spinbox = QtWidgets.QSpinBox(exportTab)
+        revision_Spinbox.setMaximumSize(QtCore.QSize(50, 16777215))
+        revision_Spinbox.setMinimum(1)
+        revision_Spinbox.setMaximum(999)
+        rev_horizontalLayout.addWidget(revision_Spinbox)
+
+        incremental_checkBox = QtWidgets.QCheckBox(exportTab)
+        incremental_checkBox.setText(("Use Next Available Revision"))
+        incremental_checkBox.setChecked(True)
+        rev_horizontalLayout.addWidget(incremental_checkBox)
+
+        formLayout.setLayout(6, QtWidgets.QFormLayout.FieldRole, rev_horizontalLayout)
+
         exp_verticalLayout.addLayout(formLayout)
 
         spacerItem_m = QtWidgets.QSpacerItem(40, 40, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
@@ -1536,7 +1557,13 @@ class MainUI(QtWidgets.QMainWindow):
 
         tabWidget.setCurrentIndex(0)
 
+        def enableDisableRevision():
+            revision_Spinbox.setDisabled(incremental_checkBox.isChecked())
+
+        enableDisableRevision()
+
         def formatProof():
+            timeRangeState = False
             if alembic_checkBox.isChecked() or fbx_checkBox.isChecked():
                 timeRangeState = True
 
@@ -1547,6 +1574,32 @@ class MainUI(QtWidgets.QMainWindow):
             frameStart_doubleSpinBox.setEnabled(timeRangeState)
             frameEnd_label.setEnabled(timeRangeState)
             frameEnd_doubleSpinBox.setEnabled(timeRangeState)
+
+        def resolveName():
+            # resolve name
+            if customName_radioButton.isChecked():
+                customName_lineEdit.setText("")
+                customName_lineEdit.setReadOnly(False)
+                return
+                # name = customName_lineEdit.text()
+            else:
+                sceneInfo = self.manager.getOpenSceneInfo()
+                if selection_radioButton.isChecked():
+                    sel = self.manager._getSelection()
+                    if len(sel) > 1:
+                        name = "{0}_{1}_{2}sel".format(sceneInfo["shotName"], sceneInfo["version"], len(sel))
+                    elif len(sel) == 1:
+                        name = "{0}_{1}_{2}".format(sceneInfo["shotName"], sceneInfo["version"], sel[0])
+                    else:
+                        return
+                else:
+                    name = "{0}_{1}".format(sceneInfo["shotName"], sceneInfo["version"])
+
+            customName_lineEdit.setReadOnly(True)
+            customName_lineEdit.setText(name)
+            return name
+
+        resolveName()
 
         def executeExport():
             # TODO : TESTING STAGE - resolve name and timeRanges
@@ -1560,18 +1613,21 @@ class MainUI(QtWidgets.QMainWindow):
             else:
                 timeRange = [self.manager._getCurrentFrame(), self.manager_getCurrentFrame()]
 
+            name = customName_lineEdit.text()
 
             isSelection = selection_radioButton.isChecked()
             isObj = obj_checkBox.isChecked()
             isAlembic = alembic_checkBox.isChecked()
             isFbx = fbx_checkBox.isChecked()
-            self.manager.transferExport("test",
+            self.manager.transferExport(name,
                                         isSelection=isSelection,
                                         isObj=isObj,
                                         isAlembic=isAlembic,
                                         isFbx=isFbx,
                                         timeRange=timeRange
                                         )
+
+
 
         ## ------------------
         ## SIGNAL CONNECTIONS
@@ -1584,6 +1640,14 @@ class MainUI(QtWidgets.QMainWindow):
 
         export_pushButton.clicked.connect(executeExport)
         cancel_pushButton.clicked.connect(transferCentral_Dialog.close)
+
+        autoName_radioButton.toggled.connect(resolveName)
+        autoName_radioButton.clicked.connect(resolveName)
+        selection_radioButton.clicked.connect(resolveName)
+        scene_radioButton.clicked.connect(resolveName)
+
+        incremental_checkBox.toggled.connect(enableDisableRevision)
+
 
         # Import Signals
         cancel_pushButton_2.clicked.connect(transferCentral_Dialog.close)

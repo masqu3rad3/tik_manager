@@ -230,6 +230,9 @@ class MayaCoreFunctions(object):
     def _getCurrentFrame(self):
         return cmds.currentTime(query=True)
 
+    def _getSelection(self):
+        return cmds.ls(sl=True)
+
 class MayaManager(RootManager, MayaCoreFunctions):
     def __init__(self):
         super(MayaManager, self).__init__()
@@ -589,7 +592,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
             self._exception(360, msg)
             return
 
-        selection = cmds.ls(sl=True)
+        selection = self._getSelection()
         cmds.select(d=pbSettings["ClearSelection"])
         jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
         try:
