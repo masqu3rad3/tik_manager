@@ -1635,13 +1635,13 @@ class MainUI(QtWidgets.QMainWindow):
             isObj = obj_checkBox.isChecked()
             isAlembic = alembic_checkBox.isChecked()
             isFbx = fbx_checkBox.isChecked()
-            res = self.manager.transferExport(name,
-                                        isSelection=isSelection,
-                                        isObj=isObj,
-                                        isAlembic=isAlembic,
-                                        isFbx=isFbx,
-                                        timeRange=timeRange
-                                        )
+            res = self.manager.exportTransfers(name,
+                                               isSelection=isSelection,
+                                               isObj=isObj,
+                                               isAlembic=isAlembic,
+                                               isFbx=isFbx,
+                                               timeRange=timeRange
+                                               )
             self.infoPop(textTitle="Transfers Exported", textHeader="Transfers Exported under '_TRANSFER' folder")
 
 

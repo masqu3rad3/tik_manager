@@ -114,7 +114,7 @@ class MayaCoreFunctions(object):
             exportSettings["Normals"]
         )
         try:
-            cmds.file(filePath, pr=True, force=True, typ="OBJexport", es=exportSelected, op=opFlag)
+            cmds.file(os.path.splitext(filePath)[0], pr=True, force=True, typ="OBJexport", es=exportSelected, ea=not exportSelected, op=opFlag)
             return True
         except:
             msg = "Cannot export OBJ for unknown reason. Skipping OBJ export"
@@ -208,7 +208,7 @@ class MayaCoreFunctions(object):
         opFlag = opFlag[:-2]
 
         try:
-            cmds.file(filePath, force=True, op=opFlag, typ="FBX export", pr=True, es=exportSelected, pmt=False)
+            cmds.file(filePath, force=True, op=opFlag, typ="FBX export", pr=True, es=exportSelected, ea=not exportSelected, pmt=False)
             return True
         except:
             msg = "Cannot export FBX for unknown reason. Skipping FBX export"

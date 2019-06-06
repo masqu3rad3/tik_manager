@@ -953,7 +953,7 @@ class RootManager(object):
         # self._currentBaseScenes = [os.path.join(searchDir, file) for file in os.listdir(searchDir) if file.endswith('.json')]
         return self._baseScenesInCategory # dictionary of json files
 
-    def transferExport(self, name, isSelection=True, isObj=True, isAlembic=True, isFbx=True, timeRange=[1,10]):
+    def exportTransfers(self, name, isSelection=True, isObj=True, isAlembic=True, isFbx=True, timeRange=[1, 10]):
         """
         Exports scene or selection with defined settings
         :param name: (string) name of the export
@@ -1001,6 +1001,8 @@ class RootManager(object):
 
         return True
 
+    def importTransfers(self):
+        pass
 
     def scanTransfers(self):
         pass
