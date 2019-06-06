@@ -953,6 +953,58 @@ class RootManager(object):
         # self._currentBaseScenes = [os.path.join(searchDir, file) for file in os.listdir(searchDir) if file.endswith('.json')]
         return self._baseScenesInCategory # dictionary of json files
 
+    def transferExport(self, name, isSelection=True, isObj=True, isAlembic=True, isFbx=True, timeRange=[1,10]):
+        """
+        Exports scene or selection with defined settings
+        :param name: (string) name of the export
+        :param isSelection: (Boolean) If true, exports only selected items, else whole scene
+        :param isObj: (Boolean) if True, exports obj format
+        :param isAlembic: (Boolean) if True, exports alembic format
+        :param isFbx: (Boolean) if True, exports fbx format
+        :param timeRange: (List) Defines export time range as [Startframe, Endframe]
+        :return: True if successfull
+        """
+        exportSettings = self._loadExportSettings()
+        if isObj:
+            objSettings = exportSettings["objExport"]
+            objDir = os.path.join(self._pathsDict["transferDir"],"OBJ")
+            self._folderCheck(objDir)
+            objFilePath = os.path.join(objDir,"%s.obj" %name)
+            self._exportObj(objFilePath, exportSettings=objSettings, exportSelected=isSelection)
+
+        if isAlembic:
+            alembicSettings = exportSettings["alembicExport"]
+            # edit in - out
+            alembicSettings["AnimTimeRange"] = "StartEnd"
+            alembicSettings["StartFrame"] = timeRange[0]
+            alembicSettings["EndFrame"] = timeRange[1]
+
+
+            alembicDir = os.path.join(self._pathsDict["transferDir"],"ALEMBIC")
+            self._folderCheck(alembicDir)
+            alembicFilePath = os.path.join(alembicDir,"%s.abc" %name)
+            self._exportAlembic(alembicFilePath, exportSettings=alembicSettings, exportSelected=isSelection)
+
+        if isFbx:
+            fbxSettings = exportSettings["fbxExport"]
+            if timeRange[0] is not timeRange[1]:
+                fbxSettings["Animation"]=True
+                fbxSettings["BakeFrameStart"]=timeRange[0]
+                fbxSettings["BakeFrameEnd"]=timeRange[1]
+            else:
+                fbxSettings["Animation"] = False
+
+            fbxDir = os.path.join(self._pathsDict["transferDir"],"FBX")
+            self._folderCheck(fbxDir)
+            fbxFilePath = os.path.join(fbxDir,"%s.fbx" %name)
+            self._exportFbx(fbxFilePath, exportSettings=fbxSettings, exportSelected=isSelection)
+
+        return True
+
+
+    def scanTransfers(self):
+        pass
+
     def getProjectReport(self):
 
         # TODO // NEEDS to be working on

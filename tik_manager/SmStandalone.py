@@ -758,6 +758,7 @@ class MainUI(baseUI):
 
         self.createPB.setVisible(False)
 
+        self.export_pushButton.setHidden(True)
         self.saveVersion_pushButton.setVisible(False)
         self.saveVersion_fm.setVisible(False)
         self.saveBaseScene_pushButton.setVisible(False)
