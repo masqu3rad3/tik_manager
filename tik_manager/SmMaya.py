@@ -521,7 +521,16 @@ class MayaManager(RootManager, MayaCoreFunctions):
         return jsonInfo
 
     def transferExport(self, name, isSelection=True, isObj=True, isAlembic=True, isFbx=True, timeRange=[1,10]):
-
+        """
+        Exports scene or selection with defined settings
+        :param name: (string) name of the export
+        :param isSelection: (Boolean) If true, exports only selected items, else whole scene
+        :param isObj: (Boolean) if True, exports obj format
+        :param isAlembic: (Boolean) if True, exports alembic format
+        :param isFbx: (Boolean) if True, exports fbx format
+        :param timeRange: (List) Defines export time range as [Startframe, Endframe]
+        :return: True if successfull
+        """
         exportSettings = self._loadExportSettings()
         if isObj:
             objSettings = exportSettings["objExport"]
@@ -557,6 +566,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
             fbxFilePath = os.path.join(fbxDir,"%s.fbx" %name)
             self._exportFbx(fbxFilePath, exportSettings=fbxSettings, exportSelected=isSelection)
 
+        return True
 
 
     def createPreview(self, *args, **kwargs):

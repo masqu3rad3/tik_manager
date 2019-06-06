@@ -1302,6 +1302,13 @@ class MainUI(QtWidgets.QMainWindow):
         self.setProject_Dialog.show()
 
     def transferCentralUI(self):
+
+        sceneInfo = self.manager.getOpenSceneInfo()
+        if not sceneInfo:
+            self.infoPop(textTitle="Base Scene Not Saved",
+                         textHeader="Current scene is not a Base Scene.\nBefore Exporting items, scene must be saved as Base Scene")
+            return
+
         transferCentral_Dialog = QtWidgets.QDialog(parent=self)
         transferCentral_Dialog.resize(460, 320)
         transferCentral_Dialog.setWindowTitle(("Transfer Central"))
@@ -1492,25 +1499,25 @@ class MainUI(QtWidgets.QMainWindow):
         #
         #
 
-        revision_label = QtWidgets.QLabel(exportTab)
-        revision_label.setText(("Revision:"))
-        revision_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        formLayout.setWidget(6, QtWidgets.QFormLayout.LabelRole, revision_label)
+        # revision_label = QtWidgets.QLabel(exportTab)
+        # revision_label.setText(("Revision:"))
+        # revision_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        # formLayout.setWidget(6, QtWidgets.QFormLayout.LabelRole, revision_label)
+        #
+        # rev_horizontalLayout = QtWidgets.QHBoxLayout()
+        #
+        # revision_Spinbox = QtWidgets.QSpinBox(exportTab)
+        # revision_Spinbox.setMaximumSize(QtCore.QSize(50, 16777215))
+        # revision_Spinbox.setMinimum(1)
+        # revision_Spinbox.setMaximum(999)
+        # rev_horizontalLayout.addWidget(revision_Spinbox)
+        #
+        # incremental_checkBox = QtWidgets.QCheckBox(exportTab)
+        # incremental_checkBox.setText(("Use Next Available Revision"))
+        # incremental_checkBox.setChecked(True)
+        # rev_horizontalLayout.addWidget(incremental_checkBox)
 
-        rev_horizontalLayout = QtWidgets.QHBoxLayout()
-
-        revision_Spinbox = QtWidgets.QSpinBox(exportTab)
-        revision_Spinbox.setMaximumSize(QtCore.QSize(50, 16777215))
-        revision_Spinbox.setMinimum(1)
-        revision_Spinbox.setMaximum(999)
-        rev_horizontalLayout.addWidget(revision_Spinbox)
-
-        incremental_checkBox = QtWidgets.QCheckBox(exportTab)
-        incremental_checkBox.setText(("Use Next Available Revision"))
-        incremental_checkBox.setChecked(True)
-        rev_horizontalLayout.addWidget(incremental_checkBox)
-
-        formLayout.setLayout(6, QtWidgets.QFormLayout.FieldRole, rev_horizontalLayout)
+        # formLayout.setLayout(6, QtWidgets.QFormLayout.FieldRole, rev_horizontalLayout)
 
         exp_verticalLayout.addLayout(formLayout)
 
@@ -1557,10 +1564,10 @@ class MainUI(QtWidgets.QMainWindow):
 
         tabWidget.setCurrentIndex(0)
 
-        def enableDisableRevision():
-            revision_Spinbox.setDisabled(incremental_checkBox.isChecked())
+        # def enableDisableRevision():
+        #     revision_Spinbox.setDisabled(incremental_checkBox.isChecked())
 
-        enableDisableRevision()
+        # enableDisableRevision()
 
         def formatProof():
             timeRangeState = False
@@ -1577,13 +1584,18 @@ class MainUI(QtWidgets.QMainWindow):
 
         def resolveName():
             # resolve name
+            customName_lineEdit.setStyleSheet("color: white;")
             if customName_radioButton.isChecked():
                 customName_lineEdit.setText("")
                 customName_lineEdit.setReadOnly(False)
                 return
                 # name = customName_lineEdit.text()
             else:
-                sceneInfo = self.manager.getOpenSceneInfo()
+                # sceneInfo = self.manager.getOpenSceneInfo()
+                # if not sceneInfo:
+                #     self.infoPop(textTitle="Base Scene Not Saved", textHeader="Current scene is not a Base Scene.\nBefore Exporting items, scene must be saved as Base Scene")
+                #     transferCentral_Dialog.close()
+                #     return
                 if selection_radioButton.isChecked():
                     sel = self.manager._getSelection()
                     if len(sel) > 1:
@@ -1591,6 +1603,8 @@ class MainUI(QtWidgets.QMainWindow):
                     elif len(sel) == 1:
                         name = "{0}_{1}_{2}".format(sceneInfo["shotName"], sceneInfo["version"], sel[0])
                     else:
+                        customName_lineEdit.setStyleSheet("color: red;")
+                        customName_lineEdit.setText("No Object Selected")
                         return
                 else:
                     name = "{0}_{1}".format(sceneInfo["shotName"], sceneInfo["version"])
@@ -1599,7 +1613,9 @@ class MainUI(QtWidgets.QMainWindow):
             customName_lineEdit.setText(name)
             return name
 
+
         resolveName()
+
 
         def executeExport():
             # TODO : TESTING STAGE - resolve name and timeRanges
@@ -1619,13 +1635,14 @@ class MainUI(QtWidgets.QMainWindow):
             isObj = obj_checkBox.isChecked()
             isAlembic = alembic_checkBox.isChecked()
             isFbx = fbx_checkBox.isChecked()
-            self.manager.transferExport(name,
+            res = self.manager.transferExport(name,
                                         isSelection=isSelection,
                                         isObj=isObj,
                                         isAlembic=isAlembic,
                                         isFbx=isFbx,
                                         timeRange=timeRange
                                         )
+            self.infoPop(textTitle="Transfers Exported", textHeader="Transfers Exported under '_TRANSFER' folder")
 
 
 
@@ -1634,6 +1651,7 @@ class MainUI(QtWidgets.QMainWindow):
         ## ------------------
 
         # Export Signals
+        customName_lineEdit.textChanged.connect(lambda x: self._checkValidity(customName_lineEdit.text(), export_pushButton, customName_lineEdit))
         obj_checkBox.toggled.connect(formatProof)
         alembic_checkBox.toggled.connect(formatProof)
         fbx_checkBox.toggled.connect(formatProof)
@@ -1646,13 +1664,14 @@ class MainUI(QtWidgets.QMainWindow):
         selection_radioButton.clicked.connect(resolveName)
         scene_radioButton.clicked.connect(resolveName)
 
-        incremental_checkBox.toggled.connect(enableDisableRevision)
+        # incremental_checkBox.toggled.connect(enableDisableRevision)
 
 
         # Import Signals
         cancel_pushButton_2.clicked.connect(transferCentral_Dialog.close)
 
         transferCentral_Dialog.show()
+
 
     def filterDirectories(self):
         filterWord = self.dirFilter_lineEdit.text()
