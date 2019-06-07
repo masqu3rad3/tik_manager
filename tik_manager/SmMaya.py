@@ -75,6 +75,10 @@ class MayaCoreFunctions(object):
     def _load(self, filePath, force=True, *args, **kwargs):
         cmds.file(filePath, o=True, force=force)
 
+    def _reference(self, filePath, namespace):
+        cmds.file(os.path.normpath(filePath), reference=True, gl=True, mergeNamespacesOnClash=False,
+                  namespace=namespace)
+
     def _import(self, filePath, *args, **kwargs):
         cmds.file(filePath, i=True)
 
@@ -806,8 +810,9 @@ class MayaManager(RootManager, MayaCoreFunctions):
             referenceFile = os.path.join(projectPath, relReferenceFile)
             refFileBasename = os.path.split(relReferenceFile)[1]
             namespace = os.path.splitext(refFileBasename)[0]
-            cmds.file(os.path.normpath(referenceFile), reference=True, gl=True, mergeNamespacesOnClash=False,
-                      namespace=namespace)
+            self._reference(os.path.normpath(referenceFile), namespace)
+            # cmds.file(os.path.normpath(referenceFile), reference=True, gl=True, mergeNamespacesOnClash=False,
+            #           namespace=namespace)
             try:
                 ranges = self._currentSceneInfo["Versions"][self._currentSceneInfo["ReferencedVersion"]-1]["Ranges"]
                 q = self._question("Do You want to set the Time ranges same with the reference?")

@@ -1304,15 +1304,13 @@ class MainUI(QtWidgets.QMainWindow):
     def transferCentralUI(self):
 
         sceneInfo = self.manager.getOpenSceneInfo()
-        if not sceneInfo:
-            self.infoPop(textTitle="Base Scene Not Saved",
-                         textHeader="Current scene is not a Base Scene.\nBefore Exporting items, scene must be saved as Base Scene")
-            return
+
 
         transferCentral_Dialog = QtWidgets.QDialog(parent=self)
         transferCentral_Dialog.resize(460, 320)
         transferCentral_Dialog.setWindowTitle(("Transfer Central"))
         transferCentral_Dialog.setFocus()
+        transferCentral_Dialog.setModal(True)
 
         tc_verticalLayout = QtWidgets.QVBoxLayout(transferCentral_Dialog)
 
@@ -1541,15 +1539,33 @@ class MainUI(QtWidgets.QMainWindow):
         importTab = QtWidgets.QWidget()
         imp_verticalLayout = QtWidgets.QVBoxLayout(importTab)
         transfers_treeWidget = QtWidgets.QTreeWidget(importTab)
-        item_0 = QtWidgets.QTreeWidgetItem(transfers_treeWidget)
-        item_1 = QtWidgets.QTreeWidgetItem(item_0)
-        item_1 = QtWidgets.QTreeWidgetItem(item_0)
-        item_0 = QtWidgets.QTreeWidgetItem(transfers_treeWidget)
-        item_1 = QtWidgets.QTreeWidgetItem(item_0)
-        item_1 = QtWidgets.QTreeWidgetItem(item_0)
-        item_0 = QtWidgets.QTreeWidgetItem(transfers_treeWidget)
-        item_1 = QtWidgets.QTreeWidgetItem(item_0)
-        item_1 = QtWidgets.QTreeWidgetItem(item_0)
+
+        # obj_topLevel = QtWidgets.QTreeWidgetItem(["OBJ"])
+        # fbx_topLevel = QtWidgets.QTreeWidgetItem(["FBX"])
+        # alembic_topLevel = QtWidgets.QTreeWidgetItem(["ALEMBIC"])
+        #
+        # transfers_treeWidget.setHeaderLabels(["Transfer Items"])
+        # transfers_treeWidget.addTopLevelItem(obj_topLevel)
+        # transfers_treeWidget.addTopLevelItem(fbx_topLevel)
+        # transfers_treeWidget.addTopLevelItem(alembic_topLevel)
+
+
+
+        # transfers_treeWidget.headerItem().setText(0, "Transfer Items")
+
+        # # items_OBJ = QtWidgets.QTreeWidgetItem(transfers_treeWidget)
+        # items_OBJ = QtWidgets.QTreeWidgetItem(transfers_treeWidget)
+        # items_OBJ.setText(0, "OBJ")
+        # # item_1 = QtWidgets.QTreeWidgetItem(item_0)
+        # # item_1 = QtWidgets.QTreeWidgetItem(item_0)
+        # items_FBX = QtWidgets.QTreeWidgetItem(transfers_treeWidget)
+        # items_FBX.setText(0, "FBX")
+        # # item_1 = QtWidgets.QTreeWidgetItem(item_0)
+        # # item_1 = QtWidgets.QTreeWidgetItem(item_0)
+        # items_ABC = QtWidgets.QTreeWidgetItem(transfers_treeWidget)
+        # items_ABC.setText(0, "ALEMBIC")
+        # # item_1 = QtWidgets.QTreeWidgetItem(item_0)
+        # # item_1 = QtWidgets.QTreeWidgetItem(item_0)
         imp_verticalLayout.addWidget(transfers_treeWidget)
         impButtons_horizontalLayout = QtWidgets.QHBoxLayout()
         import_pushButton = QtWidgets.QPushButton(importTab)
@@ -1561,6 +1577,41 @@ class MainUI(QtWidgets.QMainWindow):
         impButtons_horizontalLayout.addWidget(cancel_pushButton_2)
         tabWidget.addTab(importTab, ("Import"))
         tc_verticalLayout.addWidget(tabWidget)
+        #
+
+        def populateImports():
+            if str(tabWidget.tabText(tabWidget.currentIndex())) != 'Import':
+                return
+            transfers_treeWidget.clear()
+            obj_topLevel = QtWidgets.QTreeWidgetItem(["OBJ"])
+            obj_topLevel.setBackground(0, QtGui.QBrush(QtGui.QColor("yellow")))
+            obj_topLevel.setForeground(0, QtGui.QBrush(QtGui.QColor("black")))
+            fbx_topLevel = QtWidgets.QTreeWidgetItem(["FBX"])
+            fbx_topLevel.setBackground(0, QtGui.QBrush(QtGui.QColor("cyan")))
+            fbx_topLevel.setForeground(0, QtGui.QBrush(QtGui.QColor("black")))
+            alembic_topLevel = QtWidgets.QTreeWidgetItem(["ALEMBIC"])
+            alembic_topLevel.setBackground(0, QtGui.QBrush(QtGui.QColor("magenta")))
+            alembic_topLevel.setForeground(0, QtGui.QBrush(QtGui.QColor("black")))
+
+            transfers_treeWidget.setHeaderLabels(["Transfer Items", "Path"])
+            transfers_treeWidget.addTopLevelItem(obj_topLevel)
+            transfers_treeWidget.addTopLevelItem(fbx_topLevel)
+            transfers_treeWidget.addTopLevelItem(alembic_topLevel)
+
+            self.importDict = self.manager.scanTransfers()
+            for item in self.importDict["obj"].items():
+                treeItem = QtWidgets.QTreeWidgetItem([item[0], item[1]])
+                treeItem.setForeground(0, QtGui.QBrush(QtGui.QColor("yellow")))
+                obj_topLevel.addChild(treeItem)
+            for item in self.importDict["fbx"].items():
+                treeItem = QtWidgets.QTreeWidgetItem([item[0], item[1]])
+                treeItem.setForeground(0, QtGui.QBrush(QtGui.QColor("cyan")))
+                fbx_topLevel.addChild(treeItem)
+            for item in self.importDict["abc"].items():
+                treeItem = QtWidgets.QTreeWidgetItem([item[0], item[1]])
+                treeItem.setForeground(0, QtGui.QBrush(QtGui.QColor("magenta")))
+                alembic_topLevel.addChild(treeItem)
+
 
         tabWidget.setCurrentIndex(0)
 
@@ -1599,18 +1650,20 @@ class MainUI(QtWidgets.QMainWindow):
                 if selection_radioButton.isChecked():
                     sel = self.manager._getSelection()
                     if len(sel) > 1:
-                        name = "{0}_{1}_{2}sel".format(sceneInfo["shotName"], sceneInfo["version"], len(sel))
+                        name = "{0}/{0}_{1}_{2}sel".format(sceneInfo["shotName"], sceneInfo["version"], len(sel))
                     elif len(sel) == 1:
-                        name = "{0}_{1}_{2}".format(sceneInfo["shotName"], sceneInfo["version"], sel[0])
+                        name = "{0}/{0}_{1}_{2}".format(sceneInfo["shotName"], sceneInfo["version"], sel[0])
                     else:
                         customName_lineEdit.setStyleSheet("color: red;")
                         customName_lineEdit.setText("No Object Selected")
                         return
                 else:
-                    name = "{0}_{1}".format(sceneInfo["shotName"], sceneInfo["version"])
+                    name = "{0}/{0}_{1}".format(sceneInfo["shotName"], sceneInfo["version"])
 
             customName_lineEdit.setReadOnly(True)
             customName_lineEdit.setText(name)
+            self._checkValidity(customName_lineEdit.text(), export_pushButton, customName_lineEdit, directory=True)
+
             return name
 
 
@@ -1618,8 +1671,11 @@ class MainUI(QtWidgets.QMainWindow):
 
 
         def executeExport():
-            # TODO : TESTING STAGE - resolve name and timeRanges
-
+            if not sceneInfo:
+                self.infoPop(textTitle="Base Scene Not Saved",
+                             textHeader="Current scene is not a Base Scene.\nBefore Exporting items, scene must be saved as Base Scene")
+                transferCentral_Dialog.close()
+                return
             # get time range:
             if timeSlider_radioButton.isChecked():
                 wideRange = self.manager._getTimelineRanges()
@@ -1644,14 +1700,19 @@ class MainUI(QtWidgets.QMainWindow):
                                                )
             self.infoPop(textTitle="Transfers Exported", textHeader="Transfers Exported under '_TRANSFER' folder")
 
-
+        def executeImport():
+            # print tabWidget.tabText(tabWidget.currentIndex())
+            absPath = transfers_treeWidget.currentItem().text(1)
+            # print it
+            if absPath:
+                self.manager.importTransfers(absPath)
 
         ## ------------------
         ## SIGNAL CONNECTIONS
         ## ------------------
 
         # Export Signals
-        customName_lineEdit.textChanged.connect(lambda x: self._checkValidity(customName_lineEdit.text(), export_pushButton, customName_lineEdit))
+        customName_lineEdit.textChanged.connect(lambda x: self._checkValidity(customName_lineEdit.text(), export_pushButton, customName_lineEdit, directory=True))
         obj_checkBox.toggled.connect(formatProof)
         alembic_checkBox.toggled.connect(formatProof)
         fbx_checkBox.toggled.connect(formatProof)
@@ -1669,6 +1730,13 @@ class MainUI(QtWidgets.QMainWindow):
 
         # Import Signals
         cancel_pushButton_2.clicked.connect(transferCentral_Dialog.close)
+
+        tabWidget.currentChanged.connect(populateImports)
+
+        # transfers_treeWidget.doubleClicked.connect(executeImport)
+        # transfers_treeWidget.currentItemChanged.connect(executeImport)
+        transfers_treeWidget.doubleClicked.connect(executeImport)
+        import_pushButton.clicked.connect(executeImport)
 
         transferCentral_Dialog.show()
 
@@ -3596,10 +3664,10 @@ class MainUI(QtWidgets.QMainWindow):
             self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: yellow")
 
 
-    def _checkValidity(self, text, button, lineEdit, allowSpaces=False):
+    def _checkValidity(self, text, button, lineEdit, allowSpaces=False, directory=False):
         if text == "":
             return False
-        if self.manager.nameCheck(text, allowSpaces=allowSpaces):
+        if self.manager.nameCheck(text, allowSpaces=allowSpaces, directory=directory):
             lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: white")
             button.setEnabled(True)
             return True

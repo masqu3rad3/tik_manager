@@ -609,107 +609,107 @@ class AssetEditor3dsMax(object):
         if os.path.isfile(absFbxPath):
             cmds.file(absFbxPath, i=True)
 
-    def exportObj(self, exportPath, exportSettings, exportSelected=True):
-        if rt.pluginManager.loadclass(rt.ObjExp):
-            # Set OBJ Options
-            iniPath_exportSettings = rt.objExp.getIniName()
-            rt.setINISetting(iniPath_exportSettings, "Geometry", "FlipZyAxis", exportSettings["FlipZyAxis"])
-            rt.setINISetting(iniPath_exportSettings, "Geometry", "Shapes", exportSettings["Shapes"])
-            rt.setINISetting(iniPath_exportSettings, "Geometry", "ExportHiddenObjects",
-                             exportSettings["ExportHiddenObjects"])
-            rt.setINISetting(iniPath_exportSettings, "Geometry", "FaceType", exportSettings["FaceType"])
-            rt.setINISetting(iniPath_exportSettings, "Geometry", "TextureCoords", exportSettings["TextureCoords"])
-            rt.setINISetting(iniPath_exportSettings, "Geometry", "Normals", exportSettings["Normals"])
-            rt.setINISetting(iniPath_exportSettings, "Geometry", "SmoothingGroups", exportSettings["SmoothingGroups"])
-            rt.setINISetting(iniPath_exportSettings, "Geometry", "ObjScale", exportSettings["ObjScale"])
+    # def exportObj(self, exportPath, exportSettings, exportSelected=True):
+    #     if rt.pluginManager.loadclass(rt.ObjExp):
+    #         # Set OBJ Options
+    #         iniPath_exportSettings = rt.objExp.getIniName()
+    #         rt.setINISetting(iniPath_exportSettings, "Geometry", "FlipZyAxis", exportSettings["FlipZyAxis"])
+    #         rt.setINISetting(iniPath_exportSettings, "Geometry", "Shapes", exportSettings["Shapes"])
+    #         rt.setINISetting(iniPath_exportSettings, "Geometry", "ExportHiddenObjects",
+    #                          exportSettings["ExportHiddenObjects"])
+    #         rt.setINISetting(iniPath_exportSettings, "Geometry", "FaceType", exportSettings["FaceType"])
+    #         rt.setINISetting(iniPath_exportSettings, "Geometry", "TextureCoords", exportSettings["TextureCoords"])
+    #         rt.setINISetting(iniPath_exportSettings, "Geometry", "Normals", exportSettings["Normals"])
+    #         rt.setINISetting(iniPath_exportSettings, "Geometry", "SmoothingGroups", exportSettings["SmoothingGroups"])
+    #         rt.setINISetting(iniPath_exportSettings, "Geometry", "ObjScale", exportSettings["ObjScale"])
+    #
+    #         rt.setINISetting(iniPath_exportSettings, "Output", "RelativeIndex", exportSettings["RelativeIndex"])
+    #         rt.setINISetting(iniPath_exportSettings, "Output", "Target", exportSettings["Target"])
+    #         rt.setINISetting(iniPath_exportSettings, "Output", "Precision", exportSettings["Precision"])
+    #
+    #         rt.setINISetting(iniPath_exportSettings, "Optimize", "optVertex", exportSettings["optVertex"])
+    #         rt.setINISetting(iniPath_exportSettings, "Optimize", "optNormals", exportSettings["optNormals"])
+    #         rt.setINISetting(iniPath_exportSettings, "Optimize", "optTextureCoords", exportSettings["optTextureCoords"])
+    #
+    #         try:
+    #             rt.exportFile(exportPath, rt.Name("NoPrompt"), selectedOnly=exportSelected, using=rt.ObjExp)
+    #             return True
+    #         except:
+    #             msg = "Cannot export OBJ for unknown reason. Skipping OBJ export"
+    #             rt.messageBox(msg, title='Info')
+    #             return False
+    #
+    #         # objName = "{0}.obj".format(assetName)
+    #     else:
+    #         msg = "Wavefront(Obj) Export Plugin cannot be initialized. Skipping Obj export"
+    #         rt.messageBox(msg, title='Info')
+    #         return False
+    #         # objName = "N/A"
 
-            rt.setINISetting(iniPath_exportSettings, "Output", "RelativeIndex", exportSettings["RelativeIndex"])
-            rt.setINISetting(iniPath_exportSettings, "Output", "Target", exportSettings["Target"])
-            rt.setINISetting(iniPath_exportSettings, "Output", "Precision", exportSettings["Precision"])
-
-            rt.setINISetting(iniPath_exportSettings, "Optimize", "optVertex", exportSettings["optVertex"])
-            rt.setINISetting(iniPath_exportSettings, "Optimize", "optNormals", exportSettings["optNormals"])
-            rt.setINISetting(iniPath_exportSettings, "Optimize", "optTextureCoords", exportSettings["optTextureCoords"])
-
-            try:
-                rt.exportFile(exportPath, rt.Name("NoPrompt"), selectedOnly=exportSelected, using=rt.ObjExp)
-                return True
-            except:
-                msg = "Cannot export OBJ for unknown reason. Skipping OBJ export"
-                rt.messageBox(msg, title='Info')
-                return False
-
-            # objName = "{0}.obj".format(assetName)
-        else:
-            msg = "Wavefront(Obj) Export Plugin cannot be initialized. Skipping Obj export"
-            rt.messageBox(msg, title='Info')
-            return False
-            # objName = "N/A"
-
-    def exportAlembic(self, exportPath, exportSettings, exportSelected=True):
-        # Set Alembic Options according to the Max Version:
-        v = rt.maxVersion()[0]
-        if v > 17000:  # Alembic export is not supported before 3ds Max 2016
-            if rt.pluginManager.loadclass(rt.Alembic_Export):
-                if 18000 <= v < 21000:  # between versions 2016 - 2018
-                    rt.AlembicExport.CoordinateSystem = rt.Name(exportSettings["CoordinateSystem"])
-                    rt.AlembicExport.ArchiveType = rt.Name(exportSettings["ArchiveType"])
-                    rt.AlembicExport.ParticleAsMesh = exportSettings["ParticleAsMesh"]
-                    rt.AlembicExport.CacheTimeRange = rt.Name(exportSettings["AnimTimeRange"])
-                    rt.AlembicExport.ShapeName = exportSettings["ShapeSuffix"]
-                    # rt.AlembicExport.StepFrameTime = exportSettings["StepFrameTime"]
-
-                elif v >= 21000:  # version 2019 and up
-                    rt.AlembicExport.CoordinateSystem = rt.Name(exportSettings["CoordinateSystem"])
-                    rt.AlembicExport.ArchiveType = rt.Name(exportSettings["ArchiveType"])
-                    rt.AlembicExport.ParticleAsMesh = exportSettings["ParticleAsMesh"]
-                    rt.AlembicExport.AnimTimeRange = rt.Name(exportSettings["AnimTimeRange"])
-                    rt.AlembicExport.ShapeSuffix = exportSettings["ShapeSuffix"]
-                    rt.AlembicExport.SamplesPerFrame = exportSettings["SamplesPerFrame"]
-                    rt.AlembicExport.Hidden = exportSettings["Hidden"]
-                    rt.AlembicExport.UVs = exportSettings["UVs"]
-                    rt.AlembicExport.Normals = exportSettings["Normals"]
-                    rt.AlembicExport.VertexColors = exportSettings["VertexColors"]
-                    rt.AlembicExport.ExtraChannels = exportSettings["ExtraChannels"]
-                    rt.AlembicExport.Velocity = exportSettings["Velocity"]
-                    rt.AlembicExport.MaterialIDs = exportSettings["MaterialIDs"]
-                    rt.AlembicExport.Visibility = exportSettings["Visibility"]
-                    rt.AlembicExport.LayerName = exportSettings["LayerName"]
-                    rt.AlembicExport.MaterialName = exportSettings["MaterialName"]
-                    rt.AlembicExport.ObjectID = exportSettings["ObjectID"]
-                    rt.AlembicExport.CustomAttributes = exportSettings["CustomAttributes"]
-
-                # Export
-                rt.exportFile(exportPath, rt.Name("NoPrompt"), selectedOnly=exportSelected,
-                              using=rt.Alembic_Export)
-                return True
-
-            else:
-                rt.messageBox("Alembic Plugin cannot be initialized. Skipping", title="Alembic not supported")
-                return False
-        else:
-            rt.messageBox("There is no alembic support for this version. Skipping", title="Alembic not supported")
-            return False
+    # def exportAlembic(self, exportPath, exportSettings, exportSelected=True):
+    #     # Set Alembic Options according to the Max Version:
+    #     v = rt.maxVersion()[0]
+    #     if v > 17000:  # Alembic export is not supported before 3ds Max 2016
+    #         if rt.pluginManager.loadclass(rt.Alembic_Export):
+    #             if 18000 <= v < 21000:  # between versions 2016 - 2018
+    #                 rt.AlembicExport.CoordinateSystem = rt.Name(exportSettings["CoordinateSystem"])
+    #                 rt.AlembicExport.ArchiveType = rt.Name(exportSettings["ArchiveType"])
+    #                 rt.AlembicExport.ParticleAsMesh = exportSettings["ParticleAsMesh"]
+    #                 rt.AlembicExport.CacheTimeRange = rt.Name(exportSettings["AnimTimeRange"])
+    #                 rt.AlembicExport.ShapeName = exportSettings["ShapeSuffix"]
+    #                 # rt.AlembicExport.StepFrameTime = exportSettings["StepFrameTime"]
+    #
+    #             elif v >= 21000:  # version 2019 and up
+    #                 rt.AlembicExport.CoordinateSystem = rt.Name(exportSettings["CoordinateSystem"])
+    #                 rt.AlembicExport.ArchiveType = rt.Name(exportSettings["ArchiveType"])
+    #                 rt.AlembicExport.ParticleAsMesh = exportSettings["ParticleAsMesh"]
+    #                 rt.AlembicExport.AnimTimeRange = rt.Name(exportSettings["AnimTimeRange"])
+    #                 rt.AlembicExport.ShapeSuffix = exportSettings["ShapeSuffix"]
+    #                 rt.AlembicExport.SamplesPerFrame = exportSettings["SamplesPerFrame"]
+    #                 rt.AlembicExport.Hidden = exportSettings["Hidden"]
+    #                 rt.AlembicExport.UVs = exportSettings["UVs"]
+    #                 rt.AlembicExport.Normals = exportSettings["Normals"]
+    #                 rt.AlembicExport.VertexColors = exportSettings["VertexColors"]
+    #                 rt.AlembicExport.ExtraChannels = exportSettings["ExtraChannels"]
+    #                 rt.AlembicExport.Velocity = exportSettings["Velocity"]
+    #                 rt.AlembicExport.MaterialIDs = exportSettings["MaterialIDs"]
+    #                 rt.AlembicExport.Visibility = exportSettings["Visibility"]
+    #                 rt.AlembicExport.LayerName = exportSettings["LayerName"]
+    #                 rt.AlembicExport.MaterialName = exportSettings["MaterialName"]
+    #                 rt.AlembicExport.ObjectID = exportSettings["ObjectID"]
+    #                 rt.AlembicExport.CustomAttributes = exportSettings["CustomAttributes"]
+    #
+    #             # Export
+    #             rt.exportFile(exportPath, rt.Name("NoPrompt"), selectedOnly=exportSelected,
+    #                           using=rt.Alembic_Export)
+    #             return True
+    #
+    #         else:
+    #             rt.messageBox("Alembic Plugin cannot be initialized. Skipping", title="Alembic not supported")
+    #             return False
+    #     else:
+    #         rt.messageBox("There is no alembic support for this version. Skipping", title="Alembic not supported")
+    #         return False
 
 
-    def exportFbx(self, exportPath, exportSettings, exportSelected=True):
-        if rt.pluginManager.loadclass(rt.FBXEXP):
-            # Set FBX Options
-            for item in exportSettings.items():
-                rt.FBXExporterSetParam(rt.Name(item[0]), item[1])
-
-            try:
-                rt.exportFile(exportPath, rt.Name("NoPrompt"), selectedOnly=exportSelected,
-                              using=rt.FBXEXP)
-                return True
-            except:
-                msg = "Cannot export FBX for unknown reason. Skipping FBX export"
-                rt.messageBox(msg, title='Info')
-                return False
-        else:
-            msg = "FBX Plugin cannot be initialized. Skipping FBX export"
-            rt.messageBox(msg, title='Info')
-            return False
+    # def exportFbx(self, exportPath, exportSettings, exportSelected=True):
+    #     if rt.pluginManager.loadclass(rt.FBXEXP):
+    #         # Set FBX Options
+    #         for item in exportSettings.items():
+    #             rt.FBXExporterSetParam(rt.Name(item[0]), item[1])
+    #
+    #         try:
+    #             rt.exportFile(exportPath, rt.Name("NoPrompt"), selectedOnly=exportSelected,
+    #                           using=rt.FBXEXP)
+    #             return True
+    #         except:
+    #             msg = "Cannot export FBX for unknown reason. Skipping FBX export"
+    #             rt.messageBox(msg, title='Info')
+    #             return False
+    #     else:
+    #         msg = "FBX Plugin cannot be initialized. Skipping FBX export"
+    #         rt.messageBox(msg, title='Info')
+    #         return False
 
 
 

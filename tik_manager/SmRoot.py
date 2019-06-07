@@ -964,13 +964,29 @@ class RootManager(object):
         :param timeRange: (List) Defines export time range as [Startframe, Endframe]
         :return: True if successfull
         """
+
+        subFolders = os.path.dirname(os.path.normpath(name))
+        baseName = os.path.basename(name)
         exportSettings = self._loadExportSettings()
+
+
         if isObj:
             objSettings = exportSettings["objExport"]
-            objDir = os.path.join(self._pathsDict["transferDir"],"OBJ")
+            objDir = os.path.join(self._pathsDict["transferDir"],"OBJ", subFolders)
             self._folderCheck(objDir)
-            objFilePath = os.path.join(objDir,"%s.obj" %name)
-            self._exportObj(objFilePath, exportSettings=objSettings, exportSelected=isSelection)
+            objFilePath = os.path.join(objDir,"%s.obj" %baseName)
+
+            if os.path.isfile(objFilePath):
+                header = "The following file will be overwritten if you continue:\n %s" % (os.path.basename(objFilePath))
+                msg = "Choose Yes to overwrite file and continue"
+                title = "Are you Sure?"
+                if not self._question(header=header, msg=msg, title=title):
+                    pass
+                else:
+                    self._exportObj(objFilePath, exportSettings=objSettings, exportSelected=isSelection)
+            else:
+                self._exportObj(objFilePath, exportSettings=objSettings, exportSelected=isSelection)
+
 
         if isAlembic:
             alembicSettings = exportSettings["alembicExport"]
@@ -980,10 +996,20 @@ class RootManager(object):
             alembicSettings["EndFrame"] = timeRange[1]
 
 
-            alembicDir = os.path.join(self._pathsDict["transferDir"],"ALEMBIC")
+            alembicDir = os.path.join(self._pathsDict["transferDir"],"ALEMBIC", subFolders)
             self._folderCheck(alembicDir)
-            alembicFilePath = os.path.join(alembicDir,"%s.abc" %name)
-            self._exportAlembic(alembicFilePath, exportSettings=alembicSettings, exportSelected=isSelection)
+            alembicFilePath = os.path.join(alembicDir,"%s.abc" %baseName)
+            if os.path.isfile(alembicFilePath):
+                header = "The following file will be overwritten if you continue:\n %s" % (
+                    os.path.basename(alembicFilePath))
+                msg = "Choose Yes to overwrite file and continue"
+                title = "Are you Sure?"
+                if not self._question(header=header, msg=msg, title=title):
+                    pass
+                else:
+                    self._exportAlembic(alembicFilePath, exportSettings=alembicSettings, exportSelected=isSelection)
+            else:
+                self._exportAlembic(alembicFilePath, exportSettings=alembicSettings, exportSelected=isSelection)
 
         if isFbx:
             fbxSettings = exportSettings["fbxExport"]
@@ -994,18 +1020,56 @@ class RootManager(object):
             else:
                 fbxSettings["Animation"] = False
 
-            fbxDir = os.path.join(self._pathsDict["transferDir"],"FBX")
+            fbxDir = os.path.join(self._pathsDict["transferDir"],"FBX", subFolders)
             self._folderCheck(fbxDir)
-            fbxFilePath = os.path.join(fbxDir,"%s.fbx" %name)
-            self._exportFbx(fbxFilePath, exportSettings=fbxSettings, exportSelected=isSelection)
+            fbxFilePath = os.path.join(fbxDir,"%s.fbx" %baseName)
+            if os.path.isfile(fbxFilePath):
+                header = "The following file will be overwritten if you continue:\n %s" % (
+                    os.path.basename(fbxFilePath))
+                msg = "Choose Yes to overwrite file and continue"
+                title = "Are you Sure?"
+                if not self._question(header=header, msg=msg, title=title):
+                    pass
+                else:
+                    self._exportFbx(fbxFilePath, exportSettings=fbxSettings, exportSelected=isSelection)
+            else:
+                self._exportFbx(fbxFilePath, exportSettings=fbxSettings, exportSelected=isSelection)
 
         return True
 
-    def importTransfers(self):
-        pass
+    def importTransfers(self, itemAbsPath):
+        extension = os.path.splitext(itemAbsPath)[1]
+        if extension == ".obj":
+            self._importObj(itemAbsPath)
+        elif extension == ".fbx":
+            self._importFbx(itemAbsPath)
+        elif extension == ".abc":
+            self._importAlembic(itemAbsPath)
+        else:
+            self._info("Format is not supported")
 
     def scanTransfers(self):
-        pass
+        # self._baseScenesInCategory = {self.niceName(file):file for file in glob(os.path.join(searchDir, '*.json'))}
+
+        transferDict = {"obj":{},
+                        "fbx":{},
+                        "abc":{}}
+
+        objPath = os.path.join(self._pathsDict["transferDir"], "OBJ")
+        if os.path.exists(objPath):
+            # first collect all the obj files
+            # transferDict["obj"] = [y for x in os.walk(objPath) for y in glob(os.path.join(x[0], '*.obj'))]
+            transferDict["obj"] = {self.niceName(y):y for x in os.walk(objPath) for y in glob(os.path.join(x[0], '*.obj'))}
+
+        abcPath = os.path.join(self._pathsDict["transferDir"], "ALEMBIC")
+        if os.path.exists(abcPath):
+            transferDict["abc"] = {self.niceName(y):y for x in os.walk(abcPath) for y in glob(os.path.join(x[0], '*.abc'))}
+        #
+        fbxPath = os.path.join(self._pathsDict["transferDir"], "FBX")
+        if os.path.exists(fbxPath):
+            transferDict["fbx"] = {self.niceName(y):y for x in os.walk(fbxPath) for y in glob(os.path.join(x[0], '*.fbx'))}
+
+        return transferDict
 
     def getProjectReport(self):
 
@@ -1612,14 +1676,20 @@ Elapsed Time:{6}
             os.makedirs(os.path.normpath(folder))
         return folder
 
-    def nameCheck(self, text, allowSpaces=False):
+    def nameCheck(self, text, allowSpaces=False, directory=False):
         """Checks the text for illegal characters, Returns:  corrected Text or -1 for Error """
         logger.debug("Func: nameCheck")
-
         if allowSpaces:
-            pattern = "^[ A-Za-z0-9_-]*$"
-        else:
-            pattern = "^[A-Za-z0-9_-]*$"
+            aSpa = " "
+        aSpa = " " if allowSpaces else ""
+        dir = "/" if directory else ""
+
+        pattern = "^[%s%sA-Za-z0-9_-]*$" %(aSpa, dir)
+
+        # if allowSpaces:
+        #     pattern = "^[ /A-Za-z0-9_-]*$"
+        # else:
+        #     pattern = "^[/A-Za-z0-9_-]*$"
 
         if re.match(pattern, text):
             return True
