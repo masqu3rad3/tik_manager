@@ -91,15 +91,45 @@ class MaxCoreFunctions(object):
     def _import(self, filePath, *args, **kwargs):
         fManager.Merge(filePath)
 
-    def _importObj(self, filePath, *args, **kwargs):
+    def _importObj(self, filePath, importSettings, *args, **kwargs):
+        if rt.pluginManager.loadclass(rt.ObjExp):
+            # Set OBJ Options
+            iniPath_importSettings = rt.objImp.getIniName()
+            rt.setINISetting(iniPath_importSettings, "General", "UseLogging", importSettings["UseLogging"])
+            rt.setINISetting(iniPath_importSettings, "General", "ResetScene", importSettings["ResetScene"])
+            rt.setINISetting(iniPath_importSettings, "General", "CurrObjColor", importSettings["CurrObjColor"])
+            rt.setINISetting(iniPath_importSettings, "General", "MapSearchPath", importSettings["MapSearchPath"])
+            rt.setINISetting(iniPath_importSettings, "Objects", "SingleMesh", importSettings["SingleMesh"])
+            rt.setINISetting(iniPath_importSettings, "Objects", "AsEditablePoly", importSettings["AsEditablePoly"])
+            rt.setINISetting(iniPath_importSettings, "Objects", "Retriangulate", importSettings["Retriangulate"])
+            rt.setINISetting(iniPath_importSettings, "Geometry", "FlipZyAxis", importSettings["FlipZyAxis"])
+            rt.setINISetting(iniPath_importSettings, "Geometry", "CenterPivots", importSettings["CenterPivots"])
+            rt.setINISetting(iniPath_importSettings, "Geometry", "Shapes", importSettings["Shapes"])
+            rt.setINISetting(iniPath_importSettings, "Geometry", "TextureCoords", importSettings["TextureCoords"])
+            rt.setINISetting(iniPath_importSettings, "Geometry", "SmoothingGroups", importSettings["SmoothingGroups"])
+            rt.setINISetting(iniPath_importSettings, "Geometry", "NormalsType", importSettings["NormalsType"])
+            rt.setINISetting(iniPath_importSettings, "Geometry", "SmoothAngle", importSettings["SmoothAngle"])
+            rt.setINISetting(iniPath_importSettings, "Geometry", "FlipNormals", importSettings["FlipNormals"])
+            rt.setINISetting(iniPath_importSettings, "Units/Scale", "Convert", importSettings["Convert"])
+            rt.setINISetting(iniPath_importSettings, "Units/Scale", "ConvertFrom", importSettings["ConvertFrom"])
+            rt.setINISetting(iniPath_importSettings, "Units/Scale", "ObjScale", importSettings["ObjScale"])
+            rt.setINISetting(iniPath_importSettings, "Material", "UniqueWireColor", importSettings["UniqueWireColor"])
+            rt.setINISetting(iniPath_importSettings, "Material", "ImportMaterials", importSettings["ImportMaterials"])
+            rt.setINISetting(iniPath_importSettings, "Material", "UseMatPrefix", importSettings["UseMatPrefix"])
+            rt.setINISetting(iniPath_importSettings, "Material", "DefaultBump", importSettings["DefaultBump"])
+            rt.setINISetting(iniPath_importSettings, "Material", "ForceBlackAmbient", importSettings["ForceBlackAmbient"])
+            rt.setINISetting(iniPath_importSettings, "Material", "ImportIntoMatEditor", importSettings["ImportIntoMatEditor"])
+            rt.setINISetting(iniPath_importSettings, "Material", "ShowMapsInViewport", importSettings["ShowMapsInViewport"])
+            rt.setINISetting(iniPath_importSettings, "Material", "CopyMapsToProj", importSettings["CopyMapsToProj"])
+            rt.setINISetting(iniPath_importSettings, "Material", "OverwriteImages", importSettings["OverwriteImages"])
+            rt.importFile(filePath, rt.Name("NoPrompt"), using=rt.ObjImp)
+        pass
+
+    def _importAlembic(self, filePath, importSettings, *args, **kwargs):
         # TODO
         pass
 
-    def _importAlembic(self, filePath, *args, **kwargs):
-        # TODO
-        pass
-
-    def _importFbx(self, filePath, *args, **kwargs):
+    def _importFbx(self, filePath, importSettings, *args, **kwargs):
         # TODO
         pass
 
@@ -249,7 +279,9 @@ class MaxCoreFunctions(object):
         return int(rt.sliderTime)
 
     def _getSelection(self):
-        return rt.execute("selection as array")
+        sel = rt.execute("selection as array")
+        strList = [x.name for x in sel]
+        return strList
 
 class MaxManager(RootManager, MaxCoreFunctions):
     def __init__(self):

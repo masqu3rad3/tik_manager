@@ -1635,6 +1635,10 @@ class MainUI(QtWidgets.QMainWindow):
 
         def resolveName():
             # resolve name
+            if not sceneInfo:
+                customName_lineEdit.setStyleSheet("color: red;")
+                customName_lineEdit.setText("Scene Needs to be saves as Base Scene")
+                return
             customName_lineEdit.setStyleSheet("color: white;")
             if customName_radioButton.isChecked():
                 customName_lineEdit.setText("")
@@ -1642,16 +1646,12 @@ class MainUI(QtWidgets.QMainWindow):
                 return
                 # name = customName_lineEdit.text()
             else:
-                # sceneInfo = self.manager.getOpenSceneInfo()
-                # if not sceneInfo:
-                #     self.infoPop(textTitle="Base Scene Not Saved", textHeader="Current scene is not a Base Scene.\nBefore Exporting items, scene must be saved as Base Scene")
-                #     transferCentral_Dialog.close()
-                #     return
                 if selection_radioButton.isChecked():
                     sel = self.manager._getSelection()
                     if len(sel) > 1:
                         name = "{0}/{0}_{1}_{2}sel".format(sceneInfo["shotName"], sceneInfo["version"], len(sel))
                     elif len(sel) == 1:
+                        print "hoyt", sel
                         name = "{0}/{0}_{1}_{2}".format(sceneInfo["shotName"], sceneInfo["version"], sel[0])
                     else:
                         customName_lineEdit.setStyleSheet("color: red;")
@@ -1701,6 +1701,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.infoPop(textTitle="Transfers Exported", textHeader="Transfers Exported under '_TRANSFER' folder")
 
         def executeImport():
+
             # print tabWidget.tabText(tabWidget.currentIndex())
             absPath = transfers_treeWidget.currentItem().text(1)
             # print it

@@ -140,6 +140,7 @@ class RootManager(object):
         self._pathsDict["tikConventions"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "tikConventions.json"))
         self._pathsDict["adminPass"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "adminPass.psw"))
         self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "exportSettings.json"))
+        self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "importSettings.json"))
 
     def _checkCommonFolder(self, folder):
         checkList = [os.path.join(folder, "sceneManagerDefaults.json"),
@@ -1038,13 +1039,18 @@ class RootManager(object):
         return True
 
     def importTransfers(self, itemAbsPath):
+        importSettings = self._loadImportSettings()
         extension = os.path.splitext(itemAbsPath)[1]
+
         if extension == ".obj":
-            self._importObj(itemAbsPath)
+            objSettings = importSettings["objImport"]
+            self._importObj(itemAbsPath, objSettings)
         elif extension == ".fbx":
-            self._importFbx(itemAbsPath)
+            fbxSettings = importSettings["fbxImport"]
+            self._importFbx(itemAbsPath, fbxSettings)
         elif extension == ".abc":
-            self._importAlembic(itemAbsPath)
+            alembicSettings = importSettings["alembicImport"]
+            self._importAlembic(itemAbsPath, alembicSettings)
         else:
             self._info("Format is not supported")
 
@@ -2049,6 +2055,107 @@ Elapsed Time:{6}
             # categoriesData = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
             self._dumpJson(exportSettings, self._pathsDict["exportSettingsFile"])
         return exportSettings
+
+    def _loadImportSettings(self):
+        """Load Export Setting options from file in Common Folder"""
+
+        if os.path.isfile(self._pathsDict["importSettingsFile"]):
+            importSettings = self._loadJson(self._pathsDict["importSettingsFile"])
+            if importSettings == -2:
+                return -2
+        else:
+            importSettings = {
+                "objImport": {
+                    "UseLogging": "0",
+                    "ResetScene": "0",
+                    "CurrObjColor": "3",
+                    "MapSearchPath": "",
+                    "SingleMesh": "0",
+                    "AsEditablePoly": "0",
+                    "Retriangulate": "1",
+                    "FlipZyAxis": "1",
+                    "CenterPivots": "0",
+                    "Shapes": "0",
+                    "TextureCoords": "1",
+                    "SmoothingGroups": "1",
+                    "NormalsType": "0",
+                    "SmoothAngle": "30.000000",
+                    "FlipNormals": "0",
+                    "Convert": "0",
+                    "ConvertFrom": "5",
+                    "ObjScale": "1.000000",
+                    "UniqueWireColor": "1",
+                    "ImportMaterials": "1",
+                    "UseMatPrefix": "0",
+                    "DefaultBump": "2",
+                    "ForceBlackAmbient": "0",
+                    "ImportIntoMatEditor": "1",
+                    "ShowMapsInViewport": "1",
+                    "CopyMapsToProj": "0",
+                    "OverwriteImages": "0"
+                },
+                "fbxImport": {
+                    "BakeFrameStart": 0,
+                    "BakeFrameEnd": 100,
+                    "ColladaTriangulate": False,
+                    "CAT2HIK": False,
+                    "BakeAnimation": True,
+                    "Skin": True,
+                    "Triangulate": False,
+                    "Convert2Tiff": False,
+                    "UseSceneName": False,
+                    "Animation": True,
+                    "SelectionSetExport": False,
+                    "AxisConversionMethod": "Fbx_Root",
+                    "BakeFrameStep": 1,
+                    "UpAxis": "Y",
+                    "ColladaSingleMatrix": True,
+                    "FileVersion": "FBX201400",
+                    "Removesinglekeys": False,
+                    "EmbedTextures": True,
+                    "ConvertUnit": "in",
+                    "SmoothMeshExport": True,
+                    "Lights": True,
+                    "ScaleFactor": 1.0,
+                    "TangentSpaceExport": False,
+                    "ShowWarnings": False,
+                    "GenerateLog": False,
+                    "GeomAsBone": True,
+                    "Preserveinstances": False,
+                    "Shape": True,
+                    "PointCache": False,
+                    "FilterKeyReducer": False,
+                    "SmoothingGroups": True,
+                    "NormalsPerPoly": True,
+                    "ASCII": False,
+                    "BakeResampleAnimation": False
+                },
+                "alembicImport": {
+                    "UVs": True,
+                    "LayerName": True,
+                    "ObjectID": True,
+                    "EndFrame": 10,
+                    "ParticleAsMesh": True,
+                    "Visibility": True,
+                    "CoordinateSystem": "YUp",
+                    "AnimTimeRange": "CurrentFrame",
+                    "Velocity": True,
+                    "ArchiveType": "Ogawa",
+                    "CustomAttributes": True,
+                    "MaterialIDs": True,
+                    "VertexColors": True,
+                    "Normals": True,
+                    "StartFrame": 1,
+                    "Hidden": False,
+                    "ExtraChannels": True,
+                    "MaterialName": True,
+                    "SamplesPerFrame": 1,
+                    "ShapeSuffix": False
+                }
+            }
+            # categoriesData = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
+            self._dumpJson(importSettings, self._pathsDict["importSettingsFile"])
+        return importSettings
 
     def loadPBSettings(self):
         """Loads the preview settings data"""

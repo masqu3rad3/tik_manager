@@ -82,13 +82,13 @@ class MayaCoreFunctions(object):
     def _import(self, filePath, *args, **kwargs):
         cmds.file(filePath, i=True)
 
-    def _importObj(self, filePath, *args, **kwargs):
+    def _importObj(self, filePath, importSettings, *args, **kwargs):
         cmds.file(filePath, i=True)
 
-    def _importAlembic(self, filePath, *args, **kwargs):
+    def _importAlembic(self, filePath, importSettings, *args, **kwargs):
         cmds.AbcImport(filePath)
 
-    def _importFbx(self, filePath, *args, **kwargs):
+    def _importFbx(self, filePath, importSettings, *args, **kwargs):
         cmds.file(filePath, i=True)
 
     def _exportObj(self, filePath, exportSettings=None, exportSelected=True):
