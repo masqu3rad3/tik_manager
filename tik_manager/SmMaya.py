@@ -89,7 +89,30 @@ class MayaCoreFunctions(object):
         cmds.AbcImport(filePath)
 
     def _importFbx(self, filePath, importSettings, *args, **kwargs):
-        cmds.file(filePath, i=True)
+
+        mayaImp_fbx = importSettings["fbxImportMaya"]
+
+        if not cmds.pluginInfo('fbxmaya', l=True, q=True):
+            try:
+                cmds.loadPlugin('fbxmaya')
+            except:
+                msg = "FBX Plugin cannot be initialized. Skipping"
+                cmds.confirmDialog(title='Plugin Error', message=msg)
+                return False
+
+        for item in mayaImp_fbx.items():
+            # TODO : Test with more versions of Maya
+            mel.eval('%s %s'%(item[0], item[1]))
+
+        try:
+            compFilePath = filePath.replace("\\", "//")  ## for compatibility with mel syntax.
+            cmd = ('FBXImport -f "{0}";'.format(compFilePath))
+            mel.eval(cmd)
+            return True
+        except:
+            msg = "Cannot import FBX for unknown reason. Skipping"
+            cmds.confirmDialog(title='Unknown Error', message=msg)
+            return False
 
     def _exportObj(self, filePath, exportSettings=None, exportSelected=True):
         """
@@ -102,6 +125,7 @@ class MayaCoreFunctions(object):
         Returns: (Boolean) True for success False for failure
 
         """
+        mayaExp_obj = exportSettings["objExportMaya"]
         if not cmds.pluginInfo('objExport', l=True, q=True):
             try:
                 cmds.loadPlugin('objExport')
@@ -111,11 +135,11 @@ class MayaCoreFunctions(object):
                 return False
 
         opFlag = "groups={0}; ptgroups={1}; materials={2}; smoothing={3}; normals={4}".format(
-            exportSettings["SmoothingGroups"],
-            exportSettings["SmoothingGroups"],
-            0,
-            exportSettings["SmoothingGroups"],
-            exportSettings["Normals"]
+            mayaExp_obj["groups"],
+            mayaExp_obj["ptgroups"],
+            mayaExp_obj["materials"],
+            mayaExp_obj["smoothing"],
+            mayaExp_obj["normals"]
         )
         try:
             cmds.file(os.path.splitext(filePath)[0], pr=True, force=True, typ="OBJexport", es=exportSelected, ea=not exportSelected, op=opFlag)
@@ -125,7 +149,7 @@ class MayaCoreFunctions(object):
             cmds.confirmDialog(title='Unknown Error', message=msg)
             return False
 
-    def _exportAlembic(self, filePath, exportSettings=None, exportSelected=True):
+    def _exportAlembic(self, filePath, exportSettings=None, exportSelected=True, timeRange=[0,10]):
         """
         Exports Alembic (.abc) file
         Args:
@@ -136,6 +160,8 @@ class MayaCoreFunctions(object):
         Returns: (Boolean) True for success False for failure
 
         """
+        mayaExp_alembic = exportSettings["alembicExportMaya"]
+
         if not cmds.pluginInfo('AbcExport.mll', l=True, q=True):
             try:
                 cmds.loadPlugin('AbcExport.mll')
@@ -154,15 +180,15 @@ class MayaCoreFunctions(object):
             root = ""
 
         file = "-file %s" % filePath
-        dataFormat = "-dataFormat '%s'" % exportSettings["ArchiveType"]
-        frameRange = "-frameRange %s %s" % (exportSettings["StartFrame"], exportSettings["EndFrame"])
-        noNormal = "" if exportSettings["Normals"] else "-noNormals"
-        renderableOnly = "" if exportSettings["Hidden"] else "-renderableOnly"
-        step = "-step %s" % float(exportSettings["SamplesPerFrame"])
+        dataFormat = "-dataFormat '%s'" % mayaExp_alembic["ArchiveType"]
+        frameRange = "-frameRange %s %s" % (mayaExp_alembic["StartFrame"], mayaExp_alembic["EndFrame"])
+        noNormal = "" if mayaExp_alembic["Normals"] else "-noNormals"
+        renderableOnly = "" if mayaExp_alembic["Hidden"] else "-renderableOnly"
+        step = "-step %s" % float(mayaExp_alembic["SamplesPerFrame"])
         # selection = "-selection" if exportSelected else ""
         selection = ""
-        uv = "-uvWrite" if exportSettings["UVs"] else ""
-        visibility = "-writeVisibility" if exportSettings["Visibility"] else ""
+        uv = "-uvWrite" if mayaExp_alembic["UVs"] else ""
+        visibility = "-writeVisibility" if mayaExp_alembic["Visibility"] else ""
 
         command = "{0} {1} {2} {3} {4} {5} {6} {7} {8} {9}".format(file,
                                                                dataFormat,
@@ -182,7 +208,8 @@ class MayaCoreFunctions(object):
             cmds.confirmDialog(title='Unknown Error', message=msg)
             return False
 
-    def _exportFbx(self, filePath, exportSettings=None, exportSelected=True):
+    def _exportFbx(self, filePath, exportSettings=None, exportSelected=True, timeRange=[0,10]):
+        # TODO : TEST EXPORT RANGES, SINGLE FRAMES, ETC
         """
         Exports FBX (.fbx) file
         Args:
@@ -193,6 +220,8 @@ class MayaCoreFunctions(object):
         Returns: (Boolean) True for success False for failure
 
         """
+        mayaExp_fbx = exportSettings["fbxExportMaya"]
+
         if not cmds.pluginInfo('fbxmaya', l=True, q=True):
             try:
                 cmds.loadPlugin('fbxmaya')
@@ -201,23 +230,44 @@ class MayaCoreFunctions(object):
                 cmds.confirmDialog(title='Plugin Error', message=msg)
                 return False
 
-        opFlag = ""
-        for item in exportSettings.items():
-            if type(item[1]) == bool:
-                opFlag += "%s=%s; " % (item[0], int(item[1]))
-            elif type(item[1]) == str:
-                opFlag += "%s='%s'; " % (item[0], item[1])
-            else:
-                opFlag += "%s=%s; " % (item[0], item[1])
-        opFlag = opFlag[:-2]
+        expSelectedFlag = "-s" if exportSelected else ""
+
+        # OVERRIDE ANIMATION SETTINGS
+        if timeRange[0] != timeRange[1]:
+            mayaExp_fbx["FBXExportBakeComplexStart"] = "-v %s" %timeRange[0]
+            mayaExp_fbx["FBXExportBakeComplexEnd"] = "-v %s" %timeRange[1]
+
+        for item in mayaExp_fbx.items():
+            # TODO : Test with more versions of Maya
+            mel.eval('%s %s'%(item[0], item[1]))
 
         try:
-            cmds.file(filePath, force=True, op=opFlag, typ="FBX export", pr=True, es=exportSelected, ea=not exportSelected, pmt=False)
+            compFilePath = filePath.replace("\\", "//")  ## for compatibility with mel syntax.
+            cmd = ('FBXExport -f "{0}"{1};'.format(compFilePath, expSelectedFlag))
+            mel.eval(cmd)
             return True
         except:
-            msg = "Cannot export FBX for unknown reason. Skipping FBX export"
+            msg = "Cannot export FBX for unknown reason. Skipping"
             cmds.confirmDialog(title='Unknown Error', message=msg)
             return False
+
+        # opFlag = ""
+        # for item in mayaExp_fbx.items():
+        #     if type(item[1]) == bool:
+        #         opFlag += "%s=%s; " % (item[0], int(item[1]))
+        #     elif type(item[1]) == str:
+        #         opFlag += "%s='%s'; " % (item[0], item[1])
+        #     else:
+        #         opFlag += "%s=%s; " % (item[0], item[1])
+        # opFlag = opFlag[:-2]
+        #
+        # try:
+        #     cmds.file(filePath, force=True, op=opFlag, typ="FBX export", pr=True, es=exportSelected, ea=not exportSelected, pmt=False)
+        #     return True
+        # except:
+        #     msg = "Cannot export FBX for unknown reason. Skipping FBX export"
+        #     cmds.confirmDialog(title='Unknown Error', message=msg)
+        #     return False
 
     def _getSceneFile(self):
         s_path = cmds.file(q=True, sn=True)

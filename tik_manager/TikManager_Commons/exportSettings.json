@@ -1,5 +1,5 @@
 {
-    "objExport": {
+    "objExportMax": {
         "ObjScale": "1.0", 
         "Target": "0", 
         "TextureCoords": "1", 
@@ -14,8 +14,15 @@
         "RelativeIndex": "0", 
         "optTextureCoords": "0", 
         "ExportHiddenObjects": "0"
-    }, 
-    "fbxExport": {
+    },
+    "objExportMaya": {
+        "groups": "1",
+        "ptgroups": "1",
+        "materials": "1",
+        "smoothing": "1",
+        "normals": "1"
+    },
+    "fbxExportMax": {
         "BakeFrameStart": 0, 
         "BakeFrameEnd": 100, 
         "ColladaTriangulate": false, 
@@ -50,8 +57,41 @@
         "NormalsPerPoly": true, 
         "ASCII": false, 
         "BakeResampleAnimation": false
-    }, 
-    "alembicExport": {
+    },
+    "fbxExportMaya": {
+        "FBXExportAnimationOnly": "-v false",
+        "FBXExportApplyConstantKeyReducer": "-v false",
+        "FBXExportAxisConversionMethod": "convertAnimation",
+        "FBXExportBakeComplexAnimation": "-v true",
+        "FBXExportBakeComplexEnd": "-v 10",
+        "FBXExportBakeComplexStart": "-v 1",
+        "FBXExportBakeComplexStep": "-v 1",
+        "FBXExportBakeResampleAnimation": "-v true",
+        "FBXExportCacheFile": "-v true",
+        "FBXExportCameras": "-v true",
+        "FBXExportConstraints": "-v true",
+        "FBXExportConvertUnitString": "In",
+        "FBXExportEmbeddedTextures": "-v true",
+        "FBXExportFileVersion": "-v FBX201400",
+        "FBXExportHardEdges": "-v true",
+        "FBXExportInAscii": "-v false",
+        "FBXExportInputConnections": "-v true",
+        "FBXExportInstances": "-v false",
+        "FBXExportLights": "-v true",
+        "FBXExportQuaternion": "-v resample",
+        "FBXExportReferencedAssetsContent": "-v true",
+        "FBXExportScaleFactor": "1.0",
+        "FBXExportShapes": "-v true",
+        "FBXExportSkeletonDefinitions": "-v false",
+        "FBXExportSkins": "-v true",
+        "FBXExportSmoothingGroups": "-v true",
+        "FBXExportSmoothMesh": "-v true",
+        "FBXExportTangents": "-v false",
+        "FBXExportTriangulate": "-v false",
+        "FBXExportUpAxis": "y",
+        "FBXExportUseSceneName": "-v false"
+    },
+    "alembicExportMax": {
         "UVs": true, 
         "LayerName": true, 
         "ObjectID": true, 
@@ -71,6 +111,28 @@
         "ExtraChannels": true, 
         "MaterialName": true, 
         "SamplesPerFrame": 1, 
+        "ShapeSuffix": false
+    },
+    "alembicExportMaya": {
+        "UVs": true,
+        "LayerName": true,
+        "ObjectID": true,
+        "EndFrame": 10,
+        "ParticleAsMesh": true,
+        "Visibility": true,
+        "CoordinateSystem": "YUp",
+        "AnimTimeRange": "CurrentFrame",
+        "Velocity": true,
+        "ArchiveType": "Ogawa",
+        "CustomAttributes": true,
+        "MaterialIDs": true,
+        "VertexColors": true,
+        "Normals": true,
+        "StartFrame": 1,
+        "Hidden": false,
+        "ExtraChannels": true,
+        "MaterialName": true,
+        "SamplesPerFrame": 1,
         "ShapeSuffix": false
     }
 }

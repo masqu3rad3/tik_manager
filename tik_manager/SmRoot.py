@@ -972,7 +972,7 @@ class RootManager(object):
 
 
         if isObj:
-            objSettings = exportSettings["objExport"]
+            objSettings = exportSettings
             objDir = os.path.join(self._pathsDict["transferDir"],"OBJ", subFolders)
             self._folderCheck(objDir)
             objFilePath = os.path.join(objDir,"%s.obj" %baseName)
@@ -990,11 +990,11 @@ class RootManager(object):
 
 
         if isAlembic:
-            alembicSettings = exportSettings["alembicExport"]
+            alembicSettings = exportSettings
             # edit in - out
-            alembicSettings["AnimTimeRange"] = "StartEnd"
-            alembicSettings["StartFrame"] = timeRange[0]
-            alembicSettings["EndFrame"] = timeRange[1]
+            # alembicSettings["AnimTimeRange"] = "StartEnd"
+            # alembicSettings["StartFrame"] = timeRange[0]
+            # alembicSettings["EndFrame"] = timeRange[1]
 
 
             alembicDir = os.path.join(self._pathsDict["transferDir"],"ALEMBIC", subFolders)
@@ -1008,18 +1008,18 @@ class RootManager(object):
                 if not self._question(header=header, msg=msg, title=title):
                     pass
                 else:
-                    self._exportAlembic(alembicFilePath, exportSettings=alembicSettings, exportSelected=isSelection)
+                    self._exportAlembic(alembicFilePath, exportSettings=alembicSettings, exportSelected=isSelection, timeRange=timeRange)
             else:
-                self._exportAlembic(alembicFilePath, exportSettings=alembicSettings, exportSelected=isSelection)
+                self._exportAlembic(alembicFilePath, exportSettings=alembicSettings, exportSelected=isSelection, timeRange=timeRange)
 
         if isFbx:
-            fbxSettings = exportSettings["fbxExport"]
-            if timeRange[0] is not timeRange[1]:
-                fbxSettings["Animation"]=True
-                fbxSettings["BakeFrameStart"]=timeRange[0]
-                fbxSettings["BakeFrameEnd"]=timeRange[1]
-            else:
-                fbxSettings["Animation"] = False
+            fbxSettings = exportSettings
+            # if timeRange[0] is not timeRange[1]:
+            #     fbxSettings["Animation"]=True
+            #     fbxSettings["BakeFrameStart"]=timeRange[0]
+            #     fbxSettings["BakeFrameEnd"]=timeRange[1]
+            # else:
+            #     fbxSettings["Animation"] = False
 
             fbxDir = os.path.join(self._pathsDict["transferDir"],"FBX", subFolders)
             self._folderCheck(fbxDir)
@@ -1032,9 +1032,9 @@ class RootManager(object):
                 if not self._question(header=header, msg=msg, title=title):
                     pass
                 else:
-                    self._exportFbx(fbxFilePath, exportSettings=fbxSettings, exportSelected=isSelection)
+                    self._exportFbx(fbxFilePath, exportSettings=fbxSettings, exportSelected=isSelection, timeRange=timeRange)
             else:
-                self._exportFbx(fbxFilePath, exportSettings=fbxSettings, exportSelected=isSelection)
+                self._exportFbx(fbxFilePath, exportSettings=fbxSettings, exportSelected=isSelection, timeRange=timeRange)
 
         return True
 
@@ -1043,13 +1043,13 @@ class RootManager(object):
         extension = os.path.splitext(itemAbsPath)[1]
 
         if extension == ".obj":
-            objSettings = importSettings["objImport"]
+            objSettings = importSettings
             self._importObj(itemAbsPath, objSettings)
         elif extension == ".fbx":
-            fbxSettings = importSettings["fbxImport"]
+            fbxSettings = importSettings
             self._importFbx(itemAbsPath, fbxSettings)
         elif extension == ".abc":
-            alembicSettings = importSettings["alembicImport"]
+            alembicSettings = importSettings
             self._importAlembic(itemAbsPath, alembicSettings)
         else:
             self._info("Format is not supported")
