@@ -130,7 +130,6 @@ class MaxCoreFunctions(object):
             rt.messageBox(msg, title='Info')
             return False
 
-
     def _importAlembic(self, filePath, importSettings, *args, **kwargs):
         # Set Alembic Options according to the Max Version:
         v = rt.maxVersion()[0]
@@ -145,7 +144,8 @@ class MaxCoreFunctions(object):
                     rt.AlembicImport.ImportToRoot = maxImp_abc["ImportToRoot"]
                     rt.AlembicImport.FitTimeRange = maxImp_abc["FitTimeRange"]
                     rt.AlembicImport.SetStartTime = maxImp_abc["SetStartTime"]
-                    # rt.AlembicExport.StepFrameTime = exportSettings["StepFrameTime"]
+                    rt.AlembicExport.StepFrameTime = maxImp_abc["SamplesPerFrame"]
+
 
                 elif v >= 21000:  # version 2019 and up
                     rt.AlembicImport.CoordinateSystem = rt.Name(maxImp_abc["CoordinateSystem"])
@@ -213,7 +213,7 @@ class MaxCoreFunctions(object):
             rt.setINISetting(iniPath_exportSettings, "Geometry", "FlipZyAxis", maxExp_obj["FlipZyAxis"])
             rt.setINISetting(iniPath_exportSettings, "Geometry", "Shapes", maxExp_obj["Shapes"])
             rt.setINISetting(iniPath_exportSettings, "Geometry", "ExportHiddenObjects",
-                             exportSettings["ExportHiddenObjects"])
+                             maxExp_obj["ExportHiddenObjects"])
             rt.setINISetting(iniPath_exportSettings, "Geometry", "FaceType", maxExp_obj["FaceType"])
             rt.setINISetting(iniPath_exportSettings, "Geometry", "TextureCoords", maxExp_obj["TextureCoords"])
             rt.setINISetting(iniPath_exportSettings, "Geometry", "Normals", maxExp_obj["Normals"])
@@ -242,7 +242,7 @@ class MaxCoreFunctions(object):
             rt.messageBox(msg, title='Info')
             return False
 
-    def _exportAlembic(self, filePath, exportSettings, exportSelected=True):
+    def _exportAlembic(self, filePath, exportSettings, exportSelected=True, timeRange=[0,10]):
         """
         Exports Alembic (.abc) file
         Args:
@@ -257,6 +257,13 @@ class MaxCoreFunctions(object):
         v = rt.maxVersion()[0]
         maxExp_abc = exportSettings["alembicExportMax"]
 
+        # override animation related settings
+        maxExp_abc["AnimTimeRange"] = "StartEnd"
+        maxExp_abc["StartFrame"] = timeRange[0]
+        maxExp_abc["EndFrame"] = timeRange[1]
+
+
+
         if v > 17000:  # Alembic export is not supported before 3ds Max 2016
             if rt.pluginManager.loadclass(rt.Alembic_Export):
                 if 18000 <= v < 21000:  # between versions 2016 - 2018
@@ -265,13 +272,15 @@ class MaxCoreFunctions(object):
                     rt.AlembicExport.ParticleAsMesh = maxExp_abc["ParticleAsMesh"]
                     rt.AlembicExport.CacheTimeRange = rt.Name(maxExp_abc["AnimTimeRange"])
                     rt.AlembicExport.ShapeName = maxExp_abc["ShapeSuffix"]
-                    # rt.AlembicExport.StepFrameTime = exportSettings["StepFrameTime"]
+                    rt.AlembicExport.StepFrameTime = maxExp_abc["SamplesPerFrame"]
+                    rt.AlembicExport.AnimTimeRange = maxExp_abc["AnimTimeRange"]
+                    rt.AlembicExport.StartFrame = maxExp_abc["StartFrame"]
+                    rt.AlembicExport.EndFrame = maxExp_abc["EndFrame"]
 
                 elif v >= 21000:  # version 2019 and up
                     rt.AlembicExport.CoordinateSystem = rt.Name(maxExp_abc["CoordinateSystem"])
                     rt.AlembicExport.ArchiveType = rt.Name(maxExp_abc["ArchiveType"])
                     rt.AlembicExport.ParticleAsMesh = maxExp_abc["ParticleAsMesh"]
-                    rt.AlembicExport.AnimTimeRange = rt.Name(maxExp_abc["AnimTimeRange"])
                     rt.AlembicExport.ShapeSuffix = maxExp_abc["ShapeSuffix"]
                     rt.AlembicExport.SamplesPerFrame = maxExp_abc["SamplesPerFrame"]
                     rt.AlembicExport.Hidden = maxExp_abc["Hidden"]
@@ -286,6 +295,9 @@ class MaxCoreFunctions(object):
                     rt.AlembicExport.MaterialName = maxExp_abc["MaterialName"]
                     rt.AlembicExport.ObjectID = maxExp_abc["ObjectID"]
                     rt.AlembicExport.CustomAttributes = maxExp_abc["CustomAttributes"]
+                    rt.AlembicExport.AnimTimeRange = maxExp_abc["AnimTimeRange"]
+                    rt.AlembicExport.StartFrame = maxExp_abc["StartFrame"]
+                    rt.AlembicExport.EndFrame = maxExp_abc["EndFrame"]
 
                 # Export
                 rt.exportFile(filePath, rt.Name("NoPrompt"), selectedOnly=exportSelected,
@@ -411,10 +423,11 @@ class MaxManager(RootManager, MaxCoreFunctions):
     def getSceneFile(self):
         """Overriden function"""
         # Gets the current scene path ("" if untitled)
-        logger.debug("GETSCENEFILE")
-        s_path = fManager.GetFileNameAndPath()
-        norm_s_path = os.path.normpath(s_path)
-        return norm_s_path
+        # logger.debug("GETSCENEFILE")
+        # s_path = fManager.GetFileNameAndPath()
+        # norm_s_path = os.path.normpath(s_path)
+        # return norm_s_path
+        self._getSceneFile()
 
     def setProject(self, path):
         """Sets the project"""
@@ -505,7 +518,8 @@ class MaxManager(RootManager, MaxCoreFunctions):
         ## relativity update
         relSceneFile = os.path.relpath(sceneFile, start=projectPath)
 
-        fManager.Save(sceneFile)
+        # fManager.Save(sceneFile)
+        self._saveAs(sceneFile)
 
         thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=version)
 
@@ -525,7 +539,7 @@ class MaxManager(RootManager, MaxCoreFunctions):
 
         # version serialization:
         # version, api, sdk = rt.maxversion()
-        versionInfo = rt.maxversion()
+        versionInfo = self._getVersion()
         # vInfo = [version, api, sdk]
         vInfo = [versionInfo[0], versionInfo[1], versionInfo[2]]
 
@@ -604,7 +618,8 @@ class MaxManager(RootManager, MaxCoreFunctions):
 
             # killTurtle()
             # TODO // cmds?
-            fManager.Save(sceneFile)
+            # fManager.Save(sceneFile)
+            self._saveAs(sceneFile)
 
             thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=currentVersion)
 
@@ -782,8 +797,9 @@ class MaxManager(RootManager, MaxCoreFunctions):
         relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"]
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
-            fManager.Open(absSceneFile)
-            # cmds.file(absSceneFile, o=True, force=force)
+            # fManager.Open(absSceneFile)
+            self._load(absSceneFile)
+
             return 0
         else:
             msg = "File in Scene Manager database doesnt exist"
@@ -796,7 +812,8 @@ class MaxManager(RootManager, MaxCoreFunctions):
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
             # fManager.Merge(absSceneFile, mergeAll=True, selectMerged=True)
-            fManager.Merge(absSceneFile)
+            # fManager.Merge(absSceneFile)
+            self._import(absSceneFile)
             # cmds.file(absSceneFile, i=True)
             return 0
         else:
@@ -815,8 +832,9 @@ class MaxManager(RootManager, MaxCoreFunctions):
             referenceFile = os.path.join(projectPath, relReferenceFile)
 
             # software specific
-            Xrefobjs = rt.getMAXFileObjectNames(referenceFile)
-            rt.xrefs.addNewXRefObject(referenceFile, Xrefobjs)
+            # Xrefobjs = rt.getMAXFileObjectNames(referenceFile)
+            # rt.xrefs.addNewXRefObject(referenceFile, Xrefobjs)
+            self._reference(referenceFile)
             try:
                 ranges = self._currentSceneInfo["Versions"][self._currentSceneInfo["ReferencedVersion"]-1]["Ranges"]
                 q = self._question("Do You want to set the Time ranges same with the reference?")
@@ -973,7 +991,8 @@ class MaxManager(RootManager, MaxCoreFunctions):
 
     def saveSimple(self):
         """Save the currently open file"""
-        fManager.Save()
+        # fManager.Save()
+        self._save()
 
     def getFormatsAndCodecs(self):
         """Returns the codecs which can be used in current workstation"""

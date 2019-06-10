@@ -83,15 +83,36 @@ class MayaCoreFunctions(object):
         cmds.file(filePath, i=True)
 
     def _importObj(self, filePath, importSettings, *args, **kwargs):
-        cmds.file(filePath, i=True)
+        mayaImp_obj = importSettings["objImportMaya"]
+        if not cmds.pluginInfo('objImport', l=True, q=True):
+            try:
+                cmds.loadPlugin('objImport')
+            except:
+                msg = "Wavefront(Obj) Import Plugin cannot be initialized. Skipping"
+                cmds.confirmDialog(title='Plugin Error', message=msg)
+                return False
+
+        opFlag = ""
+        for item in mayaImp_obj.items():
+            opFlag = "%s %s" %(opFlag, item[1])
+
+        cmds.file(filePath, i=True, op=opFlag)
 
     def _importAlembic(self, filePath, importSettings, *args, **kwargs):
-        cmds.AbcImport(filePath)
+        mayaImp_alembic = importSettings["alembicImportMaya"]
+
+        if not cmds.pluginInfo('AbcImport.mll', l=True, q=True):
+            try:
+                cmds.loadPlugin('AbcImport.mll')
+            except:
+                msg = "Alembic Import Plugin cannot be initialized. Skipping"
+                cmds.confirmDialog(title='Plugin Error', message=msg)
+                return False
+
+        cmds.AbcImport(filePath, ftr=mayaImp_alembic["fitTimeRange"], sts=mayaImp_alembic["setToStartFrame"])
 
     def _importFbx(self, filePath, importSettings, *args, **kwargs):
-
         mayaImp_fbx = importSettings["fbxImportMaya"]
-
         if not cmds.pluginInfo('fbxmaya', l=True, q=True):
             try:
                 cmds.loadPlugin('fbxmaya')
@@ -102,7 +123,7 @@ class MayaCoreFunctions(object):
 
         for item in mayaImp_fbx.items():
             # TODO : Test with more versions of Maya
-            mel.eval('%s %s'%(item[0], item[1]))
+            mel.eval('%s %s' % (item[0], item[1]))
 
         try:
             compFilePath = filePath.replace("\\", "//")  ## for compatibility with mel syntax.
@@ -142,7 +163,8 @@ class MayaCoreFunctions(object):
             mayaExp_obj["normals"]
         )
         try:
-            cmds.file(os.path.splitext(filePath)[0], pr=True, force=True, typ="OBJexport", es=exportSelected, ea=not exportSelected, op=opFlag)
+            cmds.file(os.path.splitext(filePath)[0], pr=True, force=True, typ="OBJexport", es=exportSelected,
+                      ea=not exportSelected, op=opFlag)
             return True
         except:
             msg = "Cannot export OBJ for unknown reason. Skipping OBJ export"
@@ -170,36 +192,53 @@ class MayaCoreFunctions(object):
                 cmds.confirmDialog(title='Plugin Error', message=msg)
                 return False
 
+        root = ""
         if exportSelected:
-            root = ""
             selection = cmds.ls(sl=True)
             for x in selection:
                 root = "%s-root %s " % (root, x)
             root = root[:-1]
-        else:
-            root = ""
 
-        file = "-file %s" % filePath
-        dataFormat = "-dataFormat '%s'" % mayaExp_alembic["ArchiveType"]
-        frameRange = "-frameRange %s %s" % (mayaExp_alembic["StartFrame"], mayaExp_alembic["EndFrame"])
-        noNormal = "" if mayaExp_alembic["Normals"] else "-noNormals"
-        renderableOnly = "" if mayaExp_alembic["Hidden"] else "-renderableOnly"
-        step = "-step %s" % float(mayaExp_alembic["SamplesPerFrame"])
-        # selection = "-selection" if exportSelected else ""
-        selection = ""
-        uv = "-uvWrite" if mayaExp_alembic["UVs"] else ""
-        visibility = "-writeVisibility" if mayaExp_alembic["Visibility"] else ""
 
-        command = "{0} {1} {2} {3} {4} {5} {6} {7} {8} {9}".format(file,
-                                                               dataFormat,
-                                                               frameRange,
-                                                               noNormal,
-                                                               renderableOnly,
-                                                               step,
-                                                               selection,
-                                                               uv,
-                                                               visibility,
-                                                               root)
+        # edit in - out
+        mayaExp_alembic["frameRange"] = "%s %s" %(timeRange[0], timeRange[1])
+        # mayaExp_alembic["StartFrame"] = timeRange[0]
+        # mayaExp_alembic["EndFrame"] = timeRange[1]
+
+        flags = ""
+        for item in mayaExp_alembic.items():
+            if type(item[1]) != bool:
+                flags = "%s-%s %s " % (flags, item[0], item[1])
+            else:
+                if item[1]: # if flag is true:
+                    flags = "%s-%s " %(flags, item[0])
+                else:
+                    pass
+        flags = flags[:-1]
+
+        command = "-file {0} {1} {2}".format(filePath, flags, root)
+
+        # file = "-file %s" % filePath
+        # dataFormat = "-dataFormat '%s'" % mayaExp_alembic["ArchiveType"]
+        # frameRange = "-frameRange %s %s" % (mayaExp_alembic["StartFrame"], mayaExp_alembic["EndFrame"])
+        # noNormal = "" if mayaExp_alembic["Normals"] else "-noNormals"
+        # renderableOnly = "" if mayaExp_alembic["Hidden"] else "-renderableOnly"
+        # step = "-step %s" % float(mayaExp_alembic["SamplesPerFrame"])
+        # # selection = "-selection" if exportSelected else ""
+        # selection = ""
+        # uv = "-uvWrite" if mayaExp_alembic["UVs"] else ""
+        # visibility = "-writeVisibility" if mayaExp_alembic["Visibility"] else ""
+        #
+        # command = "{0} {1} {2} {3} {4} {5} {6} {7} {8} {9}".format(file,
+        #                                                        dataFormat,
+        #                                                        frameRange,
+        #                                                        noNormal,
+        #                                                        renderableOnly,
+        #                                                        step,
+        #                                                        selection,
+        #                                                        uv,
+        #                                                        visibility,
+        #                                                        root)
         try:
             cmds.AbcExport(j=command)
             return True
@@ -236,6 +275,8 @@ class MayaCoreFunctions(object):
         if timeRange[0] != timeRange[1]:
             mayaExp_fbx["FBXExportBakeComplexStart"] = "-v %s" %timeRange[0]
             mayaExp_fbx["FBXExportBakeComplexEnd"] = "-v %s" %timeRange[1]
+        else:
+            mayaExp_fbx["FBXExportBakeComplexAnimation"] = "-v false"
 
         for item in mayaExp_fbx.items():
             # TODO : Test with more versions of Maya
@@ -1057,13 +1098,13 @@ class MayaManager(RootManager, MayaCoreFunctions):
 
         return checklist
 
-    def _exception(self, code, msg):
+    def _exception(self, code, msg, *args, **kwargs):
         """OVERRIDEN METHOD"""
         cmds.confirmDialog(title=self.errorCodeDict[code], message=msg, button=['Ok'])
         if (200 >= code < 210):
             raise Exception(code, msg)
 
-    def _question(self, msg):
+    def _question(self, msg, *args, **kwargs):
         """OVERRIDEN METHOD"""
         state = cmds.confirmDialog( title='Manager Question', message=msg, button=['Yes','No'], defaultButton='Yes', cancelButton='No', dismissString='No' )
         if state == "Yes":
@@ -1071,7 +1112,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
         else:
             return False
 
-    def _info(self, msg):
+    def _info(self, msg, *args, **kwargs):
         """OVERRIDEN METHOD"""
         cmds.confirmDialog(title='Info', message=msg)
 

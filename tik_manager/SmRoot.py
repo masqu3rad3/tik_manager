@@ -978,10 +978,10 @@ class RootManager(object):
             objFilePath = os.path.join(objDir,"%s.obj" %baseName)
 
             if os.path.isfile(objFilePath):
-                header = "The following file will be overwritten if you continue:\n %s" % (os.path.basename(objFilePath))
-                msg = "Choose Yes to overwrite file and continue"
+                msg = "The following file will be overwritten if you continue:\n %s\nChoose Yes to overwrite file and continue" % (
+                    os.path.basename(objFilePath))
                 title = "Are you Sure?"
-                if not self._question(header=header, msg=msg, title=title):
+                if not self._question(msg=msg, title=title):
                     pass
                 else:
                     self._exportObj(objFilePath, exportSettings=objSettings, exportSelected=isSelection)
@@ -1001,11 +1001,10 @@ class RootManager(object):
             self._folderCheck(alembicDir)
             alembicFilePath = os.path.join(alembicDir,"%s.abc" %baseName)
             if os.path.isfile(alembicFilePath):
-                header = "The following file will be overwritten if you continue:\n %s" % (
+                msg = "The following file will be overwritten if you continue:\n %s\nChoose Yes to overwrite file and continue" % (
                     os.path.basename(alembicFilePath))
-                msg = "Choose Yes to overwrite file and continue"
                 title = "Are you Sure?"
-                if not self._question(header=header, msg=msg, title=title):
+                if not self._question(msg=msg, title=title):
                     pass
                 else:
                     self._exportAlembic(alembicFilePath, exportSettings=alembicSettings, exportSelected=isSelection, timeRange=timeRange)
@@ -1025,11 +1024,10 @@ class RootManager(object):
             self._folderCheck(fbxDir)
             fbxFilePath = os.path.join(fbxDir,"%s.fbx" %baseName)
             if os.path.isfile(fbxFilePath):
-                header = "The following file will be overwritten if you continue:\n %s" % (
+                msg = "The following file will be overwritten if you continue:\n %s\nChoose Yes to overwrite file and continue" % (
                     os.path.basename(fbxFilePath))
-                msg = "Choose Yes to overwrite file and continue"
                 title = "Are you Sure?"
-                if not self._question(header=header, msg=msg, title=title):
+                if not self._question(msg=msg, title=title):
                     pass
                 else:
                     self._exportFbx(fbxFilePath, exportSettings=fbxSettings, exportSelected=isSelection, timeRange=timeRange)

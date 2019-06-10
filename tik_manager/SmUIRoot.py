@@ -1683,7 +1683,7 @@ class MainUI(QtWidgets.QMainWindow):
             elif customRange_radioButton.isChecked():
                 timeRange = [frameStart_doubleSpinBox.value(), frameEnd_doubleSpinBox.value()]
             else:
-                timeRange = [self.manager._getCurrentFrame(), self.manager_getCurrentFrame()]
+                timeRange = [self.manager._getCurrentFrame(), self.manager._getCurrentFrame()]
 
             name = customName_lineEdit.text()
 
