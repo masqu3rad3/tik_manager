@@ -22,6 +22,13 @@
         "smoothing": "1",
         "normals": "1"
     },
+    "objExportHoudini": {
+        "groups": "1",
+        "ptgroups": "1",
+        "materials": "1",
+        "smoothing": "1",
+        "normals": "1"
+    },
     "fbxExportMax": {
         "BakeFrameStart": 0, 
         "BakeFrameEnd": 100, 
