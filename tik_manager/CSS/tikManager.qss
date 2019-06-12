@@ -527,6 +527,7 @@ color: #414141;
 }
 
 QTreeView,
+QTreeWidget,
 QListView,
 QTableView,
 QColumnView {

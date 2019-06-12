@@ -914,7 +914,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.lookIn_lineEdit = QtWidgets.QLineEdit(self.setProject_Dialog)
         self.lookIn_lineEdit.setText((""))
         self.lookIn_lineEdit.setPlaceholderText((""))
-        self.lookIn_lineEdit.setStyleSheet("background-color: rgb(80,80,80); color: white")
+        # self.lookIn_lineEdit.setStyleSheet("background-color: rgb(80,80,80); color: white")
 
 
         M1_horizontalLayout.addWidget(self.lookIn_lineEdit)
@@ -982,7 +982,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.folders_treeView.setItemsExpandable(False)
         self.folders_treeView.setRootIsDecorated(False)
         self.folders_treeView.setSortingEnabled(True)
-        self.folders_treeView.setStyleSheet("background-color: rgb(80,80,80); color: white")
+        # self.folders_treeView.setStyleSheet("background-color: rgb(80,80,80); color: white")
 
         verticalLayoutWidget = QtWidgets.QWidget(M2_splitter)
 
@@ -1006,9 +1006,9 @@ class MainUI(QtWidgets.QMainWindow):
         M2_S2_verticalLayout.addWidget(favorites_label)
 
         self.favorites_listWidget = DropListWidget(verticalLayoutWidget)
-        # self.favorites_listWidget.setAlternatingRowColors(True)
+        self.favorites_listWidget.setAlternatingRowColors(True)
         self.favorites_listWidget.setObjectName(("favorites_listWidget"))
-        self.favorites_listWidget.setStyleSheet("background-color: rgb(80,80,80); color: white")
+        # self.favorites_listWidget.setStyleSheet("background-color: rgb(80,80,80); color: white")
 
         M2_S2_verticalLayout.addWidget(self.favorites_listWidget)
         M2_S2_horizontalLayout = QtWidgets.QHBoxLayout()
