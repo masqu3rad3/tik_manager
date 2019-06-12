@@ -772,8 +772,7 @@ class MainUI(baseUI):
         self.export_pushButton.setText("Export Texture")
         self.export_pushButton.clicked.connect(self.exportSourceUI)
 
-
-        self.mIconPixmap = QtWidgets.QPixmap(os.path.join(self.manager._pathsDict["generalSettingsDir"], "icons", "iconPS.png"))
+        self.mIconPixmap = QtWidgets.QPixmap(os.path.join(self.manager._pathsDict["iconsDir"], "iconPS.png"))
         self.managerIcon_label.setPixmap(self.mIconPixmap)
         #
         # self.baseScene_label.setVisible(False)

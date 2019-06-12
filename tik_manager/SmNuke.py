@@ -606,5 +606,5 @@ class MainUI(baseUI):
         # idk why this became necessary for nuke..
         self.category_tabWidget.setMaximumSize(QtCore.QSize(16777215, 30))
 
-        self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager._pathsDict["generalSettingsDir"], "icons", "iconNuke.png"))
+        self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager._pathsDict["iconsDir"], "iconNuke.png"))
         self.managerIcon_label.setPixmap(self.mIconPixmap)

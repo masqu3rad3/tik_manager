@@ -111,32 +111,15 @@ except ImportError:
 
 import webbrowser
 
-# PyInstaller and Standalone version compatibility
-# FORCE_QT4 = bool(int(os.getenv("FORCE_QT4")))
-
-# Somehow Pyinstaller is not working with Qt.py module. Following lines forces to use PyQt4
-# instead of Qt module to make it compatible with PyInstaller.
-# if FORCE_QT4:
-#     from PyQt4 import QtCore, Qt
-#     from PyQt4 import QtGui as QtWidgets
-# else:
-#     import Qt
-#     from Qt import QtWidgets, QtCore, QtGui
+import iconsSource as icons
 
 import pprint
 
 import ImageViewer
 reload(ImageViewer)
 
-# from tik_manager.CSS import darkorange
-# reload(darkorange)
 import logging
 
-# import Qt
-# from Qt import QtWidgets, QtCore, QtGui
-
-
-# from PyQt4 import QtWidgets, QtCore, QtGui, Qt
 
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Tik Manager UI Boilerplate"
@@ -193,30 +176,15 @@ class MainUI(QtWidgets.QMainWindow):
                 pass
         parent = getMainWindow()
         super(MainUI, self).__init__(parent=parent)
-        # self.manager = MayaManager()
-        # problem, msg = self.manager._checkRequirements()
-        # if problem:
-        #     q = QtWidgets.QMessageBox()
-        #     q.setIcon(QtWidgets.QMessageBox.Information)
-        #     q.setText(msg[0])
-        #     q.setInformativeText(msg[1])
-        #     q.setWindowTitle(msg[2])
-        #     q.setStandardButtons(QtWidgets.QMessageBox.Ok)
-        #
-        #     ret = q.exec_()
-        #     if ret == QtWidgets.QMessageBox.Ok:
-        #         self.close()
-        #         self.deleteLater()
+
 
         # Set Stylesheet
         dirname = os.path.dirname(os.path.abspath(__file__))
-        stylesheetFile = os.path.join(dirname, "CSS", "darkorange.stylesheet")
-        # stylesheetFile = os.path.join(dirname, "CSS", BoilerDict["Stylesheet"])
+        # stylesheetFile = os.path.join(dirname, "CSS", "darkorange.stylesheet")
+        stylesheetFile = os.path.join(dirname, "CSS", "tikManager.qss")
 
         with open(stylesheetFile, "r") as fh:
             self.setStyleSheet(fh.read())
-        #
-        # self.setStyleSheet(darkorange.getStyleSheet())
 
 
         self.swColorDict = {"Maya": "rgb(81, 230, 247, 255)",
@@ -2826,6 +2794,7 @@ class MainUI(QtWidgets.QMainWindow):
         for format in BoilerDict["SceneFormats"]:
             radioButton = QtWidgets.QRadioButton(verticalLayoutWidget_2)
             radioButton.setText(format)
+            radioButton.setMinimumSize(50,10)
             formats_horizontalLayout.addWidget(radioButton)
             radioButtonList.append(radioButton)
 
@@ -2863,7 +2832,7 @@ class MainUI(QtWidgets.QMainWindow):
         right_verticalLayout.addWidget(notes_label)
 
         notes_plainTextEdit = QtWidgets.QPlainTextEdit(verticalLayoutWidget)
-        notes_plainTextEdit.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        # notes_plainTextEdit.setFrameShape(QtWidgets.QFrame.StyledPanel)
         right_verticalLayout.addWidget(notes_plainTextEdit)
 
         horizontalLayout.addWidget(splitter)
@@ -3371,7 +3340,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         if self.load_radioButton.isChecked():
             self.loadScene_pushButton.setText("Load Scene")
-            self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: grey;")
+            self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: #242424;")
         else:
             self.loadScene_pushButton.setText("Reference Scene")
             self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: cyan;")

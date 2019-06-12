@@ -1249,8 +1249,10 @@ class MainUI(baseUI):
         self.modify()
 
     def modify(self):
-        self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager._pathsDict["generalSettingsDir"], "icons", "iconMaya.png"))
+        # self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager._pathsDict["generalSettingsDir"], "icons", "iconMaya.png"))
+        self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager._pathsDict["iconsDir"], "iconMaya.png"))
         self.managerIcon_label.setPixmap(self.mIconPixmap)
+        # idk why this became necessary for houdini..
 
     def closeEvent(self, event):
         if self.isCallback:

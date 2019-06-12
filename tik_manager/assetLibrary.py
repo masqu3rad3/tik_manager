@@ -67,7 +67,7 @@ import _version
 BoilerDict = {"Environment": "Standalone",
               "MainWindow": None,
               "WindowTitle": "Asset Library Standalone v%s" % _version.__version__,
-              "Stylesheet": "mayaDark.stylesheet"}
+              }
 
 FORCE_QT4 = False
 
@@ -455,14 +455,16 @@ class MainUI(QtWidgets.QMainWindow):
         super(MainUI, self).__init__(parent=parent)
 
         if BoilerDict["Environment"]=="Standalone" or\
-                BoilerDict["Environment"]=="Houdini" or \
                 BoilerDict["Environment"] == "Nuke":
             self.viewOnly = True
         else:
             self.viewOnly = False
         # Set Stylesheet
         dirname = os.path.dirname(os.path.abspath(__file__))
-        # stylesheetFile = os.path.join(dirname, "CSS", "darkorange.stylesheet")
+        stylesheetFile = os.path.join(dirname, "CSS", "tikManager.qss")
+
+        with open(stylesheetFile, "r") as fh:
+            self.setStyleSheet(fh.read())
 
         self.homedir = os.path.expanduser("~")
         self.DocumentsDir = "Documents" if BoilerDict["Environment"] == "Standalone"\
@@ -1421,7 +1423,7 @@ class LibraryTab(QtWidgets.QWidget):
 
         else:
             self.assets_listWidget.setViewMode(QtWidgets.QListWidget.ListMode)
-            self.assets_listWidget.setGridSize(QtCore.QSize(15,15))
+            self.assets_listWidget.setGridSize(QtCore.QSize(20,20))
             self.assets_listWidget.addItems(self.filterList(self.library.assetsList, filterWord))
 
     def onCreateNewAsset(self):
@@ -1830,7 +1832,7 @@ if __name__ == '__main__':
     os.environ["FORCE_QT4"] = "1"
     app = QtWidgets.QApplication(sys.argv)
     selfLoc = os.path.dirname(os.path.abspath(__file__))
-    stylesheetFile = os.path.join(selfLoc, "CSS", "darkorange.stylesheet")
+    stylesheetFile = os.path.join(selfLoc, "CSS", "tikManager.qss")
     if os.path.isfile(stylesheetFile):
         with open(stylesheetFile, "r") as fh:
             app.setStyleSheet(fh.read())

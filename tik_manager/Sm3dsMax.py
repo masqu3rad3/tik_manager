@@ -1069,7 +1069,7 @@ class MainUI(baseUI):
         self.scenes_rcItem_0.setText('Merge Scene')
 
     def modify(self):
-        self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager._pathsDict["generalSettingsDir"], "icons", "iconMax.png"))
+        self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager._pathsDict["iconsDir"], "iconMax.png"))
         self.managerIcon_label.setPixmap(self.mIconPixmap)
 
     def onModeChange(self):
@@ -1078,8 +1078,8 @@ class MainUI(baseUI):
 
         if self.load_radioButton.isChecked():
             self.loadScene_pushButton.setText("Load Scene")
-            # self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: grey;")
-            self.scenes_listWidget.setStyleSheet("background-color: rgb(100,100,100); border-style: solid; border-width: 2px; border-color: grey;")
+
+            self.scenes_listWidget.setStyleSheet("background-color: rgb(24,24,24); border-style: solid; border-width: 2px; border-color: grey;")
         else:
             self.loadScene_pushButton.setText("Reference Scene")
             # self.scenes_listWidget.setStyleSheet("background-color: rgb(100,100,100);")
