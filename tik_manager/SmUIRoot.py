@@ -1303,18 +1303,21 @@ class MainUI(QtWidgets.QMainWindow):
 
     def transferCentralUI(self):
 
+        try: self.transferCentral_Dialog.close()
+        except AttributeError: pass
+
         sceneInfo = self.manager.getOpenSceneInfo()
 
 
-        transferCentral_Dialog = QtWidgets.QDialog(parent=self)
-        transferCentral_Dialog.resize(460, 320)
-        transferCentral_Dialog.setWindowTitle(("Transfer Central"))
-        transferCentral_Dialog.setFocus()
-        transferCentral_Dialog.setModal(True)
+        self.transferCentral_Dialog = QtWidgets.QDialog(parent=self)
+        self.transferCentral_Dialog.resize(460, 320)
+        self.transferCentral_Dialog.setWindowTitle(("Transfer Central"))
+        self.transferCentral_Dialog.setFocus()
+        # transferCentral_Dialog.setModal(True)
 
-        tc_verticalLayout = QtWidgets.QVBoxLayout(transferCentral_Dialog)
+        tc_verticalLayout = QtWidgets.QVBoxLayout(self.transferCentral_Dialog)
 
-        tabWidget = QtWidgets.QTabWidget(transferCentral_Dialog)
+        tabWidget = QtWidgets.QTabWidget(self.transferCentral_Dialog)
         exportTab = QtWidgets.QWidget()
 
         exp_verticalLayout = QtWidgets.QVBoxLayout(exportTab)
@@ -1341,7 +1344,7 @@ class MainUI(QtWidgets.QMainWindow):
         customName_radioButton = QtWidgets.QRadioButton(exportTab)
         customName_radioButton.setText(("Custom"))
 
-        naming_buttonGroup = QtWidgets.QButtonGroup(transferCentral_Dialog)
+        naming_buttonGroup = QtWidgets.QButtonGroup(self.transferCentral_Dialog)
         naming_buttonGroup.addButton(autoName_radioButton)
         naming_buttonGroup.addButton(customName_radioButton)
         name_horizontalLayout.addWidget(autoName_radioButton)
@@ -1370,7 +1373,7 @@ class MainUI(QtWidgets.QMainWindow):
         scene_radioButton = QtWidgets.QRadioButton(exportTab)
         scene_radioButton.setText(("Scene"))
 
-        sel_buttonGroup = QtWidgets.QButtonGroup(transferCentral_Dialog)
+        sel_buttonGroup = QtWidgets.QButtonGroup(self.transferCentral_Dialog)
         sel_buttonGroup.addButton(selection_radioButton)
         selection_horizontalLayout.addWidget(selection_radioButton)
         sel_buttonGroup.addButton(scene_radioButton)
@@ -1417,7 +1420,7 @@ class MainUI(QtWidgets.QMainWindow):
         timeSlider_radioButton.setShortcut((""))
         timeSlider_radioButton.setChecked(True)
 
-        timerange_buttonGroup = QtWidgets.QButtonGroup(transferCentral_Dialog)
+        timerange_buttonGroup = QtWidgets.QButtonGroup(self.transferCentral_Dialog)
         timerange_buttonGroup.addButton(timeSlider_radioButton)
         timeRange_horizontalLayout1.addWidget(timeSlider_radioButton)
 
@@ -1483,7 +1486,7 @@ class MainUI(QtWidgets.QMainWindow):
         # useAssetLibrarySettings_radioButton.setText(("Use Asset Library Settings"))
         # useAssetLibrarySettings_radioButton.setChecked(False)
         #
-        # options_buttonGroup = QtWidgets.QButtonGroup(transferCentral_Dialog)
+        # options_buttonGroup = QtWidgets.QButtonGroup(self.transferCentral_Dialog)
         # options_buttonGroup.addButton(useAssetLibrarySettings_radioButton)
         # options_horizontalLayout.addWidget(useAssetLibrarySettings_radioButton)
         # openExportOptions_radioButton = QtWidgets.QRadioButton(exportTab)
@@ -1674,7 +1677,7 @@ class MainUI(QtWidgets.QMainWindow):
             if not sceneInfo:
                 self.infoPop(textTitle="Base Scene Not Saved",
                              textHeader="Current scene is not a Base Scene.\nBefore Exporting items, scene must be saved as Base Scene")
-                transferCentral_Dialog.close()
+                self.transferCentral_Dialog.close()
                 return
             # get time range:
             if timeSlider_radioButton.isChecked():
@@ -1719,7 +1722,7 @@ class MainUI(QtWidgets.QMainWindow):
         fbx_checkBox.toggled.connect(formatProof)
 
         export_pushButton.clicked.connect(executeExport)
-        cancel_pushButton.clicked.connect(transferCentral_Dialog.close)
+        cancel_pushButton.clicked.connect(self.transferCentral_Dialog.close)
 
         autoName_radioButton.toggled.connect(resolveName)
         autoName_radioButton.clicked.connect(resolveName)
@@ -1730,7 +1733,7 @@ class MainUI(QtWidgets.QMainWindow):
 
 
         # Import Signals
-        cancel_pushButton_2.clicked.connect(transferCentral_Dialog.close)
+        cancel_pushButton_2.clicked.connect(self.transferCentral_Dialog.close)
 
         tabWidget.currentChanged.connect(populateImports)
 
@@ -1739,7 +1742,7 @@ class MainUI(QtWidgets.QMainWindow):
         transfers_treeWidget.doubleClicked.connect(executeImport)
         import_pushButton.clicked.connect(executeImport)
 
-        transferCentral_Dialog.show()
+        self.transferCentral_Dialog.show()
 
 
     def filterDirectories(self):

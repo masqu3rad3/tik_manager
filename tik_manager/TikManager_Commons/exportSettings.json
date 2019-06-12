@@ -23,11 +23,7 @@
         "normals": "1"
     },
     "objExportHoudini": {
-        "groups": "1",
-        "ptgroups": "1",
-        "materials": "1",
-        "smoothing": "1",
-        "normals": "1"
+        "NONE": "NONE"
     },
     "fbxExportMax": {
         "BakeFrameStart": 0, 
@@ -98,6 +94,18 @@
         "FBXExportUpAxis": "y",
         "FBXExportUseSceneName": "-v false"
     },
+    "fbxExportHoudini": {
+        "sdkversion": "FBX | FBX201400",
+        "vcformat": "mayaformat",
+        "invisobj": "nullnodes",
+        "detectconstpointobjs": true,
+        "convertsurfaces": false,
+        "conservemem": false,
+        "deformsasvcs": false,
+        "forceblendshape": true,
+        "forceskindeform": true,
+        "exportendeffectors": true
+    },
     "alembicExportMax": {
         "UVs": true,
         "LayerName": true, 
@@ -138,5 +146,15 @@
         "writeUVSets": true,
         "dataFormat": "Ogawa",
         "frameRange": [1,10]
+    },
+    "alembicExportHoudini": {
+        "use_instancing": true,
+        "shape_nodes": true,
+        "save_attributes": true,
+        "facesets": "nonempty",
+        "motionBlur": false,
+        "samples": 2,
+        "shutter1": 0,
+        "shutter2": 1
     }
 }

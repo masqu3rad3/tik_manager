@@ -84,13 +84,13 @@ class MayaCoreFunctions(object):
 
     def _importObj(self, filePath, importSettings, *args, **kwargs):
         mayaImp_obj = importSettings["objImportMaya"]
-        if not cmds.pluginInfo('objImport', l=True, q=True):
-            try:
-                cmds.loadPlugin('objImport')
-            except:
-                msg = "Wavefront(Obj) Import Plugin cannot be initialized. Skipping"
-                cmds.confirmDialog(title='Plugin Error', message=msg)
-                return False
+        # if not cmds.pluginInfo('objImport', l=True, q=True):
+        #     try:
+        #         cmds.loadPlugin('objImport')
+        #     except:
+        #         msg = "Wavefront(Obj) Import Plugin cannot be initialized. Skipping"
+        #         cmds.confirmDialog(title='Plugin Error', message=msg)
+        #         return False
 
         opFlag = ""
         for item in mayaImp_obj.items():

@@ -977,11 +977,12 @@ class RootManager(object):
             self._folderCheck(objDir)
             objFilePath = os.path.join(objDir,"%s.obj" %baseName)
 
+            print "objFilePath", objFilePath
             if os.path.isfile(objFilePath):
                 msg = "The following file will be overwritten if you continue:\n %s\nChoose Yes to overwrite file and continue" % (
                     os.path.basename(objFilePath))
                 title = "Are you Sure?"
-                if not self._question(msg=msg, title=title):
+                if not self._question(msg=msg):
                     pass
                 else:
                     self._exportObj(objFilePath, exportSettings=objSettings, exportSelected=isSelection)
@@ -1004,7 +1005,7 @@ class RootManager(object):
                 msg = "The following file will be overwritten if you continue:\n %s\nChoose Yes to overwrite file and continue" % (
                     os.path.basename(alembicFilePath))
                 title = "Are you Sure?"
-                if not self._question(msg=msg, title=title):
+                if not self._question(msg=msg):
                     pass
                 else:
                     self._exportAlembic(alembicFilePath, exportSettings=alembicSettings, exportSelected=isSelection, timeRange=timeRange)
@@ -1027,7 +1028,7 @@ class RootManager(object):
                 msg = "The following file will be overwritten if you continue:\n %s\nChoose Yes to overwrite file and continue" % (
                     os.path.basename(fbxFilePath))
                 title = "Are you Sure?"
-                if not self._question(msg=msg, title=title):
+                if not self._question(msg=msg):
                     pass
                 else:
                     self._exportFbx(fbxFilePath, exportSettings=fbxSettings, exportSelected=isSelection, timeRange=timeRange)
