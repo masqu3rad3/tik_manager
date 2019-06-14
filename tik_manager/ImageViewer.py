@@ -102,6 +102,7 @@ except ImportError:
 import os
 import sys
 
+import iconsSource as icons
 
 
 # PyInstaller and Standalone version compatibility
@@ -1002,7 +1003,7 @@ if __name__ == '__main__':
     # os.environ["FORCE_QT4"] = "True"
     app = QtWidgets.QApplication(sys.argv)
     selfLoc = os.path.dirname(os.path.abspath(__file__))
-    stylesheetFile = os.path.join(selfLoc, "CSS", "darkorange.stylesheet")
+    stylesheetFile = os.path.join(selfLoc, "CSS", "tikManager.qss")
 
     with open(stylesheetFile, "r") as fh:
         app.setStyleSheet(fh.read())

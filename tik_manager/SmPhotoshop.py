@@ -91,12 +91,8 @@ class PsManager(RootManager):
     def getSoftwarePaths(self):
         """Overriden function"""
         logger.debug("Func: getSoftwarePaths")
-        self._pathsDict["generalSettingsDir"]
-        # softwareDatabaseFile = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "softwareDatabase.json"))
-        softwareDatabaseFile = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
+        softwareDatabaseFile = os.path.normpath(os.path.join(self.getSharedSettingsDir(), "softwareDatabase.json"))
 
-        # softwareDatabaseFile = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "softwareDatabase.json"))
-        # softwareDatabaseFile = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
         softwareDB = self._loadJson(softwareDatabaseFile)
         # To tell the base class maya specific path names
         # print softwareDB
@@ -772,7 +768,7 @@ class MainUI(baseUI):
         self.export_pushButton.setText("Export Texture")
         self.export_pushButton.clicked.connect(self.exportSourceUI)
 
-        self.mIconPixmap = QtWidgets.QPixmap(os.path.join(self.manager._pathsDict["iconsDir"], "iconPS.png"))
+        self.mIconPixmap = QtWidgets.QPixmap(os.path.join(self.manager.getIconsDir(), "iconPS.png"))
         self.managerIcon_label.setPixmap(self.mIconPixmap)
         #
         # self.baseScene_label.setVisible(False)

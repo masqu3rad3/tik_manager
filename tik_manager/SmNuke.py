@@ -121,21 +121,9 @@ class NukeManager(RootManager):
     def getSoftwarePaths(self):
         """Overriden function"""
         logger.debug("Func: getSoftwarePaths")
-        self._pathsDict["generalSettingsDir"]
-        # softwareDatabaseFile = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "softwareDatabase.json"))
-        softwareDatabaseFile = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
-        # softwareDatabaseFile = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "softwareDatabase.json"))
+        softwareDatabaseFile = os.path.normpath(os.path.join(self.getSharedSettingsDir(), "softwareDatabase.json"))
         softwareDB = self._loadJson(softwareDatabaseFile)
         return softwareDB["Nuke"]
-        # # To tell the base class maya specific path names
-        # return {"niceName": "Nuke",
-        #         "databaseDir": "nukeDB",
-        #         "scenesDir": "scenes_Nuke",
-        #         "pbSettingsFile": "pbSettings_Nuke.json",
-        #         "categoriesFile": "categoriesNuke.json",
-        #         "userSettingsDir": "SceneManager\\Nuke",
-        #         }
-
 
     def getProjectDir(self):
         """Overriden function"""
@@ -606,5 +594,5 @@ class MainUI(baseUI):
         # idk why this became necessary for nuke..
         self.category_tabWidget.setMaximumSize(QtCore.QSize(16777215, 30))
 
-        self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager._pathsDict["iconsDir"], "iconNuke.png"))
+        self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "iconNuke.png"))
         self.managerIcon_label.setPixmap(self.mIconPixmap)

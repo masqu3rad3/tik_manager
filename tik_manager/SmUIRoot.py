@@ -186,14 +186,15 @@ class MainUI(QtWidgets.QMainWindow):
         with open(stylesheetFile, "r") as fh:
             self.setStyleSheet(fh.read())
 
-
-        self.swColorDict = {"Maya": "rgb(81, 230, 247, 255)",
-                            "3dsMax": "rgb(150, 247, 81, 255)",
-                            "Houdini": "rgb(247, 172, 81, 255)",
-                            "Nuke": "rgb(246, 100, 100, 255)",
-                            "Photoshop": "rgb(60, 60, 250, 255)",
-                            "":  "rgb(0, 0, 0, 0)"
-                            }
+        # self.manager = self._getManager()
+        # self.swColorDict = self.manager.getColorCoding()
+        # self.swColorDict = {"Maya": "rgb(81, 230, 247, 255)",
+        #                     "3dsMax": "rgb(150, 247, 81, 255)",
+        #                     "Houdini": "rgb(247, 172, 81, 255)",
+        #                     "Nuke": "rgb(246, 100, 100, 255)",
+        #                     "Photoshop": "rgb(60, 60, 250, 255)",
+        #                     "":  "rgb(0, 0, 0, 0)"
+        #                     }
         # self.initMainUI(newborn=True)
 
 

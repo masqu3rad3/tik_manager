@@ -72,7 +72,8 @@ class TMUtility(object):
         print "ST Res",res
         copyList = [
             [os.path.join(standalone_folder, "SmStandalone.exe"), self.bin_folder],
-            [os.path.join(standalone_folder, "SmStandalone.exe.manifest"), self.bin_folder]
+            [os.path.join(standalone_folder, "SmStandalone.exe.manifest"), self.bin_folder],
+            [os.path.join(self.root_folder, "CSS", "tikManager.qss"), os.path.join(self.bin_folder, "CSS")]
         ]
         map(lambda x: self._copyfile(x[0], x[1]), copyList)
 

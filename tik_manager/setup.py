@@ -365,7 +365,7 @@ def mayaSetup(prompt=True):
     takePreviewIcon = os.path.join(networkDir, "icons", "takePreview_ICON.png").replace("\\", "\\\\")
     projectMaterialsIcon = os.path.join(networkDir, "icons", "projectMaterials_ICON.png").replace("\\", "\\\\")
     assetLibraryIcon = os.path.join(networkDir, "icons", "assetLibrary_ICON.png").replace("\\", "\\\\")
-    shelfContent = """global proc shelf_SceneManager () {
+    shelfContent = """global proc shelf_TikManager () {
     global string $gBuffStr;
     global string $gBuffStr0;
     global string $gBuffStr1;
@@ -379,10 +379,10 @@ def mayaSetup(prompt=True):
         -manage 1
         -visible 1
         -preventOverride 0
-        -annotation "SceneManager" 
+        -annotation "TikManager" 
         -enableBackground 0
         -align "center" 
-        -label "SceneManager" 
+        -label "TikManager" 
         -labelOffset 0
         -font "plainLabelFont" 
         -overlayLabelColor 0.9 0.9 0.9 
@@ -559,8 +559,11 @@ def mayaSetup(prompt=True):
     for v in mayaVersions:
         shelfDir = os.path.join(userMayaDir, v, "prefs", "shelves")
         folderCheck(shelfDir)
-        shelfFile = os.path.join(shelfDir, "shelf_SceneManager.mel")
-        _dumpContent(shelfFile, shelfContent)
+        oldShelfFile = os.path.join(shelfDir, "shelf_SceneManager.mel")
+        try: os.remove(oldShelfFile)
+        except: pass
+        newShelfFile = os.path.join(shelfDir, "shelf_TikManager.mel")
+        _dumpContent(newShelfFile, shelfContent)
         print "Shelf created for %s" %v
 
     print "Successfull => Maya Setup"
@@ -647,15 +650,15 @@ def houdiniSetup(prompt=True):
  Note, that two definitions of the same element are not allowed in
  a single file. -->
 
-  <toolshelf name="sceneManager" label="Scene Manager">
-    <memberTool name="sceneManager"/>
+  <toolshelf name="tikManager" label="Tik Manager">
+    <memberTool name="tikManager"/>
     <memberTool name="saveVersion"/>
     <memberTool name="imageViewer"/>
     <memberTool name="takePreview"/>
     <memberTool name="projectMaterials"/>
   </toolshelf>
 
-  <tool name="sceneManager" label="Manager" icon="%s">
+  <tool name="tikManager" label="Tik Manager" icon="%s">
     <script scriptType="python"><![CDATA[from tik_manager import SmHoudini
 reload(SmHoudini)
 SmHoudini.MainUI().show()]]></script>
@@ -698,12 +701,12 @@ projectMaterials.MainUI().show()]]></script>
         shelfDir = os.path.join(userDocDir, v, "toolbar")
         # create the directory if does not exist
         folderCheck(shelfDir)
-        shelfFile = os.path.join(shelfDir, "sceneManager.shelf")
+        shelfFile = os.path.join(shelfDir, "tikManager.shelf")
         _dumpContent(shelfFile, shelfContent)
 
-        print "Scene manager shelf created or updated at %s" % shelfFile
+        print "Tik Manager shelf created or updated at %s" % shelfFile
 
-    print "\nInside Houdini, Scene Manager shelf should be enabled for the desired shelf set by clicking to '+' icon and selecting 'shelves' sub menu."
+    print "\nInside Houdini, Tik Manager shelf should be enabled for the desired shelf set by clicking to '+' icon and selecting 'shelves' sub menu."
 
     print "Successfull => Houdini Setup"
 
@@ -817,9 +820,9 @@ python.Execute "MaxPlus.NotificationManager.Register(14, smUpdate)"
         print "Creating Macroscripts"
         manager = """
 macroScript manager
-category: "SceneManager"
-tooltip: "Scene Manager"
-ButtonText: "SM"
+category: "Tik Works"
+tooltip: "Tik Manager"
+ButtonText: "TM"
 icon: #("SceneManager",1)
 (
 	python.Execute "from tik_manager import Sm3dsMax"
@@ -828,9 +831,9 @@ icon: #("SceneManager",1)
 """
         saveVersion = """
 macroScript saveVersion
-category: "SceneManager"
-tooltip: "Scene Manager - Save Version"
-ButtonText: "SM_SaveV"
+category: "Tik Works"
+tooltip: "Tik Manager - Save Version"
+ButtonText: "TM_SaveV"
 icon: #("SceneManager",2)
 (
 	python.Execute "from tik_manager import Sm3dsMax"
@@ -838,8 +841,8 @@ icon: #("SceneManager",2)
 )"""
         imageViewer = """
 macroScript imageViewer
-category: "SceneManager"
-tooltip: "Scene Manager - Image Viewer"
+category: "Tik Works"
+tooltip: "Tik Manager - Image Viewer"
 ButtonText: "ImageViewer"
 icon: #("SceneManager",4)
 (
@@ -849,8 +852,8 @@ icon: #("SceneManager",4)
 )"""
         makePreview = """
 macroScript makePreview
-category: "SceneManager"
-tooltip: "Scene Manager - Make Preview"
+category: "Tik Works"
+tooltip: "Tik Manager - Make Preview"
 ButtonText: "Make Preview"
 icon: #("SceneManager",5)
 (
@@ -860,8 +863,8 @@ icon: #("SceneManager",5)
 )"""
         projectMaterials = """
 macroScript projectMaterials
-category: "SceneManager"
-tooltip: "Scene Manager - Project Materials"
+category: "Tik Works"
+tooltip: "Tik Manager - Project Materials"
 ButtonText: "Project Materials"
 icon: #("SceneManager",6)
 (

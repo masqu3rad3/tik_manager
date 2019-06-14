@@ -189,16 +189,32 @@ QComboBox::drop-down
      border-bottom-right-radius: 3px;
  }
 
+/*
 QComboBox::down-arrow {
   image: url(":/icons/CSS/rc/arrow_down_disabled.png");
   height: 12px;
   width: 12px;
 }
+*/
 
 
+QComboBox::down-arrow {
+  image: url(":/icons/CSS/rc/arrow_down.png");
+  height: 12px;
+  width: 12px;
+}
+
+QComboBox::down-arrow:hover {
+  image: url(":/icons/CSS/rc/arrow_down_focus.png");
+  height: 12px;
+  width: 12px;
+}
+
+/*
 QComboBox::down-arrow:on, QComboBox::down-arrow:hover, QComboBox::down-arrow:focus {
   image: url(":/icons/CSS/rc/arrow_down.png");
 }
+*/
 
 
 /*

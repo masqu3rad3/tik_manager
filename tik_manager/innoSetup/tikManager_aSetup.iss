@@ -40,7 +40,6 @@ Source: "..\pyseq.pyc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\Qt.pyc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\seqCopyProgress.pyc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\setup.exe"; DestDir: "{app}"; Flags: ignoreversion;
-Source: "..\test.bat"; DestDir: "{app}"; Flags: ignoreversion; 
 Source: "..\Sm3dsMax.pyc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\SmHoudini.pyc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\SmMaya.pyc"; DestDir: "{app}"; Flags: ignoreversion

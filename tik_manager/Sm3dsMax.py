@@ -382,10 +382,7 @@ class MaxManager(RootManager, MaxCoreFunctions):
     def getSoftwarePaths(self):
         """Overriden function"""
         logger.debug("Func: getSoftwarePaths")
-        self._pathsDict["generalSettingsDir"]
-        # softwareDatabaseFile = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "softwareDatabase.json"))
-        softwareDatabaseFile = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
-        # softwareDatabaseFile = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "softwareDatabase.json"))
+        softwareDatabaseFile = os.path.normpath(os.path.join(self.getSharedSettingsDir(), "softwareDatabase.json"))
         softwareDB = self._loadJson(softwareDatabaseFile)
         return softwareDB["3dsMax"]
         # To tell the base class maya specific path names
@@ -398,26 +395,27 @@ class MaxManager(RootManager, MaxCoreFunctions):
 
     def getProjectDir(self):
         """Overriden function"""
-        # p_path = pManager.GetProjectFolderDir()
-        # norm_p_path = os.path.normpath(p_path)
+
         projectsDict = self._loadProjects()
 
 
         if not projectsDict:
-            norm_p_path = self._getProject()
-            projectsDict = {"3dsMaxProject": norm_p_path}
+            currentProject = self._getProject()
+            projectsDict = {"3dsMaxProject": currentProject,
+                            "LastProject": currentProject}
             self._saveProjects(projectsDict)
-            return norm_p_path
+            return currentProject
 
         # get the project defined in the database file
         try:
-            norm_p_path = projectsDict["3dsMaxProject"]
-            return norm_p_path
+            currentProject = projectsDict["3dsMaxProject"]
+            return currentProject
         except KeyError:
-            norm_p_path = self._getProject()
-            projectsDict = {"3dsMaxProject": norm_p_path}
+            currentProject = self._getProject()
+            projectsDict["3dsMaxProject"] = currentProject
+            projectsDict["LastProject"] = currentProject
             self._saveProjects(projectsDict)
-            return norm_p_path
+            return currentProject
 
 
     def getSceneFile(self):
@@ -1069,7 +1067,7 @@ class MainUI(baseUI):
         self.scenes_rcItem_0.setText('Merge Scene')
 
     def modify(self):
-        self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager._pathsDict["iconsDir"], "iconMax.png"))
+        self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "iconMax.png"))
         self.managerIcon_label.setPixmap(self.mIconPixmap)
 
     def onModeChange(self):

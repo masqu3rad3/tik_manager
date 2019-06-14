@@ -673,7 +673,7 @@ class ImageManager(RootManager):
     def callDeadlineScript(self):
         # scriptLocation = os.path.dirname(os.path.abspath(__file__))
         # scriptPath = os.path.join(scriptLocation, "SubmitMayaToDeadlineCustom.mel")
-        scriptPath = os.path.join(self.getGeneralSettingsDirectory(), "SubmitMayaToDeadlineCustom.mel")
+        scriptPath = os.path.join(self.getSharedSettingsDir(), "SubmitMayaToDeadlineCustom.mel")
 
         if os.path.isfile(scriptPath):
             scriptPath = scriptPath.replace("\\", "//") ## for compatibility with mel syntax.

@@ -238,15 +238,15 @@ class AssetLibrary(AssetEditor, RootManager):
         self.init_paths()
 
     def init_paths(self):
-        self._pathsDict["localSettingsDir"] = os.path.normpath(os.path.join(self.getUserDirectory(), "TikManager"))
+        self._pathsDict["localSettingsDir"] = os.path.normpath(os.path.join(self.getUserDir(), "TikManager"))
         self._pathsDict["commonFolderDir"] = os.path.abspath(os.path.join(self._pathsDict["localSettingsDir"]))
         self._pathsDict["commonFolderFile"] = os.path.normpath(os.path.join(self._pathsDict["commonFolderDir"], "smCommonFolder.json"))
 
-        self._pathsDict["generalSettingsDir"] = self._getCommonFolder()
-        if self._pathsDict["generalSettingsDir"] == -1:
+        self._pathsDict["sharedSettingsDir"] = self._getCommonFolder()
+        if self._pathsDict["sharedSettingsDir"] == -1:
             self._exception(201, "Cannot Continue Without Common Database")
             return -1
-        self._pathsDict["exportSettingsFile"] = os.path.join(self._pathsDict["generalSettingsDir"], "exportSettings.json")
+        self._pathsDict["exportSettingsFile"] = os.path.join(self._pathsDict["sharedSettingsDir"], "exportSettings.json")
 
 
     # def _loadExportSettings(self):

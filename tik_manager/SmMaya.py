@@ -319,6 +319,11 @@ class MayaCoreFunctions(object):
         pPath = cmds.workspace(q=1, rd=1)
         return os.path.normpath(pPath)
 
+    def _setProject(self, path):
+        melCompPath = path.replace("\\", "/") # mel is picky
+        command = 'setProject "%s";' %melCompPath
+        mel.eval(command)
+
     def _getVersion(self):
         return cmds.about(api=True)
 
@@ -342,9 +347,9 @@ class MayaManager(RootManager, MayaCoreFunctions):
     def getSoftwarePaths(self):
         """Overriden function"""
         logger.debug("Func: getSoftwarePaths")
-        self._pathsDict["generalSettingsDir"]
+
         # softwareDatabaseFile = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "softwareDatabase.json"))
-        softwareDatabaseFile = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
+        softwareDatabaseFile = os.path.normpath(os.path.join(self.getSharedSettingsDir(), "softwareDatabase.json"))
         softwareDB = self._loadJson(softwareDatabaseFile)
         # To tell the base class maya specific path names
         # print softwareDB
@@ -357,21 +362,19 @@ class MayaManager(RootManager, MayaCoreFunctions):
         #         "userSettingsDir": "SceneManager\\Maya",
         #         }
 
-
     def getProjectDir(self):
         """Overriden function"""
         logger.debug("Func: getProjectDir")
 
-        # This function gets the current maya project and informs the base class
-        # In addition it updates the projects file for (planned) interactivities with concurrent softwares
-        # p_path = cmds.workspace(q=1, rd=1)
-        norm_p_path = self._getProject()
+
+        currentProject = self._getProject()
         projectsDict = self._loadProjects()
 
         if not projectsDict: # if there is no project database file at all
-            projectsDict = {"MayaProject": norm_p_path}
+            projectsDict = {"MayaProject": currentProject,
+                            "LastProject": currentProject}
             self._saveProjects(projectsDict)
-            return norm_p_path
+            return currentProject
 
         # get the project defined in the database file
         try:
@@ -379,18 +382,49 @@ class MayaManager(RootManager, MayaCoreFunctions):
         except KeyError:
             dbProject = None
 
-        if dbProject == norm_p_path:
+        if dbProject == currentProject:
             # do nothing to the database if it is the same project
-            return norm_p_path
+            return currentProject
 
-        if dbProject:
-            projectsDict["MayaProject"] = norm_p_path
-            self._saveProjects(projectsDict)
-            return norm_p_path
-        else:
-            projectsDict = {"MayaProject": norm_p_path}
-            self._saveProjects(projectsDict)
-            return norm_p_path
+
+        projectsDict["MayaProject"] = currentProject
+        self._saveProjects(projectsDict)
+        return currentProject
+
+
+    # def getProjectDir(self):
+    #     """Overriden function"""
+    #     logger.debug("Func: getProjectDir")
+    #
+    #     # This function gets the current maya project and informs the base class
+    #     # In addition it updates the projects file for (planned) interactivities with concurrent softwares
+    #     # p_path = cmds.workspace(q=1, rd=1)
+    #     norm_p_path = self._getProject()
+    #     projectsDict = self._loadProjects()
+    #
+    #     if not projectsDict: # if there is no project database file at all
+    #         projectsDict = {"MayaProject": norm_p_path}
+    #         self._saveProjects(projectsDict)
+    #         return norm_p_path
+    #
+    #     # get the project defined in the database file
+    #     try:
+    #         dbProject = projectsDict["MayaProject"]
+    #     except KeyError:
+    #         dbProject = None
+    #
+    #     if dbProject == norm_p_path:
+    #         # do nothing to the database if it is the same project
+    #         return norm_p_path
+    #
+    #     if dbProject:
+    #         projectsDict["MayaProject"] = norm_p_path
+    #         self._saveProjects(projectsDict)
+    #         return norm_p_path
+    #     else:
+    #         projectsDict = {"MayaProject": norm_p_path}
+    #         self._saveProjects(projectsDict)
+    #         return norm_p_path
 
     def getSceneFile(self):
         """Overriden function"""
@@ -404,11 +438,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
     def setProject(self, path):
         """Sets the project"""
         logger.debug("Func: setProject")
-
-        # totally software specific or N/A
-        melCompPath = path.replace("\\", "/") # mel is picky
-        command = 'setProject "%s";' %melCompPath
-        mel.eval(command)
+        self._setProject(path)
         self.projectDir = self.getProjectDir()
 
     def saveBaseScene(self, categoryName, baseName, subProjectIndex=0, makeReference=True, versionNotes="", sceneFormat="mb", *args, **kwargs):
@@ -1249,8 +1279,7 @@ class MainUI(baseUI):
         self.modify()
 
     def modify(self):
-        # self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager._pathsDict["generalSettingsDir"], "icons", "iconMaya.png"))
-        self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager._pathsDict["iconsDir"], "iconMaya.png"))
+        self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "iconMaya.png"))
         self.managerIcon_label.setPixmap(self.mIconPixmap)
         # idk why this became necessary for houdini..
 

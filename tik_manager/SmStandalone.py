@@ -78,59 +78,59 @@ class SwViewer(RootManager):
         self.swNiceName = swDict["niceName"]
         self.projectDir = projectDir
 
-        self.init_paths(commonFolder)
+        self.init_paths(swDict["niceName"])
         self.init_database()
 
-    def init_paths(self, commonFolder):
-        """Initializes all the necessary paths"""
-        logger.debug("Func: init_paths")
-        # all paths in here must be absolute paths
-        _softwarePathsDict = self.getSoftwarePaths()
-
-        self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDirectory(), _softwarePathsDict["userSettingsDir"]))
-        self._folderCheck(self._pathsDict["userSettingsDir"])
-
-        self._pathsDict["bookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smBookmarks.json"))
-        self._pathsDict["currentsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smCurrents.json"))
-        self._pathsDict["projectsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smProjects.json"))
-
-        self._pathsDict["projectDir"] = self.getProjectDir()
-        self._pathsDict["sceneFile"] = ""
-        # _softwarePathsDict = self.getSoftwarePaths()
-        if self._pathsDict["projectDir"] == -1 or self._pathsDict["sceneFile"] == -1 or _softwarePathsDict == -1:
-            msg = "The following functions must be overridden in inherited class:\n'getSoftware'\n'getProjectDir'\n'getSceneFile'"
-            logger.error(msg)
-            raise Exception([102, msg])
-
-        self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
-        self._folderCheck(self._pathsDict["masterDir"])
-
-
-        self._pathsDict["databaseDir"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], _softwarePathsDict["databaseDir"]))
-        self._folderCheck(self._pathsDict["databaseDir"])
-
-        self._pathsDict["scenesDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], _softwarePathsDict["scenesDir"]))
-        self._folderCheck(self._pathsDict["scenesDir"])
-
-        self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
-        # self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], "subPdata.json"))
-        self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "subPdata.json"))
-        self._pathsDict["categoriesFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], _softwarePathsDict["categoriesFile"]))
-
-        self._pathsDict["previewsDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "Playblasts", _softwarePathsDict["niceName"])) # dont change
-        self._folderCheck(self._pathsDict["previewsDir"])
-
-        self._pathsDict["pbSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["previewsDir"], _softwarePathsDict["pbSettingsFile"]))
-
-        self._pathsDict["generalSettingsDir"] = commonFolder
-
-        self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerUsers.json"))
-
-        self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
-        self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerDefaults.json"))
-        self._pathsDict["tikConventions"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "tikConventions.json"))
-        self._pathsDict["adminPass"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "adminPass.psw"))
-
+    # def init_paths(self, commonFolder):
+    #     """Initializes all the necessary paths"""
+    #     logger.debug("Func: init_paths")
+    #     # all paths in here must be absolute paths
+    #     _softwarePathsDict = self.getSoftwarePaths()
+    #
+    #     self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDir(), _softwarePathsDict["userSettingsDir"]))
+    #     self._folderCheck(self._pathsDict["userSettingsDir"])
+    #
+    #     self._pathsDict["bookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smBookmarks.json"))
+    #     self._pathsDict["currentsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smCurrents.json"))
+    #     self._pathsDict["projectsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smProjects.json"))
+    #
+    #     self._pathsDict["projectDir"] = self.getProjectDir()
+    #     self._pathsDict["sceneFile"] = ""
+    #     # _softwarePathsDict = self.getSoftwarePaths()
+    #     if self._pathsDict["projectDir"] == -1 or self._pathsDict["sceneFile"] == -1 or _softwarePathsDict == -1:
+    #         msg = "The following functions must be overridden in inherited class:\n'getSoftware'\n'getProjectDir'\n'getSceneFile'"
+    #         logger.error(msg)
+    #         raise Exception([102, msg])
+    #
+    #     self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
+    #     self._folderCheck(self._pathsDict["masterDir"])
+    #
+    #
+    #     self._pathsDict["databaseDir"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], _softwarePathsDict["databaseDir"]))
+    #     self._folderCheck(self._pathsDict["databaseDir"])
+    #
+    #     self._pathsDict["scenesDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], _softwarePathsDict["scenesDir"]))
+    #     self._folderCheck(self._pathsDict["scenesDir"])
+    #
+    #     self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
+    #     # self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], "subPdata.json"))
+    #     self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "subPdata.json"))
+    #     self._pathsDict["categoriesFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], _softwarePathsDict["categoriesFile"]))
+    #
+    #     self._pathsDict["previewsDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "Playblasts", _softwarePathsDict["niceName"])) # dont change
+    #     self._folderCheck(self._pathsDict["previewsDir"])
+    #
+    #     self._pathsDict["pbSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["previewsDir"], _softwarePathsDict["pbSettingsFile"]))
+    #
+    #     self._pathsDict["sharedSettingsDir"] = commonFolder
+    #
+    #     self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerUsers.json"))
+    #
+    #     self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "softwareDatabase.json"))
+    #     self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerDefaults.json"))
+    #     self._pathsDict["tikConventions"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "tikConventions.json"))
+    #     self._pathsDict["adminPass"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "adminPass.psw"))
+    #
 
     def getSoftwarePaths(self):
         """Overriden function"""
@@ -435,15 +435,17 @@ class StandaloneManager(RootManager):
         """Overriden function"""
 
 
-        self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDirectory(), "TikManager", nicename))
-        self._folderCheck(self._pathsDict["userSettingsDir"])
+        self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDir(), "TikManager"))
+        self._folderCheck(os.path.join(self._pathsDict["userSettingsDir"], nicename))
+        self._pathsDict["userSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "userSettings.json"))
 
+        self._pathsDict["localBookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], nicename, "smBookmarks.json"))
         self._pathsDict["bookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smBookmarks.json"))
-        self._pathsDict["currentsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smCurrents.json"))
+        self._pathsDict["currentsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], nicename, "smCurrents.json"))
         self._pathsDict["projectsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smProjects.json"))
 
-        self._pathsDict["commonFolderDir"] = os.path.abspath(os.path.join(self._pathsDict["userSettingsDir"], os.pardir))
-        self._pathsDict["commonFolderFile"] = os.path.normpath(os.path.join(self._pathsDict["commonFolderDir"], "smCommonFolder.json"))
+        # self._pathsDict["commonFolderDir"] = os.path.abspath(os.path.join(self._pathsDict["userSettingsDir"], os.pardir))
+        self._pathsDict["commonFolderFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smCommonFolder.json"))
 
         self._pathsDict["projectDir"] = self.getProjectDir()
         self._pathsDict["sceneFile"] = ""
@@ -452,25 +454,60 @@ class StandaloneManager(RootManager):
 
         self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
 
-        self._pathsDict["generalSettingsDir"] = self._getCommonFolder()
-        if self._pathsDict["generalSettingsDir"] == -1:
+        self._pathsDict["sharedSettingsDir"] = self._getCommonFolder()
+        if self._pathsDict["sharedSettingsDir"] == -1:
             self._exception(201, "Cannot Continue Without Common Database")
             return -1
 
-        self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerUsers.json"))
+        self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerUsers.json"))
 
-        self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
-        self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerDefaults.json"))
-        self._pathsDict["adminPass"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "adminPass.psw"))
+        self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "softwareDatabase.json"))
+        self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerDefaults.json"))
+        self._pathsDict["adminPass"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "adminPass.psw"))
+        self._pathsDict["iconsDir"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icons")
+
+    # def init_paths(self, nicename):
+    #     """Overriden function"""
+    #
+    #
+    #     self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDir(), "TikManager", nicename))
+    #     self._folderCheck(self._pathsDict["userSettingsDir"])
+    #
+    #     self._pathsDict["bookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smBookmarks.json"))
+    #     self._pathsDict["currentsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smCurrents.json"))
+    #     self._pathsDict["projectsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smProjects.json"))
+    #
+    #     self._pathsDict["commonFolderDir"] = os.path.abspath(os.path.join(self._pathsDict["userSettingsDir"], os.pardir))
+    #     self._pathsDict["commonFolderFile"] = os.path.normpath(os.path.join(self._pathsDict["commonFolderDir"], "smCommonFolder.json"))
+    #
+    #     self._pathsDict["projectDir"] = self.getProjectDir()
+    #     self._pathsDict["sceneFile"] = ""
+    #
+    #     self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
+    #
+    #     self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
+    #
+    #     self._pathsDict["sharedSettingsDir"] = self._getCommonFolder()
+    #     if self._pathsDict["sharedSettingsDir"] == -1:
+    #         self._exception(201, "Cannot Continue Without Common Database")
+    #         return -1
+    #
+    #     self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerUsers.json"))
+    #
+    #     self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "softwareDatabase.json"))
+    #     self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerDefaults.json"))
+    #     self._pathsDict["adminPass"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "adminPass.psw"))
 
 
     def init_database(self):
         """OVERRIDEN FUNCTION"""
+        self._sceneManagerDefaults = self._loadManagerDefaults()
+        self._userSettings = self._loadUserSettings()
 
         self._usersDict = self._loadUsers()
         self._currentsDict = self._loadUserPrefs()
         # get hardcoded software list
-        # hardCodedSwPath = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
+        # hardCodedSwPath = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "softwareDatabase.json"))
 
         # get hardcoded software list
         self.softwareDictionary = self._loadJson(self._pathsDict["softwareDatabase"])
@@ -529,7 +566,7 @@ class StandaloneManager(RootManager):
             if os.path.isdir(searchPath):
                 # create a new software viewer object with the accessed project path
                 # and append it to the list of valid softwares for the current project
-                self.swList.append(SwViewer(swDict[1], self.projectDir, self._pathsDict["generalSettingsDir"]))
+                self.swList.append(SwViewer(swDict[1], self.projectDir, self._pathsDict["sharedSettingsDir"]))
 
         return self.swList
 
@@ -806,7 +843,8 @@ class MainUI(baseUI):
         self.software_comboBox.clear()
         self.subProject_comboBox.clear()
         self.scenes_listWidget.clear()
-        self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.swColorDict[str(self.software_comboBox.currentText())])
+        # self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.swColorDict[str(self.software_comboBox.currentText())])
+        self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
 
         self._vEnableDisable()
         self.category_tabWidget.blockSignals(False)
@@ -829,7 +867,8 @@ class MainUI(baseUI):
         for x in self.manager.swList:
             self.software_comboBox.addItem(x.swNiceName)
 
-        self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.swColorDict[str(self.software_comboBox.currentText())])
+        # self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.swColorDict[str(self.software_comboBox.currentText())])
+        self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
 
         self.software_comboBox.blockSignals(False)
 
@@ -840,7 +879,9 @@ class MainUI(baseUI):
         self._initCategories()
         self._initSubProjects()
         self.populateBaseScenes()
-        self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.swColorDict[str(self.software_comboBox.currentText())])
+        # self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.swColorDict[str(self.software_comboBox.currentText())])
+        self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
+
         self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
         self._vEnableDisable()
         manager = self._getManager()

@@ -93,18 +93,22 @@ class RootManager(object):
         # _softwarePathsDict = self.getSoftwarePaths()
 
         # self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDirectory(), _softwarePathsDict["userSettingsDir"]))
-        self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDirectory(), "TikManager", nicename))
-        self._folderCheck(self._pathsDict["userSettingsDir"])
+        self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDir(), "TikManager"))
+        # self._folderCheck(self._pathsDict["userSettingsDir"])
+        self._folderCheck(os.path.join(self._pathsDict["userSettingsDir"], nicename))
+        self._pathsDict["userSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "userSettings.json"))
 
+        self._pathsDict["localBookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], nicename, "smBookmarks.json"))
         self._pathsDict["bookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smBookmarks.json"))
-        self._pathsDict["currentsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smCurrents.json"))
+        self._pathsDict["currentsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], nicename, "smCurrents.json"))
+        # self._pathsDict["projectsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], nicename, "smProjects.json"))
         self._pathsDict["projectsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smProjects.json"))
 
-        self._pathsDict["commonFolderDir"] = os.path.abspath(os.path.join(self._pathsDict["userSettingsDir"], os.pardir))
-        self._pathsDict["commonFolderFile"] = os.path.normpath(os.path.join(self._pathsDict["commonFolderDir"], "smCommonFolder.json"))
+        # self._pathsDict["commonFolderDir"] = os.path.abspath(os.path.join(self._pathsDict["userSettingsDir"], os.pardir))
+        self._pathsDict["commonFolderFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smCommonFolder.json"))
 
-        self._pathsDict["generalSettingsDir"] = self._getCommonFolder()
-        if self._pathsDict["generalSettingsDir"] == -1:
+        self._pathsDict["sharedSettingsDir"] = self._getCommonFolder()
+        if self._pathsDict["sharedSettingsDir"] == -1:
             self._exception(201, "Cannot Continue Without Common Database")
             return -1
         _softwarePathsDict = self.getSoftwarePaths()
@@ -124,6 +128,9 @@ class RootManager(object):
 
         self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
         self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "subPdata.json"))
+        self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "exportSettings.json"))
+        self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "importSettings.json"))
+
         self._pathsDict["categoriesFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], _softwarePathsDict["categoriesFile"]))
 
         self._pathsDict["previewsDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "Playblasts", _softwarePathsDict["niceName"])) # dont change
@@ -131,14 +138,14 @@ class RootManager(object):
 
         self._pathsDict["pbSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["previewsDir"], _softwarePathsDict["pbSettingsFile"]))
 
-        self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerUsers.json"))
+        self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerUsers.json"))
 
-        self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
-        self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerDefaults.json"))
-        self._pathsDict["tikConventions"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "tikConventions.json"))
-        self._pathsDict["adminPass"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "adminPass.psw"))
-        self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "exportSettings.json"))
-        self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "importSettings.json"))
+        self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "softwareDatabase.json"))
+        self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerDefaults.json"))
+        self._pathsDict["tikConventions"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "tikConventions.json"))
+        self._pathsDict["adminPass"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "adminPass.psw"))
+        # self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "exportSettings.json"))
+        # self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "importSettings.json"))
         self._pathsDict["iconsDir"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icons")
 
     def _checkCommonFolder(self, folder):
@@ -227,6 +234,7 @@ class RootManager(object):
 
         # defaults dictionary holding "defaultCategories", "defaultPreviewSettings", "defaultUsers"
         self._sceneManagerDefaults = self._loadManagerDefaults()
+        self._userSettings = self._loadUserSettings()
         self._nameConventions = self._loadNameConventions()
 
         # self.currentPlatform = platform.system()
@@ -584,16 +592,19 @@ class RootManager(object):
             self._currentThumbFile
             ))
 
-    def getUserDirectory(self):
+    def getUserDir(self):
         """Returns Documents Directory"""
         dir = os.path.expanduser('~')
         if not "Documents" in dir:
             dir = os.path.join(dir, "Documents")
         return os.path.normpath(dir)
 
-    def getGeneralSettingsDirectory(self):
+    def getIconsDir(self):
+        return self._pathsDict["iconsDir"]
+
+    def getSharedSettingsDir(self):
         """Returns the general settings Directory where common settings are"""
-        return self._pathsDict["generalSettingsDir"]
+        return self._pathsDict["sharedSettingsDir"]
 
     def getOpenSceneInfo(self):
         """
@@ -728,14 +739,10 @@ class RootManager(object):
             logger.error(msg)
             return None
 
-    # def getSceneInfoAsText(self):
-    #     name = self._currentSceneInfo["Name"]
-    #     pass
-
-    # def getFavorites(self):
-    #     """returns List of favorite projects"""
-    #     self._bookmarksList = self.loadFavorites(self.bookmarksFile)  # not immediate
-    #     return self._bookmarksList
+    def getColorCoding(self, niceName):
+        try: keyColor = self._userSettings["colorCoding"][niceName]
+        except KeyError: keyColor = "rgb (0, 0, 0, 0)"
+        return keyColor
 
     def createNewProject(self, projectRoot, projectName, brandName, client, settingsData=None):
         """
@@ -1080,7 +1087,7 @@ class RootManager(object):
         # TODO // NEEDS to be working on
 
         # Hard Coded Software List - get path
-        hardCodedSwPath = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
+        hardCodedSwPath = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "softwareDatabase.json"))
         softwareDictionary = self._loadJson(hardCodedSwPath)
         # softwareDBList=["mayaDB", "maxDB", "houdiniDB", "nukeDB"]
 
@@ -1629,7 +1636,7 @@ Elapsed Time:{6}
         """
         if self.checkPassword(oldPassword):
             pswFile = self._pathsDict["adminPass"]
-            tempFile = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "adminPassTmp.psw"))
+            tempFile = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "adminPassTmp.psw"))
             newHash = (hashlib.sha1(str(newPassword).encode('utf-8')).hexdigest())
 
             f = open(tempFile, "w+")
@@ -1801,14 +1808,15 @@ Elapsed Time:{6}
     def loadFavorites(self):
         """Loads Bookmarked projects"""
         logger.debug("Func: loadFavorites")
+        bookmarkPath = self._pathsDict["bookmarksFile"] if self._userSettings["globalFavorites"] else self._pathsDict["localBookmarksFile"]
 
-        if os.path.isfile(self._pathsDict["bookmarksFile"]):
-            bookmarksData = self._loadJson(self._pathsDict["bookmarksFile"])
+        if os.path.isfile(bookmarkPath):
+            bookmarksData = self._loadJson(bookmarkPath)
             if bookmarksData == -2:
                 return -2
         else:
             bookmarksData = []
-            self._dumpJson(bookmarksData, self._pathsDict["bookmarksFile"])
+            self._dumpJson(bookmarksData, bookmarkPath)
         return bookmarksData
 
     def addToFavorites(self, shortName, absPath):
@@ -1964,6 +1972,23 @@ Elapsed Time:{6}
 
         self._dumpJson(data, self._pathsDict["projectsFile"])
 
+    def _loadUserSettings(self):
+        if os.path.isfile(self._pathsDict["userSettingsFile"]):
+            userSettings = self._loadJson(self._pathsDict["userSettingsFile"])
+            if userSettings == -2:
+                return -2
+        else:
+            # self._sceneManagerDefaults = self._loadManagerDefaults()
+            userSettings = self._sceneManagerDefaults["defaultUserSettings"]
+            self._saveUserSettings(userSettings)
+        return userSettings
+
+    def _saveUserSettings(self, userSettings):
+        """Dumps the data to the database"""
+        logger.debug("Func: savePBSettings")
+        self._dumpJson(userSettings, self._pathsDict["userSettingsFile"])
+        return
+
     def _loadExportSettings(self):
         """Load Export Setting options from file in Common Folder"""
 
@@ -1972,87 +1997,16 @@ Elapsed Time:{6}
             if exportSettings == -2:
                 return -2
         else:
-            exportSettings = {
-                "objExport": {
-                    "FlipZyAxis": "0",
-                    "Shapes": "0",
-                    "ExportHiddenObjects": "0",
-                    "FaceType": "2",
-                    "TextureCoords": "1",
-                    "Normals": "1",
-                    "SmoothingGroups": "1",
-                    "ObjScale": "1.0",
-                    "RelativeIndex": "0",
-                    "Target": "0",
-                    "Precision": "4",
-                    "optVertex": "0",
-                    "optNormals": "0",
-                    "optTextureCoords": "0",
-                },
-                "fbxExport": {
-                    "Animation": True,
-                    "ASCII": False,
-                    "AxisConversionMethod": "Fbx_Root",
-                    "BakeAnimation": True,
-                    "BakeFrameStart": 0,
-                    "BakeFrameEnd": 100,
-                    "BakeFrameStep": 1,
-                    "BakeResampleAnimation": False,
-                    "CAT2HIK": False,
-                    "ColladaTriangulate": False,
-                    "ColladaSingleMatrix": True,
-                    # "ColladaFrameRate": float(rt.framerate),
-                    "Convert2Tiff": False,
-                    "ConvertUnit": "in",
-                    "EmbedTextures": True,
-                    "FileVersion": "FBX201400",
-                    "FilterKeyReducer": False,
-                    "GeomAsBone": True,
-                    "GenerateLog": False,
-                    "Lights": True,
-                    "NormalsPerPoly": True,
-                    "PointCache": False,
-                    "Preserveinstances": False,
-                    "Removesinglekeys": False,
-                    # "Resampling": float(rt.framerate),
-                    "ScaleFactor": 1.0,
-                    "SelectionSetExport": False,
-                    "Shape": True,
-                    "Skin": True,
-                    "ShowWarnings": False,
-                    "SmoothingGroups": True,
-                    "SmoothMeshExport": True,
-                    "TangentSpaceExport": False,
-                    "Triangulate": False,
-                    "UpAxis": "Y",
-                    "UseSceneName": False
-                },
-                "alembicExport": {
-                    "CoordinateSystem": "YUp",
-                    "ArchiveType": "Ogawa",
-                    "ParticleAsMesh": True,
-                    "AnimTimeRange": "CurrentFrame",
-                    "StartFrame": 1,
-                    "EndFrame": 10,
-                    "SamplesPerFrame": 1,
-                    "ShapeSuffix": False,
-                    "Hidden": False,
-                    "UVs": True,
-                    "Normals": True,
-                    "VertexColors": True,
-                    "ExtraChannels": True,
-                    "Velocity": True,
-                    "MaterialIDs": True,
-                    "Visibility": True,
-                    "LayerName": True,
-                    "MaterialName": True,
-                    "ObjectID": True,
-                    "CustomAttributes": True
-                }
-            }
-            # categoriesData = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
-            self._dumpJson(exportSettings, self._pathsDict["exportSettingsFile"])
+            # self._sceneManagerDefaults = self._loadManagerDefaults()
+            exportSettings = self._sceneManagerDefaults["transferExportSettings"]
+            self._saveExportSettings(exportSettings)
         return exportSettings
+
+    def _saveExportSettings(self, exportSettings):
+        """Dumps the data to the database"""
+        logger.debug("Func: savePBSettings")
+        self._dumpJson(exportSettings, self._pathsDict["exportSettingsFile"])
+        return
 
     def _loadImportSettings(self):
         """Load Export Setting options from file in Common Folder"""
@@ -2062,126 +2016,22 @@ Elapsed Time:{6}
             if importSettings == -2:
                 return -2
         else:
-            importSettings = {
-                "objImport": {
-                    "UseLogging": "0",
-                    "ResetScene": "0",
-                    "CurrObjColor": "3",
-                    "MapSearchPath": "",
-                    "SingleMesh": "0",
-                    "AsEditablePoly": "0",
-                    "Retriangulate": "1",
-                    "FlipZyAxis": "1",
-                    "CenterPivots": "0",
-                    "Shapes": "0",
-                    "TextureCoords": "1",
-                    "SmoothingGroups": "1",
-                    "NormalsType": "0",
-                    "SmoothAngle": "30.000000",
-                    "FlipNormals": "0",
-                    "Convert": "0",
-                    "ConvertFrom": "5",
-                    "ObjScale": "1.000000",
-                    "UniqueWireColor": "1",
-                    "ImportMaterials": "1",
-                    "UseMatPrefix": "0",
-                    "DefaultBump": "2",
-                    "ForceBlackAmbient": "0",
-                    "ImportIntoMatEditor": "1",
-                    "ShowMapsInViewport": "1",
-                    "CopyMapsToProj": "0",
-                    "OverwriteImages": "0"
-                },
-                "fbxImport": {
-                    "BakeFrameStart": 0,
-                    "BakeFrameEnd": 100,
-                    "ColladaTriangulate": False,
-                    "CAT2HIK": False,
-                    "BakeAnimation": True,
-                    "Skin": True,
-                    "Triangulate": False,
-                    "Convert2Tiff": False,
-                    "UseSceneName": False,
-                    "Animation": True,
-                    "SelectionSetExport": False,
-                    "AxisConversionMethod": "Fbx_Root",
-                    "BakeFrameStep": 1,
-                    "UpAxis": "Y",
-                    "ColladaSingleMatrix": True,
-                    "FileVersion": "FBX201400",
-                    "Removesinglekeys": False,
-                    "EmbedTextures": True,
-                    "ConvertUnit": "in",
-                    "SmoothMeshExport": True,
-                    "Lights": True,
-                    "ScaleFactor": 1.0,
-                    "TangentSpaceExport": False,
-                    "ShowWarnings": False,
-                    "GenerateLog": False,
-                    "GeomAsBone": True,
-                    "Preserveinstances": False,
-                    "Shape": True,
-                    "PointCache": False,
-                    "FilterKeyReducer": False,
-                    "SmoothingGroups": True,
-                    "NormalsPerPoly": True,
-                    "ASCII": False,
-                    "BakeResampleAnimation": False
-                },
-                "alembicImport": {
-                    "UVs": True,
-                    "LayerName": True,
-                    "ObjectID": True,
-                    "EndFrame": 10,
-                    "ParticleAsMesh": True,
-                    "Visibility": True,
-                    "CoordinateSystem": "YUp",
-                    "AnimTimeRange": "CurrentFrame",
-                    "Velocity": True,
-                    "ArchiveType": "Ogawa",
-                    "CustomAttributes": True,
-                    "MaterialIDs": True,
-                    "VertexColors": True,
-                    "Normals": True,
-                    "StartFrame": 1,
-                    "Hidden": False,
-                    "ExtraChannels": True,
-                    "MaterialName": True,
-                    "SamplesPerFrame": 1,
-                    "ShapeSuffix": False
-                }
-            }
-            # categoriesData = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
-            self._dumpJson(importSettings, self._pathsDict["importSettingsFile"])
+            # self._sceneManagerDefaults = self._loadManagerDefaults()
+            importSettings = self._sceneManagerDefaults["transferImportSettings"]
+            self._saveImportSettings(importSettings)
         return importSettings
+
+    def _saveImportSettings(self, importSettings):
+        """Dumps the data to the database"""
+        logger.debug("Func: savePBSettings")
+        self._dumpJson(importSettings, self._pathsDict["importSettingsFile"])
+        return
 
     def loadPBSettings(self):
         """Loads the preview settings data"""
         # TODO // NEEDS to be IMPROVED and compatible with all softwares (Nuke and Houdini)
         logger.debug("Func: loadPBSettings")
-
-        # old Name getPBsettings
-
-        # pbSettingsFile = os.path.normpath(os.path.join(self.project_Path, "Playblasts", "PBsettings.json"))
-
         if not os.path.isfile(self._pathsDict["pbSettingsFile"]):
-            # defaultSettings = {"Resolution": (1280, 720),  ## done
-            #                    "Format": 'avi',  ## done
-            #                    "Codec": 'IYUV codec',  ## done
-            #                    "Percent": 100,  ## done
-            #                    "Quality": 100,  ## done
-            #                    "ShowFrameNumber": True,
-            #                    "ShowSceneName": False,
-            #                    "ShowCategory": False,
-            #                    "ShowFrameRange": True,
-            #                    "ShowFPS": True,
-            #                    "PolygonOnly": True,  ## done
-            #                    "ShowGrid": False,  ## done
-            #                    "ClearSelection": True,  ## done
-            #                    "DisplayTextures": True,  ## done
-            #                    "WireOnShaded": False,
-            #                    "UseDefaultMaterial": False,
-            #                    }
             defaultSettings = self._sceneManagerDefaults["defaultPreviewSettings"]
             self._dumpJson(defaultSettings, self._pathsDict["pbSettingsFile"])
             return defaultSettings
