@@ -208,7 +208,9 @@ class MainUI(QtWidgets.QMainWindow):
         # HEADER BAR
         # ----------
         margin = 5
-        barColor = "background-color: rgb(80,80,80);"
+        # barColor = "background-color: rgb(80,80,80);"
+        barColor = "background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #565656, stop: 0.1 #525252, stop: 0.5 #4e4e4e, stop: 0.9 #4a4a4a, stop: 1 #464646);"
+
         colorWidget = QtWidgets.QWidget(self.centralwidget)
         headerLayout = QtWidgets.QHBoxLayout(colorWidget)
         headerLayout.setSpacing(0)
@@ -2776,7 +2778,8 @@ class MainUI(QtWidgets.QMainWindow):
         # HEADER BAR
         # ----------
         margin = 5
-        barColor = "background-color: rgb(80,80,80);"
+        # barColor = "background-color: rgb(80,80,80);"
+        barColor = "background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #565656, stop: 0.1 #525252, stop: 0.5 #4e4e4e, stop: 0.9 #4a4a4a, stop: 1 #464646);"
         colorWidget = QtWidgets.QWidget(saveBaseScene_Dialog)
         headerLayout = QtWidgets.QHBoxLayout(colorWidget)
         headerLayout.setSpacing(0)
@@ -2784,11 +2787,11 @@ class MainUI(QtWidgets.QMainWindow):
 
         tikIcon_label = QtWidgets.QLabel(self.centralwidget)
         # tikIcon_label.setFixedSize(115, 30)
-        tikIcon_label.setMaximumWidth(125)
+        tikIcon_label.setMaximumWidth(150)
         tikIcon_label.setMargin(margin)
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
-        testBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
+        testBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmBaseScene.png"))
         tikIcon_label.setPixmap(testBitmap)
 
         headerLayout.addWidget(tikIcon_label)
@@ -3006,22 +3009,61 @@ class MainUI(QtWidgets.QMainWindow):
         saveV_Dialog = QtWidgets.QDialog(parent=self)
         saveV_Dialog.setModal(True)
         saveV_Dialog.setObjectName(("saveV_Dialog"))
-        saveV_Dialog.resize(255, 365)
-        saveV_Dialog.setMinimumSize(QtCore.QSize(255, 365))
+        saveV_Dialog.resize(300, 250)
+        saveV_Dialog.setMinimumSize(QtCore.QSize(300, 250))
         saveV_Dialog.setMaximumSize(QtCore.QSize(600, 600))
         saveV_Dialog.setWindowTitle(("Save As Version"))
 
-        horizontalLayout = QtWidgets.QHBoxLayout(saveV_Dialog)
+        sv_masterLayout = QtWidgets.QVBoxLayout(saveV_Dialog)
+
+        # ----------
+        # HEADER BAR
+        # ----------
+        margin = 5
+        # barColor = "background-color: rgb(80,80,80);"
+        barColor = "background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #565656, stop: 0.1 #525252, stop: 0.5 #4e4e4e, stop: 0.9 #4a4a4a, stop: 1 #464646);"
+        colorWidget = QtWidgets.QWidget(saveV_Dialog)
+        headerLayout = QtWidgets.QHBoxLayout(colorWidget)
+        headerLayout.setSpacing(0)
+        headerLayout.setMargin(0)
+
+        tikIcon_label = QtWidgets.QLabel(self.centralwidget)
+        # tikIcon_label.setFixedSize(115, 30)
+        tikIcon_label.setMaximumWidth(110)
+        tikIcon_label.setMargin(margin)
+        tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        tikIcon_label.setScaledContents(False)
+        testBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmVersion.png"))
+        tikIcon_label.setPixmap(testBitmap)
+
+        headerLayout.addWidget(tikIcon_label)
+
+        resolvedPath_label = QtWidgets.QLabel()
+        resolvedPath_label.setMargin(margin)
+        resolvedPath_label.setIndent(2)
+        # resolvedPath_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        resolvedPath_label.setFont(QtGui.QFont("Times", 7, QtGui.QFont.Bold))
+        resolvedPath_label.setWordWrap(True)
+
+        headerLayout.addWidget(resolvedPath_label)
+
+
+        colorWidget.setStyleSheet(barColor)
+        sv_masterLayout.addWidget(colorWidget)
+        # ----------
+        # ----------
+
+
         right_verticalLayout = QtWidgets.QVBoxLayout()
         right_verticalLayout.setContentsMargins(-1, -1, 10, 10)
         right_verticalLayout.setSpacing(6)
 
-        resolvedPath_label = QtWidgets.QLabel(saveV_Dialog)
-        resolvedPath_label.setText((""))
-        resolvedPath_label.setIndent(12)
-        resolvedPath_label.setWordWrap(True)
-        # resolvedPath_label.setFont(QtGui.QFont("Time", 7, QtGui.QFont.Bold))
-        right_verticalLayout.addWidget(resolvedPath_label)
+        # resolvedPath_label = QtWidgets.QLabel(saveV_Dialog)
+        # resolvedPath_label.setText((""))
+        # resolvedPath_label.setIndent(12)
+        # resolvedPath_label.setWordWrap(True)
+        # # resolvedPath_label.setFont(QtGui.QFont("Time", 7, QtGui.QFont.Bold))
+        # right_verticalLayout.addWidget(resolvedPath_label)
 
 
         notes_label = QtWidgets.QLabel(saveV_Dialog)
@@ -3075,7 +3117,7 @@ class MainUI(QtWidgets.QMainWindow):
         sv_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
         sv_buttonBox.setObjectName(("buttonBox"))
         right_verticalLayout.addWidget(sv_buttonBox)
-        horizontalLayout.addLayout(right_verticalLayout)
+        sv_masterLayout.addLayout(right_verticalLayout)
 
 
         buttonS = sv_buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
