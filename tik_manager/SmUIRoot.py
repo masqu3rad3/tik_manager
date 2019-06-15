@@ -186,18 +186,6 @@ class MainUI(QtWidgets.QMainWindow):
         with open(stylesheetFile, "r") as fh:
             self.setStyleSheet(fh.read())
 
-        # self.manager = self._getManager()
-        # self.swColorDict = self.manager.getColorCoding()
-        # self.swColorDict = {"Maya": "rgb(81, 230, 247, 255)",
-        #                     "3dsMax": "rgb(150, 247, 81, 255)",
-        #                     "Houdini": "rgb(247, 172, 81, 255)",
-        #                     "Nuke": "rgb(246, 100, 100, 255)",
-        #                     "Photoshop": "rgb(60, 60, 250, 255)",
-        #                     "":  "rgb(0, 0, 0, 0)"
-        #                     }
-        # self.initMainUI(newborn=True)
-
-
         # super(MainUI, self).closeEvent(event)
 
     def buildUI(self):
@@ -214,27 +202,74 @@ class MainUI(QtWidgets.QMainWindow):
         # self.buildUI()
         self.setCentralWidget(self.centralwidget)
 
-        self.main_gridLayout = QtWidgets.QGridLayout(self.centralwidget)
+        mainLayout = QtWidgets.QVBoxLayout(self.centralwidget)
+
+        # ----------
+        # HEADER BAR
+        # ----------
+        margin = 5
+        barColor = "background-color: rgb(80,80,80);"
+        colorWidget = QtWidgets.QWidget(self.centralwidget)
+        headerLayout = QtWidgets.QHBoxLayout(colorWidget)
+        headerLayout.setSpacing(0)
+        headerLayout.setMargin(0)
+
+        tikIcon_label = QtWidgets.QLabel(self.centralwidget)
+        tikIcon_label.setMargin(margin)
+        tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        tikIcon_label.setScaledContents(False)
+        if FORCE_QT4:
+            testBitmap = QtWidgets.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
+        else:
+            testBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
+        tikIcon_label.setPixmap(testBitmap)
+
+        headerLayout.addWidget(tikIcon_label)
+
+        self.baseScene_label = QtWidgets.QLabel(self.centralwidget)
+        self.baseScene_label.setMargin(margin)
+        self.baseScene_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        if FORCE_QT4:
+            self.baseScene_label.setFont(QtWidgets.QFont("Times", 10, QtWidgets.QFont.Bold))
+        else:
+            self.baseScene_label.setFont(QtGui.QFont("Times", 10, QtGui.QFont.Bold))
+
+        headerLayout.addWidget(self.baseScene_label)
+
+        self.managerIcon_label = QtWidgets.QLabel(self.centralwidget)
+        self.managerIcon_label.setMargin(margin)
+        self.managerIcon_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        self.managerIcon_label.setScaledContents(False)
+
+        headerLayout.addWidget(self.managerIcon_label)
+
+        colorWidget.setStyleSheet(barColor)
+        mainLayout.addWidget(colorWidget)
+        # ----------
+        # ----------
+
+
+        # self.main_gridLayout = QtWidgets.QGridLayout(self.centralwidget)
+        self.main_gridLayout = QtWidgets.QGridLayout()
+        mainLayout.addLayout(self.main_gridLayout)
+
         self.main_gridLayout.setObjectName(("main_gridLayout"))
 
         self.main_horizontalLayout = QtWidgets.QHBoxLayout()
         self.main_horizontalLayout.setContentsMargins(-1, -1, 0, -1)
         self.main_horizontalLayout.setSpacing(6)
-        self.main_horizontalLayout.setObjectName(("horizontalLayout"))
         self.main_horizontalLayout.setStretch(0, 1)
 
         self.saveBaseScene_pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.saveBaseScene_pushButton.setMinimumSize(QtCore.QSize(150, 45))
         self.saveBaseScene_pushButton.setMaximumSize(QtCore.QSize(150, 45))
         self.saveBaseScene_pushButton.setText(("Save Base Scene"))
-        self.saveBaseScene_pushButton.setObjectName(("saveBaseScene_pushButton"))
         self.main_horizontalLayout.addWidget(self.saveBaseScene_pushButton)
 
         self.saveVersion_pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.saveVersion_pushButton.setMinimumSize(QtCore.QSize(150, 45))
         self.saveVersion_pushButton.setMaximumSize(QtCore.QSize(150, 45))
         self.saveVersion_pushButton.setText(("Save As Version"))
-        self.saveVersion_pushButton.setObjectName(("saveVersion_pushButton"))
         self.main_horizontalLayout.addWidget(self.saveVersion_pushButton)
 
         self.export_pushButton = QtWidgets.QPushButton(self.centralwidget)
@@ -253,103 +288,127 @@ class MainUI(QtWidgets.QMainWindow):
         self.loadScene_pushButton.setMaximumSize(QtCore.QSize(150, 45))
         self.loadScene_pushButton.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.loadScene_pushButton.setText(("Load Scene"))
-        self.loadScene_pushButton.setObjectName(("loadScene_pushButton"))
         self.main_horizontalLayout.addWidget(self.loadScene_pushButton)
         #
         self.main_gridLayout.addLayout(self.main_horizontalLayout, 4, 0, 1, 1)
         #
         self.r2_gridLayout = QtWidgets.QGridLayout()
-        self.r2_gridLayout.setObjectName(("r2_gridLayout"))
         self.r2_gridLayout.setColumnStretch(1, 1)
 
         self.load_radioButton = QtWidgets.QRadioButton(self.centralwidget)
         self.load_radioButton.setText(("Load Mode"))
-        self.load_radioButton.setObjectName(("load_radioButton"))
         self.r2_gridLayout.addWidget(self.load_radioButton, 0, 0, 1, 1)
 
         self.reference_radioButton = QtWidgets.QRadioButton(self.centralwidget)
         self.reference_radioButton.setText(("Reference Mode"))
-        self.reference_radioButton.setObjectName(("reference_radioButton"))
         self.r2_gridLayout.addWidget(self.reference_radioButton, 0, 1, 1, 1)
 
         self.subProject_label = QtWidgets.QLabel(self.centralwidget)
         self.subProject_label.setText(("Sub-Project:"))
         self.subProject_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        self.subProject_label.setObjectName(("subProject_label"))
         self.r2_gridLayout.addWidget(self.subProject_label, 0, 2, 1, 1)
 
         self.subProject_comboBox = QtWidgets.QComboBox(self.centralwidget)
         self.subProject_comboBox.setMinimumSize(QtCore.QSize(150, 30))
         self.subProject_comboBox.setMaximumSize(QtCore.QSize(16777215, 30))
-        self.subProject_comboBox.setObjectName(("subProject_comboBox"))
         self.r2_gridLayout.addWidget(self.subProject_comboBox, 0, 3, 1, 1)
 
         self.addSubProject_pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.addSubProject_pushButton.setMinimumSize(QtCore.QSize(30, 30))
         self.addSubProject_pushButton.setMaximumSize(QtCore.QSize(30, 30))
         self.addSubProject_pushButton.setText(("+"))
-        self.addSubProject_pushButton.setObjectName(("addSubProject_pushButton"))
         self.r2_gridLayout.addWidget(self.addSubProject_pushButton, 0, 4, 1, 1)
 
         self.user_label = QtWidgets.QLabel(self.centralwidget)
         self.user_label.setText(("User:"))
         self.user_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        self.user_label.setObjectName(("user_label"))
         self.r2_gridLayout.addWidget(self.user_label, 0, 5, 1, 1)
 
         self.user_comboBox = QtWidgets.QComboBox(self.centralwidget)
         self.user_comboBox.setMinimumSize(QtCore.QSize(130, 30))
         self.user_comboBox.setMaximumSize(QtCore.QSize(16777215, 30))
-        self.user_comboBox.setObjectName(("user_comboBox"))
         self.r2_gridLayout.addWidget(self.user_comboBox, 0, 6, 1, 1)
 
         self.main_gridLayout.addLayout(self.r2_gridLayout, 1, 0, 1, 1)
         self.r1_gridLayout = QtWidgets.QGridLayout()
-        self.r1_gridLayout.setObjectName(("r1_gridLayout"))
 
-        self.baseScene_label = QtWidgets.QLabel(self.centralwidget)
-        self.baseScene_label.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.baseScene_label.setText(("Base Scene:"))
-        self.baseScene_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        self.baseScene_label.setObjectName(("baseScene_label"))
-        self.r1_gridLayout.addWidget(self.baseScene_label, 0, 0, 1, 1)
+        # # ----------
+        # # HEADER BAR
+        # # ----------
+        #
+        # # self.headerBar_layout = QtWidgets.QHBoxLayout()
+        # # self.r1_gridLayout.addLayout(self.headerBar_layout, 0, 0, 1, 1)
+        #
+        # tikIcon_label = QtWidgets.QLabel(self.centralwidget)
+        # tikIcon_label.setAutoFillBackground(True)
+        # tikIcon_label.setText("iconHere")
+        # tikIcon_label.setFixedSize(115, 30)
+        # testBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
+        #
+        # tikIcon_label.setPixmap(testBitmap)
+        # # tikIcon_label.setScaledContents(False)
+        #
+        # # self.headerBar_layout.addWidget(self.tikIcon_label)
+        # self.r1_gridLayout.addWidget(tikIcon_label, 0, 0, 1, 1)
+        #
+        # self.baseScene_label = QtWidgets.QLabel(self.centralwidget)
+        # self.baseScene_label.setText((""))
+        # self.baseScene_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        # self.baseScene_label.setMargin(15)
+        # self.baseScene_label.setObjectName("headerBar")
+        #
+        #
+        # # self.headerBar_layout.addWidget(self.tikIcon_label)
+        # self.r1_gridLayout.addWidget(self.baseScene_label, 0, 1, 1, 1)
+        #
+        # self.managerIcon_label = QtWidgets.QLabel(self.centralwidget)
+        # self.managerIcon_label.setText("")
+        # self.managerIcon_label.setFixedSize(30, 30)
+        # self.managerIcon_label.setScaledContents(True)
+        # self.r1_gridLayout.addWidget(self.managerIcon_label, 0, 2, 1, 1)
+        #
+        # # ----------
+        # # ----------
 
-        self.baseScene_lineEdit = QtWidgets.QLineEdit(self.centralwidget)
-        self.baseScene_lineEdit.setText((""))
-        self.baseScene_lineEdit.setPlaceholderText((""))
-        self.baseScene_lineEdit.setObjectName(("baseScene_lineEdit"))
-        self.baseScene_lineEdit.setReadOnly(True)
-        self.r1_gridLayout.addWidget(self.baseScene_lineEdit, 0, 1, 1, 1)
 
-        self.managerIcon_label = QtWidgets.QLabel(self.centralwidget)
-        # if FORCE_QT4:
-        #     self.mIconPixmap = QtWidgets.QPixmap("")
-        # else:
-        #     self.mIconPixmap = QtGui.QPixmap("")
-        # self.managerIcon_label.setPixmap(self.mIconPixmap)
-        self.managerIcon_label.setText("")
-        # self.managerIcon_label.setFixedHeight(30)
-        # self.managerIcon_label.setFixedWidth(30)
-        self.managerIcon_label.setFixedSize(30, 30)
-        self.managerIcon_label.setScaledContents(True)
-        self.r1_gridLayout.addWidget(self.managerIcon_label, 0, 2, 1, 1)
+        ## DUMP
+
+
+        # self.baseScene_label = QtWidgets.QLabel(self.centralwidget)
+        # self.baseScene_label.setLayoutDirection(QtCore.Qt.LeftToRight)
+        # self.baseScene_label.setText(("Base Scene:"))
+        # self.baseScene_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        # self.r1_gridLayout.addWidget(self.baseScene_label, 0, 0, 1, 1)
+        #
+        # self.baseScene_lineEdit = QtWidgets.QLineEdit(self.centralwidget)
+        # self.baseScene_lineEdit.setText((""))
+        # self.baseScene_lineEdit.setPlaceholderText((""))
+        # self.baseScene_lineEdit.setReadOnly(True)
+        # self.r1_gridLayout.addWidget(self.baseScene_lineEdit, 0, 1, 1, 1)
+        #
+        # self.managerIcon_label = QtWidgets.QLabel(self.centralwidget)
+        # self.managerIcon_label.setText("")
+        # self.managerIcon_label.setFixedSize(30, 30)
+        # self.managerIcon_label.setScaledContents(True)
+        # self.r1_gridLayout.addWidget(self.managerIcon_label, 0, 2, 1, 1)
+        # self.headerBar_layout.addWidget(self.managerIcon_label)
+
+
+
+
 
         self.project_label = QtWidgets.QLabel(self.centralwidget)
         self.project_label.setText(("Project:"))
         self.project_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        self.project_label.setObjectName(("project_label"))
         self.r1_gridLayout.addWidget(self.project_label, 1, 0, 1, 1)
 
         self.project_lineEdit = QtWidgets.QLineEdit(self.centralwidget)
         self.project_lineEdit.setText((""))
         self.project_lineEdit.setPlaceholderText((""))
-        self.project_lineEdit.setObjectName(("project_lineEdit"))
-        # self.project_lineEdit.setReadOnly(True)
         self.r1_gridLayout.addWidget(self.project_lineEdit, 1, 1, 1, 1)
 
         self.setProject_pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.setProject_pushButton.setText(("SET"))
-        self.setProject_pushButton.setObjectName(("setProject_pushButton"))
         self.r1_gridLayout.addWidget(self.setProject_pushButton, 1, 2, 1, 1)
 
         self.main_gridLayout.addLayout(self.r1_gridLayout, 0, 0, 1, 1)
@@ -359,39 +418,31 @@ class MainUI(QtWidgets.QMainWindow):
         self.category_tabWidget.setTabPosition(QtWidgets.QTabWidget.North)
         self.category_tabWidget.setElideMode(QtCore.Qt.ElideNone)
         self.category_tabWidget.setUsesScrollButtons(False)
-        self.category_tabWidget.setObjectName(("tabWidget"))
 
         self.main_gridLayout.addWidget(self.category_tabWidget, 2, 0, 1, 1)
 
         self.splitter = QtWidgets.QSplitter(self.centralwidget)
         self.splitter.setOrientation(QtCore.Qt.Horizontal)
-        self.splitter.setObjectName(("splitter"))
 
 
         self.scenes_listWidget = QtWidgets.QListWidget(self.splitter)
-        self.scenes_listWidget.setObjectName(("listWidget"))
 
         self.frame = QtWidgets.QFrame(self.splitter)
         self.frame.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.frame.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.frame.setObjectName(("frame"))
 
         self.gridLayout_6 = QtWidgets.QGridLayout(self.frame)
         self.gridLayout_6.setContentsMargins(-1, -1, 0, 0)
-        self.gridLayout_6.setObjectName(("gridLayout_6"))
 
         self.verticalLayout = QtWidgets.QVBoxLayout()
-        self.verticalLayout.setObjectName(("verticalLayout"))
 
         self.notes_label = QtWidgets.QLabel(self.frame)
         self.notes_label.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.notes_label.setText(("Version Notes:"))
         self.notes_label.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
-        self.notes_label.setObjectName(("version_label_2"))
         self.verticalLayout.addWidget(self.notes_label)
 
         self.notes_textEdit = QtWidgets.QTextEdit(self.frame)
-        self.notes_textEdit.setObjectName(("textEdit"))
         self.notes_textEdit.setReadOnly(True)
         self.verticalLayout.addWidget(self.notes_textEdit)
 
@@ -400,7 +451,6 @@ class MainUI(QtWidgets.QMainWindow):
             self.tPixmap = QtWidgets.QPixmap("")
         else:
             self.tPixmap = QtGui.QPixmap("")
-        # self.tPixmap = QtGui.QPixmap("")
         self.thumbnail_label = ImageWidget(self.frame)
         self.thumbnail_label.setPixmap(self.tPixmap)
 
@@ -408,25 +458,21 @@ class MainUI(QtWidgets.QMainWindow):
         self.thumbnail_label.setFrameShape(QtWidgets.QFrame.Box)
         self.thumbnail_label.setScaledContents(True)
         self.thumbnail_label.setAlignment(QtCore.Qt.AlignCenter)
-        self.thumbnail_label.setObjectName(("label"))
         self.verticalLayout.addWidget(self.thumbnail_label)
 
         self.gridLayout_6.addLayout(self.verticalLayout, 3, 0, 1, 1)
 
         self.gridLayout_7 = QtWidgets.QGridLayout()
         self.gridLayout_7.setContentsMargins(-1, -1, 10, 10)
-        self.gridLayout_7.setObjectName(("gridLayout_7"))
 
         self.showPreview_pushButton = QtWidgets.QPushButton(self.frame)
         self.showPreview_pushButton.setMinimumSize(QtCore.QSize(100, 30))
         self.showPreview_pushButton.setMaximumSize(QtCore.QSize(150, 30))
         self.showPreview_pushButton.setText(("Show Preview"))
-        self.showPreview_pushButton.setObjectName(("setProject_pushButton_5"))
         self.gridLayout_7.addWidget(self.showPreview_pushButton, 0, 3, 1, 1)
 
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_4.setSpacing(1)
-        self.horizontalLayout_4.setObjectName(("horizontalLayout_4"))
 
         self.version_label = QtWidgets.QLabel(self.frame)
         self.version_label.setMinimumSize(QtCore.QSize(60, 30))
@@ -434,13 +480,11 @@ class MainUI(QtWidgets.QMainWindow):
         self.version_label.setFrameShape(QtWidgets.QFrame.Box)
         self.version_label.setText(("Version:"))
         self.version_label.setAlignment(QtCore.Qt.AlignCenter)
-        self.version_label.setObjectName(("version_label"))
         self.horizontalLayout_4.addWidget(self.version_label)
 
         self.version_comboBox = QtWidgets.QComboBox(self.frame)
         self.version_comboBox.setMinimumSize(QtCore.QSize(60, 30))
         self.version_comboBox.setMaximumSize(QtCore.QSize(100, 30))
-        self.version_comboBox.setObjectName(("version_comboBox"))
         self.horizontalLayout_4.addWidget(self.version_comboBox)
 
         self.gridLayout_7.addLayout(self.horizontalLayout_4, 0, 0, 1, 1)
@@ -449,19 +493,12 @@ class MainUI(QtWidgets.QMainWindow):
         self.makeReference_pushButton.setMinimumSize(QtCore.QSize(100, 30))
         self.makeReference_pushButton.setMaximumSize(QtCore.QSize(300, 30))
         self.makeReference_pushButton.setText(("Make Reference"))
-        self.makeReference_pushButton.setObjectName(("makeReference_pushButton"))
         self.gridLayout_7.addWidget(self.makeReference_pushButton, 1, 0, 1, 1)
 
         self.addNote_pushButton = QtWidgets.QPushButton(self.frame)
         self.addNote_pushButton.setMinimumSize(QtCore.QSize(100, 30))
         self.addNote_pushButton.setMaximumSize(QtCore.QSize(150, 30))
-        self.addNote_pushButton.setToolTip((""))
-        self.addNote_pushButton.setStatusTip((""))
-        self.addNote_pushButton.setWhatsThis((""))
-        self.addNote_pushButton.setAccessibleName((""))
-        self.addNote_pushButton.setAccessibleDescription((""))
         self.addNote_pushButton.setText(("Add Note"))
-        self.addNote_pushButton.setObjectName(("addNote_pushButton"))
         self.gridLayout_7.addWidget(self.addNote_pushButton, 1, 3, 1, 1)
 
         self.gridLayout_6.addLayout(self.gridLayout_7, 0, 0, 1, 1)
@@ -2716,7 +2753,62 @@ class MainUI(QtWidgets.QMainWindow):
         saveBaseScene_Dialog.setWindowTitle("Save Base Scene")
         saveBaseScene_Dialog.resize(600, 350)
 
-        horizontalLayout = QtWidgets.QHBoxLayout(saveBaseScene_Dialog)
+        sbs_masterLayout = QtWidgets.QVBoxLayout(saveBaseScene_Dialog)
+
+        # headerLayout = QtWidgets.QHBoxLayout(saveBaseScene_Dialog)
+        # sbs_masterLayout.addLayout(headerLayout)
+        #
+        # tikIcon_label = QtWidgets.QLabel()
+        # tikIcon_label.setFixedSize(115, 30)
+        # testBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
+        # tikIcon_label.setPixmap(testBitmap)
+        # tikIcon_label.setScaledContents(True)
+        # headerLayout.addWidget(tikIcon_label)
+        #
+        # resolvedPath_label = QtWidgets.QLabel()
+        # resolvedPath_label.setText((""))
+        # resolvedPath_label.setIndent(12)
+        # resolvedPath_label.setWordWrap(True)
+        # headerLayout.addWidget(resolvedPath_label)
+
+
+        # ----------
+        # HEADER BAR
+        # ----------
+        margin = 5
+        barColor = "background-color: rgb(80,80,80);"
+        colorWidget = QtWidgets.QWidget(saveBaseScene_Dialog)
+        headerLayout = QtWidgets.QHBoxLayout(colorWidget)
+        headerLayout.setSpacing(0)
+        headerLayout.setMargin(0)
+
+        tikIcon_label = QtWidgets.QLabel(self.centralwidget)
+        # tikIcon_label.setFixedSize(115, 30)
+        tikIcon_label.setMaximumWidth(125)
+        tikIcon_label.setMargin(margin)
+        tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        tikIcon_label.setScaledContents(False)
+        testBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
+        tikIcon_label.setPixmap(testBitmap)
+
+        headerLayout.addWidget(tikIcon_label)
+
+        resolvedPath_label = QtWidgets.QLabel()
+        resolvedPath_label.setMargin(margin)
+        resolvedPath_label.setIndent(12)
+        # resolvedPath_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        resolvedPath_label.setFont(QtGui.QFont("Times", 10, QtGui.QFont.Bold))
+        resolvedPath_label.setWordWrap(True)
+
+        headerLayout.addWidget(resolvedPath_label)
+
+
+        colorWidget.setStyleSheet(barColor)
+        sbs_masterLayout.addWidget(colorWidget)
+        # ----------
+        # ----------
+
+
 
         splitter = QtWidgets.QSplitter(saveBaseScene_Dialog)
         splitter.setFrameShape(QtWidgets.QFrame.NoFrame)
@@ -2725,14 +2817,6 @@ class MainUI(QtWidgets.QMainWindow):
         verticalLayoutWidget_2 = QtWidgets.QWidget(splitter)
 
         left_verticalLayout = QtWidgets.QVBoxLayout(verticalLayoutWidget_2)
-
-        resolvedPath_label = QtWidgets.QLabel(verticalLayoutWidget_2)
-        # resolvedName_label.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        resolvedPath_label.setText((""))
-        resolvedPath_label.setIndent(12)
-        resolvedPath_label.setWordWrap(True)
-        # resolvedPath_label.setFont(QtGui.QFont("Time", 7, QtGui.QFont.Bold))
-        left_verticalLayout.addWidget(resolvedPath_label)
 
         left_verticalLayout.setContentsMargins(0, -1, 12, 10)
 
@@ -2836,7 +2920,7 @@ class MainUI(QtWidgets.QMainWindow):
         # notes_plainTextEdit.setFrameShape(QtWidgets.QFrame.StyledPanel)
         right_verticalLayout.addWidget(notes_plainTextEdit)
 
-        horizontalLayout.addWidget(splitter)
+        sbs_masterLayout.addWidget(splitter)
 
         ######
         scenesDir = self.manager.scenesDir
@@ -3630,12 +3714,27 @@ class MainUI(QtWidgets.QMainWindow):
 
     def _initOpenScene(self):
         openSceneInfo = self.manager._openSceneInfo
-        if openSceneInfo: ## getSceneInfo returns None if there is no json database fil
-            self.baseScene_lineEdit.setText("%s ==> %s ==> %s" % (openSceneInfo["subProject"], openSceneInfo["category"], openSceneInfo["shotName"]))
-            self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: cyan")
+        # if openSceneInfo: ## getSceneInfo returns None if there is no json database fil
+        #     self.baseScene_lineEdit.setText("%s ==> %s ==> %s" % (openSceneInfo["subProject"], openSceneInfo["category"], openSceneInfo["shotName"]))
+        #     self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: cyan")
+        # else:
+        #     self.baseScene_lineEdit.setText("Current Scene is not a Base Scene")
+        #     self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: yellow")
+
+        if openSceneInfo:
+            jList = []
+            if openSceneInfo["subProject"] != "None":
+                jList.append(openSceneInfo["subProject"])
+            jList.extend([openSceneInfo["category"], openSceneInfo["shotName"]])
+            dMsg = " > ".join(jList)
+            self.baseScene_label.setText(dMsg)
+            # self.baseScene_label.setStyleSheet("background-color: rgb(40,40,40); color: cyan")
+            self.baseScene_label.setStyleSheet("color: cyan")
         else:
-            self.baseScene_lineEdit.setText("Current Scene is not a Base Scene")
-            self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: yellow")
+            self.baseScene_label.setText("Current Scene is not a Base Scene")
+            # self.baseScene_label.setStyleSheet("background-color: rgb(40,40,40); color: yellow")
+            self.baseScene_label.setStyleSheet("color: yellow")
+
 
 
     def _checkValidity(self, text, button, lineEdit, allowSpaces=False, directory=False):

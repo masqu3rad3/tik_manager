@@ -791,7 +791,7 @@ class MainUI(baseUI):
         self.reference_radioButton.setVisible(False)
 
         self.baseScene_label.setVisible(False)
-        self.baseScene_lineEdit.setVisible(False)
+        # self.baseScene_lineEdit.setVisible(False)
 
         self.createPB.setVisible(False)
 
