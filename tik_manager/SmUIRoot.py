@@ -209,26 +209,29 @@ class MainUI(QtWidgets.QMainWindow):
         # ----------
         margin = 5
         # barColor = "background-color: rgb(80,80,80);"
-        barColor = "background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #565656, stop: 0.1 #525252, stop: 0.5 #4e4e4e, stop: 0.9 #4a4a4a, stop: 1 #464646);"
+        # barColor = "background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #565656, stop: 0.1 #525252, stop: 0.5 #4e4e4e, stop: 0.9 #4a4a4a, stop: 1 #464646);"
 
         colorWidget = QtWidgets.QWidget(self.centralwidget)
+        colorWidget.setObjectName("header")
         headerLayout = QtWidgets.QHBoxLayout(colorWidget)
         headerLayout.setSpacing(0)
         headerLayout.setMargin(0)
 
         tikIcon_label = QtWidgets.QLabel(self.centralwidget)
+        tikIcon_label.setObjectName("header")
         tikIcon_label.setMargin(margin)
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
         if FORCE_QT4:
-            testBitmap = QtWidgets.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
+            headerBitmap = QtWidgets.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
         else:
-            testBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
-        tikIcon_label.setPixmap(testBitmap)
+            headerBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
+        tikIcon_label.setPixmap(headerBitmap)
 
         headerLayout.addWidget(tikIcon_label)
 
         self.baseScene_label = QtWidgets.QLabel(self.centralwidget)
+        self.baseScene_label.setObjectName("header")
         self.baseScene_label.setMargin(margin)
         self.baseScene_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         if FORCE_QT4:
@@ -239,13 +242,14 @@ class MainUI(QtWidgets.QMainWindow):
         headerLayout.addWidget(self.baseScene_label)
 
         self.managerIcon_label = QtWidgets.QLabel(self.centralwidget)
+        self.managerIcon_label.setObjectName("header")
         self.managerIcon_label.setMargin(margin)
         self.managerIcon_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self.managerIcon_label.setScaledContents(False)
 
         headerLayout.addWidget(self.managerIcon_label)
 
-        colorWidget.setStyleSheet(barColor)
+        # colorWidget.setStyleSheet(barColor)
         mainLayout.addWidget(colorWidget)
         # ----------
         # ----------
@@ -345,9 +349,9 @@ class MainUI(QtWidgets.QMainWindow):
         # tikIcon_label.setAutoFillBackground(True)
         # tikIcon_label.setText("iconHere")
         # tikIcon_label.setFixedSize(115, 30)
-        # testBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
+        # headerBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
         #
-        # tikIcon_label.setPixmap(testBitmap)
+        # tikIcon_label.setPixmap(headerBitmap)
         # # tikIcon_label.setScaledContents(False)
         #
         # # self.headerBar_layout.addWidget(self.tikIcon_label)
@@ -1324,6 +1328,45 @@ class MainUI(QtWidgets.QMainWindow):
         # transferCentral_Dialog.setModal(True)
 
         tc_verticalLayout = QtWidgets.QVBoxLayout(self.transferCentral_Dialog)
+
+        # ----------
+        # HEADER BAR
+        # ----------
+        margin = 5
+        # barColor = "background-color: rgb(80,80,80);"
+        # barColor = "background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #565656, stop: 0.1 #525252, stop: 0.5 #4e4e4e, stop: 0.9 #4a4a4a, stop: 1 #464646);"
+        colorWidget = QtWidgets.QWidget(self.transferCentral_Dialog)
+        headerLayout = QtWidgets.QHBoxLayout(colorWidget)
+        headerLayout.setSpacing(0)
+        headerLayout.setMargin(0)
+
+        tikIcon_label = QtWidgets.QLabel(self.centralwidget)
+        # tikIcon_label.setFixedSize(115, 30)
+        tikIcon_label.setObjectName("header")
+        tikIcon_label.setMaximumWidth(125)
+        tikIcon_label.setMargin(margin)
+        tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        tikIcon_label.setScaledContents(False)
+        testBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmTransfer.png"))
+        tikIcon_label.setPixmap(testBitmap)
+
+        headerLayout.addWidget(tikIcon_label)
+
+        resolvedPath_label = QtWidgets.QLabel()
+        resolvedPath_label.setObjectName("header")
+        resolvedPath_label.setMargin(margin)
+        resolvedPath_label.setIndent(2)
+        # resolvedPath_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        resolvedPath_label.setFont(QtGui.QFont("Times", 7, QtGui.QFont.Bold))
+        resolvedPath_label.setWordWrap(True)
+
+        headerLayout.addWidget(resolvedPath_label)
+
+
+        # colorWidget.setStyleSheet(barColor)
+        tc_verticalLayout.addWidget(colorWidget)
+        # ----------
+        # ----------
 
         tabWidget = QtWidgets.QTabWidget(self.transferCentral_Dialog)
         exportTab = QtWidgets.QWidget()
@@ -2779,7 +2822,7 @@ class MainUI(QtWidgets.QMainWindow):
         # ----------
         margin = 5
         # barColor = "background-color: rgb(80,80,80);"
-        barColor = "background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #565656, stop: 0.1 #525252, stop: 0.5 #4e4e4e, stop: 0.9 #4a4a4a, stop: 1 #464646);"
+        # barColor = "background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #565656, stop: 0.1 #525252, stop: 0.5 #4e4e4e, stop: 0.9 #4a4a4a, stop: 1 #464646);"
         colorWidget = QtWidgets.QWidget(saveBaseScene_Dialog)
         headerLayout = QtWidgets.QHBoxLayout(colorWidget)
         headerLayout.setSpacing(0)
@@ -2787,6 +2830,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         tikIcon_label = QtWidgets.QLabel(self.centralwidget)
         # tikIcon_label.setFixedSize(115, 30)
+        tikIcon_label.setObjectName("header")
         tikIcon_label.setMaximumWidth(150)
         tikIcon_label.setMargin(margin)
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
@@ -2797,6 +2841,7 @@ class MainUI(QtWidgets.QMainWindow):
         headerLayout.addWidget(tikIcon_label)
 
         resolvedPath_label = QtWidgets.QLabel()
+        resolvedPath_label.setObjectName("header")
         resolvedPath_label.setMargin(margin)
         resolvedPath_label.setIndent(12)
         # resolvedPath_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
@@ -2806,7 +2851,7 @@ class MainUI(QtWidgets.QMainWindow):
         headerLayout.addWidget(resolvedPath_label)
 
 
-        colorWidget.setStyleSheet(barColor)
+        # colorWidget.setStyleSheet(barColor)
         sbs_masterLayout.addWidget(colorWidget)
         # ----------
         # ----------
@@ -3021,7 +3066,7 @@ class MainUI(QtWidgets.QMainWindow):
         # ----------
         margin = 5
         # barColor = "background-color: rgb(80,80,80);"
-        barColor = "background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #565656, stop: 0.1 #525252, stop: 0.5 #4e4e4e, stop: 0.9 #4a4a4a, stop: 1 #464646);"
+        # barColor = "background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #565656, stop: 0.1 #525252, stop: 0.5 #4e4e4e, stop: 0.9 #4a4a4a, stop: 1 #464646);"
         colorWidget = QtWidgets.QWidget(saveV_Dialog)
         headerLayout = QtWidgets.QHBoxLayout(colorWidget)
         headerLayout.setSpacing(0)
@@ -3029,7 +3074,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         tikIcon_label = QtWidgets.QLabel(self.centralwidget)
         # tikIcon_label.setFixedSize(115, 30)
-        tikIcon_label.setMaximumWidth(110)
+        tikIcon_label.setObjectName("header")
+        tikIcon_label.setMaximumWidth(114)
         tikIcon_label.setMargin(margin)
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
@@ -3039,6 +3085,7 @@ class MainUI(QtWidgets.QMainWindow):
         headerLayout.addWidget(tikIcon_label)
 
         resolvedPath_label = QtWidgets.QLabel()
+        resolvedPath_label.setObjectName("header")
         resolvedPath_label.setMargin(margin)
         resolvedPath_label.setIndent(2)
         # resolvedPath_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
@@ -3048,7 +3095,7 @@ class MainUI(QtWidgets.QMainWindow):
         headerLayout.addWidget(resolvedPath_label)
 
 
-        colorWidget.setStyleSheet(barColor)
+        # colorWidget.setStyleSheet(barColor)
         sv_masterLayout.addWidget(colorWidget)
         # ----------
         # ----------

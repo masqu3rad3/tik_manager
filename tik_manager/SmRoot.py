@@ -146,7 +146,7 @@ class RootManager(object):
         self._pathsDict["adminPass"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "adminPass.psw"))
         # self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "exportSettings.json"))
         # self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "importSettings.json"))
-        self._pathsDict["iconsDir"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icons")
+        self._pathsDict["iconsDir"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "CSS", "rc")
 
     def _checkCommonFolder(self, folder):
         checkList = [os.path.join(folder, "sceneManagerDefaults.json"),

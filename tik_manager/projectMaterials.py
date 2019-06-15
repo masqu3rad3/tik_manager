@@ -810,14 +810,14 @@ class ProjectMaterials(RootManager):
         if not os.path.isdir(self._pathsDict["masterDir"]):
             return False
 
-        self._pathsDict["projectSettingsFile"] = os.path.normpath(
-            os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
+        self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
 
-        self._pathsDict["databaseDir"] = os.path.normpath(
-            os.path.join(self._pathsDict["masterDir"], "projectMaterialsDB"))
 
-        self._pathsDict["subprojectsFile"] = os.path.normpath(
-            os.path.join(self._pathsDict["masterDir"], "subPdata.json"))
+        self._pathsDict["databaseDir"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], _softwarePathsDict["databaseDir"]))
+
+
+        self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "subPdata.json"))
+
 
         self._pathsDict["generalSettingsDir"] = os.path.dirname(os.path.abspath(__file__))
         self._pathsDict["usersFile"] = os.path.normpath(
@@ -1106,6 +1106,46 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.verticalLayout_6 = QtWidgets.QVBoxLayout(self.centralwidget)
         self.verticalLayout_6.setObjectName(("verticalLayout_6"))
+
+
+        # ----------
+        # HEADER BAR
+        # ----------
+        margin = 5
+        colorWidget = QtWidgets.QWidget()
+        headerLayout = QtWidgets.QHBoxLayout(colorWidget)
+        headerLayout.setSpacing(0)
+        headerLayout.setMargin(0)
+
+        tikIcon_label = QtWidgets.QLabel(self.centralwidget)
+        tikIcon_label.setObjectName("header")
+        tikIcon_label.setMaximumWidth(125)
+        tikIcon_label.setMargin(margin)
+        tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        tikIcon_label.setScaledContents(False)
+        if FORCE_QT4:
+            headerBitmap = QtWidgets.QPixmap(os.path.join(self.promat.getIconsDir(), "tmProjectMaterials.png"))
+        else:
+            headerBitmap = QtGui.QPixmap(os.path.join(self.promat.getIconsDir(), "tmProjectMaterials.png"))
+        tikIcon_label.setPixmap(headerBitmap)
+
+        headerLayout.addWidget(tikIcon_label)
+
+        resolvedPath_label = QtWidgets.QLabel()
+        resolvedPath_label.setObjectName("header")
+        resolvedPath_label.setMargin(margin)
+        resolvedPath_label.setIndent(2)
+        if FORCE_QT4:
+            resolvedPath_label.setFont(QtWidgets.QFont("Times", 7, QtWidgets.QFont.Bold))
+        else:
+            resolvedPath_label.setFont(QtGui.QFont("Times", 7, QtGui.QFont.Bold))
+        resolvedPath_label.setWordWrap(True)
+
+        headerLayout.addWidget(resolvedPath_label)
+
+        self.verticalLayout_6.addWidget(colorWidget)
+        # ----------
+        # ----------
 
         self.subP_HLayout = QtWidgets.QHBoxLayout()
 

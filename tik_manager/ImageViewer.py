@@ -226,11 +226,11 @@ class MainUI(QtWidgets.QMainWindow):
 
         # Set Stylesheet
         dirname = os.path.dirname(os.path.abspath(__file__))
-        stylesheetFile = os.path.join(dirname, "CSS", "darkorange.stylesheet")
+        stylesheetFile = os.path.join(dirname, "CSS", "tikManager.qss")
         # stylesheetFile = os.path.join(dirname, "CSS", BoilerDict["Stylesheet"])
 
-        # with open(stylesheetFile, "r") as fh:
-        #     self.setStyleSheet(fh.read())
+        with open(stylesheetFile, "r") as fh:
+            self.setStyleSheet(fh.read())
 
         # self.setStyleSheet(darkorange.getStyleSheet())
 
@@ -295,8 +295,52 @@ class MainUI(QtWidgets.QMainWindow):
 
     def buildUI(self):
         """Elements of the Main UI"""
+        masterLayout = QtWidgets.QVBoxLayout(self.centralwidget)
+
+        # ----------
+        # HEADER BAR
+        # ----------
+        margin = 5
+        colorWidget = QtWidgets.QWidget()
+        headerLayout = QtWidgets.QHBoxLayout(colorWidget)
+        headerLayout.setSpacing(0)
+        headerLayout.setMargin(0)
+
+        tikIcon_label = QtWidgets.QLabel(self.centralwidget)
+        tikIcon_label.setObjectName("header")
+        tikIcon_label.setMaximumWidth(125)
+        tikIcon_label.setMargin(margin)
+        tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        tikIcon_label.setScaledContents(False)
+        iconsDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "CSS", "rc")
+        if FORCE_QT4:
+            headerBitmap = QtWidgets.QPixmap(os.path.join(iconsDir, "tmImageViewer.png"))
+        else:
+            headerBitmap = QtGui.QPixmap(os.path.join(iconsDir, "tmImageViewer.png"))
+        tikIcon_label.setPixmap(headerBitmap)
+
+        headerLayout.addWidget(tikIcon_label)
+
+        resolvedPath_label = QtWidgets.QLabel()
+        resolvedPath_label.setObjectName("header")
+        resolvedPath_label.setMargin(margin)
+        resolvedPath_label.setIndent(2)
+        if FORCE_QT4:
+            resolvedPath_label.setFont(QtWidgets.QFont("Times", 7, QtWidgets.QFont.Bold))
+        else:
+            resolvedPath_label.setFont(QtGui.QFont("Times", 7, QtGui.QFont.Bold))
+        resolvedPath_label.setWordWrap(True)
+
+        headerLayout.addWidget(resolvedPath_label)
+
+        masterLayout.addWidget(colorWidget)
+        # ----------
+        # ----------
+
+
         self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
         self.gridLayout.setObjectName(("gridLayout"))
+        masterLayout.addLayout(self.gridLayout)
 
         self.recursive_checkBox = QtWidgets.QCheckBox(self.centralwidget)
         self.recursive_checkBox.setText(("Recursive"))

@@ -149,8 +149,7 @@ class ImageManager(RootManager):
     def getSoftwarePaths(self):
         """Overriden function"""
         logger.debug("Func: getSoftwarePaths")
-        self._pathsDict["generalSettingsDir"]
-        softwareDatabaseFile = os.path.normpath(os.path.join(self._pathsDict["generalSettingsDir"], "softwareDatabase.json"))
+        softwareDatabaseFile = os.path.normpath(os.path.join(self.getSharedSettingsDir(), "softwareDatabase.json"))
         softwareDB = self._loadJson(softwareDatabaseFile)
         return softwareDB["Maya"]
 
@@ -740,6 +739,12 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
+        # Set Stylesheet
+        dirname = os.path.dirname(os.path.abspath(__file__))
+        stylesheetFile = os.path.join(dirname, "CSS", "tikManager.qss")
+        with open(stylesheetFile, "r") as fh:
+            self.setStyleSheet(fh.read())
+
         self.buildUI()
         self.refresh()
         scriptJobs = []
@@ -765,8 +770,46 @@ class MainUI(QtWidgets.QMainWindow):
             # return
     def buildUI(self):
 
+        masterLayout = QtWidgets.QVBoxLayout(self.centralwidget)
+
+
+
+        # ----------
+        # HEADER BAR
+        # ----------
+        margin = 5
+        colorWidget = QtWidgets.QWidget(self.centralwidget)
+        headerLayout = QtWidgets.QHBoxLayout(colorWidget)
+        headerLayout.setSpacing(0)
+        headerLayout.setMargin(0)
+
+        tikIcon_label = QtWidgets.QLabel(self.centralwidget)
+        tikIcon_label.setObjectName("header")
+        tikIcon_label.setMaximumWidth(125)
+        tikIcon_label.setMargin(margin)
+        tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        tikIcon_label.setScaledContents(False)
+        testBitmap = QtGui.QPixmap(os.path.join(self.imanager.getIconsDir(), "tmImageManager.png"))
+        tikIcon_label.setPixmap(testBitmap)
+
+        headerLayout.addWidget(tikIcon_label)
+
+        self.imagePath_lineEdit = QtWidgets.QLabel()
+        self.imagePath_lineEdit.setObjectName("header")
+        self.imagePath_lineEdit.setMargin(margin)
+        self.imagePath_lineEdit.setIndent(2)
+        self.imagePath_lineEdit.setFont(QtGui.QFont("Times", 7, QtGui.QFont.Bold))
+        self.imagePath_lineEdit.setWordWrap(True)
+
+        headerLayout.addWidget(self.imagePath_lineEdit)
+
+        masterLayout.addWidget(colorWidget)
+        # ----------
+        # ----------
+
         self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
         self.gridLayout.setObjectName("gridLayout")
+        masterLayout.addLayout(self.gridLayout)
 
         self.projectPath_label = QtWidgets.QLabel(self.centralwidget)
         self.projectPath_label.setFrameShape(QtWidgets.QFrame.Box)
@@ -781,26 +824,23 @@ class MainUI(QtWidgets.QMainWindow):
         self.projectPath_lineEdit.setReadOnly(True)
         self.gridLayout.addWidget(self.projectPath_lineEdit, 0, 1, 1, 1)
 
-        # self.setProject_pushButton = QtWidgets.QPushButton(self.centralwidget)
-        # self.setProject_pushButton.setObjectName("setProject_pushButton")
-        # self.setProject_pushButton.setText("SET")
-        # self.gridLayout.addWidget(self.setProject_pushButton, 0, 2, 1, 1)
 
-        self.imagePath_label = QtWidgets.QLabel(self.centralwidget)
-        self.imagePath_label.setFrameShape(QtWidgets.QFrame.Box)
-        self.imagePath_label.setObjectName("imagePath_label")
-        self.imagePath_label.setText("Image Path:")
-        self.gridLayout.addWidget(self.imagePath_label, 1, 0, 1, 1)
 
-        self.imagePath_lineEdit = QtWidgets.QLineEdit(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.imagePath_lineEdit.sizePolicy().hasHeightForWidth())
-        self.imagePath_lineEdit.setReadOnly(True)
-        self.imagePath_lineEdit.setSizePolicy(sizePolicy)
-        self.imagePath_lineEdit.setObjectName("imagePath_lineEdit")
-        self.gridLayout.addWidget(self.imagePath_lineEdit, 1, 1, 1, 2)
+        # self.imagePath_label = QtWidgets.QLabel(self.centralwidget)
+        # self.imagePath_label.setFrameShape(QtWidgets.QFrame.Box)
+        # self.imagePath_label.setObjectName("imagePath_label")
+        # self.imagePath_label.setText("Image Path:")
+        # self.gridLayout.addWidget(self.imagePath_label, 1, 0, 1, 1)
+
+        # self.imagePath_lineEdit = QtWidgets.QLineEdit(self.centralwidget)
+        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+        # sizePolicy.setHorizontalStretch(0)
+        # sizePolicy.setVerticalStretch(0)
+        # sizePolicy.setHeightForWidth(self.imagePath_lineEdit.sizePolicy().hasHeightForWidth())
+        # self.imagePath_lineEdit.setReadOnly(True)
+        # self.imagePath_lineEdit.setSizePolicy(sizePolicy)
+        # self.imagePath_lineEdit.setObjectName("imagePath_lineEdit")
+        # self.gridLayout.addWidget(self.imagePath_lineEdit, 1, 1, 1, 2)
 
         self.foolcheck_label = QtWidgets.QLabel(self.centralwidget)
         self.foolcheck_label.setObjectName("foolcheck_label")
