@@ -803,6 +803,15 @@ class ProjectMaterials(RootManager):
     def init_paths(self):
         """OVERRIDEN FUNCTION - Initializes necessary paths for project materials module"""
         # all paths in here must be absolute paths
+        self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDir(), "TikManager"))
+        self._folderCheck(self._pathsDict["userSettingsDir"])
+        self._pathsDict["userSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "userSettings.json"))
+
+        self._pathsDict["commonFolderFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smCommonFolder.json"))
+        self._pathsDict["sharedSettingsDir"] = self._getCommonFolder()
+        if self._pathsDict["sharedSettingsDir"] == -1:
+            self._exception(201, "Cannot Continue Without Common Database")
+            return -1
 
         self._pathsDict["projectDir"] = self.getProjectDir()
 
@@ -813,15 +822,16 @@ class ProjectMaterials(RootManager):
         self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
 
 
-        self._pathsDict["databaseDir"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], _softwarePathsDict["databaseDir"]))
+        self._pathsDict["databaseDir"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectMaterialsDB"))
 
 
         self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "subPdata.json"))
 
-
-        self._pathsDict["generalSettingsDir"] = os.path.dirname(os.path.abspath(__file__))
         self._pathsDict["usersFile"] = os.path.normpath(
-            os.path.join(self._pathsDict["generalSettingsDir"], "sceneManagerUsers.json"))
+            os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerUsers.json"))
+
+        self._pathsDict["iconsDir"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "CSS", "rc")
+
 
         # project material specific
         self._pathsDict["Storyboard"] = os.path.join(self.projectDir, "_REF", "storyboard")
@@ -1119,7 +1129,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         tikIcon_label = QtWidgets.QLabel(self.centralwidget)
         tikIcon_label.setObjectName("header")
-        tikIcon_label.setMaximumWidth(125)
+        tikIcon_label.setMaximumWidth(135)
         tikIcon_label.setMargin(margin)
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)

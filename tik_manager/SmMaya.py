@@ -344,52 +344,52 @@ class MayaManager(RootManager, MayaCoreFunctions):
         self.init_database()
 
 
-    def getSoftwarePaths(self):
-        """Overriden function"""
-        logger.debug("Func: getSoftwarePaths")
+    # def getSoftwarePaths(self):
+    #     """Overriden function"""
+    #     logger.debug("Func: getSoftwarePaths")
+    #
+    #     # softwareDatabaseFile = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "softwareDatabase.json"))
+    #     softwareDatabaseFile = os.path.normpath(os.path.join(self.getSharedSettingsDir(), "softwareDatabase.json"))
+    #     softwareDB = self._loadJson(softwareDatabaseFile)
+    #     # To tell the base class maya specific path names
+    #     # print softwareDB
+    #     return softwareDB["Maya"]
+    #     # return {"niceName": "Maya",
+    #     #         "databaseDir": "mayaDB",
+    #     #         "scenesDir": "scenes",
+    #     #         "pbSettingsFile": "pbSettings.json",
+    #     #         "categoriesFile": "categoriesMaya.json",
+    #     #         "userSettingsDir": "SceneManager\\Maya",
+    #     #         }
 
-        # softwareDatabaseFile = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "softwareDatabase.json"))
-        softwareDatabaseFile = os.path.normpath(os.path.join(self.getSharedSettingsDir(), "softwareDatabase.json"))
-        softwareDB = self._loadJson(softwareDatabaseFile)
-        # To tell the base class maya specific path names
-        # print softwareDB
-        return softwareDB["Maya"]
-        # return {"niceName": "Maya",
-        #         "databaseDir": "mayaDB",
-        #         "scenesDir": "scenes",
-        #         "pbSettingsFile": "pbSettings.json",
-        #         "categoriesFile": "categoriesMaya.json",
-        #         "userSettingsDir": "SceneManager\\Maya",
-        #         }
-
-    def getProjectDir(self):
-        """Overriden function"""
-        logger.debug("Func: getProjectDir")
-
-
-        currentProject = self._getProject()
-        projectsDict = self._loadProjects()
-
-        if not projectsDict: # if there is no project database file at all
-            projectsDict = {"MayaProject": currentProject,
-                            "LastProject": currentProject}
-            self._saveProjects(projectsDict)
-            return currentProject
-
-        # get the project defined in the database file
-        try:
-            dbProject = projectsDict["MayaProject"]
-        except KeyError:
-            dbProject = None
-
-        if dbProject == currentProject:
-            # do nothing to the database if it is the same project
-            return currentProject
-
-
-        projectsDict["MayaProject"] = currentProject
-        self._saveProjects(projectsDict)
-        return currentProject
+    # def getProjectDir(self):
+    #     """Overriden function"""
+    #     logger.debug("Func: getProjectDir")
+    #
+    #
+    #     currentProject = self._getProject()
+    #     projectsDict = self._loadProjects()
+    #
+    #     if not projectsDict: # if there is no project database file at all
+    #         projectsDict = {"MayaProject": currentProject,
+    #                         "LastProject": currentProject}
+    #         self._saveProjects(projectsDict)
+    #         return currentProject
+    #
+    #     # get the project defined in the database file
+    #     try:
+    #         dbProject = projectsDict["MayaProject"]
+    #     except KeyError:
+    #         dbProject = None
+    #
+    #     if dbProject == currentProject:
+    #         # do nothing to the database if it is the same project
+    #         return currentProject
+    #
+    #
+    #     projectsDict["MayaProject"] = currentProject
+    #     self._saveProjects(projectsDict)
+    #     return currentProject
 
 
     # def getProjectDir(self):

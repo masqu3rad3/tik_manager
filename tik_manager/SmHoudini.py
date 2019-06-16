@@ -84,6 +84,7 @@ class HoudiniCoreFunctions(object):
 
     def _load(self, filePath, force=True, *args, **kwargs):
         hou.hipFile.load(filePath, suppress_save_prompt=force, ignore_load_warnings=False)
+        self._setEnvVariable('HIP', os.path.split(filePath)[0])
 
     def _reference(self, filePath):
         pass
@@ -317,6 +318,9 @@ class HoudiniCoreFunctions(object):
         norm_p_path = os.path.normpath(p_path)
         return norm_p_path
 
+    def _setProject(self, path):
+        self._setEnvVariable('JOB', path)
+
     def _getVersion(self):
         return hou.applicationVersion()
 
@@ -325,6 +329,23 @@ class HoudiniCoreFunctions(object):
 
     def _getSelection(self):
         return hou.selectedItems()
+
+    def _setEnvVariable(self, var, value):
+        """sets environment var
+        :param str var: The name of the var
+        :param value: The value of the variable
+        """
+        os.environ[var] = value
+        try:
+            hou.allowEnvironmentVariableToOverwriteVariable(var, True)
+        except AttributeError:
+            # should be Houdini 12
+            hou.allowEnvironmentToOverwriteVariable(var, True)
+
+        value = value.replace('\\', '/')
+        hscript_command = "set -g %s = '%s'" % (var, value)
+
+        hou.hscript(str(hscript_command))
 
 class HoudiniManager(RootManager, HoudiniCoreFunctions):
     def __init__(self):
@@ -336,45 +357,45 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
         self.init_database()
 
 
-    def getSoftwarePaths(self):
-        """Overriden function"""
-        logger.debug("Func: getSoftwarePaths")
-        softwareDatabaseFile = os.path.normpath(os.path.join(self.getSharedSettingsDir(), "softwareDatabase.json"))
-        softwareDB = self._loadJson(softwareDatabaseFile)
-        return softwareDB["Houdini"]
-        # To tell the base class maya specific path names
-        # return {"niceName": "Houdini",
-        #         "databaseDir": "houdiniDB",
-        #         "scenesDir": "scenes_houdini",
-        #         "pbSettingsFile": "pbSettings_houdini.json",
-        #         "categoriesFile": "categoriesHoudini.json",
-        #         "userSettingsDir": "SceneManager\\Houdini"}
+    # def getSoftwarePaths(self):
+    #     """Overriden function"""
+    #     logger.debug("Func: getSoftwarePaths")
+    #     softwareDatabaseFile = os.path.normpath(os.path.join(self.getSharedSettingsDir(), "softwareDatabase.json"))
+    #     softwareDB = self._loadJson(softwareDatabaseFile)
+    #     return softwareDB["Houdini"]
+    #     # To tell the base class maya specific path names
+    #     # return {"niceName": "Houdini",
+    #     #         "databaseDir": "houdiniDB",
+    #     #         "scenesDir": "scenes_houdini",
+    #     #         "pbSettingsFile": "pbSettings_houdini.json",
+    #     #         "categoriesFile": "categoriesHoudini.json",
+    #     #         "userSettingsDir": "SceneManager\\Houdini"}
 
-    def getProjectDir(self):
-        """Overriden function"""
-        logger.debug("Func: getProjectDir")
-
-        projectsDict = self._loadProjects()
-
-        if not projectsDict:
-            # p_path = (hou.hscript('echo $JOB')[0])[:-1] # [:-1] is for the extra \n
-            # norm_p_path = os.path.normpath(p_path)
-            norm_p_path = self._getProject()
-            projectsDict = {"HoudiniProject": norm_p_path}
-            self._saveProjects(projectsDict)
-            return norm_p_path
-
-        # get the project defined in the database file
-        try:
-            norm_p_path = projectsDict["HoudiniProject"]
-            self.setProject(norm_p_path)
-            return norm_p_path
-        except KeyError:
-            p_path = (hou.hscript('echo $JOB')[0])[:-1] # [:-1] is for the extra \n
-            norm_p_path = os.path.normpath(p_path)
-            projectsDict = {"HoudiniProject": norm_p_path}
-            self._saveProjects(projectsDict)
-            return norm_p_path
+    # def getProjectDir(self):
+    #     """Overriden function"""
+    #     logger.debug("Func: getProjectDir")
+    #
+    #     projectsDict = self._loadProjects()
+    #
+    #     if not projectsDict:
+    #         # p_path = (hou.hscript('echo $JOB')[0])[:-1] # [:-1] is for the extra \n
+    #         # norm_p_path = os.path.normpath(p_path)
+    #         norm_p_path = self._getProject()
+    #         projectsDict = {"HoudiniProject": norm_p_path}
+    #         self._saveProjects(projectsDict)
+    #         return norm_p_path
+    #
+    #     # get the project defined in the database file
+    #     try:
+    #         norm_p_path = projectsDict["HoudiniProject"]
+    #         self.setProject(norm_p_path)
+    #         return norm_p_path
+    #     except KeyError:
+    #         p_path = (hou.hscript('echo $JOB')[0])[:-1] # [:-1] is for the extra \n
+    #         norm_p_path = os.path.normpath(p_path)
+    #         projectsDict = {"HoudiniProject": norm_p_path}
+    #         self._saveProjects(projectsDict)
+    #         return norm_p_path
 
     def getSceneFile(self):
         """Overriden function"""
@@ -400,8 +421,8 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
             projectsDict["HoudiniProject"] = path
         self._saveProjects(projectsDict)
         self.projectDir = path
-        self._setEnvVariable('JOB', path)
-
+        # self._setEnvVariable('JOB', path)
+        self._setProject(path)
 
     def saveBaseScene(self, categoryName, baseName, subProjectIndex=0, makeReference=False, versionNotes="", sceneFormat="hip", *args, **kwargs):
         """
@@ -846,7 +867,7 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
             # hou.hipFile.load(absSceneFile, suppress_save_prompt=force, ignore_load_warnings=False)
             self._load(absSceneFile, force=force)
             # self._setEnvVariable('HIP', os.path.split(absSceneFile)[0])
-            self._setEnvVariable('HIP', os.path.split(absSceneFile)[0])
+            # self._setEnvVariable('HIP', os.path.split(absSceneFile)[0])
             return 0
         else:
             msg = "File in Scene Manager database doesnt exist"
@@ -1064,22 +1085,22 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
         #     if cmds.scriptJob(ex=x):
         #         cmds.scriptJob(kill=x)
 
-    def _setEnvVariable(self, var, value):
-        """sets environment var
-        :param str var: The name of the var
-        :param value: The value of the variable
-        """
-        os.environ[var] = value
-        try:
-            hou.allowEnvironmentVariableToOverwriteVariable(var, True)
-        except AttributeError:
-            # should be Houdini 12
-            hou.allowEnvironmentToOverwriteVariable(var, True)
-
-        value = value.replace('\\', '/')
-        hscript_command = "set -g %s = '%s'" % (var, value)
-
-        hou.hscript(str(hscript_command))
+    # def _setEnvVariable(self, var, value):
+    #     """sets environment var
+    #     :param str var: The name of the var
+    #     :param value: The value of the variable
+    #     """
+    #     os.environ[var] = value
+    #     try:
+    #         hou.allowEnvironmentVariableToOverwriteVariable(var, True)
+    #     except AttributeError:
+    #         # should be Houdini 12
+    #         hou.allowEnvironmentToOverwriteVariable(var, True)
+    #
+    #     value = value.replace('\\', '/')
+    #     hscript_command = "set -g %s = '%s'" % (var, value)
+    #
+    #     hou.hscript(str(hscript_command))
 
     def _checkRequirements(self):
         """OVERRIDEN METHOD"""

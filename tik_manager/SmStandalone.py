@@ -518,23 +518,24 @@ class StandaloneManager(RootManager):
         projectsDict = self._loadProjects()
 
         if not projectsDict:
-            norm_p_path = os.path.normpath(os.path.expanduser("~"))
-            projectsDict = {"StandaloneProject": norm_p_path}
+            currentProject = os.path.normpath(os.path.expanduser("~"))
+            projectsDict = {"StandaloneProject": currentProject,
+                            "LastProject": currentProject}
             self._saveProjects(projectsDict)
-            return norm_p_path
+            return currentProject
 
         # get the project defined in the database file
         try:
-            norm_p_path = projectsDict["StandaloneProject"]
-            if norm_p_path: #some error can save it as None
-                return norm_p_path
+            dbProject = projectsDict["StandaloneProject"]
+            if dbProject: #some error can save it as None
+                return dbProject
             else:
                 return os.path.normpath(os.path.expanduser("~"))
         except KeyError:
-            norm_p_path = os.path.normpath(os.path.expanduser("~"))
-            projectsDict = {"StandaloneProject": norm_p_path}
+            currentProject = os.path.normpath(os.path.expanduser("~"))
+            projectsDict = {"StandaloneProject": currentProject}
             self._saveProjects(projectsDict)
-            return norm_p_path
+            return currentProject
 
     def setProject(self, path):
         """Sets the project"""

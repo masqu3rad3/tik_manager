@@ -108,7 +108,67 @@ logger.setLevel(logging.DEBUG)
 #         print pane
 #         panels.registerWidgetAsPanel('PanelTest', 'PanelTest',"example.test.panel", True).addToPane(pane)
 
-class NukeManager(RootManager):
+class NukeCoreFunctions(object):
+    def __init__(self):
+        super(NukeCoreFunctions, self).__init__()
+
+    def _save(self, *args, **kwargs):
+        pass
+        # not needed
+
+    def _saveAs(self, filePath, format=None, *args, **kwargs):
+        nuke.scriptSaveAs(filePath)
+
+    def _load(self, filePath, force=True, *args, **kwargs):
+        nuke.scriptOpen(filePath)
+
+    def _reference(self, filePath):
+        pass
+
+    def _import(self, filePath, *args, **kwargs):
+        nuke.nodePaste(filePath)
+
+    def _importObj(self, filePath, importSettings, *args, **kwargs):
+        # TODO: May prove useful to implement this as well
+        pass
+
+    def _importAlembic(self, filePath, importSettings, *args, **kwargs):
+        # TODO: May prove useful to implement this as well
+        pass
+
+    def _importFbx(self, filePath, importSettings, *args, **kwargs):
+        # TODO: May prove useful to implement this as well
+        pass
+
+    def _exportObj(self, filePath, exportSettings, exportSelected=True):
+        pass
+
+    def _exportAlembic(self, filePath, exportSettings, exportSelected=True, timeRange=[0,10]):
+        pass
+
+    def _exportFbx(self, filePath, exportSettings, exportSelected=True, timeRange=[0,10]):
+        pass
+
+    def _getSceneFile(self):
+        sceneName = nuke.root().knob('name').value()
+        norm_s_path = os.path.normpath(sceneName)
+        return norm_s_path
+
+    def _getProject(self):
+        homeDir = os.path.expanduser("~")
+        norm_p_path = os.path.normpath(homeDir)
+        return norm_p_path
+
+    def _getVersion(self):
+        return [nuke.NUKE_VERSION_MAJOR, nuke.NUKE_VERSION_MINOR]
+
+    def _getCurrentFrame(self):
+        return nuke.frame()
+
+    def _getSelection(self):
+        return nuke.selectedNodes()
+
+class NukeManager(RootManager, NukeCoreFunctions):
     def __init__(self):
         super(NukeManager, self).__init__()
         # hard coded format dictionary to pass the format info to cmds
@@ -118,45 +178,41 @@ class NukeManager(RootManager):
         self.init_database()
 
 
-    def getSoftwarePaths(self):
-        """Overriden function"""
-        logger.debug("Func: getSoftwarePaths")
-        softwareDatabaseFile = os.path.normpath(os.path.join(self.getSharedSettingsDir(), "softwareDatabase.json"))
-        softwareDB = self._loadJson(softwareDatabaseFile)
-        return softwareDB["Nuke"]
+    # def getSoftwarePaths(self):
+    #     """Overriden function"""
+    #     logger.debug("Func: getSoftwarePaths")
+    #     softwareDatabaseFile = os.path.normpath(os.path.join(self.getSharedSettingsDir(), "softwareDatabase.json"))
+    #     softwareDB = self._loadJson(softwareDatabaseFile)
+    #     return softwareDB["Nuke"]
 
-    def getProjectDir(self):
-        """Overriden function"""
-        # p_path = pManager.GetProjectFolderDir()
-        # norm_p_path = os.path.normpath(p_path)
-        projectsDict = self._loadProjects()
-        print projectsDict
-        homeDir = os.path.expanduser("~")
-
-        if not projectsDict:
-            norm_p_path = os.path.normpath(homeDir)
-            projectsDict = {"NukeProject": norm_p_path}
-            self._saveProjects(projectsDict)
-            return norm_p_path
-
-        # get the project defined in the database file
-        try:
-            norm_p_path = projectsDict["NukeProject"]
-            return norm_p_path
-        except KeyError:
-            norm_p_path = os.path.normpath(homeDir)
-            projectsDict = {"NukeProject": norm_p_path}
-            self._saveProjects(projectsDict)
-            return norm_p_path
+    # def getProjectDir(self):
+    #     """Overriden function"""
+    #     # p_path = pManager.GetProjectFolderDir()
+    #     # norm_p_path = os.path.normpath(p_path)
+    #     projectsDict = self._loadProjects()
+    #     print projectsDict
+    #     homeDir = os.path.expanduser("~")
+    #
+    #     if not projectsDict:
+    #         norm_p_path = os.path.normpath(homeDir)
+    #         projectsDict = {"NukeProject": norm_p_path}
+    #         self._saveProjects(projectsDict)
+    #         return norm_p_path
+    #
+    #     # get the project defined in the database file
+    #     try:
+    #         norm_p_path = projectsDict["NukeProject"]
+    #         return norm_p_path
+    #     except KeyError:
+    #         norm_p_path = os.path.normpath(homeDir)
+    #         projectsDict = {"NukeProject": norm_p_path}
+    #         self._saveProjects(projectsDict)
+    #         return norm_p_path
 
     def getSceneFile(self):
         """Overriden function"""
         logger.debug("Func: getSceneFile")
-
-        # Gets the current scene path ("" if untitled)
-        sceneName = nuke.root().knob('name').value()
-        norm_s_path = os.path.normpath(sceneName)
-        return norm_s_path
+        return self._getSceneFile()
 
     def setProject(self, path):
         """Sets the project"""
@@ -242,8 +298,7 @@ class NukeManager(RootManager):
         relSceneFile = os.path.relpath(sceneFile, start=projectPath)
         # killTurtle()
         # TODO // cmds may be used instead
-        # pm.saveAs(sceneFile)
-        nuke.scriptSaveAs(sceneFile)
+        self._saveAs(sceneFile)
 
         thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=version)
 
@@ -263,7 +318,7 @@ class NukeManager(RootManager):
             jsonInfo["ReferencedVersion"] = None
 
         jsonInfo["ID"] = "SmNukeV02_sceneFile"
-        jsonInfo["NukeVersion"] = [nuke.NUKE_VERSION_MAJOR, nuke.NUKE_VERSION_MINOR]
+        jsonInfo["NukeVersion"] = self._getVersion
         jsonInfo["Name"] = baseName
         jsonInfo["Path"] = os.path.relpath(shotPath, start=projectPath)
         jsonInfo["Category"] = categoryName
@@ -332,11 +387,7 @@ class NukeManager(RootManager):
 
             sceneFile = os.path.join(sceneInfo["projectPath"], relSceneFile)
 
-            # killTurtle()
-            # TODO // cmds?
-            # pm.saveAs(sceneFile)
-
-            nuke.scriptSaveAs(sceneFile)
+            self._saveAs(sceneFile)
 
             thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=currentVersion)
 
@@ -375,6 +426,7 @@ class NukeManager(RootManager):
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
             nuke.scriptOpen(absSceneFile)
+            self._load()
             return 0
         else:
             msg = "File in Scene Manager database doesnt exist"
@@ -387,8 +439,7 @@ class NukeManager(RootManager):
         relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"]
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
-            # cmds.file(absSceneFile, i=True)
-            nuke.nodePaste(absSceneFile)
+            self._import(absSceneFile)
             return 0
         else:
             msg = "File in Scene Manager database doesnt exist"
@@ -460,8 +511,8 @@ class NukeManager(RootManager):
         """Compares the versions of current session and database version at cursor position"""
         logger.debug("Func: compareVersions")
 
-        cMajorV = nuke.NUKE_VERSION_MAJOR
-        cMinorV = nuke.NUKE_VERSION_MINOR
+        cMajorV = self._getVersion[0]
+        cMinorV = self._getVersion[1]
         currentVersion = float("{0}.{1}".format(cMajorV, cMinorV))
 
         dbMajorV = self._currentSceneInfo["NukeVersion"][0]

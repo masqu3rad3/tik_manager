@@ -1050,7 +1050,7 @@ class MainUI(QtWidgets.QMainWindow):
         M2_S2_verticalLayout.addWidget(favorites_label)
 
         self.favorites_listWidget = DropListWidget(verticalLayoutWidget)
-        self.favorites_listWidget.setAlternatingRowColors(True)
+        # self.favorites_listWidget.setAlternatingRowColors(True)
         self.favorites_listWidget.setObjectName(("favorites_listWidget"))
         # self.favorites_listWidget.setStyleSheet("background-color: rgb(80,80,80); color: white")
 

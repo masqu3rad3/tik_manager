@@ -379,43 +379,77 @@ class MaxManager(RootManager, MaxCoreFunctions):
         self.init_database()
 
 
-    def getSoftwarePaths(self):
-        """Overriden function"""
-        logger.debug("Func: getSoftwarePaths")
-        softwareDatabaseFile = os.path.normpath(os.path.join(self.getSharedSettingsDir(), "softwareDatabase.json"))
-        softwareDB = self._loadJson(softwareDatabaseFile)
-        return softwareDB["3dsMax"]
-        # To tell the base class maya specific path names
-        # return {"niceName": "3dsMax",
-        #         "databaseDir": "maxDB",
-        #         "scenesDir": "scenes_3dsMax",
-        #         "pbSettingsFile": "pbSettings_3dsMax.json",
-        #         "categoriesFile": "categories3dsMax.json",
-        #         "userSettingsDir": "SceneManager\\3dsMax"} # this is just for 3ds max. expanduser"~" returns different in max
+    # def getSoftwarePaths(self):
+    #     """Overriden function"""
+    #     logger.debug("Func: getSoftwarePaths")
+    #     softwareDatabaseFile = os.path.normpath(os.path.join(self.getSharedSettingsDir(), "softwareDatabase.json"))
+    #     softwareDB = self._loadJson(softwareDatabaseFile)
+    #     return softwareDB["3dsMax"]
+    #     # To tell the base class maya specific path names
+    #     # return {"niceName": "3dsMax",
+    #     #         "databaseDir": "maxDB",
+    #     #         "scenesDir": "scenes_3dsMax",
+    #     #         "pbSettingsFile": "pbSettings_3dsMax.json",
+    #     #         "categoriesFile": "categories3dsMax.json",
+    #     #         "userSettingsDir": "SceneManager\\3dsMax"} # this is just for 3ds max. expanduser"~" returns different in max
 
-    def getProjectDir(self):
-        """Overriden function"""
+    # def getProjectDir(self, softwareName):
+    #
+    #     ## Load dictionary from database
+    #     projectsDict = self._loadProjects()
+    #
+    #     ## If there is no database, create one with current project and return
+    #     if not projectsDict:
+    #         currentProject = self._getProject()
+    #         projectsDict = {softwareName: currentProject,
+    #                         "LastProject": currentProject}
+    #         self._saveProjects(projectsDict)
+    #         return currentProject
+    #
+    #
+    #     # get the project defined in the database file
+    #     globalSet = self._userSettings["globalSetProject"]
+    #     try:
+    #         if globalSet:
+    #             currentProject = projectsDict["LastProject"]
+    #         else:
+    #             currentProject = projectsDict[softwareName]
+    #         return currentProject
+    #     except KeyError:
+    #         currentProject = self._getProject()
+    #         projectsDict[softwareName] = currentProject
+    #         projectsDict["LastProject"] = currentProject
+    #         self._saveProjects(projectsDict)
+    #         return currentProject
 
-        projectsDict = self._loadProjects()
 
 
-        if not projectsDict:
-            currentProject = self._getProject()
-            projectsDict = {"3dsMaxProject": currentProject,
-                            "LastProject": currentProject}
-            self._saveProjects(projectsDict)
-            return currentProject
 
-        # get the project defined in the database file
-        try:
-            currentProject = projectsDict["3dsMaxProject"]
-            return currentProject
-        except KeyError:
-            currentProject = self._getProject()
-            projectsDict["3dsMaxProject"] = currentProject
-            projectsDict["LastProject"] = currentProject
-            self._saveProjects(projectsDict)
-            return currentProject
+        ## get t
+
+    # def getProjectDir(self):
+    #     """Overriden function"""
+    #
+    #     projectsDict = self._loadProjects()
+    #
+    #
+    #     if not projectsDict:
+    #         currentProject = self._getProject()
+    #         projectsDict = {"3dsMaxProject": currentProject,
+    #                         "LastProject": currentProject}
+    #         self._saveProjects(projectsDict)
+    #         return currentProject
+    #
+    #     # get the project defined in the database file
+    #     try:
+    #         currentProject = projectsDict["3dsMaxProject"]
+    #         return currentProject
+    #     except KeyError:
+    #         currentProject = self._getProject()
+    #         projectsDict["3dsMaxProject"] = currentProject
+    #         projectsDict["LastProject"] = currentProject
+    #         self._saveProjects(projectsDict)
+    #         return currentProject
 
 
     def getSceneFile(self):
@@ -427,15 +461,15 @@ class MaxManager(RootManager, MaxCoreFunctions):
         # return norm_s_path
         self._getSceneFile()
 
-    def setProject(self, path):
-        """Sets the project"""
-        projectsDict = self._loadProjects()
-        if not projectsDict:
-            projectsDict = {"3dsMaxProject": path}
-        else:
-            projectsDict["3dsMaxProject"] = path
-        self._saveProjects(projectsDict)
-        self.projectDir = path
+    # def setProject(self, path):
+    #     """Sets the project"""
+    #     projectsDict = self._loadProjects()
+    #     if not projectsDict:
+    #         projectsDict = {"3dsMax": path}
+    #     else:
+    #         projectsDict["3dsMax"] = path
+    #     self._saveProjects(projectsDict)
+    #     self.projectDir = path
 
     def saveBaseScene(self, categoryName, baseName, subProjectIndex=0, makeReference=True, versionNotes="", sceneFormat="max", *args, **kwargs):
         """

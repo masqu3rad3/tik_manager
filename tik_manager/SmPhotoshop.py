@@ -72,7 +72,98 @@ logging.basicConfig()
 logger = logging.getLogger('smPhotoshop')
 logger.setLevel(logging.WARNING)
 
-class PsManager(RootManager):
+class PsCoreFunctions(object):
+    def __init__(self):
+        super(PsCoreFunctions, self).__init__()
+        # self.psApp = Dispatch('Photoshop.Application')
+
+    def _save(self, *args, **kwargs):
+        pass
+        # not needed
+
+    def _saveAs(self, filePath, format=None, *args, **kwargs):
+
+
+        if format == "psd":
+            # PhotoshopSaveOptions=ct.CreateObject("Photoshop.PhotoshopSaveOptions")
+            # PhotoshopSaveOptions.AlphaChannels = True
+            # PhotoshopSaveOptions.Annotations = True
+            # PhotoshopSaveOptions.Layers = True
+            # PhotoshopSaveOptions.SpotColors = True
+            # activeDocument.SaveAs(sceneFile, PhotoshopSaveOptions, False)
+
+            desc19 = Dispatch("Photoshop.ActionDescriptor")
+            desc20 = Dispatch("Photoshop.ActionDescriptor")
+            desc20.PutBoolean(self.psApp.StringIDToTypeID('maximizeCompatibility'), True)
+            desc19.PutObject(
+                self.psApp.CharIDToTypeID('As  '), self.psApp.CharIDToTypeID('Pht3'), desc20)
+            desc19.PutPath(self.psApp.CharIDToTypeID('In  '), filePath)
+            desc19.PutBoolean(self.psApp.CharIDToTypeID('LwCs'), True)
+            self.psApp.ExecuteAction(self.psApp.CharIDToTypeID('save'), desc19, 3)
+
+        else:
+
+            desc19 = Dispatch("Photoshop.ActionDescriptor")
+            desc20 = Dispatch("Photoshop.ActionDescriptor")
+            desc20.PutBoolean(self.psApp.StringIDToTypeID('maximizeCompatibility'), True)
+
+            desc19.PutObject(
+                self.psApp.CharIDToTypeID('As  '), self.psApp.CharIDToTypeID('Pht8'), desc20)
+            desc19.PutPath(self.psApp.CharIDToTypeID('In  '), filePath)
+            desc19.PutBoolean(self.psApp.CharIDToTypeID('LwCs'), True)
+            self.psApp.ExecuteAction(self.psApp.CharIDToTypeID('save'), desc19, 3)
+
+    def _load(self, filePath, force=True, *args, **kwargs):
+        self.psApp.Open(filePath)
+
+    def _reference(self, filePath):
+        pass
+
+    def _import(self, filePath, *args, **kwargs):
+        pass
+
+    def _importObj(self, filePath, importSettings, *args, **kwargs):
+        pass
+
+    def _importAlembic(self, filePath, importSettings, *args, **kwargs):
+        pass
+
+    def _importFbx(self, filePath, importSettings, *args, **kwargs):
+        pass
+
+    def _exportObj(self, filePath, exportSettings, exportSelected=True):
+        pass
+
+    def _exportAlembic(self, filePath, exportSettings, exportSelected=True, timeRange=[0,10]):
+        pass
+
+    def _exportFbx(self, filePath, exportSettings, exportSelected=True, timeRange=[0,10]):
+        pass
+
+    def _getSceneFile(self):
+        try:
+            activeDocument = self.psApp.Application.ActiveDocument
+            docName = activeDocument.name
+            docPath = activeDocument.path
+            return os.path.join(docPath, docName)
+        except:
+            return "Untitled"
+
+    def _getProject(self):
+        homeDir = os.path.expanduser("~")
+        norm_p_path = os.path.normpath(homeDir)
+        return norm_p_path
+
+    def _getVersion(self):
+        pass
+
+    def _getCurrentFrame(self):
+        pass
+
+    def _getSelection(self):
+        pass
+
+class PsManager(RootManager, PsCoreFunctions):
     def __init__(self):
         super(PsManager, self).__init__()
         # hard coded format dictionary to pass the format info to cmds
@@ -88,39 +179,39 @@ class PsManager(RootManager):
         # self.psApp = ct.CreateObject('Photoshop.Application')
         self.psApp = Dispatch('Photoshop.Application')
 
-    def getSoftwarePaths(self):
-        """Overriden function"""
-        logger.debug("Func: getSoftwarePaths")
-        softwareDatabaseFile = os.path.normpath(os.path.join(self.getSharedSettingsDir(), "softwareDatabase.json"))
+    # def getSoftwarePaths(self):
+    #     """Overriden function"""
+    #     logger.debug("Func: getSoftwarePaths")
+    #     softwareDatabaseFile = os.path.normpath(os.path.join(self.getSharedSettingsDir(), "softwareDatabase.json"))
+    #
+    #     softwareDB = self._loadJson(softwareDatabaseFile)
+    #     # To tell the base class maya specific path names
+    #     # print softwareDB
+    #     return softwareDB["Photoshop"]
 
-        softwareDB = self._loadJson(softwareDatabaseFile)
-        # To tell the base class maya specific path names
-        # print softwareDB
-        return softwareDB["Photoshop"]
-
-    def getProjectDir(self):
-        """OVERRIDEN FUNCTION"""
-        # get the projects file for standalone manager
-        projectsDict = self._loadProjects()
-        if not projectsDict:
-            norm_p_path = os.path.normpath(os.path.expanduser("~"))
-            projectsDict = {"PhotoshopProject": norm_p_path}
-
-            self._saveProjects(projectsDict)
-            return norm_p_path
-
-        # get the project defined in the database file
-        try:
-            norm_p_path = projectsDict["PhotoshopProject"]
-            if norm_p_path: #some error can save it as None
-                return norm_p_path
-            else:
-                return os.path.normpath(os.path.expanduser("~"))
-        except KeyError:
-            norm_p_path = os.path.normpath(os.path.expanduser("~"))
-            projectsDict = {"PhotoshopProject": norm_p_path}
-            self._saveProjects(projectsDict)
-            return norm_p_path
+    # def getProjectDir(self):
+    #     """OVERRIDEN FUNCTION"""
+    #     # get the projects file for standalone manager
+    #     projectsDict = self._loadProjects()
+    #     if not projectsDict:
+    #         norm_p_path = os.path.normpath(os.path.expanduser("~"))
+    #         projectsDict = {"PhotoshopProject": norm_p_path}
+    #
+    #         self._saveProjects(projectsDict)
+    #         return norm_p_path
+    #
+    #     # get the project defined in the database file
+    #     try:
+    #         norm_p_path = projectsDict["PhotoshopProject"]
+    #         if norm_p_path: #some error can save it as None
+    #             return norm_p_path
+    #         else:
+    #             return os.path.normpath(os.path.expanduser("~"))
+    #     except KeyError:
+    #         norm_p_path = os.path.normpath(os.path.expanduser("~"))
+    #         projectsDict = {"PhotoshopProject": norm_p_path}
+    #         self._saveProjects(projectsDict)
+    #         return norm_p_path
 
     def setProject(self, path):
         """Sets the project"""
@@ -138,13 +229,7 @@ class PsManager(RootManager):
     def getSceneFile(self):
         # """This method must be overridden to return the full scene path ('' for unsaved) of current scene"""
         logger.debug("Func: getSceneFile")
-        try:
-            activeDocument = self.psApp.Application.ActiveDocument
-            docName = activeDocument.name
-            docPath = activeDocument.path
-            return os.path.join(docPath, docName)
-        except:
-            return "Untitled"
+        self._getSceneFile()
 
     def getFormatOptions(self):
         """returns the format options according to the bit depth of active document"""
@@ -234,41 +319,47 @@ class PsManager(RootManager):
         ## relativity update
         relSceneFile = os.path.relpath(sceneFile, start=projectPath)
 
-
         openDocs = self.psApp.Application.Documents
         if openDocs.Count == 0:
             activeDocument = self.psApp.Documents.Add(2048, 2048, 72)
         else:
             activeDocument = self.psApp.Application.ActiveDocument
 
-        if sceneFormat == "psd":
-            # PhotoshopSaveOptions=ct.CreateObject("Photoshop.PhotoshopSaveOptions")
-            # PhotoshopSaveOptions.AlphaChannels = True
-            # PhotoshopSaveOptions.Annotations = True
-            # PhotoshopSaveOptions.Layers = True
-            # PhotoshopSaveOptions.SpotColors = True
-            # activeDocument.SaveAs(sceneFile, PhotoshopSaveOptions, False)
-
-            desc19 = Dispatch("Photoshop.ActionDescriptor")
-            desc20 = Dispatch("Photoshop.ActionDescriptor")
-            desc20.PutBoolean(self.psApp.StringIDToTypeID('maximizeCompatibility'), True)
-            desc19.PutObject(
-                self.psApp.CharIDToTypeID('As  '), self.psApp.CharIDToTypeID('Pht3'), desc20)
-            desc19.PutPath(self.psApp.CharIDToTypeID('In  '), sceneFile)
-            desc19.PutBoolean(self.psApp.CharIDToTypeID('LwCs'), True)
-            self.psApp.ExecuteAction(self.psApp.CharIDToTypeID('save'), desc19, 3)
-
-        else:
-
-            desc19 = Dispatch("Photoshop.ActionDescriptor")
-            desc20 = Dispatch("Photoshop.ActionDescriptor")
-            desc20.PutBoolean(self.psApp.StringIDToTypeID('maximizeCompatibility'), True)
-
-            desc19.PutObject(
-                self.psApp.CharIDToTypeID('As  '), self.psApp.CharIDToTypeID('Pht8'), desc20)
-            desc19.PutPath(self.psApp.CharIDToTypeID('In  '), sceneFile)
-            desc19.PutBoolean(self.psApp.CharIDToTypeID('LwCs'), True)
-            self.psApp.ExecuteAction(self.psApp.CharIDToTypeID('save'), desc19, 3)
+        self._saveAs(sceneFile, format=sceneFormat)
+        # openDocs = self.psApp.Application.Documents
+        # if openDocs.Count == 0:
+        #     activeDocument = self.psApp.Documents.Add(2048, 2048, 72)
+        # else:
+        #     activeDocument = self.psApp.Application.ActiveDocument
+        #
+        # if sceneFormat == "psd":
+        #     # PhotoshopSaveOptions=ct.CreateObject("Photoshop.PhotoshopSaveOptions")
+        #     # PhotoshopSaveOptions.AlphaChannels = True
+        #     # PhotoshopSaveOptions.Annotations = True
+        #     # PhotoshopSaveOptions.Layers = True
+        #     # PhotoshopSaveOptions.SpotColors = True
+        #     # activeDocument.SaveAs(sceneFile, PhotoshopSaveOptions, False)
+        #
+        #     desc19 = Dispatch("Photoshop.ActionDescriptor")
+        #     desc20 = Dispatch("Photoshop.ActionDescriptor")
+        #     desc20.PutBoolean(self.psApp.StringIDToTypeID('maximizeCompatibility'), True)
+        #     desc19.PutObject(
+        #         self.psApp.CharIDToTypeID('As  '), self.psApp.CharIDToTypeID('Pht3'), desc20)
+        #     desc19.PutPath(self.psApp.CharIDToTypeID('In  '), sceneFile)
+        #     desc19.PutBoolean(self.psApp.CharIDToTypeID('LwCs'), True)
+        #     self.psApp.ExecuteAction(self.psApp.CharIDToTypeID('save'), desc19, 3)
+        #
+        # else:
+        #
+        #     desc19 = Dispatch("Photoshop.ActionDescriptor")
+        #     desc20 = Dispatch("Photoshop.ActionDescriptor")
+        #     desc20.PutBoolean(self.psApp.StringIDToTypeID('maximizeCompatibility'), True)
+        #
+        #     desc19.PutObject(
+        #         self.psApp.CharIDToTypeID('As  '), self.psApp.CharIDToTypeID('Pht8'), desc20)
+        #     desc19.PutPath(self.psApp.CharIDToTypeID('In  '), sceneFile)
+        #     desc19.PutBoolean(self.psApp.CharIDToTypeID('LwCs'), True)
+        #     self.psApp.ExecuteAction(self.psApp.CharIDToTypeID('save'), desc19, 3)
 
         thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=version)
 
@@ -346,37 +437,37 @@ class PsManager(RootManager):
             sceneFile = os.path.join(sceneInfo["projectPath"], relSceneFile)
 
             # -- Save PSD
-
-            if sceneFormat == "psd":
-                # activeDocument = psApp.Application.ActiveDocument
-                # PhotoshopSaveOptions = ct.CreateObject("Photoshop.PhotoshopSaveOptions")
-                # PhotoshopSaveOptions.AlphaChannels = True
-                # PhotoshopSaveOptions.Annotations = True
-                # PhotoshopSaveOptions.Layers = True
-                # PhotoshopSaveOptions.SpotColors = True
-                # activeDocument.SaveAs(sceneFile, PhotoshopSaveOptions, False)
-
-                desc19 = Dispatch("Photoshop.ActionDescriptor")
-                desc20 = Dispatch("Photoshop.ActionDescriptor")
-                desc20.PutBoolean(self.psApp.StringIDToTypeID('maximizeCompatibility'), True)
-
-                desc19.PutObject(
-                    self.psApp.CharIDToTypeID('As  '), self.psApp.CharIDToTypeID('Pht3'), desc20)
-                desc19.PutPath(self.psApp.CharIDToTypeID('In  '), sceneFile)
-                desc19.PutBoolean(self.psApp.CharIDToTypeID('LwCs'), True)
-                self.psApp.ExecuteAction(self.psApp.CharIDToTypeID('save'), desc19, 3)
-
-            else:
-
-                desc19 = Dispatch("Photoshop.ActionDescriptor")
-                desc20 = Dispatch("Photoshop.ActionDescriptor")
-                desc20.PutBoolean(self.psApp.StringIDToTypeID('maximizeCompatibility'), True)
-
-                desc19.PutObject(
-                    self.psApp.CharIDToTypeID('As  '), self.psApp.CharIDToTypeID('Pht8'), desc20)
-                desc19.PutPath(self.psApp.CharIDToTypeID('In  '), sceneFile)
-                desc19.PutBoolean(self.psApp.CharIDToTypeID('LwCs'), True)
-                self.psApp.ExecuteAction(self.psApp.CharIDToTypeID('save'), desc19, 3)
+            self._saveAs(sceneFile, format=sceneFormat)
+            # if sceneFormat == "psd":
+            #     # activeDocument = psApp.Application.ActiveDocument
+            #     # PhotoshopSaveOptions = ct.CreateObject("Photoshop.PhotoshopSaveOptions")
+            #     # PhotoshopSaveOptions.AlphaChannels = True
+            #     # PhotoshopSaveOptions.Annotations = True
+            #     # PhotoshopSaveOptions.Layers = True
+            #     # PhotoshopSaveOptions.SpotColors = True
+            #     # activeDocument.SaveAs(sceneFile, PhotoshopSaveOptions, False)
+            #
+            #     desc19 = Dispatch("Photoshop.ActionDescriptor")
+            #     desc20 = Dispatch("Photoshop.ActionDescriptor")
+            #     desc20.PutBoolean(self.psApp.StringIDToTypeID('maximizeCompatibility'), True)
+            #
+            #     desc19.PutObject(
+            #         self.psApp.CharIDToTypeID('As  '), self.psApp.CharIDToTypeID('Pht3'), desc20)
+            #     desc19.PutPath(self.psApp.CharIDToTypeID('In  '), sceneFile)
+            #     desc19.PutBoolean(self.psApp.CharIDToTypeID('LwCs'), True)
+            #     self.psApp.ExecuteAction(self.psApp.CharIDToTypeID('save'), desc19, 3)
+            #
+            # else:
+            #
+            #     desc19 = Dispatch("Photoshop.ActionDescriptor")
+            #     desc20 = Dispatch("Photoshop.ActionDescriptor")
+            #     desc20.PutBoolean(self.psApp.StringIDToTypeID('maximizeCompatibility'), True)
+            #
+            #     desc19.PutObject(
+            #         self.psApp.CharIDToTypeID('As  '), self.psApp.CharIDToTypeID('Pht8'), desc20)
+            #     desc19.PutPath(self.psApp.CharIDToTypeID('In  '), sceneFile)
+            #     desc19.PutBoolean(self.psApp.CharIDToTypeID('LwCs'), True)
+            #     self.psApp.ExecuteAction(self.psApp.CharIDToTypeID('save'), desc19, 3)
 
             thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=currentVersion)
 
@@ -559,7 +650,8 @@ class PsManager(RootManager):
         relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"]
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
-            self.psApp.Open(absSceneFile)
+            # self.psApp.Open(absSceneFile)
+            self._load(absSceneFile)
             return 0
         else:
             msg = "File in Scene Manager database doesnt exist"
