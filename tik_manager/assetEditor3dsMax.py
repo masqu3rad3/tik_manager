@@ -384,23 +384,23 @@ class AssetEditor3dsMax(MaxCoreFunctions):
         absSourcePath = os.path.join(self.directory, assetName, assetData["sourcePath"])
 
         textureList = assetData['textureFiles']
-        cmds.file(absSourcePath, i=True)
+        self._import(absSourcePath, prompt=False)
 
         ## if there are not textures files to handle, do not waste time
         if len(textureList) == 0:
             return
 
-        currentProjectPath = os.path.normpath(cmds.workspace(q=1, rd=1))
+        currentProjectPath = self._getProject()
         sourceImagesPath = os.path.join(currentProjectPath, "sourceimages")
         if not os.path.isdir(os.path.normpath(sourceImagesPath)):
             os.makedirs(os.path.normpath(sourceImagesPath))
 
-        fileNodes = cmds.ls(type="file")
+        fileNodes = rt.getClassInstances(rt.bitmapTexture)
         for texture in textureList:
             path = os.path.join(self.directory, assetData['assetName'], texture)
             ## find the textures file Node
             for file in fileNodes:
-                if os.path.normpath(cmds.getAttr("%s.fileTextureName" %file)) == path:
+                if os.path.normpath(file.fileName) == path:
                     filePath, fileBase = os.path.split(path)
                     newLocation = os.path.join(sourceImagesPath, assetName)
                     if not os.path.exists(newLocation):
@@ -408,7 +408,7 @@ class AssetEditor3dsMax(MaxCoreFunctions):
                     newPath = os.path.normpath(os.path.join(newLocation, fileBase))
 
                     copyfile(path, newPath)
-                    cmds.setAttr("%s.fileTextureName" %file, newPath, type="string")
+                    file.fileName = newPath
 
     def importAsset(self, assetName):
         assetData = self._getData(assetName)
@@ -416,7 +416,7 @@ class AssetEditor3dsMax(MaxCoreFunctions):
             return
         absSourcePath = os.path.join(self.directory, assetName, assetData["sourcePath"])
 
-        cmds.file(absSourcePath, i=True)
+        self._import(absSourcePath, prompt=False)
 
     def importObj(self, assetName):
 

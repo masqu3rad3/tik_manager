@@ -88,8 +88,17 @@ class MaxCoreFunctions(object):
         Xrefobjs = rt.getMAXFileObjectNames(filePath)
         rt.xrefs.addNewXRefObject(filePath, Xrefobjs)
 
-    def _import(self, filePath, *args, **kwargs):
-        fManager.Merge(filePath)
+    def _import(self, filePath, prompt=True, *args, **kwargs):
+        if prompt:
+            fManager.Merge(filePath)
+        else:
+            cammand = 'mergeMAXFile "%s"' %filePath
+            print "caommand", cammand
+            rt.execute(cammand)
+
+    # def _import(self, filePath, mergeAll=False, *args, **kwargs):
+    #     fManager.Merge(filePath, mergeAll=mergeAll)
+
 
     def _importObj(self, filePath, importSettings, *args, **kwargs):
         if rt.pluginManager.loadclass(rt.ObjExp):
@@ -461,7 +470,7 @@ class MaxManager(RootManager, MaxCoreFunctions):
         # s_path = fManager.GetFileNameAndPath()
         # norm_s_path = os.path.normpath(s_path)
         # return norm_s_path
-        self._getSceneFile()
+        return self._getSceneFile()
 
     # def setProject(self, path):
     #     """Sets the project"""

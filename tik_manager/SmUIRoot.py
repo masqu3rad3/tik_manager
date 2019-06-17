@@ -3149,6 +3149,7 @@ class MainUI(QtWidgets.QMainWindow):
         spacerItem = QtWidgets.QSpacerItem(80, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         formats_horizontalLayout.addItem(spacerItem)
 
+        print self.manager.getSceneFile()
         ext = os.path.splitext(self.manager.getSceneFile())[1][1:]
         radioButtonList = []
         for format in BoilerDict["SceneFormats"]:

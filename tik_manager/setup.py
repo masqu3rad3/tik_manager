@@ -728,6 +728,8 @@ def maxSetup(prompt=True):
                 "SmRoot.py",
                 "Sm3dsMax.py",
                 "projectMaterials.py",
+                "assetLibrary.py",
+                "assetEditor3dsMax.py"
                 ]
 
     for file in fileList:
@@ -758,17 +760,18 @@ def maxSetup(prompt=True):
     pack_24a = os.path.join(networkDir, "icons", "SceneManager_24a.bmp").replace("\\", "\\\\")
     pack_24i = os.path.join(networkDir, "icons", "SceneManager_24i.bmp").replace("\\", "\\\\")
 
-    workSpaceInjection ="""        <Window name="sceneManager" type="T" rank="0" subRank="2" hidden="0" dPanel="1" tabbed="0" curTab="-1" cType="1" toolbarRows="1" toolbarType="3">
+    workSpaceInjection ="""        <Window name="Tik Manager" type="T" rank="0" subRank="2" hidden="0" dPanel="1" tabbed="0" curTab="-1" cType="1" toolbarRows="1" toolbarType="3">
             <FRect left="198" top="125" right="350" bottom="199" />
             <DRect left="1395" top="53" right="1504" bottom="92" />
             <DRectPref left="2147483647" top="2147483647" right="-2147483648" bottom="-2147483648" />
             <CurPos left="198" top="125" right="600" bottom="199" floating="1" panelID="16" />
             <Items>
-                <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="manager`SceneManager" tip="Scene Manager" label="Scene Manager" />
-                <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="saveVersion`SceneManager" tip="Scene Manager - Version Save" label="Save Version" />
-                <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="imageViewer`SceneManager" tip="Scene Manager - Image Viewer" label="Image Viewer" />
-                <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="makePreview`SceneManager" tip="Scene Manager - Make Preview" label="Make Preview" />
-                <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="projectMaterials`SceneManager" tip="Scene Manager - Project Materials" label="Project Materials" />
+                <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="manager`Tik Works" tip="Tik Manager" label="Tik Manager" />
+                <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="saveVersion`Tik Works" tip="Tik Manager - Version Save" label="Save Version" />
+                <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="imageViewer`Tik Works" tip="Tik Manager - Image Viewer" label="Image Viewer" />
+                <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="makePreview`Tik Works" tip="Tik Manager - Make Preview" label="Make Preview" />
+                <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="projectMaterials`Tik Works" tip="Tik Manager - Project Materials" label="Project Materials" />
+                <Item typeID="2" type="CTB_MACROBUTTON" width="0" height="0" controlID="0" macroTypeID="3" macroType="MB_TYPE_ACTION" actionTableID="647394" imageID="-1" imageName="" actionID="assetLibrary`Tik Works" tip="Tik Manager - Asset Library" label="Asset Library" />
             </Items>
         </Window>\n"""
 
@@ -822,7 +825,7 @@ python.Execute "MaxPlus.NotificationManager.Register(14, smUpdate)"
 macroScript manager
 category: "Tik Works"
 tooltip: "Tik Manager"
-ButtonText: "TM"
+ButtonText: "TikManager"
 icon: #("SceneManager",1)
 (
 	python.Execute "from tik_manager import Sm3dsMax"
@@ -872,13 +875,24 @@ icon: #("SceneManager",6)
 	python.Execute "tik_projectMaterials = Sm3dsMax.MainUI()"
 	python.Execute "tik_projectMaterials.onPMaterials()"
 )"""
-        _dumpContent(os.path.join(macrosDir, "SceneManager-manager.mcr"), manager)
-        _dumpContent(os.path.join(macrosDir, "SceneManager-saveVersion.mcr"), saveVersion)
-        _dumpContent(os.path.join(macrosDir, "SceneManager-imageViewer.mcr"), imageViewer)
-        _dumpContent(os.path.join(macrosDir, "SceneManager-makePreview.mcr"), makePreview)
-        _dumpContent(os.path.join(macrosDir, "SceneManager-projectMaterials.mcr"), projectMaterials)
+        assetLibrary = """
+macroScript assetLibrary
+category: "Tik Works"
+tooltip: "Tik Manager - Asset Library"
+ButtonText: "Asset Library"
+icon: #("SceneManager",7)
+(
+    python.Execute "from tik_manager import assetLibrary"
+    python.Execute "assetLibrary = assetLibrary.MainUI().show()"
+)"""
+        _dumpContent(os.path.join(macrosDir, "tikManager-manager.mcr"), manager)
+        _dumpContent(os.path.join(macrosDir, "tikManager-saveVersion.mcr"), saveVersion)
+        _dumpContent(os.path.join(macrosDir, "tikManager-imageViewer.mcr"), imageViewer)
+        _dumpContent(os.path.join(macrosDir, "tikManager-makePreview.mcr"), makePreview)
+        _dumpContent(os.path.join(macrosDir, "tikManager-projectMaterials.mcr"), projectMaterials)
+        _dumpContent(os.path.join(macrosDir, "tikManager-assetLibrary.mcr"), assetLibrary)
 
-        searchLines = ['"sceneManager"', "</Window>"]
+        searchLines = ['"tikManager"', "</Window>"]
         print "Injecting the Scene Manager toolbar to the workspace"
         state = inject(workspaceFile, workSpaceInjection, between=searchLines , matchMode="includes", force=False)
         if not state: # fresh install
