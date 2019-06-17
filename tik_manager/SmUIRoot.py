@@ -210,16 +210,28 @@ class MainUI(QtWidgets.QMainWindow):
         margin = 5
         # barColor = "background-color: rgb(80,80,80);"
         # barColor = "background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #565656, stop: 0.1 #525252, stop: 0.5 #4e4e4e, stop: 0.9 #4a4a4a, stop: 1 #464646);"
+        self.colorBar = QtWidgets.QLabel()
+        headerColor = self.manager.getColorCoding(self.manager.swName)
+        self.colorBar.setStyleSheet("background-color: %s;" %headerColor)
+        mainLayout.addWidget(self.colorBar)
+        # pyside does not have setMargin attribute
+        try: self.colorBar.setMargin(0)
+        except AttributeError: pass
+        self.colorBar.setIndent(0)
+        self.colorBar.setMaximumHeight(1)
+
 
         colorWidget = QtWidgets.QWidget(self.centralwidget)
         colorWidget.setObjectName("header")
         headerLayout = QtWidgets.QHBoxLayout(colorWidget)
         headerLayout.setSpacing(0)
-        headerLayout.setMargin(0)
+        try: self.headerLayout.setMargin(0)
+        except AttributeError: pass
 
         tikIcon_label = QtWidgets.QLabel(self.centralwidget)
         tikIcon_label.setObjectName("header")
-        tikIcon_label.setMargin(margin)
+        try: tikIcon_label.setMargin(margin)
+        except AttributeError: pass
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
         if FORCE_QT4:
@@ -232,7 +244,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.baseScene_label = QtWidgets.QLabel(self.centralwidget)
         self.baseScene_label.setObjectName("header")
-        self.baseScene_label.setMargin(margin)
+        try: self.baseScene_label.setMargin(margin)
+        except AttributeError: pass
         self.baseScene_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         if FORCE_QT4:
             self.baseScene_label.setFont(QtWidgets.QFont("Times", 10, QtWidgets.QFont.Bold))
@@ -243,7 +256,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.managerIcon_label = QtWidgets.QLabel(self.centralwidget)
         self.managerIcon_label.setObjectName("header")
-        self.managerIcon_label.setMargin(margin)
+        try: self.managerIcon_label.setMargin(margin)
+        except AttributeError: pass
         self.managerIcon_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self.managerIcon_label.setScaledContents(False)
 
@@ -1338,13 +1352,15 @@ class MainUI(QtWidgets.QMainWindow):
         colorWidget = QtWidgets.QWidget(self.transferCentral_Dialog)
         headerLayout = QtWidgets.QHBoxLayout(colorWidget)
         headerLayout.setSpacing(0)
-        headerLayout.setMargin(0)
+        try: headerLayout.setMargin(0)
+        except AttributeError: pass
 
         tikIcon_label = QtWidgets.QLabel(self.centralwidget)
         # tikIcon_label.setFixedSize(115, 30)
         tikIcon_label.setObjectName("header")
         tikIcon_label.setMaximumWidth(125)
-        tikIcon_label.setMargin(margin)
+        try: tikIcon_label.setMargin(margin)
+        except AttributeError: pass
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
         testBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmTransfer.png"))
@@ -1354,7 +1370,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         resolvedPath_label = QtWidgets.QLabel()
         resolvedPath_label.setObjectName("header")
-        resolvedPath_label.setMargin(margin)
+        try: resolvedPath_label.setMargin(margin)
+        except AttributeError: pass
         resolvedPath_label.setIndent(2)
         # resolvedPath_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         resolvedPath_label.setFont(QtGui.QFont("Times", 7, QtGui.QFont.Bold))
@@ -2826,13 +2843,15 @@ class MainUI(QtWidgets.QMainWindow):
         colorWidget = QtWidgets.QWidget(saveBaseScene_Dialog)
         headerLayout = QtWidgets.QHBoxLayout(colorWidget)
         headerLayout.setSpacing(0)
-        headerLayout.setMargin(0)
+        try: headerLayout.setMargin(0)
+        except AttributeError: pass
 
         tikIcon_label = QtWidgets.QLabel(self.centralwidget)
         # tikIcon_label.setFixedSize(115, 30)
         tikIcon_label.setObjectName("header")
         tikIcon_label.setMaximumWidth(150)
-        tikIcon_label.setMargin(margin)
+        try: tikIcon_label.setMargin(margin)
+        except AttributeError: pass
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
         testBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmBaseScene.png"))
@@ -2842,7 +2861,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         resolvedPath_label = QtWidgets.QLabel()
         resolvedPath_label.setObjectName("header")
-        resolvedPath_label.setMargin(margin)
+        try:resolvedPath_label.setMargin(margin)
+        except AttributeError: pass
         resolvedPath_label.setIndent(12)
         # resolvedPath_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         resolvedPath_label.setFont(QtGui.QFont("Times", 10, QtGui.QFont.Bold))
@@ -3070,13 +3090,15 @@ class MainUI(QtWidgets.QMainWindow):
         colorWidget = QtWidgets.QWidget(saveV_Dialog)
         headerLayout = QtWidgets.QHBoxLayout(colorWidget)
         headerLayout.setSpacing(0)
-        headerLayout.setMargin(0)
+        try: headerLayout.setMargin(0)
+        except AttributeError: pass
 
         tikIcon_label = QtWidgets.QLabel(self.centralwidget)
         # tikIcon_label.setFixedSize(115, 30)
         tikIcon_label.setObjectName("header")
         tikIcon_label.setMaximumWidth(114)
-        tikIcon_label.setMargin(margin)
+        try: tikIcon_label.setMargin(margin)
+        except AttributeError: pass
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
         testBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmVersion.png"))
@@ -3086,7 +3108,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         resolvedPath_label = QtWidgets.QLabel()
         resolvedPath_label.setObjectName("header")
-        resolvedPath_label.setMargin(margin)
+        try: resolvedPath_label.setMargin(margin)
+        except AttributeError: pass
         resolvedPath_label.setIndent(2)
         # resolvedPath_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         resolvedPath_label.setFont(QtGui.QFont("Times", 7, QtGui.QFont.Bold))

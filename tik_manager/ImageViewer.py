@@ -297,19 +297,25 @@ class MainUI(QtWidgets.QMainWindow):
         """Elements of the Main UI"""
         masterLayout = QtWidgets.QVBoxLayout(self.centralwidget)
 
+
         # ----------
         # HEADER BAR
         # ----------
         margin = 5
-        colorWidget = QtWidgets.QWidget()
+        colorWidget = QtWidgets.QWidget(self.centralwidget)
+        colorWidget.setMaximumHeight(50)
+        colorWidget.setObjectName("header")
         headerLayout = QtWidgets.QHBoxLayout(colorWidget)
         headerLayout.setSpacing(0)
-        headerLayout.setMargin(0)
+        try: headerLayout.setMargin(0)
+        except AttributeError: pass
 
         tikIcon_label = QtWidgets.QLabel(self.centralwidget)
         tikIcon_label.setObjectName("header")
         tikIcon_label.setMaximumWidth(125)
-        tikIcon_label.setMargin(margin)
+
+        try: tikIcon_label.setMargin(margin)
+        except AttributeError: pass
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
         iconsDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "CSS", "rc")
@@ -323,7 +329,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         resolvedPath_label = QtWidgets.QLabel()
         resolvedPath_label.setObjectName("header")
-        resolvedPath_label.setMargin(margin)
+        try: resolvedPath_label.setMargin(margin)
+        except AttributeError: pass
         resolvedPath_label.setIndent(2)
         if FORCE_QT4:
             resolvedPath_label.setFont(QtWidgets.QFont("Times", 7, QtWidgets.QFont.Bold))
@@ -334,6 +341,9 @@ class MainUI(QtWidgets.QMainWindow):
         headerLayout.addWidget(resolvedPath_label)
 
         masterLayout.addWidget(colorWidget)
+
+        # spacerItem = QtWidgets.QSpacerItem(500, 500, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        # masterLayout.addItem(spacerItem)
         # ----------
         # ----------
 

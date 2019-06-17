@@ -1032,7 +1032,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         # # Set Stylesheet
         dirname = os.path.dirname(os.path.abspath(__file__))
-        stylesheetFile = os.path.join(dirname, "CSS", "darkorange.stylesheet")
+        stylesheetFile = os.path.join(dirname, "CSS", "tikManager.qss")
         # stylesheetFile = os.path.join(dirname, "CSS", BoilerDict["Stylesheet"])
         #
         with open(stylesheetFile, "r") as fh:
@@ -1123,9 +1123,12 @@ class MainUI(QtWidgets.QMainWindow):
         # ----------
         margin = 5
         colorWidget = QtWidgets.QWidget()
+        colorWidget.setObjectName("header")
         headerLayout = QtWidgets.QHBoxLayout(colorWidget)
         headerLayout.setSpacing(0)
-        headerLayout.setMargin(0)
+        # headerLayout.setMargin(0)
+        try: headerLayout.setMargin(0)
+        except AttributeError: pass
 
         tikIcon_label = QtWidgets.QLabel(self.centralwidget)
         tikIcon_label.setObjectName("header")
@@ -1143,7 +1146,9 @@ class MainUI(QtWidgets.QMainWindow):
 
         resolvedPath_label = QtWidgets.QLabel()
         resolvedPath_label.setObjectName("header")
-        resolvedPath_label.setMargin(margin)
+        # resolvedPath_label.setMargin(margin)
+        try: resolvedPath_label.setMargin(margin)
+        except AttributeError: pass
         resolvedPath_label.setIndent(2)
         if FORCE_QT4:
             resolvedPath_label.setFont(QtWidgets.QFont("Times", 7, QtWidgets.QFont.Bold))

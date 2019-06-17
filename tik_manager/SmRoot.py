@@ -97,7 +97,7 @@ class RootManager(object):
         # self._folderCheck(self._pathsDict["userSettingsDir"])
         self._folderCheck(os.path.join(self._pathsDict["userSettingsDir"], nicename))
         self._pathsDict["userSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "userSettings.json"))
-        self._userSettings = self._loadUserSettings()
+        # self._userSettings = self._loadUserSettings()
 
         self._pathsDict["localBookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], nicename, "smBookmarks.json"))
         self._pathsDict["bookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smBookmarks.json"))
@@ -213,41 +213,30 @@ class RootManager(object):
 
         ## If there is no database, create one with current project and return
         if not projectsDict:
-            projectsDict = {self.swName: currentProject,
-                            "LastProject": currentProject}
+            projectsDict = {self.swName: currentProject}
             self._saveProjects(projectsDict)
             return currentProject
 
         # get the project defined in the database file
-        globalSet = self._userSettings["globalSetProject"]
         try:
-            if globalSet:
-                dbProject = projectsDict["LastProject"]
-            else:
-                dbProject = projectsDict[self.swName]
+            dbProject = projectsDict[self.swName]
         except KeyError:
             # if the software is not in the database create the key, dump db and return
             projectsDict[self.swName] = currentProject
-            projectsDict["LastProject"] = currentProject
             self._saveProjects(projectsDict)
             return currentProject
 
         # if the current project matches with the database, return it
         if dbProject == currentProject:
-            if currentProject != projectsDict["LastProject"]:
-                projectsDict["LastProject"] = currentProject
-                self._saveProjects(projectsDict)
             return currentProject
 
         # make an exception for maya. Maya returns the currently set project always
         if self.swName == "Maya":
-            projectsDict["MayaProject"] = currentProject
-            projectsDict["LastProject"] = currentProject
+            projectsDict[self.swName] = currentProject
             self._saveProjects(projectsDict)
             return currentProject
         else:
-            projectsDict["MayaProject"] = dbProject
-            projectsDict["LastProject"] = dbProject
+            projectsDict[self.swName] = dbProject
             self._saveProjects(projectsDict)
             return dbProject
 
@@ -317,7 +306,7 @@ class RootManager(object):
 
         # defaults dictionary holding "defaultCategories", "defaultPreviewSettings", "defaultUsers"
         self._sceneManagerDefaults = self._loadManagerDefaults()
-        # self._userSettings = self._loadUserSettings()
+        self._userSettings = self._loadUserSettings()
         self._nameConventions = self._loadNameConventions()
 
         # self.currentPlatform = platform.system()
@@ -680,6 +669,9 @@ class RootManager(object):
         if not "Documents" in dir:
             dir = os.path.join(dir, "Documents")
         return os.path.normpath(dir)
+
+    def getLocalSettingsDir(self):
+        return self._pathsDict["localSettingsDir"]
 
     def getIconsDir(self):
         return self._pathsDict["iconsDir"]

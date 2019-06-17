@@ -236,6 +236,7 @@ class AssetLibrary(AssetEditor, RootManager):
         self.assetsList=[]
         self._pathsDict={}
         self.init_paths()
+        self.init_database()
 
     def init_paths(self):
         self._pathsDict["localSettingsDir"] = os.path.normpath(os.path.join(self.getUserDir(), "TikManager"))
@@ -246,8 +247,16 @@ class AssetLibrary(AssetEditor, RootManager):
         if self._pathsDict["sharedSettingsDir"] == -1:
             self._exception(201, "Cannot Continue Without Common Database")
             return -1
-        self._pathsDict["exportSettingsFile"] = os.path.join(self._pathsDict["sharedSettingsDir"], "exportSettings.json")
 
+        self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerDefaults.json"))
+
+        self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "alExportSettings.json"))
+        self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "alImportSettings.json"))
+
+    def init_database(self):
+        self._sceneManagerDefaults = self._loadManagerDefaults()
+        self.exportSettings = self._loadExportSettings()
+        self.importSettings = self._loadImportSettings()
 
     # def _loadExportSettings(self):
     #     """Load Export Setting options from file in Common Folder"""
@@ -469,7 +478,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.homedir = os.path.expanduser("~")
         self.DocumentsDir = "Documents" if BoilerDict["Environment"] == "Standalone"\
             or BoilerDict["Environment"] == "3dsMax" else ""
-        self.settingsFile = os.path.join(self.homedir, self.DocumentsDir, "assetLibraryConfig.json")
+        self.settingsFile = os.path.join(self.homedir, self.DocumentsDir, "TikManager", "assetLibraryConfig.json")
 
         self.setObjectName(BoilerDict["WindowTitle"])
         self.resize(670, 624)
@@ -530,6 +539,68 @@ class MainUI(QtWidgets.QMainWindow):
         # pyside does not have setMargin attribute
         try: self.masterLayout.setMargin(0)
         except AttributeError: pass
+
+        # ----------
+        # HEADER BAR
+        # ----------
+        margin = 5
+        # # barColor = "background-color: rgb(80,80,80);"
+        # # barColor = "background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #565656, stop: 0.1 #525252, stop: 0.5 #4e4e4e, stop: 0.9 #4a4a4a, stop: 1 #464646);"
+        # self.colorBar = QtWidgets.QLabel()
+        # headerColor = self.manager.getColorCoding(self.manager.swName)
+        # self.colorBar.setStyleSheet("background-color: %s;" %headerColor)
+        # self.masterLayout.addWidget(self.colorBar)
+        # # pyside does not have setMargin attribute
+        # try: self.colorBar.setMargin(0)
+        # except AttributeError: pass
+        # self.colorBar.setIndent(0)
+        # self.colorBar.setMaximumHeight(1)
+
+
+        colorWidget = QtWidgets.QWidget(self.centralwidget)
+        colorWidget.setObjectName("header")
+        headerLayout = QtWidgets.QHBoxLayout(colorWidget)
+        headerLayout.setSpacing(0)
+        try: self.headerLayout.setMargin(0)
+        except AttributeError: pass
+
+        tikIcon_label = QtWidgets.QLabel(self.centralwidget)
+        tikIcon_label.setObjectName("header")
+        try: tikIcon_label.setMargin(margin)
+        except AttributeError: pass
+        tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        tikIcon_label.setScaledContents(False)
+        iconsDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "CSS", "rc")
+
+        if FORCE_QT4:
+            headerBitmap = QtWidgets.QPixmap(os.path.join(iconsDir, "tmAssetLibrary.png"))
+        else:
+            headerBitmap = QtGui.QPixmap(os.path.join(iconsDir, "tmAssetLibrary.png"))
+        tikIcon_label.setPixmap(headerBitmap)
+
+        headerLayout.addWidget(tikIcon_label)
+
+        resolvedPath_label = QtWidgets.QLabel()
+        resolvedPath_label.setObjectName("header")
+        # resolvedPath_label.setMargin(margin)
+        try: resolvedPath_label.setMargin(margin)
+        except AttributeError: pass
+        resolvedPath_label.setIndent(2)
+        if FORCE_QT4:
+            resolvedPath_label.setFont(QtWidgets.QFont("Times", 7, QtWidgets.QFont.Bold))
+        else:
+            resolvedPath_label.setFont(QtGui.QFont("Times", 7, QtGui.QFont.Bold))
+        resolvedPath_label.setWordWrap(True)
+
+        headerLayout.addWidget(resolvedPath_label)
+
+
+
+        # colorWidget.setStyleSheet(barColor)
+        self.masterLayout.addWidget(colorWidget)
+        # ----------
+        # ----------
+
 
         self.tabWidget = QtWidgets.QTabWidget(self.centralwidget)
         self.tabWidget.setMaximumSize(QtCore.QSize(16777215, 167777))
@@ -658,7 +729,7 @@ class MainUI(QtWidgets.QMainWindow):
         for p in libraryPaths:
             if p[0] == oldName:
                 p[0] = customName
-                _dumpJson(libraryPaths, self.settingsFile)
+                self._dumpJson(libraryPaths, self.settingsFile)
                 self.tabWidget.setTabText(currentTabIndex, customName)
                 return
 

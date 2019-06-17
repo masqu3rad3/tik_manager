@@ -425,6 +425,7 @@ class StandaloneManager(RootManager):
     def __init__(self):
         super(StandaloneManager, self).__init__()
 
+        self.swName = ""
         self.swList = []
         self.init_paths("Standalone")
         self.init_database()
@@ -519,21 +520,20 @@ class StandaloneManager(RootManager):
 
         if not projectsDict:
             currentProject = os.path.normpath(os.path.expanduser("~"))
-            projectsDict = {"StandaloneProject": currentProject,
-                            "LastProject": currentProject}
+            projectsDict = {"Standalone": currentProject}
             self._saveProjects(projectsDict)
             return currentProject
 
         # get the project defined in the database file
         try:
-            dbProject = projectsDict["StandaloneProject"]
+            dbProject = projectsDict["Standalone"]
             if dbProject: #some error can save it as None
                 return dbProject
             else:
                 return os.path.normpath(os.path.expanduser("~"))
         except KeyError:
             currentProject = os.path.normpath(os.path.expanduser("~"))
-            projectsDict = {"StandaloneProject": currentProject}
+            projectsDict = {"Standalone": currentProject}
             self._saveProjects(projectsDict)
             return currentProject
 
@@ -541,9 +541,9 @@ class StandaloneManager(RootManager):
         """Sets the project"""
         projectsDict = self._loadProjects()
         if not projectsDict:
-            projectsDict = {"StandaloneProject": path}
+            projectsDict = {"Standalone": path}
         else:
-            projectsDict["StandaloneProject"] = path
+            projectsDict["Standalone"] = path
         self._saveProjects(projectsDict)
         self.projectDir = path
         self.init_paths("Standalone")
@@ -846,6 +846,7 @@ class MainUI(baseUI):
         self.scenes_listWidget.clear()
         # self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.swColorDict[str(self.software_comboBox.currentText())])
         self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
+        self.colorBar.setStyleSheet("background-color: %s; color: black" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
 
         self._vEnableDisable()
         self.category_tabWidget.blockSignals(False)
@@ -870,6 +871,7 @@ class MainUI(baseUI):
 
         # self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.swColorDict[str(self.software_comboBox.currentText())])
         self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
+        self.colorBar.setStyleSheet("background-color: %s; color: black" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
 
         self.software_comboBox.blockSignals(False)
 
@@ -882,6 +884,7 @@ class MainUI(baseUI):
         self.populateBaseScenes()
         # self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.swColorDict[str(self.software_comboBox.currentText())])
         self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
+        self.colorBar.setStyleSheet("background-color: %s; color: black" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
 
         self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
         self._vEnableDisable()

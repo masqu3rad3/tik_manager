@@ -39,9 +39,9 @@ from pymxs import runtime as rt
 from shutil import copyfile
 # import json
 # import logging
+from Sm3dsMax import MaxCoreFunctions
 
-
-class AssetEditor3dsMax(object):
+class AssetEditor3dsMax(MaxCoreFunctions):
     def __init__(self):
         super(AssetEditor3dsMax, self).__init__()
         self.directory=""
@@ -81,47 +81,6 @@ class AssetEditor3dsMax(object):
         if not os.path.exists(assetDirectory):
             os.mkdir(assetDirectory)
 
-        # ################
-        # ## RESEARCH ####
-        # ################
-        #
-        # def getBitmapTextures(objectList):
-        #     bDict = {}
-        #     for i in objectList:
-        #         bDict[i] = rt.getClassInstances(rt.bitmapTexture, target=i, asTrackViewPick=False)
-        #     # print rt.getClassInstances(rt.bitmapTexture, target=i, asTrackViewPick=False)
-        #     return bDict
-        #
-        # def getBitmapTexturesZ(objectList):
-        #     """Returns the list of objects with bitmap textures as [[Object1, BitmapTexture1], [Object2, BitmapTexture2]]"""
-        #     bDict = [(str(i), rt.getClassInstances(rt.bitmapTexture, target=i, asTrackViewPick=False)) for i in
-        #              objectList if len(rt.usedMaps(i)) > 0]
-        #     return bDict
-        #
-        # from MaxPlus import FileManager as fManager
-        # from MaxPlus import PathManager as pManager
-        # from pymxs import runtime as rt
-        #
-        # selection = rt.execute("selection as array")
-        # texArr = []
-        #
-        # # for x in selection:
-        # #	for i in (rt.usedMaps(x)):
-        # #		texArr.append(i)
-        #
-        # # print "old", texArr
-        #
-        # # for x in selection:
-        # #	map(lambda i: (texArr.append(i)), rt.usedMaps(x))
-        #
-        # texArr = [map(lambda i: i, rt.usedMaps(x)) for x in selection]
-        #
-        # print texArr
-        #
-        # ######################################
-
-
-
         # GET TEXTURES
         # ------------
         if selectionOnly:
@@ -145,6 +104,7 @@ class AssetEditor3dsMax(object):
 
         # CREATE UV SNAPSHOTS
         # ----------------
+        rt.select(originalSelection)
         if exportUV:
             self._uvSnaps(assetName)
 
@@ -158,181 +118,41 @@ class AssetEditor3dsMax(object):
 
         # EXPORT OBJ
         # ----------
-        exportSettings = self.getExportSettings()
 
         if exportOBJ:
-            objSettings = exportSettings["objExport"]
             objFilePath = os.path.join(assetDirectory, "%s.obj" %assetName)
-            if self.exportObj(objFilePath, objSettings):
+            if self._exportObj(objFilePath, exportSettings=self.exportSettings):
                 objName = "{0}.obj".format(assetName)
             else:
                 objName = "N/A"
-
-            # if rt.pluginManager.loadclass(rt.ObjExp):
-            #     # Set OBJ Options
-            #     ObjSettings = exportSettings["objExport"]
-            #
-            #     iniPath_exportSettings = rt.objExp.getIniName()
-            #     rt.setINISetting(iniPath_exportSettings, "Geometry", "FlipZyAxis", ObjSettings["FlipZyAxis"])
-            #     rt.setINISetting(iniPath_exportSettings, "Geometry", "Shapes", ObjSettings["Shapes"])
-            #     rt.setINISetting(iniPath_exportSettings, "Geometry", "ExportHiddenObjects", ObjSettings["ExportHiddenObjects"])
-            #     rt.setINISetting(iniPath_exportSettings, "Geometry", "FaceType", ObjSettings["FaceType"])
-            #     rt.setINISetting(iniPath_exportSettings, "Geometry", "TextureCoords", ObjSettings["TextureCoords"])
-            #     rt.setINISetting(iniPath_exportSettings, "Geometry", "Normals", ObjSettings["Normals"])
-            #     rt.setINISetting(iniPath_exportSettings, "Geometry", "SmoothingGroups", ObjSettings["SmoothingGroups"])
-            #     rt.setINISetting(iniPath_exportSettings, "Geometry", "ObjScale", ObjSettings["ObjScale"])
-            #
-            #     rt.setINISetting(iniPath_exportSettings, "Output", "RelativeIndex", ObjSettings["RelativeIndex"])
-            #     rt.setINISetting(iniPath_exportSettings, "Output", "Target", ObjSettings["Target"])
-            #     rt.setINISetting(iniPath_exportSettings, "Output", "Precision", ObjSettings["Precision"])
-            #
-            #     rt.setINISetting(iniPath_exportSettings, "Optimize", "optVertex", ObjSettings["optVertex"])
-            #     rt.setINISetting(iniPath_exportSettings, "Optimize", "optNormals", ObjSettings["optNormals"])
-            #     rt.setINISetting(iniPath_exportSettings, "Optimize", "optTextureCoords", ObjSettings["optTextureCoords"])
-            #
-            #
-            #     rt.exportFile(os.path.join(assetDirectory, assetName), rt.Name("NoPrompt"), selectedOnly=selectionOnly, using=rt.ObjExp)
-            #     objName = "{0}.obj".format(assetName)
-            # else:
-            #     msg = "Wavefront(Obj) Export Plugin cannot be initialized. Skipping Obj export"
-            #     rt.messageBox(msg, title='Info')
-            #     objName = "N/A"
         else:
             objName = "N/A"
 
         # EXPORT FBX
         # ----------
         if exportFBX:
-            fbxSettings = exportSettings["fbxExport"]
             fbxFilePath = os.path.join(assetDirectory, "%s.fbx" %assetName)
+            frame = self._getCurrentFrame()
 
-            if self.exportFbx(fbxFilePath, fbxSettings):
+            if self._exportFbx(fbxFilePath, exportSettings=self.exportSettings, timeRange=[frame, frame]):
                 fbxName = "{0}.fbx".format(assetName)
             else:
                 fbxName = "N/A"
-
-        #     # FBXSettings = exportSettings["fbxExport"]
-        #     if rt.pluginManager.loadclass(rt.FBXEXP):
-        #         # Set FBX Options
-        #         for item in FBXSettings.items():
-        #             print item[0], " => ", item[1]
-        #             rt.FBXExporterSetParam(rt.Name(item[0]), item[1])
-        #
-        #         # rt.FBXExporterSetParam(rt.Name("Animation"), True)
-        #         # rt.FBXExporterSetParam(rt.Name("ASCII"), False)
-        #         # rt.FBXExporterSetParam(rt.Name("AxisConversionMethod"), "Fbx_Root")
-        #         # rt.FBXExporterSetParam(rt.Name("BakeAnimation"), True)
-        #         # rt.FBXExporterSetParam(rt.Name("BakeFrameStart"), 0)
-        #         # rt.FBXExporterSetParam(rt.Name("BakeFrameEnd"), 100)
-        #         # rt.FBXExporterSetParam(rt.Name("BakeFrameStep"), 1)
-        #         # rt.FBXExporterSetParam(rt.Name("BakeResampleAnimation"), False)
-        #         # rt.FBXExporterSetParam(rt.Name("CAT2HIK"), False)
-        #         # rt.FBXExporterSetParam(rt.Name("ColladaTriangulate"), False)
-        #         # rt.FBXExporterSetParam(rt.Name("ColladaSingleMatrix"), True)
-        #         # rt.FBXExporterSetParam(rt.Name("ColladaFrameRate"), float(rt.framerate))
-        #         # rt.FBXExporterSetParam(rt.Name("Convert2Tiff"), False)
-        #         # rt.FBXExporterSetParam(rt.Name("ConvertUnit"), "in")
-        #         # rt.FBXExporterSetParam(rt.Name("EmbedTextures"), True)
-        #         # rt.FBXExporterSetParam(rt.Name("FileVersion"), "FBX201400")
-        #         # rt.FBXExporterSetParam(rt.Name("FilterKeyReducer"), False)
-        #         # rt.FBXExporterSetParam(rt.Name("GeomAsBone"), True)
-        #         # rt.FBXExporterSetParam(rt.Name("GenerateLog"), False)
-        #         # rt.FBXExporterSetParam(rt.Name("Lights"), True)
-        #         # rt.FBXExporterSetParam(rt.Name("NormalsPerPoly"), True)
-        #         # rt.FBXExporterSetParam(rt.Name("PointCache"), False)
-        #         # rt.FBXExporterSetParam(rt.Name("Preserveinstances"), False)
-        #         # rt.FBXExporterSetParam(rt.Name("Removesinglekeys"), False)
-        #         # rt.FBXExporterSetParam(rt.Name("Resampling"), float(rt.framerate))
-        #         # rt.FBXExporterSetParam(rt.Name("ScaleFactor"), 1.0)
-        #         # rt.FBXExporterSetParam(rt.Name("SelectionSetExport"), False)
-        #         # rt.FBXExporterSetParam(rt.Name("Shape"), True)
-        #         # rt.FBXExporterSetParam(rt.Name("Skin"), True)
-        #         # rt.FBXExporterSetParam(rt.Name("ShowWarnings"), False)
-        #         # rt.FBXExporterSetParam(rt.Name("SmoothingGroups"), True)
-        #         # rt.FBXExporterSetParam(rt.Name("SmoothMeshExport"), True)
-        #         # rt.FBXExporterSetParam(rt.Name("SplitAnimationIntoTakes"), True)
-        #         # rt.FBXExporterSetParam(rt.Name("TangentSpaceExport"), False)
-        #         # rt.FBXExporterSetParam(rt.Name("Triangulate"), False)
-        #         # rt.FBXExporterSetParam(rt.Name("UpAxis"), "Y")
-        #         # rt.FBXExporterSetParam(rt.Name("UseSceneName"), False)
-        #
-        #         fileName = "{0}.fbx".format(os.path.join(assetDirectory, assetName))
-        #         try:
-        #             rt.exportFile(fileName, rt.Name("NoPrompt"), selectedOnly=selectionOnly,
-        #                           using=rt.FBXEXP)
-        #             fbxName = "{0}.fbx".format(assetName)
-        #         except:
-        #             msg = "Cannot export FBX for unknown reason. Skipping FBX export"
-        #             rt.messageBox(msg, title='Info')
-        #             fbxName = "N/A"
-        #     else:
-        #         msg = "FBX Plugin cannot be initialized. Skipping FBX export"
-        #         rt.messageBox(msg, title='Info')
-        #         fbxName = "N/A"
-        #
-        # else:
-        #     fbxName = "N/A"
+        else:
+            fbxName = "N/A"
 
         # EXPORT ALEMBIC
         # --------------
 
         if exportABC:
 
-            abcSettings = exportSettings["alembicExport"]
             abcFilePath = os.path.join(assetDirectory, "%s.abc" % assetName)
-            frame = int(rt.sliderTime)
-            abcSettings["StartFrame"] = frame
-            abcSettings["EndFrame"] = frame
+            frame = self._getCurrentFrame()
 
-            if self.exportAlembic(abcFilePath, abcSettings):
+            if self._exportAlembic(abcFilePath, exportSettings=self.exportSettings, timeRange=[frame, frame]):
                 abcName = "{0}.abc".format(assetName)
             else:
                 abcName = "N/A"
-            # ABCSettings = exportSettings["alembicExport"]
-            # fileName = "{0}.abc".format(os.path.join(assetDirectory, assetName))
-            # abcName = "{0}.abc".format(assetName)
-            # # Set Alembic Options according to the Max Version:
-            # v = rt.maxVersion()[0]
-            # if v > 17000: # Alembic export is not supported before 3ds Max 2016
-            #     if rt.pluginManager.loadclass(rt.Alembic_Export):
-            #         if 18000 <= v < 21000: # between versions 2016 - 2018
-            #             rt.AlembicExport.CoordinateSystem = rt.Name(ABCSettings["CoordinateSystem"])
-            #             rt.AlembicExport.ArchiveType = rt.Name(ABCSettings["ArchiveType"])
-            #             rt.AlembicExport.ParticleAsMesh = ABCSettings["ParticleAsMesh"]
-            #             rt.AlembicExport.CacheTimeRange = rt.Name(ABCSettings["CacheTimeRange"])
-            #             rt.AlembicExport.ShapeName = ABCSettings["ShapeName"]
-            #             rt.AlembicExport.StepFrameTime = ABCSettings["StepFrameTime"]
-            #
-            #         elif v >=21000: # version 2019 and up
-            #             rt.AlembicExport.CoordinateSystem = rt.Name(ABCSettings["CoordinateSystem"])
-            #             rt.AlembicExport.ArchiveType = rt.Name(ABCSettings["ArchiveType"])
-            #             rt.AlembicExport.ParticleAsMesh = ABCSettings["ParticleAsMesh"]
-            #             rt.AlembicExport.AnimTimeRange = rt.Name(ABCSettings["AnimTimeRange"])
-            #             rt.AlembicExport.ShapeSuffix = ABCSettings["ShapeSuffix"]
-            #             rt.AlembicExport.SamplesPerFrame = ABCSettings["SamplesPerFrame"]
-            #             rt.AlembicExport.Hidden = ABCSettings["Hidden"]
-            #             rt.AlembicExport.UVs = ABCSettings["UVs"]
-            #             rt.AlembicExport.Normals = ABCSettings["Normals"]
-            #             rt.AlembicExport.VertexColors = ABCSettings["VertexColors"]
-            #             rt.AlembicExport.ExtraChannels = ABCSettings["ExtraChannels"]
-            #             rt.AlembicExport.Velocity = ABCSettings["Velocity"]
-            #             rt.AlembicExport.MaterialIDs = ABCSettings["MaterialIDs"]
-            #             rt.AlembicExport.Visibility = ABCSettings["Visibility"]
-            #             rt.AlembicExport.LayerName = ABCSettings["LayerName"]
-            #             rt.AlembicExport.MaterialName = ABCSettings["MaterialName"]
-            #             rt.AlembicExport.ObjectID = ABCSettings["ObjectID"]
-            #             rt.AlembicExport.CustomAttributes = ABCSettings["CustomAttributes"]
-            #
-            #         # Export
-            #         rt.exportFile(fileName, rt.Name("NoPrompt"), selectedOnly=selectionOnly,
-            #                       using=rt.Alembic_Export)
-            #     else:
-            #         rt.messageBox("Alembic Plugin cannot be initialized. Skipping", title="Alembic not supported")
-            #         abcName = "N/A"
-            # else:
-            #     rt.messageBox("There is no alembic support for this version. Skipping", title="Alembic not supported")
-            #     abcName = "N/A"
-
         else:
             abcName = "N/A"
 
@@ -468,32 +288,50 @@ class AssetEditor3dsMax(object):
         pass
 
     def _uvSnaps(self, assetName):
-        selection = cmds.ls(sl=True)
-        validShapes = cmds.listRelatives(selection, ad=True, type=["mesh", "nurbsSurface"])
+        originalSelection = rt.execute("selection as array")
+        validShapes = rt.execute("for o in selection where superClassOf o == geometryClass collect o")
+
         if len(validShapes) > 10:
             msg = "There are %s objects for UV snapshots.\nAre you sure you want to include snapshots to the Asset?" %(len(validShapes))
-            state = cmds.confirmDialog(title='Too many objects for UV Snapshot', message=msg, button=['Ok', 'Cancel'])
-            # cmds.warning("There are unknown nodes in the scene. Cannot proceed with %s extension. Do you want to proceed with %s?" %(ext, origExt))
-            if state == "Ok":
+            state = rt.queryBox( msg, title='Too many objects for UV Snapshot')
+            if state:
                 pass
             else:
-                cmds.warning("Uv snapshots skipped")
                 return
+
 
         assetDirectory = os.path.join(self.directory, assetName)
         UVdir = os.path.join(assetDirectory, "UV_snaps")
+
         if not os.path.isdir(os.path.normpath(UVdir)):
             os.makedirs(os.path.normpath(UVdir))
 
-        for i in range(0, len(validShapes)):
-            objName = validShapes[i].replace(":", "_")
+
+        rt.execute("max modify mode")
+
+        print "AS", validShapes
+        for i in validShapes:
+            objName = i.name
             UVpath = os.path.join(UVdir, '%s_uv.jpg' % objName)
-            cmds.select(validShapes[i])
-            try:
-                cmds.uvSnapshot(o=True, ff="jpg", n=UVpath, xr=1600, yr=1600)
-            except:
-                cmds.warning("Cannot create UV snapshot for %s" % validShapes[i])
-        cmds.select(selection)
+            rt.select(i)
+            defUnwrapMod = rt.Unwrap_UVW()
+            rt.addModifier(i, defUnwrapMod)
+            defUnwrapMod.setMapChannel = 1
+            defUnwrapMod.renderuv_fillmode = 0
+            defUnwrapMod.renderuv_seamColor = rt.Name("green")
+            defUnwrapMod.renderuv_showframebuffer = False
+            defUnwrapMod.renderuv_force2sided = False
+            defUnwrapMod.renderuv_fillColor = rt.Name("black")
+            defUnwrapMod.renderuv_showoverlap = False
+            defUnwrapMod.renderuv_overlapColor = rt.Name("red")
+            defUnwrapMod.renderuv_edgeColor = rt.Name("white")
+            defUnwrapMod.renderuv_visibleedges = True
+            defUnwrapMod.renderuv_invisibleedges = False
+            defUnwrapMod.renderuv_seamedges = False
+            print "ssEamKgB", UVpath
+            defUnwrapMod.renderUV(UVpath)
+
+        rt.select(originalSelection)
 
 
     def _getFileNodes(self, objList):

@@ -365,10 +365,12 @@ class MaxCoreFunctions(object):
     def _getCurrentFrame(self):
         return int(rt.sliderTime)
 
-    def _getSelection(self):
+    def _getSelection(self, asMaxArray=False):
         sel = rt.execute("selection as array")
-        strList = [x.name for x in sel]
-        return strList
+        if not asMaxArray:
+            return [x.name for x in sel]
+        else:
+            return sel
 
 class MaxManager(RootManager, MaxCoreFunctions):
     def __init__(self):
