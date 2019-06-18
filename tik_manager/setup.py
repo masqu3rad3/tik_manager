@@ -145,8 +145,10 @@ def inject(file, newContentList, between=None, after=None, before=None, matchMod
         startLine = between[0]
         endLine = between[1]
         startIndex = collectIndex(searchList, startLine, mode=matchMode)
+        print "HERE", startIndex
         if not startIndex == None:
             endIndex = collectIndex(searchList, endLine, beginFrom=startIndex, mode=matchMode)
+            print "ENDINDEX", endIndex
         if startIndex == None or not endIndex:
             if force:
                 "Cannot find Start Line. Just appending to the file"
@@ -892,8 +894,14 @@ icon: #("SceneManager",7)
         _dumpContent(os.path.join(macrosDir, "tikManager-projectMaterials.mcr"), projectMaterials)
         _dumpContent(os.path.join(macrosDir, "tikManager-assetLibrary.mcr"), assetLibrary)
 
-        searchLines = ['"tikManager"', "</Window>"]
-        print "Injecting the Scene Manager toolbar to the workspace"
+        searchLines = ['"Tik Manager"', "</Window>"]
+        print "Removing older versions of Manager (Scene Manager)"
+        oldLines = ['"sceneManager"', "</Window>"]
+        oldState = inject(workspaceFile, "", between=oldLines, matchMode="includes", force=False)
+        if oldState:
+            print "Old version shelf (Scene Manager) removed"
+
+        print "Injecting the Tik Manager toolbar to the workspace"
         state = inject(workspaceFile, workSpaceInjection, between=searchLines , matchMode="includes", force=False)
         if not state: # fresh install
             state = inject(workspaceFile, workSpaceInjection, before="</CUIWindows>", matchMode="includes")

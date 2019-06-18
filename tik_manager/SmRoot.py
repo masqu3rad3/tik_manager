@@ -148,6 +148,8 @@ class RootManager(object):
         # self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "exportSettings.json"))
         # self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "importSettings.json"))
         self._pathsDict["iconsDir"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "CSS", "rc")
+        ## FFMPEG conversion paths
+        self._pathsDict["conversionLUTFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "conversionLUT.json"))
 
     def _checkCommonFolder(self, folder):
         checkList = [os.path.join(folder, "sceneManagerDefaults.json"),
@@ -1437,8 +1439,6 @@ Elapsed Time:{6}
     def playPreview(self, camera):
         """Runs the playblast at cursor position"""
         logger.debug("Func: playPreview")
-        print("cam", camera)
-        # absPath = os.path.join(self.projectDir, self._currentPreviewsDict[self._currentPreviewCamera])
         absPath = os.path.join(self.projectDir, self._currentPreviewsDict[camera])
         if self.currentPlatform == "Windows":
             try:
@@ -2119,6 +2119,22 @@ Elapsed Time:{6}
         self._dumpJson(pbSettings, self._pathsDict["pbSettingsFile"])
         return
 
+    def _loadConversionLUT(self):
+        logger.debug("Func: _loadConversionLUT")
+        if not os.path.isfile(self._pathsDict["conversionLUTFile"]):
+            defaultLUT = self._sceneManagerDefaults["defaultConversionLUT"]
+            self._dumpJson(defaultLUT, self._pathsDict["conversionLUTFile"])
+            return defaultLUT
+        else:
+            conversionLUT = self._loadJson(self._pathsDict["conversionLUTFile"])
+            if conversionLUT == -2:
+                return -2
+            return conversionLUT
+    def _saveConverionLUT(self, conversionLUT):
+        logger.debug("Func: _saveConverionLUT")
+        self._dumpJson(conversionLUT, self._pathsDict["conversionLUTFile"])
+        return
+
     def checkNewVersion(self):
 
         url = "http://www.ardakutlu.com/Tik_Manager/versionCheck/versionInfo.json"
@@ -2157,6 +2173,54 @@ Elapsed Time:{6}
         else:
             vMsg = "Tik Manager is up to date"
             return vMsg, None, None
+
+    def _convertPreview(self, sourceFile, overwrite=True, deleteAfter=False):
+        # abort if system is not supported or converter exe is missing
+        if self.currentPlatform is not "Windows":
+            self._info("Currently only Windows operating system is supported for mp4 conversion")
+            return
+
+        ffmpeg = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ffmpeg.exe")
+        if not os.path.isfile(ffmpeg):
+            self._info("Cannot find ffmpeg.exe")
+            return
+
+        # get the conversion lut
+        presetLUT = self._loadConversionLUT()
+
+        # set output file
+        base, ext = os.path.splitext(sourceFile)
+        outputFile = "%s.mp4" %(base)
+
+        # deal with the existing output
+        if os.path.isfile(outputFile):
+            if overwrite:
+                os.remove(outputFile)
+            else:
+                self._info("Target path already exists. Aborting")
+                return False
+
+        iFlag = '-i "%s"' %sourceFile
+
+        command = '""{0}" {1} {2} {3} {4} {5} -ignore_unknown {6} "{7}"'.format(
+            ffmpeg,
+            iFlag,
+            presetLUT["videoCodec"],
+            presetLUT["compression"],
+            presetLUT["audioCodec"],
+            presetLUT["resolution"],
+            presetLUT["foolproof"],
+            outputFile
+        )
+
+        os.system(command)
+        if deleteAfter:
+            os.remove(sourceFile)
+        return outputFile
+
+
+
+
 
     def _question(self, msg, *args, **kwargs):
         """Yes/No question terminal"""

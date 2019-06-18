@@ -645,81 +645,41 @@ class MayaManager(RootManager, MayaCoreFunctions):
             return -1, msg
         return jsonInfo
 
-    # def transferExport(self, name, isSelection=True, isObj=True, isAlembic=True, isFbx=True, timeRange=[1,10]):
-    #     """
-    #     Exports scene or selection with defined settings
-    #     :param name: (string) name of the export
-    #     :param isSelection: (Boolean) If true, exports only selected items, else whole scene
-    #     :param isObj: (Boolean) if True, exports obj format
-    #     :param isAlembic: (Boolean) if True, exports alembic format
-    #     :param isFbx: (Boolean) if True, exports fbx format
-    #     :param timeRange: (List) Defines export time range as [Startframe, Endframe]
-    #     :return: True if successfull
-    #     """
-    #     exportSettings = self._loadExportSettings()
-    #     if isObj:
-    #         objSettings = exportSettings["objExport"]
-    #         objDir = os.path.join(self._pathsDict["transferDir"],"OBJ")
-    #         self._folderCheck(objDir)
-    #         objFilePath = os.path.join(objDir,"%s.obj" %name)
-    #         self._exportObj(objFilePath, exportSettings=objSettings, exportSelected=isSelection)
-    #
-    #     if isAlembic:
-    #         alembicSettings = exportSettings["alembicExport"]
-    #         # edit in - out
-    #         alembicSettings["AnimTimeRange"] = "StartEnd"
-    #         alembicSettings["StartFrame"] = timeRange[0]
-    #         alembicSettings["EndFrame"] = timeRange[1]
-    #
-    #
-    #         alembicDir = os.path.join(self._pathsDict["transferDir"],"ALEMBIC")
-    #         self._folderCheck(alembicDir)
-    #         alembicFilePath = os.path.join(alembicDir,"%s.abc" %name)
-    #         self._exportAlembic(alembicFilePath, exportSettings=alembicSettings, exportSelected=isSelection)
-    #
-    #     if isFbx:
-    #         fbxSettings = exportSettings["fbxExport"]
-    #         if timeRange[0] is not timeRange[1]:
-    #             fbxSettings["Animation"]=True
-    #             fbxSettings["BakeFrameStart"]=timeRange[0]
-    #             fbxSettings["BakeFrameEnd"]=timeRange[1]
-    #         else:
-    #             fbxSettings["Animation"] = False
-    #
-    #         fbxDir = os.path.join(self._pathsDict["transferDir"],"FBX")
-    #         self._folderCheck(fbxDir)
-    #         fbxFilePath = os.path.join(fbxDir,"%s.fbx" %name)
-    #         self._exportFbx(fbxFilePath, exportSettings=fbxSettings, exportSelected=isSelection)
-    #
-    #     return True
-
-
-    def createPreview(self, *args, **kwargs):
+    def createPreview(self, convert=True, *args, **kwargs):
         """Creates a Playblast preview from currently open scene"""
         logger.debug("Func: createPreview")
 
         pbSettings = self.loadPBSettings()
-        validFormats = cmds.playblast(format=True, q=True)
-        validCodecs = cmds.playblast(c=True, q=True)
 
-        if not pbSettings["Format"] in validFormats:
-            msg = ("Format specified in project settings is not supported. Install {0}".format(pbSettings["Format"]))
-            self._exception(360, msg)
-            return
+        # if the file will be converted, force it to uncompressed avi
+        if convert:
+            # TODO // Make it compatible with LINUX and MAC
+            validFormats = [u'avi']
+            validCodecs = [u'none']
+            extension = "avi"
 
-        if not pbSettings["Codec"] in validCodecs:
-            msg = ("Codec specified in project settings is not supported. Install {0}".format(pbSettings["Codec"]))
-            self._exception(360, msg)
-            return
+        else:
+            validFormats = cmds.playblast(format=True, q=True)
+            validCodecs = cmds.playblast(c=True, q=True)
 
-        extension = "mov" if pbSettings["Format"] == "qt" else "avi"
+            if not pbSettings["Format"] in validFormats:
+                msg = ("Format specified in project settings is not supported. Install {0}".format(pbSettings["Format"]))
+                self._exception(360, msg)
+                return
 
-        # Quicktime format is missing the final frame all the time. Add an extra frame to compansate
-        if pbSettings["Format"] == 'qt':
-            maxTime = cmds.playbackOptions(q=True, maxTime=True)
-            endTime = cmds.playbackOptions(q=True, animationEndTime=True)
-            cmds.playbackOptions(maxTime=maxTime + 1)
-            cmds.playbackOptions(animationEndTime=endTime + 1)
+            if not pbSettings["Codec"] in validCodecs:
+                msg = ("Codec specified in project settings is not supported. Install {0}".format(pbSettings["Codec"]))
+                self._exception(360, msg)
+                return
+
+            extension = "mov" if pbSettings["Format"] == "qt" else "avi"
+
+            # Quicktime format is missing the final frame all the time. Add an extra frame to compansate
+            if pbSettings["Format"] == 'qt':
+                maxTime = cmds.playbackOptions(q=True, maxTime=True)
+                endTime = cmds.playbackOptions(q=True, animationEndTime=True)
+                cmds.playbackOptions(maxTime=maxTime + 1)
+                cmds.playbackOptions(animationEndTime=endTime + 1)
 
         openSceneInfo = self.getOpenSceneInfo()
         if not openSceneInfo:
@@ -752,7 +712,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
         versionName = self.getSceneFile()
         relVersionName = os.path.relpath(versionName, start=openSceneInfo["projectPath"])
         playBlastFile = os.path.join(openSceneInfo["previewPath"], "{0}_{1}_PB.{2}".format(self.niceName(versionName), validName, extension))
-        relPlayBlastFile = os.path.relpath(playBlastFile, start=openSceneInfo["projectPath"])
+        # relPlayBlastFile = os.path.relpath(playBlastFile, start=openSceneInfo["projectPath"])
 
         if os.path.isfile(playBlastFile):
             try:
@@ -842,16 +802,18 @@ class MayaManager(RootManager, MayaCoreFunctions):
         ## Check here: http://download.autodesk.com/us/maya/2011help/pymel/generated/functions/pymel.core.windows/pymel.core.windows.headsUpDisplay.html
         # print "playBlastFile", playBlastFile
         normPB = os.path.normpath(playBlastFile)
-        # print "normPath", normPB
+
         cmds.playblast(format=pbSettings["Format"],
                        sequenceTime=False,
-                     filename=playBlastFile,
-                     widthHeight=pbSettings["Resolution"],
-                     percent=pbSettings["Percent"],
-                     quality=pbSettings["Quality"],
-                     compression=pbSettings["Codec"],
-                     sound=activeSound,
-                     uts=True)
+                       filename=playBlastFile,
+                       widthHeight=pbSettings["Resolution"],
+                       percent=pbSettings["Percent"],
+                       quality=pbSettings["Quality"],
+                       compression=pbSettings["Codec"],
+                       sound=activeSound,
+                       uts=True,
+                       v=not convert
+                       )
         ## remove window when pb is donw
         cmds.deleteUI(tempWindow)
 
@@ -885,6 +847,14 @@ class MayaManager(RootManager, MayaCoreFunctions):
             cmds.select(selection)
         except TypeError: # in case nothing selected
             pass
+
+        if convert:
+            convertedFile = self._convertPreview(playBlastFile, overwrite=True, deleteAfter=True)
+            relPlayBlastFile = os.path.relpath(convertedFile, start=openSceneInfo["projectPath"])
+            os.startfile(convertedFile)
+        else:
+            relPlayBlastFile = os.path.relpath(playBlastFile, start=openSceneInfo["projectPath"])
+
         ## find this version in the json data
         for version in jsonInfo["Versions"]:
             if relVersionName == version["RelativePath"]:

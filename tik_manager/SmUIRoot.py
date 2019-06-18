@@ -225,7 +225,7 @@ class MainUI(QtWidgets.QMainWindow):
         colorWidget.setObjectName("header")
         headerLayout = QtWidgets.QHBoxLayout(colorWidget)
         headerLayout.setSpacing(0)
-        try: self.headerLayout.setMargin(0)
+        try: headerLayout.setMargin(0)
         except AttributeError: pass
 
         tikIcon_label = QtWidgets.QLabel(self.centralwidget)

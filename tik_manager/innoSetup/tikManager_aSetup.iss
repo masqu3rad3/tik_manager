@@ -32,7 +32,9 @@ InfoAfterFile="..\..\README.md"
 Source: "..\__init__.pyc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\_version.pyc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\assetEditorMaya.pyc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\assetEditor3dsMax.pyc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\assetLibrary.pyc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\ffmpeg.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\ImageViewer.pyc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\ImMaya.pyc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\projectMaterials.pyc"; DestDir: "{app}"; Flags: ignoreversion
@@ -46,6 +48,7 @@ Source: "..\SmMaya.pyc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\SmNuke.pyc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\SmRoot.pyc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\SmUIRoot.pyc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\iconSource.pyc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\CSS\darkorange.stylesheet"; DestDir: "{app}\CSS"; Flags: ignoreversion
 
 Source: "..\icons\*"; DestDir: "{app}\icons"; Flags: ignoreversion createallsubdirs recursesubdirs
