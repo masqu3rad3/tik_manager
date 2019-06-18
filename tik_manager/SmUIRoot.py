@@ -1318,7 +1318,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.favorites_listWidget.doubleClicked.connect(setProject)
 
-        self.dirFilter_lineEdit.textChanged.connect(self.filterDirectories)
+        self.dirFilter_lineEdit.textChanged.connect(self._filterDirectories)
         # self.dirFilter_lineEdit.returnPressed.connect(self.filterDirectories)
 
         cancel_pushButton.clicked.connect(self.setProject_Dialog.close)
@@ -1813,20 +1813,263 @@ class MainUI(QtWidgets.QMainWindow):
         self.transferCentral_Dialog.show()
 
 
-    def filterDirectories(self):
+    def _filterDirectories(self):
         filterWord = self.dirFilter_lineEdit.text()
-        # self.DirFilter = [unicode(filterWord)]
-        # self.DirFilter = ["*%s*" %filterWord]
-        # print self.DirFilter
-
         self.DirFilter = [(unicode("*%s*" %filterWord))]
-
-
         self.sourceModel.setNameFilters(self.DirFilter)
-        # self.folders_tableView.reset()
-        # self.folders_tableView.setModel(self.setPmodel)
-        # self.folders_tableView.setRootIndex(self.setPmodel.index(self.projectsRoot))
-        # self.setPmodel.modelReset()
+
+    def settingsUI(self):
+        settings_Dialog = QtWidgets.QDialog(parent=self)
+        settings_Dialog.setWindowTitle(("Settings"))
+        settings_Dialog.resize(961, 638)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(settings_Dialog.sizePolicy().hasHeightForWidth())
+
+        settings_Dialog.setSizePolicy(sizePolicy)
+
+        verticalLayout_2 = QtWidgets.QVBoxLayout(settings_Dialog)
+        verticalLayout_2.setObjectName(("verticalLayout_2"))
+
+        verticalLayout = QtWidgets.QVBoxLayout()
+        verticalLayout.setSpacing(6)
+        verticalLayout.setObjectName(("verticalLayout"))
+
+        splitter = QtWidgets.QSplitter(settings_Dialog)
+
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(splitter.sizePolicy().hasHeightForWidth())
+        splitter.setSizePolicy(sizePolicy)
+        splitter.setLineWidth(0)
+        splitter.setOrientation(QtCore.Qt.Horizontal)
+
+        left_frame = QtWidgets.QFrame(splitter)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(left_frame.sizePolicy().hasHeightForWidth())
+        left_frame.setSizePolicy(sizePolicy)
+        left_frame.setMinimumSize(QtCore.QSize(0, 0))
+        left_frame.setMaximumSize(QtCore.QSize(16777215, 16777215))
+        left_frame.setFrameShape(QtWidgets.QFrame.NoFrame)
+        left_frame.setFrameShadow(QtWidgets.QFrame.Plain)
+        left_frame.setLineWidth(0)
+
+        verticalLayout_4 = QtWidgets.QVBoxLayout(left_frame)
+        # verticalLayout_4.setMargin(10)
+        verticalLayout_4.setSpacing(0)
+
+        leftFrame_verticalLayout = QtWidgets.QVBoxLayout()
+        leftFrame_verticalLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
+        leftFrame_verticalLayout.setSpacing(6)
+
+        treeWidget = QtWidgets.QTreeWidget(left_frame)
+        treeWidget.setLineWidth(1)
+        treeWidget.setRootIsDecorated(True)
+        treeWidget.setHeaderHidden(True)
+        font = QtGui.QFont()
+        font.setPointSize(14)
+        # font.setBold(False)
+        # font.setWeight(75)
+        treeWidget.setFont(font)
+
+        userSettings_item = QtWidgets.QTreeWidgetItem(["User Settings"])
+        treeWidget.addTopLevelItem(userSettings_item)
+
+        # TOP ITEM
+        projectSettings_item = QtWidgets.QTreeWidgetItem(["Project Settings"])
+        treeWidget.addTopLevelItem(projectSettings_item)
+
+        # children
+        previewSettings_item = QtWidgets.QTreeWidgetItem(["Preview Settings"])
+        projectSettings_item.addChild(previewSettings_item)
+
+        categories_item = QtWidgets.QTreeWidgetItem(["Categories"])
+        projectSettings_item.addChild(categories_item)
+
+        importExport_item = QtWidgets.QTreeWidgetItem(["Import/Export Options"])
+        projectSettings_item.addChild(importExport_item)
+
+        # TOP ITEM
+        sharedSettings_item = QtWidgets.QTreeWidgetItem(["Shared Settings"])
+        treeWidget.addTopLevelItem(sharedSettings_item)
+
+        # children
+        users_item = QtWidgets.QTreeWidgetItem(["Users"])
+        sharedSettings_item.addChild(users_item)
+
+        passwords_item = QtWidgets.QTreeWidgetItem(["Passwords"])
+        sharedSettings_item.addChild(passwords_item)
+
+        namingConventions_item = QtWidgets.QTreeWidgetItem(["Naming Conventions"])
+        sharedSettings_item.addChild(namingConventions_item)
+
+
+
+
+
+
+
+
+
+
+        # treeWidget.headerItem().setText(0, ("Root"))
+        # item_0 = QtWidgets.QTreeWidgetItem(treeWidget)
+        # treeWidget.topLevelItem(0).setText(0, ("User Settings"))
+        #
+        # item_0 = QtWidgets.QTreeWidgetItem(treeWidget)
+        # treeWidget.topLevelItem(1).setText(0, ("Project Settings"))
+        #
+        # item_1 = QtWidgets.QTreeWidgetItem(item_0)
+        # treeWidget.topLevelItem(1).child(0).setText(0, ("Preview Settings"))
+        #
+        # item_1 = QtWidgets.QTreeWidgetItem(item_0)
+        # treeWidget.topLevelItem(1).child(1).setText(0, ("Categories"))
+        #
+        # item_1 = QtWidgets.QTreeWidgetItem(item_0)
+        # treeWidget.topLevelItem(1).child(2).setText(0, ("Import/Export Options"))
+        #
+        # item_0 = QtWidgets.QTreeWidgetItem(treeWidget)
+        # treeWidget.topLevelItem(2).setText(0, ("Shared Settings"))
+        #
+        # item_1 = QtWidgets.QTreeWidgetItem(item_0)
+        # treeWidget.topLevelItem(2).child(0).setText(0, ("Users"))
+        #
+        # item_1 = QtWidgets.QTreeWidgetItem(item_0)
+        # treeWidget.topLevelItem(2).child(1).setText(0, ("Passwords"))
+        #
+        # item_1 = QtWidgets.QTreeWidgetItem(item_0)
+        # treeWidget.topLevelItem(2).child(2).setText(0, ("Naming Conventions"))
+        #
+        # treeWidget.setCurrentItem(item_0)
+
+
+        leftFrame_verticalLayout.addWidget(treeWidget)
+        verticalLayout_4.addLayout(leftFrame_verticalLayout)
+
+        userSettings_frame = QtWidgets.QFrame(splitter)
+        userSettings_frame.setEnabled(True)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(100)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(userSettings_frame.sizePolicy().hasHeightForWidth())
+        userSettings_frame.setSizePolicy(sizePolicy)
+        userSettings_frame.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        userSettings_frame.setFrameShadow(QtWidgets.QFrame.Raised)
+
+        verticalLayout_5 = QtWidgets.QVBoxLayout(userSettings_frame)
+        userSettings_Layout = QtWidgets.QVBoxLayout()
+        userSettings_Layout.setSpacing(0)
+        label = QtWidgets.QLabel(userSettings_frame)
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        font.setBold(True)
+        font.setWeight(75)
+        label.setFont(font)
+        label.setText(("User Settings"))
+        label.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
+        userSettings_Layout.addWidget(label)
+        label_2 = QtWidgets.QLabel(userSettings_frame)
+        label_2.setText(("<a href=\"Project Settings\">Project Settings</a>"))
+        label_2.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
+        label_2.setOpenExternalLinks(False)
+        label_2.setTextInteractionFlags(QtCore.Qt.LinksAccessibleByKeyboard|QtCore.Qt.LinksAccessibleByMouse)
+        userSettings_Layout.addWidget(label_2)
+        commandLinkButton = QtWidgets.QCommandLinkButton(userSettings_frame)
+        commandLinkButton.setText(("CommandLinkButton"))
+        userSettings_Layout.addWidget(commandLinkButton)
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        userSettings_Layout.addItem(spacerItem)
+        verticalLayout_5.addLayout(userSettings_Layout)
+        verticalLayout.addWidget(splitter)
+        buttonBox = QtWidgets.QDialogButtonBox(settings_Dialog)
+        buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Apply|QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        verticalLayout.addWidget(buttonBox)
+        verticalLayout_2.addLayout(verticalLayout)
+
+        settings_Dialog.setTabOrder(buttonBox, treeWidget)
+        settings_Dialog.show()
+
+
+    # def settingsUI(self):
+    #     settings_Dialog = QtWidgets.QDialog(parent=self)
+    #     settings_Dialog.setModal(True)
+    #     settings_Dialog.resize(961, 638)
+    #     sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+    #     sizePolicy.setHorizontalStretch(0)
+    #     sizePolicy.setVerticalStretch(0)
+    #     sizePolicy.setHeightForWidth(settings_Dialog.sizePolicy().hasHeightForWidth())
+    #     settings_Dialog.setSizePolicy(sizePolicy)
+    #
+    #     verticalLayout_2 = QtWidgets.QVBoxLayout(settings_Dialog)
+    #
+    #     verticalLayout = QtWidgets.QVBoxLayout()
+    #     verticalLayout.setSpacing(6)
+    #
+    #     splitter = QtWidgets.QSplitter(settings_Dialog)
+    #     sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+    #     sizePolicy.setHorizontalStretch(0)
+    #     sizePolicy.setVerticalStretch(0)
+    #     sizePolicy.setHeightForWidth(splitter.sizePolicy().hasHeightForWidth())
+    #     splitter.setSizePolicy(sizePolicy)
+    #     splitter.setLineWidth(0)
+    #     splitter.setOrientation(QtCore.Qt.Horizontal)
+    #
+    #     left_frame = QtWidgets.QFrame(splitter)
+    #     sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+    #     sizePolicy.setHorizontalStretch(0)
+    #     sizePolicy.setVerticalStretch(0)
+    #     sizePolicy.setHeightForWidth(left_frame.sizePolicy().hasHeightForWidth())
+    #     left_frame.setSizePolicy(sizePolicy)
+    #     # left_frame.setMinimumSize(QtCore.QSize(0, 0))
+    #     # left_frame.setMaximumSize(QtCore.QSize(167772
+    #     left_frame.setFrameShape(QtWidgets.QFrame.NoFrame)
+    #     left_frame.setFrameShadow(QtWidgets.QFrame.Plain)
+    #     left_frame.setLineWidth(0)
+    #
+    #     verticalLayout_4= QtWidgets.QVBoxLayout(left_frame)
+    #     verticalLayout_4.setMargin(0)
+    #     verticalLayout_4.setSpacing(0)
+    #
+    #     leftFrame_verticalLayout = QtWidgets.QVBoxLayout()
+    #     leftFrame_verticalLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
+    #     leftFrame_verticalLayout.setSpacing(0)
+    #
+    #     verticalLayout_4.addLayout(leftFrame_verticalLayout)
+    #
+    #
+    #     treeWidget = QtWidgets.QTreeWidget(left_frame)
+    #     treeWidget.setLineWidth(1)
+    #     treeWidget.setRootIsDecorated(True)
+    #     treeWidget.setHeaderHidden(True)
+    #     treeWidget.headerItem().setText(0, ("Root"))
+    #     item_0 = QtWidgets.QTreeWidgetItem(treeWidget)
+    #     treeWidget.topLevelItem(0).setText(0, ("User Settings"))
+    #     item_0 = QtWidgets.QTreeWidgetItem(treeWidget)
+    #     treeWidget.topLevelItem(1).setText(0, ("Project Settings"))
+    #     item_1 = QtWidgets.QTreeWidgetItem(item_0)
+    #     treeWidget.topLevelItem(1).child(0).setText(0, ("Preview Settings"))
+    #     item_1 = QtWidgets.QTreeWidgetItem(item_0)
+    #     treeWidget.topLevelItem(1).child(1).setText(0, ("Categories"))
+    #     item_1 = QtWidgets.QTreeWidgetItem(item_0)
+    #     treeWidget.topLevelItem(1).child(2).setText(0, ("Import/Export Options"))
+    #     item_0 = QtWidgets.QTreeWidgetItem(treeWidget)
+    #     treeWidget.topLevelItem(2).setText(0, ("Shared Settings"))
+    #     item_1 = QtWidgets.QTreeWidgetItem(item_0)
+    #     treeWidget.topLevelItem(2).child(0).setText(0, ("Users"))
+    #     item_1 = QtWidgets.QTreeWidgetItem(item_0)
+    #     treeWidget.topLevelItem(2).child(1).setText(0, ("Passwords"))
+    #     item_1 = QtWidgets.QTreeWidgetItem(item_0)
+    #     treeWidget.topLevelItem(2).child(2).setText(0, ("Naming Conventions"))
+    #
+    #     leftFrame_verticalLayout.addWidget(treeWidget)
+    #     verticalLayout.addWidget(splitter)
+    #
+    #     verticalLayout_2.addLayout(verticalLayout)
+    #     settings_Dialog.show()
 
     def pbSettingsMayaUI(self):
         # This method iS Software Specific
