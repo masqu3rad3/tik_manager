@@ -282,13 +282,16 @@ class RootManager(object):
     #         return currentProject
 
     def getSoftwarePaths(self):
-        """This method must be overridden to return the software currently working on"""
-        # This function should return a dictionary which includes string values for:
-        # databaseDir, scenesDir, pbSettingsFile keys. Software specific paths will be resolved with these strings
+        """Returns the database dictionary of CURRENT SOFTWARE"""
         logger.debug("Func: getSoftwarePaths")
         softwareDatabaseFile = os.path.normpath(os.path.join(self.getSharedSettingsDir(), "softwareDatabase.json"))
         softwareDB = self._loadJson(softwareDatabaseFile)
         return softwareDB[self.swName]
+
+    def getSoftwareDatabase(self):
+        """Returns all softwareDatabase"""
+        softwareDB = self._loadJson(self._pathsDict["softwareDatabase"])
+        return softwareDB
 
     def getSceneFile(self):
         """This method must be overridden to return the full scene path ('' for unsaved) of current scene"""
@@ -665,6 +668,9 @@ class RootManager(object):
             self._currentThumbFile
             ))
 
+    def isGlobalFavorites(self):
+        return self._userSettings["globalFavorites"]
+
     def getUserDir(self):
         """Returns Documents Directory"""
         dir = os.path.expanduser('~')
@@ -815,10 +821,13 @@ class RootManager(object):
             logger.error(msg)
             return None
 
-    def getColorCoding(self, niceName):
-        try: keyColor = self._userSettings["colorCoding"][niceName]
-        except KeyError: keyColor = "rgb (0, 0, 0, 0)"
-        return keyColor
+    def getColorCoding(self, niceName=None):
+        if niceName:
+            try: keyColor = self._userSettings["colorCoding"][niceName]
+            except KeyError: keyColor = "rgb (0, 0, 0, 0)"
+            return keyColor
+        else:
+            return self._userSettings["colorCoding"]
 
     def createNewProject(self, projectRoot, projectName, brandName, client, settingsData=None):
         """
@@ -2055,6 +2064,7 @@ Elapsed Time:{6}
     def _saveUserSettings(self, userSettings):
         """Dumps the data to the database"""
         logger.debug("Func: savePBSettings")
+        self._userSettings = userSettings
         self._dumpJson(userSettings, self._pathsDict["userSettingsFile"])
         return
 

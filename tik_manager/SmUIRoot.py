@@ -1819,6 +1819,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.sourceModel.setNameFilters(self.DirFilter)
 
     def settingsUI(self):
+        manager = self._getManager()
+
         settings_Dialog = QtWidgets.QDialog(parent=self)
         settings_Dialog.setWindowTitle(("Settings"))
         settings_Dialog.resize(961, 638)
@@ -1907,170 +1909,313 @@ class MainUI(QtWidgets.QMainWindow):
         namingConventions_item = QtWidgets.QTreeWidgetItem(["Naming Conventions"])
         sharedSettings_item.addChild(namingConventions_item)
 
-
-
-
-
-
-
-
-
-
-        # treeWidget.headerItem().setText(0, ("Root"))
-        # item_0 = QtWidgets.QTreeWidgetItem(treeWidget)
-        # treeWidget.topLevelItem(0).setText(0, ("User Settings"))
-        #
-        # item_0 = QtWidgets.QTreeWidgetItem(treeWidget)
-        # treeWidget.topLevelItem(1).setText(0, ("Project Settings"))
-        #
-        # item_1 = QtWidgets.QTreeWidgetItem(item_0)
-        # treeWidget.topLevelItem(1).child(0).setText(0, ("Preview Settings"))
-        #
-        # item_1 = QtWidgets.QTreeWidgetItem(item_0)
-        # treeWidget.topLevelItem(1).child(1).setText(0, ("Categories"))
-        #
-        # item_1 = QtWidgets.QTreeWidgetItem(item_0)
-        # treeWidget.topLevelItem(1).child(2).setText(0, ("Import/Export Options"))
-        #
-        # item_0 = QtWidgets.QTreeWidgetItem(treeWidget)
-        # treeWidget.topLevelItem(2).setText(0, ("Shared Settings"))
-        #
-        # item_1 = QtWidgets.QTreeWidgetItem(item_0)
-        # treeWidget.topLevelItem(2).child(0).setText(0, ("Users"))
-        #
-        # item_1 = QtWidgets.QTreeWidgetItem(item_0)
-        # treeWidget.topLevelItem(2).child(1).setText(0, ("Passwords"))
-        #
-        # item_1 = QtWidgets.QTreeWidgetItem(item_0)
-        # treeWidget.topLevelItem(2).child(2).setText(0, ("Naming Conventions"))
-        #
-        # treeWidget.setCurrentItem(item_0)
-
-
         leftFrame_verticalLayout.addWidget(treeWidget)
         verticalLayout_4.addLayout(leftFrame_verticalLayout)
 
-        userSettings_frame = QtWidgets.QFrame(splitter)
-        userSettings_frame.setEnabled(True)
+        #QFrame to hold all content
+        contents_frame = QtWidgets.QFrame(splitter)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(100)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(userSettings_frame.sizePolicy().hasHeightForWidth())
-        userSettings_frame.setSizePolicy(sizePolicy)
-        userSettings_frame.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        userSettings_frame.setFrameShadow(QtWidgets.QFrame.Raised)
-
-        verticalLayout_5 = QtWidgets.QVBoxLayout(userSettings_frame)
-        userSettings_Layout = QtWidgets.QVBoxLayout()
-        userSettings_Layout.setSpacing(0)
-        label = QtWidgets.QLabel(userSettings_frame)
-        font = QtGui.QFont()
-        font.setPointSize(10)
-        font.setBold(True)
-        font.setWeight(75)
-        label.setFont(font)
-        label.setText(("User Settings"))
-        label.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
-        userSettings_Layout.addWidget(label)
-        label_2 = QtWidgets.QLabel(userSettings_frame)
-        label_2.setText(("<a href=\"Project Settings\">Project Settings</a>"))
-        label_2.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
-        label_2.setOpenExternalLinks(False)
-        label_2.setTextInteractionFlags(QtCore.Qt.LinksAccessibleByKeyboard|QtCore.Qt.LinksAccessibleByMouse)
-        userSettings_Layout.addWidget(label_2)
-        commandLinkButton = QtWidgets.QCommandLinkButton(userSettings_frame)
-        commandLinkButton.setText(("CommandLinkButton"))
-        userSettings_Layout.addWidget(commandLinkButton)
-        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        userSettings_Layout.addItem(spacerItem)
-        verticalLayout_5.addLayout(userSettings_Layout)
+        sizePolicy.setHeightForWidth(contents_frame.sizePolicy().hasHeightForWidth())
+        contents_frame.setSizePolicy(sizePolicy)
+        contents_frame.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        contents_frame.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.contentsMaster_layout = QtWidgets.QVBoxLayout(contents_frame)
         verticalLayout.addWidget(splitter)
+
+        ## CONTENTS START
+        self.labelFont = QtGui.QFont()
+        self.labelFont.setPointSize(10)
+        self.labelFont.setBold(True)
+        self.labelFont.setWeight(75)
+
+        # Visibility Widgets for EACH page
+        self.userSettings_vis = QtWidgets.QWidget(contents_frame)
+        self.projectSettings_vis = QtWidgets.QWidget(contents_frame)
+        self.previewSettings_vis = QtWidgets.QWidget(contents_frame)
+        self.categories_vis = QtWidgets.QWidget(contents_frame)
+        self.importExportOptions_vis = QtWidgets.QWidget(contents_frame)
+        self.sharedSettings_vis = QtWidgets.QWidget(contents_frame)
+        self.users_vis = QtWidgets.QWidget(contents_frame)
+        self.passwords_vis = QtWidgets.QWidget(contents_frame)
+        self.namingConventions_vis = QtWidgets.QWidget(contents_frame)
+
+        self._userSettingsContent()
+        self._projectSettingsContent()
+        self._previewSettingsContent()
+        self._sharedSettingsContent()
+
+
+
+        ## ---------------------
+        ## SHARED SETTINGS CONTENT
+        ## ---------------------
+
+
+        ## CONTENTS END
+        def pageUpdate():
+            allPages = {"User Settings": self.userSettings_vis,
+                        "Project Settings": self.projectSettings_vis,
+                        "Preview Settings": self.previewSettings_vis,
+                        "Categories": self.categories_vis,
+                        "Import/Export Options": self.importExportOptions_vis,
+                        "Shared Settings": self.sharedSettings_vis,
+                        "Users": self.users_vis,
+                        "Passwords": self.passwords_vis,
+                        "Naming Conventions": self.namingConventions_vis}
+            for item in allPages.items():
+                isVisible = False if item[0] == treeWidget.currentItem().text(0) else True
+                # print item[0], item[1], isVisible
+                item[1].setHidden(isVisible)
+                # self.userSettings_vis.setHidden(True)
+
         buttonBox = QtWidgets.QDialogButtonBox(settings_Dialog)
         buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Apply|QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
         verticalLayout.addWidget(buttonBox)
         verticalLayout_2.addLayout(verticalLayout)
 
         settings_Dialog.setTabOrder(buttonBox, treeWidget)
+
+        # SIGNALS
+        # -------
+
+        treeWidget.currentItemChanged.connect(pageUpdate)
+
+
+
+        # SIGNALS PROJECT SETTINGS
+        # ------------------------
+
         settings_Dialog.show()
 
+    def _userSettingsContent(self):
+        manager = self._getManager()
+        userSettings_Layout = QtWidgets.QVBoxLayout(self.userSettings_vis)
+        userSettings_Layout.setSpacing(0)
 
-    # def settingsUI(self):
-    #     settings_Dialog = QtWidgets.QDialog(parent=self)
-    #     settings_Dialog.setModal(True)
-    #     settings_Dialog.resize(961, 638)
-    #     sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
-    #     sizePolicy.setHorizontalStretch(0)
-    #     sizePolicy.setVerticalStretch(0)
-    #     sizePolicy.setHeightForWidth(settings_Dialog.sizePolicy().hasHeightForWidth())
-    #     settings_Dialog.setSizePolicy(sizePolicy)
-    #
-    #     verticalLayout_2 = QtWidgets.QVBoxLayout(settings_Dialog)
-    #
-    #     verticalLayout = QtWidgets.QVBoxLayout()
-    #     verticalLayout.setSpacing(6)
-    #
-    #     splitter = QtWidgets.QSplitter(settings_Dialog)
-    #     sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-    #     sizePolicy.setHorizontalStretch(0)
-    #     sizePolicy.setVerticalStretch(0)
-    #     sizePolicy.setHeightForWidth(splitter.sizePolicy().hasHeightForWidth())
-    #     splitter.setSizePolicy(sizePolicy)
-    #     splitter.setLineWidth(0)
-    #     splitter.setOrientation(QtCore.Qt.Horizontal)
-    #
-    #     left_frame = QtWidgets.QFrame(splitter)
-    #     sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
-    #     sizePolicy.setHorizontalStretch(0)
-    #     sizePolicy.setVerticalStretch(0)
-    #     sizePolicy.setHeightForWidth(left_frame.sizePolicy().hasHeightForWidth())
-    #     left_frame.setSizePolicy(sizePolicy)
-    #     # left_frame.setMinimumSize(QtCore.QSize(0, 0))
-    #     # left_frame.setMaximumSize(QtCore.QSize(167772
-    #     left_frame.setFrameShape(QtWidgets.QFrame.NoFrame)
-    #     left_frame.setFrameShadow(QtWidgets.QFrame.Plain)
-    #     left_frame.setLineWidth(0)
-    #
-    #     verticalLayout_4= QtWidgets.QVBoxLayout(left_frame)
-    #     verticalLayout_4.setMargin(0)
-    #     verticalLayout_4.setSpacing(0)
-    #
-    #     leftFrame_verticalLayout = QtWidgets.QVBoxLayout()
-    #     leftFrame_verticalLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
-    #     leftFrame_verticalLayout.setSpacing(0)
-    #
-    #     verticalLayout_4.addLayout(leftFrame_verticalLayout)
-    #
-    #
-    #     treeWidget = QtWidgets.QTreeWidget(left_frame)
-    #     treeWidget.setLineWidth(1)
-    #     treeWidget.setRootIsDecorated(True)
-    #     treeWidget.setHeaderHidden(True)
-    #     treeWidget.headerItem().setText(0, ("Root"))
-    #     item_0 = QtWidgets.QTreeWidgetItem(treeWidget)
-    #     treeWidget.topLevelItem(0).setText(0, ("User Settings"))
-    #     item_0 = QtWidgets.QTreeWidgetItem(treeWidget)
-    #     treeWidget.topLevelItem(1).setText(0, ("Project Settings"))
-    #     item_1 = QtWidgets.QTreeWidgetItem(item_0)
-    #     treeWidget.topLevelItem(1).child(0).setText(0, ("Preview Settings"))
-    #     item_1 = QtWidgets.QTreeWidgetItem(item_0)
-    #     treeWidget.topLevelItem(1).child(1).setText(0, ("Categories"))
-    #     item_1 = QtWidgets.QTreeWidgetItem(item_0)
-    #     treeWidget.topLevelItem(1).child(2).setText(0, ("Import/Export Options"))
-    #     item_0 = QtWidgets.QTreeWidgetItem(treeWidget)
-    #     treeWidget.topLevelItem(2).setText(0, ("Shared Settings"))
-    #     item_1 = QtWidgets.QTreeWidgetItem(item_0)
-    #     treeWidget.topLevelItem(2).child(0).setText(0, ("Users"))
-    #     item_1 = QtWidgets.QTreeWidgetItem(item_0)
-    #     treeWidget.topLevelItem(2).child(1).setText(0, ("Passwords"))
-    #     item_1 = QtWidgets.QTreeWidgetItem(item_0)
-    #     treeWidget.topLevelItem(2).child(2).setText(0, ("Naming Conventions"))
-    #
-    #     leftFrame_verticalLayout.addWidget(treeWidget)
-    #     verticalLayout.addWidget(splitter)
-    #
-    #     verticalLayout_2.addLayout(verticalLayout)
-    #     settings_Dialog.show()
+        userSettings_formLayout = QtWidgets.QFormLayout()
+        userSettings_formLayout.setSpacing(6)
+        userSettings_formLayout.setHorizontalSpacing(15)
+        userSettings_formLayout.setVerticalSpacing(15)
 
+        userSettings_Layout.addLayout(userSettings_formLayout)
+
+        # form item 0
+        userSettings_label = QtWidgets.QLabel(self.userSettings_vis)
+        userSettings_label.setFont(self.labelFont)
+        userSettings_label.setText(("User Settings"))
+        userSettings_formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, userSettings_label)
+
+        # form item 1
+        favorites_label = QtWidgets.QLabel(self.userSettings_vis)
+        favorites_label.setText("Project Favorites:")
+        userSettings_formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, favorites_label)
+
+        favorites_layout = QtWidgets.QHBoxLayout()
+        globalFavorites_radiobutton = QtWidgets.QRadioButton(self.userSettings_vis)
+        globalFavorites_radiobutton.setText("Global Favorites")
+        globalFavorites_radiobutton.setChecked(manager.isGlobalFavorites())
+
+        localFavorites_radiobutton = QtWidgets.QRadioButton(self.userSettings_vis)
+        localFavorites_radiobutton.setText("Software Specific")
+        localFavorites_radiobutton.setChecked(not manager.isGlobalFavorites())
+
+        favorites_buttonGroup = QtWidgets.QButtonGroup(self.userSettings_vis)
+        favorites_buttonGroup.addButton(globalFavorites_radiobutton)
+        favorites_buttonGroup.addButton(localFavorites_radiobutton)
+        favorites_layout.addWidget(globalFavorites_radiobutton)
+        favorites_layout.addWidget(localFavorites_radiobutton)
+        userSettings_formLayout.setLayout(1, QtWidgets.QFormLayout.FieldRole, favorites_layout)
+
+        # form item 2
+        commonDir_label = QtWidgets.QLabel(self.userSettings_vis)
+        commonDir_label.setText("Common Settings Directory:")
+        userSettings_formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, commonDir_label)
+
+        commonDir_layout = QtWidgets.QHBoxLayout()
+        commonDir_layout.setSpacing(2)
+
+        commonDir_lineEdit = QtWidgets.QLineEdit(self.userSettings_vis)
+        commonDir_lineEdit.setText(manager.getSharedSettingsDir())
+        commonDir_layout.addWidget(commonDir_lineEdit)
+
+        setCommon_button = QtWidgets.QPushButton(self.userSettings_vis)
+        setCommon_button.setText("Set")
+        commonDir_layout.addWidget(setCommon_button)
+        userSettings_formLayout.setLayout(2, QtWidgets.QFormLayout.FieldRole, commonDir_layout)
+
+        # form item 3
+        colorCoding_label = QtWidgets.QLabel(self.userSettings_vis)
+        colorCoding_label.setText("Color Codes: ")
+        userSettings_formLayout.setWidget(3, QtWidgets.QFormLayout.LabelRole, colorCoding_label)
+
+        colorCoding_formlayout = QtWidgets.QFormLayout(self.userSettings_vis)
+        colorCoding_formlayout.setSpacing(2)
+        colorCoding_formlayout.setVerticalSpacing(5)
+        userSettings_formLayout.setLayout(3, QtWidgets.QFormLayout.FieldRole, colorCoding_formlayout)
+
+        # collect all softwares
+        softwareDB = manager.getSoftwareDatabase()
+        niceNameList = sorted([softwareDB[x]["niceName"] for x in softwareDB.keys()])
+
+        ccDatabase = manager.getColorCoding()
+        temp_ccDatabase = ccDatabase
+
+        def colorSet(button, niceName):
+            color = QtWidgets.QColorDialog.getColor()
+            button.setStyleSheet("background-color: %s" % color.name())
+            temp_ccDatabase[niceName] = "rgb %s" % str(color.getRgb())
+
+        def resetColors():
+            try:
+                temp_ccDatabase = manager._sceneManagerDefaults["defaultColorCoding"]
+            except KeyError:
+                self.infoPop(textTitle="Cannot get default database",
+                             textHeader="Default Color Coding Database cannot be found")
+                return
+            for item in temp_ccDatabase.items():
+                niceName = item[0]
+                color = item[1]
+                try:
+                    pushbutton = self.findChild(QtWidgets.QPushButton, "cc_%s" % niceName)
+                    pushbutton.setStyleSheet("background-color:%s" % color)
+                except AttributeError:
+                    pass
+
+        for x in range(len(niceNameList)):
+            cclabel = QtWidgets.QLabel(self.userSettings_vis)
+            cclabel.setText("      %s:" % niceNameList[x])
+            colorCoding_formlayout.setWidget(x, QtWidgets.QFormLayout.LabelRole, cclabel)
+
+            ccpushbutton = QtWidgets.QPushButton(self.userSettings_vis)
+            ccpushbutton.setObjectName("cc_%s" % niceNameList[x])
+            ccpushbutton.setStyleSheet("background-color:%s" % manager.getColorCoding(niceNameList[x]))
+            ccpushbutton.setMaximumSize(20, 20)
+            colorCoding_formlayout.setWidget(x, QtWidgets.QFormLayout.FieldRole, ccpushbutton)
+            ccpushbutton.clicked.connect(lambda item=ccpushbutton: colorSet(item, niceNameList[x]))
+
+        ccReset_button = QtWidgets.QPushButton(self.userSettings_vis)
+        ccReset_button.setText("Reset Colors")
+        ccReset_button.setFixedSize(100, 20)
+        colorCoding_formlayout.setWidget((len(niceNameList)) + 1, QtWidgets.QFormLayout.FieldRole, ccReset_button)
+
+        # end of form
+
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        userSettings_Layout.addItem(spacerItem)
+
+        self.contentsMaster_layout.addWidget(self.userSettings_vis)
+
+        # SIGNALS USER SETTINGS
+        # ---------------------
+        ccReset_button.clicked.connect(resetColors)
+
+        setCommon_button.clicked.connect(self.manager._defineCommonFolder)
+        setCommon_button.clicked.connect(lambda: self.manager.init_paths(self.manager.swName))
+        setCommon_button.clicked.connect(self.manager.init_database)
+        setCommon_button.clicked.connect(self._initUsers)
+        setCommon_button.clicked.connect(self.onUserChange)
+    
+    def _projectSettingsContent(self):
+        self.projectSettings_Layout = QtWidgets.QVBoxLayout(self.projectSettings_vis)
+        self.projectSettings_Layout.setSpacing(6)
+
+        projectSettings_label = QtWidgets.QLabel(self.projectSettings_vis)
+        projectSettings_label.setText("Project Settings")
+        projectSettings_label.setFont(self.labelFont)
+        projectSettings_label.setIndent(10)
+        projectSettings_label.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
+        self.projectSettings_Layout.addWidget(projectSettings_label)
+
+        previewSettings_cmdButton = QtWidgets.QCommandLinkButton(self.projectSettings_vis)
+        previewSettings_cmdButton.setText("Preview Settings")
+        self.projectSettings_Layout.addWidget(previewSettings_cmdButton)
+
+        categories_cmdButton = QtWidgets.QCommandLinkButton(self.projectSettings_vis)
+        categories_cmdButton.setText("Categories")
+        self.projectSettings_Layout.addWidget(categories_cmdButton)
+
+        importExportOptions_cmdButton = QtWidgets.QCommandLinkButton(self.projectSettings_vis)
+        importExportOptions_cmdButton.setText("Import/Export Options")
+        self.projectSettings_Layout.addWidget(importExportOptions_cmdButton)
+
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.projectSettings_Layout.addItem(spacerItem)
+        self.contentsMaster_layout.addWidget(self.projectSettings_vis)
+    
+    def _previewSettingsContent(self):
+        manager = self._getManager()
+        currentSettings = manager.loadPBSettings()
+
+        previewSettings_Layout = QtWidgets.QVBoxLayout(self.previewSettings_vis)
+        previewSettings_Layout.setSpacing(0)
+
+        previewSettings_formLayout = QtWidgets.QFormLayout()
+        previewSettings_formLayout.setSpacing(6)
+        previewSettings_formLayout.setHorizontalSpacing(15)
+        previewSettings_formLayout.setVerticalSpacing(15)
+
+        previewSettings_Layout.addLayout(previewSettings_formLayout)
+
+        videoProperties_label = QtWidgets.QLabel(self.previewSettings_vis)
+        videoProperties_label.setText("Video Properties")
+        previewSettings_formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, videoProperties_label)
+
+        convertMp4_chkbox = QtWidgets.QCheckBox(self.previewSettings_vis)
+        convertMp4_chkbox.setText("MP4 Format (Windows Only)")
+        previewSettings_formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, convertMp4_chkbox)
+
+        format_label = QtWidgets.QLabel(self.previewSettings_vis)
+        format_label.setText("Format: ")
+        format_comboBox = QtWidgets.QComboBox(self.previewSettings_vis)
+        previewSettings_formLayout.addRow(format_label, format_comboBox)
+
+        codec_label = QtWidgets.QLabel(self.previewSettings_vis)
+        codec_label.setText("Codec: ")
+        codec_comboBox = QtWidgets.QComboBox(self.previewSettings_vis)
+        previewSettings_formLayout.addRow(codec_label, codec_comboBox)
+
+        codecQuality_label = QtWidgets.QLabel(self.previewSettings_vis)
+        codecQuality_label.setText("Quality: ")
+        codecQuality_spinBox = QtWidgets.QSpinBox(self.previewSettings_vis)
+        codecQuality_spinBox.setMinimum(1)
+        codecQuality_spinBox.setMaximum(100)
+        codecQuality_spinBox.setMinimumWidth(50)
+        codecQuality_spinBox.setProperty("value", currentSettings["Quality"])
+        previewSettings_formLayout.addRow(codecQuality_label, codecQuality_spinBox)
+
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.projectSettings_Layout.addItem(spacerItem)
+        self.contentsMaster_layout.addWidget(self.previewSettings_vis)
+
+    def _sharedSettingsContent(self):
+        sharedSettings_Layout = QtWidgets.QVBoxLayout(self.sharedSettings_vis)
+        sharedSettings_Layout.setSpacing(6)
+
+        sharedSettings_label = QtWidgets.QLabel(self.sharedSettings_vis)
+        sharedSettings_label.setText("Shared Settings")
+        sharedSettings_label.setFont(self.labelFont)
+        sharedSettings_label.setIndent(10)
+        sharedSettings_label.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+        sharedSettings_Layout.addWidget(sharedSettings_label)
+
+        users_cmdButton = QtWidgets.QCommandLinkButton(self.sharedSettings_vis)
+        users_cmdButton.setText("Users")
+        sharedSettings_Layout.addWidget(users_cmdButton)
+
+        passwords_cmdButton = QtWidgets.QCommandLinkButton(self.sharedSettings_vis)
+        passwords_cmdButton.setText("Passwords")
+        sharedSettings_Layout.addWidget(passwords_cmdButton)
+
+        naminConventions_cmdButton = QtWidgets.QCommandLinkButton(self.sharedSettings_vis)
+        naminConventions_cmdButton.setText("Naming Conventions")
+        sharedSettings_Layout.addWidget(naminConventions_cmdButton)
+
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        sharedSettings_Layout.addItem(spacerItem)
+        self.contentsMaster_layout.addWidget(self.sharedSettings_vis)
+
+        
     def pbSettingsMayaUI(self):
         # This method iS Software Specific
         if BoilerDict["Environment"]=="Standalone":
