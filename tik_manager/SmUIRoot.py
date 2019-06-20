@@ -1945,13 +1945,6 @@ class MainUI(QtWidgets.QMainWindow):
         self._previewSettingsContent()
         self._sharedSettingsContent()
 
-
-
-        ## ---------------------
-        ## SHARED SETTINGS CONTENT
-        ## ---------------------
-
-
         ## CONTENTS END
         def pageUpdate():
             allPages = {"User Settings": self.userSettings_vis,
@@ -1991,7 +1984,7 @@ class MainUI(QtWidgets.QMainWindow):
     def _userSettingsContent(self):
         manager = self._getManager()
         userSettings_Layout = QtWidgets.QVBoxLayout(self.userSettings_vis)
-        userSettings_Layout.setSpacing(0)
+        userSettings_Layout.setSpacing(6)
 
         userSettings_formLayout = QtWidgets.QFormLayout()
         userSettings_formLayout.setSpacing(6)
@@ -2115,7 +2108,7 @@ class MainUI(QtWidgets.QMainWindow):
         setCommon_button.clicked.connect(self.manager.init_database)
         setCommon_button.clicked.connect(self._initUsers)
         setCommon_button.clicked.connect(self.onUserChange)
-    
+
     def _projectSettingsContent(self):
         self.projectSettings_Layout = QtWidgets.QVBoxLayout(self.projectSettings_vis)
         self.projectSettings_Layout.setSpacing(6)
@@ -2124,7 +2117,7 @@ class MainUI(QtWidgets.QMainWindow):
         projectSettings_label.setText("Project Settings")
         projectSettings_label.setFont(self.labelFont)
         projectSettings_label.setIndent(10)
-        projectSettings_label.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
+        projectSettings_label.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
         self.projectSettings_Layout.addWidget(projectSettings_label)
 
         previewSettings_cmdButton = QtWidgets.QCommandLinkButton(self.projectSettings_vis)
@@ -2142,51 +2135,154 @@ class MainUI(QtWidgets.QMainWindow):
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.projectSettings_Layout.addItem(spacerItem)
         self.contentsMaster_layout.addWidget(self.projectSettings_vis)
-    
+
     def _previewSettingsContent(self):
         manager = self._getManager()
+        softwareName = manager.swName
+        softwareName = ""
         currentSettings = manager.loadPBSettings()
 
-        previewSettings_Layout = QtWidgets.QVBoxLayout(self.previewSettings_vis)
-        previewSettings_Layout.setSpacing(0)
+        softwareDB = manager.getSoftwareDatabase()
 
-        previewSettings_formLayout = QtWidgets.QFormLayout()
-        previewSettings_formLayout.setSpacing(6)
-        previewSettings_formLayout.setHorizontalSpacing(15)
-        previewSettings_formLayout.setVerticalSpacing(15)
+        # # Create a sub-visibility widget for each software
+        # swList = []
+        # for sw in softwareDB.keys():
+        #     subVis_widget = QtWidgets.QWidget(self.previewSettings_vis)
+        #     subVis_layout = QtWidgets.QVBoxLayout(subVis_widget)
+        #     databaseFolder = os.path.join(
+        #
+        #         softwareDB[sw]["databaseDir"]
+        #
+        #     softwareDB[sw]["pbSettingsFile"]
 
-        previewSettings_Layout.addLayout(previewSettings_formLayout)
+        previewMasterLayout = QtWidgets.QVBoxLayout(self.previewSettings_vis)
+        # sub-visibility widgets. These are for different softwares. Standalone uses all
+        if softwareName.lower() == "maya" or softwareName.lower() == "":
 
-        videoProperties_label = QtWidgets.QLabel(self.previewSettings_vis)
-        videoProperties_label.setText("Video Properties")
-        previewSettings_formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, videoProperties_label)
+            previewSettings_MAYA_Layout = QtWidgets.QVBoxLayout(self.previewSettings_vis)
+            previewSettings_MAYA_Layout.setSpacing(0)
 
-        convertMp4_chkbox = QtWidgets.QCheckBox(self.previewSettings_vis)
-        convertMp4_chkbox.setText("MP4 Format (Windows Only)")
-        previewSettings_formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, convertMp4_chkbox)
+            head_MAYA_Label = QtWidgets.QLabel(self.previewSettings_vis)
+            head_MAYA_Label.setText("\nMaya Playblast Settings\n")
+            head_MAYA_Label.setFont(self.labelFont)
+            previewSettings_MAYA_Layout.addWidget(head_MAYA_Label)
 
-        format_label = QtWidgets.QLabel(self.previewSettings_vis)
-        format_label.setText("Format: ")
-        format_comboBox = QtWidgets.QComboBox(self.previewSettings_vis)
-        previewSettings_formLayout.addRow(format_label, format_comboBox)
+            previewSettings_MAYA_formLayout = QtWidgets.QFormLayout()
+            previewSettings_MAYA_formLayout.setSpacing(6)
 
-        codec_label = QtWidgets.QLabel(self.previewSettings_vis)
-        codec_label.setText("Codec: ")
-        codec_comboBox = QtWidgets.QComboBox(self.previewSettings_vis)
-        previewSettings_formLayout.addRow(codec_label, codec_comboBox)
+            previewSettings_MAYA_Layout.addLayout(previewSettings_MAYA_formLayout)
 
-        codecQuality_label = QtWidgets.QLabel(self.previewSettings_vis)
-        codecQuality_label.setText("Quality: ")
-        codecQuality_spinBox = QtWidgets.QSpinBox(self.previewSettings_vis)
-        codecQuality_spinBox.setMinimum(1)
-        codecQuality_spinBox.setMaximum(100)
-        codecQuality_spinBox.setMinimumWidth(50)
-        codecQuality_spinBox.setProperty("value", currentSettings["Quality"])
-        previewSettings_formLayout.addRow(codecQuality_label, codecQuality_spinBox)
+            videoProperties_MAYA_label = QtWidgets.QLabel(self.previewSettings_vis)
+            videoProperties_MAYA_label.setText("Video Properties")
+            previewSettings_MAYA_formLayout.addRow(videoProperties_MAYA_label)
+            # previewSettings_MAYA_formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, videoProperties_MAYA_label)
+
+            convertMp4_MAYA_chkbox = QtWidgets.QCheckBox(self.previewSettings_vis)
+            convertMp4_MAYA_chkbox.setText("MP4 Format (Windows Only)")
+            previewSettings_MAYA_formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, convertMp4_MAYA_chkbox)
+
+            format_MAYA_label = QtWidgets.QLabel(self.previewSettings_vis)
+            format_MAYA_label.setText("Format: ")
+            format_MAYA_comboBox = QtWidgets.QComboBox(self.previewSettings_vis)
+            previewSettings_MAYA_formLayout.addRow(format_MAYA_label, format_MAYA_comboBox)
+
+            codec_MAYA_label = QtWidgets.QLabel(self.previewSettings_vis)
+            codec_MAYA_label.setText("Codec: ")
+            codec_MAYA_comboBox = QtWidgets.QComboBox(self.previewSettings_vis)
+            previewSettings_MAYA_formLayout.addRow(codec_MAYA_label, codec_MAYA_comboBox)
+
+            codecQuality_MAYA_label = QtWidgets.QLabel(self.previewSettings_vis)
+            codecQuality_MAYA_label.setText("Quality: ")
+            codecQuality_MAYA_spinBox = QtWidgets.QSpinBox(self.previewSettings_vis)
+            codecQuality_MAYA_spinBox.setMinimum(1)
+            codecQuality_MAYA_spinBox.setMaximum(100)
+            codecQuality_MAYA_spinBox.setMinimumWidth(50)
+            codecQuality_MAYA_spinBox.setProperty("value", currentSettings["Quality"])
+            previewSettings_MAYA_formLayout.addRow(codecQuality_MAYA_label, codecQuality_MAYA_spinBox)
+
+            resolution_MAYA_label = QtWidgets.QLabel(self.previewSettings_vis, text="Resolution")
+
+            resolution_MAYA_Layout = QtWidgets.QHBoxLayout(self.previewSettings_vis)
+            resolutionX_MAYA_spinBox = QtWidgets.QSpinBox(self.previewSettings_vis)
+            resolutionX_MAYA_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+            resolutionX_MAYA_spinBox.setMinimum(1)
+            resolutionX_MAYA_spinBox.setMaximum(4096)
+            resolutionX_MAYA_spinBox.setMinimumWidth(100)
+            resolutionX_MAYA_spinBox.setValue(currentSettings["Resolution"][0])
+
+
+            resolutionY_MAYA_spinBox = QtWidgets.QSpinBox(self.previewSettings_vis)
+            resolutionY_MAYA_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+            resolutionY_MAYA_spinBox.setMinimum(1)
+            resolutionY_MAYA_spinBox.setMaximum(4096)
+            resolutionY_MAYA_spinBox.setMinimumWidth(100)
+            resolutionY_MAYA_spinBox.setValue(currentSettings["Resolution"][1])
+
+            resolution_MAYA_Layout.addWidget(resolutionX_MAYA_spinBox)
+            resolution_MAYA_Layout.addWidget(resolutionY_MAYA_spinBox)
+            previewSettings_MAYA_formLayout.addRow(resolution_MAYA_label, resolution_MAYA_Layout)
+
+
+
+
+            viewportOptions_MAYA_label = QtWidgets.QLabel(self.previewSettings_vis)
+            viewportOptions_MAYA_label.setText("\nViewport Options")
+            previewSettings_MAYA_formLayout.addRow(viewportOptions_MAYA_label)
+
+            previewMasterLayout.addLayout(previewSettings_MAYA_Layout)
+
+
+
+        if softwareName.lower() == "3dsmax" or softwareName.lower() == "":
+
+            previewSettings_MAX_Layout = QtWidgets.QVBoxLayout(self.previewSettings_vis)
+            previewSettings_MAX_Layout.setSpacing(0)
+
+            head_MAX_Label = QtWidgets.QLabel(self.previewSettings_vis)
+            head_MAX_Label.setText("\n\n3dsMax Preview Animation Settings\n")
+            head_MAX_Label.setFont(self.labelFont)
+            previewSettings_MAX_Layout.addWidget(head_MAX_Label)
+
+            previewSettings_MAX_formLayout = QtWidgets.QFormLayout()
+            previewSettings_MAX_formLayout.setSpacing(6)
+
+            previewSettings_MAX_Layout.addLayout(previewSettings_MAX_formLayout)
+
+            videoProperties_MAX_label = QtWidgets.QLabel(self.previewSettings_vis)
+            videoProperties_MAX_label.setText("Video Properties")
+            previewSettings_MAX_formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, videoProperties_MAX_label)
+
+            convertMp4_MAX_chkbox = QtWidgets.QCheckBox(self.previewSettings_vis)
+            convertMp4_MAX_chkbox.setText("MP4 Format (Windows Only)")
+            previewSettings_MAX_formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, convertMp4_MAX_chkbox)
+
+            format_MAX_label = QtWidgets.QLabel(self.previewSettings_vis)
+            format_MAX_label.setText("Format: ")
+            format_MAX_comboBox = QtWidgets.QComboBox(self.previewSettings_vis)
+            previewSettings_MAX_formLayout.addRow(format_MAX_label, format_MAX_comboBox)
+
+            codec_MAX_label = QtWidgets.QLabel(self.previewSettings_vis)
+            codec_MAX_label.setText("Codec: ")
+            codec_MAX_comboBox = QtWidgets.QComboBox(self.previewSettings_vis)
+            previewSettings_MAX_formLayout.addRow(codec_MAX_label, codec_MAX_comboBox)
+
+            codecQuality_MAX_label = QtWidgets.QLabel(self.previewSettings_vis)
+            codecQuality_MAX_label.setText("Quality: ")
+            codecQuality_MAX_spinBox = QtWidgets.QSpinBox(self.previewSettings_vis)
+            codecQuality_MAX_spinBox.setMinimum(1)
+            codecQuality_MAX_spinBox.setMaximum(100)
+            codecQuality_MAX_spinBox.setMinimumWidth(50)
+            codecQuality_MAX_spinBox.setProperty("value", currentSettings["Quality"])
+            previewSettings_MAX_formLayout.addRow(codecQuality_MAX_label, codecQuality_MAX_spinBox)
+
+            previewMasterLayout.addLayout(previewSettings_MAX_Layout)
 
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.projectSettings_Layout.addItem(spacerItem)
+        previewMasterLayout.addItem(spacerItem)
+
+
         self.contentsMaster_layout.addWidget(self.previewSettings_vis)
+
 
     def _sharedSettingsContent(self):
         sharedSettings_Layout = QtWidgets.QVBoxLayout(self.sharedSettings_vis)
@@ -2215,7 +2311,6 @@ class MainUI(QtWidgets.QMainWindow):
         sharedSettings_Layout.addItem(spacerItem)
         self.contentsMaster_layout.addWidget(self.sharedSettings_vis)
 
-        
     def pbSettingsMayaUI(self):
         # This method iS Software Specific
         if BoilerDict["Environment"]=="Standalone":

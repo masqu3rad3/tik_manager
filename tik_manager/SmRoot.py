@@ -671,6 +671,9 @@ class RootManager(object):
     def isGlobalFavorites(self):
         return self._userSettings["globalFavorites"]
 
+    def getMasterDir(self):
+        return self._pathsDict["masterDir"]
+
     def getUserDir(self):
         """Returns Documents Directory"""
         dir = os.path.expanduser('~')

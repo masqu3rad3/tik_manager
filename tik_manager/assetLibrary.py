@@ -145,7 +145,7 @@ import re
 import datetime
 
 from SmRoot import RootManager
-
+import iconsSource as icons
 # FORCE_QT4 = bool(os.getenv("FORCE_QT4"))
 # FORCE_QT4 = bool(int(os.environ["FORCE_QT4"]))
 

@@ -131,6 +131,7 @@ from shutil import copyfile
 
 import logging
 
+import iconsSource as icons
 # from tik_manager.CSS import darkorange
 
 __author__ = "Arda Kutlu"
