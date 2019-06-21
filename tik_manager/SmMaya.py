@@ -320,7 +320,9 @@ class MayaCoreFunctions(object):
         return os.path.normpath(pPath)
 
     def _setProject(self, path):
-        melCompPath = path.replace("\\", "/") # mel is picky
+        encodedPath = unicode(path).encode("utf-8")
+        # melCompPath = path.replace("\\", "/") # mel is picky
+        melCompPath = encodedPath.replace("\\", "/") # mel is picky
         command = 'setProject "%s";' %melCompPath
         mel.eval(command)
 

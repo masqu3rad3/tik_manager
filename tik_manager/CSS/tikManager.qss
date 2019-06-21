@@ -458,19 +458,22 @@ QTextEdit
 
 QTextEdit:focus
 {
-    border: 2px solid QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #ffa02f, stop: 1 #d7801a);
+    border: 2px solid #fe7e00;
+    /*border: 10px solid QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #ffa02f, stop: 1 #d7801a);*/
 }
+
 
 
 QLineEdit
 {
-    /*background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #4d4d4d, stop: 0 #646464, stop: 1 #5d5d5d);*/
     background-color: #242424;
     padding: 1px;
     border-style: solid;
     border: 1px solid #1e1e1e;
     border-radius: 5;
+    selection-background-color: #fe7e00;
 }
+
 
 /* ------------------------------------------------------------------------ */
 /* DISPLAYS --------------------------------------------------------------- */

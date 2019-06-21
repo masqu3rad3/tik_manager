@@ -888,12 +888,24 @@ class MainUI(QtWidgets.QMainWindow):
             dlg.setFileMode(QtWidgets.QFileDialog.Directory)
 
             if dlg.exec_():
-                selectedroot = os.path.normpath(str(dlg.selectedFiles()[0]))
+                # selectedroot = os.path.normpath(unicode(dlg.selectedFiles()[0]))
+                selectedroot = os.path.normpath(unicode(dlg.selectedFiles()[0])).encode("utf-8")
                 self.projectroot_lineEdit.setText(selectedroot)
                 resolve()
 
+
         def onCreateNewProject():
-            root = self.projectroot_lineEdit.text()
+            root = os.path.normpath(self.projectroot_lineEdit.text())
+            if not self.manager.nameCheck(root, allowSpaces=True, directory=True):
+                self.infoPop(textTitle="Non-Ascii Character", textHeader="Selected Project Root cannot be used",
+                             textInfo="There are non-ascii characters in the selected path.", type="C")
+                return
+            if not os.path.isdir(root):
+                self.infoPop(textTitle="Path Error", textHeader="Selected Project Root does not exist", type="C")
+                return
+
+            # root = unicode(self.projectroot_lineEdit.text()).encode("utf-8")
+            # root = unicode(self.projectroot_lineEdit.text(), "utf-8")
             pName = self.projectname_lineEdit.text()
             bName = self.brandname_lineEdit.text()
             cName = self.client_lineEdit.text()
@@ -1208,7 +1220,7 @@ class MainUI(QtWidgets.QMainWindow):
                 self.browser.forward()
 
             if command == "browse":
-                dir = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory"))
+                dir = unicode(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory")).encode("utf-8")
                 if dir:
                     self.projectsRoot = dir
                     self.browser.addData(self.projectsRoot)
@@ -1218,7 +1230,7 @@ class MainUI(QtWidgets.QMainWindow):
 
             if command == "folder":
                 index = self.folders_treeView.currentIndex()
-                self.projectsRoot = os.path.normpath(str(self.sourceModel.filePath(index)))
+                self.projectsRoot = os.path.normpath(unicode(self.sourceModel.filePath(index)).encode("utf-8"))
                 self.browser.addData(self.projectsRoot)
 
             if command == "lineEnter":
@@ -1280,7 +1292,7 @@ class MainUI(QtWidgets.QMainWindow):
             # block the signal to prevent unwanted cycle
             self.favorites_listWidget.blockSignals(True)
             index = self.folders_treeView.currentIndex()
-            self.spActiveProjectPath = os.path.normpath(str(self.sourceModel.filePath(index)))
+            self.spActiveProjectPath = os.path.normpath(unicode(self.sourceModel.filePath(index)).encode("utf-8"))
 
 
             # clear the selection in favorites view
@@ -1288,6 +1300,10 @@ class MainUI(QtWidgets.QMainWindow):
             self.favorites_listWidget.blockSignals(False)
 
         def setProject():
+            if not self.manager.nameCheck(self.spActiveProjectPath, allowSpaces=True, directory=True):
+                self.infoPop(textTitle="Invalid Path", textHeader="There are invalid (non-ascii) characters in the selected path.",
+                             textInfo="This Path cannot be used", type="C")
+                return
             self.manager.setProject(self.spActiveProjectPath)
             self.onProjectChange()
             self.setProject_Dialog.close()

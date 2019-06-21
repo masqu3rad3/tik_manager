@@ -845,6 +845,9 @@ class RootManager(object):
 
         # resolve the project path
         resolvedPath = self.resolveProjectPath(projectRoot, projectName, brandName, client)
+        print "resolvedPath", resolvedPath
+        print type(resolvedPath)
+
 
         # check if there is a duplicate
         if not os.path.isdir(os.path.normpath(resolvedPath)):
@@ -1776,9 +1779,11 @@ Elapsed Time:{6}
         if allowSpaces:
             aSpa = " "
         aSpa = " " if allowSpaces else ""
-        dir = "/" if directory else ""
+        dir = "\\\\:" if directory else ""
 
-        pattern = "^[%s%sA-Za-z0-9_-]*$" %(aSpa, dir)
+        # pattern = "^[%s%sA-Za-z0-9_-]*$" %(dir, aSpa)
+        # pattern = r'^[:/A-Za-z0-9\\:_-]*$'
+        pattern = r'^[:/A-Za-z0-9%s%sA_-]*$' %(dir, aSpa)
 
         # if allowSpaces:
         #     pattern = "^[ /A-Za-z0-9_-]*$"
@@ -1816,7 +1821,7 @@ Elapsed Time:{6}
         else:
             brandName = ""
         fullName = "{0}{1}_{2}_{3}".format(brandName, projectName, client, projectDate)
-        fullPath = os.path.join(os.path.normpath(str(projectRoot)), fullName)
+        fullPath = os.path.join(os.path.normpath(projectRoot), fullName)
         return fullPath
 
     ## Database loading / saving functions
@@ -1841,8 +1846,8 @@ Elapsed Time:{6}
 
     def _dumpJson(self, data, file):
         """Saves the data to the json file"""
-        name, ext = os.path.splitext(file)
-        tempFile = "{0}.tmp".format(name)
+        name, ext = os.path.splitext(unicode(file).encode("utf-8"))
+        tempFile = ("{0}.tmp".format(name)).decode("utf-8")
         with open(tempFile, "w") as f:
             json.dump(data, f, indent=4)
         shutil.copyfile(tempFile, file)
