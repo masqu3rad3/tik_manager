@@ -463,6 +463,11 @@ QTextEdit:focus
 }
 
 
+/* QLineEdit --------------------------------------------------------------
+
+https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qlineedit
+
+--------------------------------------------------------------------------- */
 
 QLineEdit
 {
@@ -472,6 +477,63 @@ QLineEdit
     border: 1px solid #1e1e1e;
     border-radius: 5;
     selection-background-color: #fe7e00;
+}
+
+QLineEdit:disabled {
+  background-color: #19232D;
+  color: #787878;
+}
+
+QLineEdit:hover {
+  border: 1px solid #148CD2;
+  color: #F0F0F0;
+}
+
+QLineEdit:selected {
+  background: #1464A0;
+  color: #32414B;
+}
+
+/* QTabWiget --------------------------------------------------------------
+
+https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qtabwidget-and-qtabbar
+
+--------------------------------------------------------------------------- */
+QTabWidget {
+  padding: 2px;
+  selection-background-color: #32414B;
+  /* Add wanted borders - fix #141, #126, #123 */
+}
+
+QTabWidget QWidget {
+  border: 0px solid #32414B;
+}
+
+QTabWidget QWidget QWidget
+QTableView,
+QTabWidget QTreeView,
+QTabWidget QListView,
+QTabWidget QGroupBox,
+QTabWidget QLineEdit,
+QTabWidget QComboBox,
+QTabWidget QFontComboBox,
+QTabWidget QTextEdit,
+QTabWidget QSpinBox,
+QTabWidget QDoubleSpinBox {
+  border: 1px solid #32414B;
+}
+
+QTabWidget::pane {
+  border: 1px solid #32414B;
+  border-radius: 4px;
+  margin: 0px;
+  /* Fixes double border inside pane wit pyqt5 */
+  padding: 0px;
+}
+
+QTabWidget::pane:selected {
+  background-color: #32414B;
+  border: 1px solid #1464A0;
 }
 
 
