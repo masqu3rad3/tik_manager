@@ -467,12 +467,15 @@ class MainUI(QtWidgets.QMainWindow):
         self.verticalLayout.addWidget(self.notes_textEdit)
 
         # PyInstaller and Standalone version compatibility
+
+        emptyIcon = os.path.normpath(os.path.join(self.manager.getIconsDir(), "empty_thumbnail.png"))
         if FORCE_QT4:
-            self.tPixmap = QtWidgets.QPixmap("")
+            self.E_tPixmap = QtWidgets.QPixmap(emptyIcon)
         else:
-            self.tPixmap = QtGui.QPixmap("")
+            self.E_tPixmap = QtGui.QPixmap(emptyIcon)
         self.thumbnail_label = ImageWidget(self.frame)
-        self.thumbnail_label.setPixmap(self.tPixmap)
+        self.thumbnail_label.setObjectName("image")
+        self.thumbnail_label.setPixmap(self.E_tPixmap)
 
         self.thumbnail_label.setMinimumSize(QtCore.QSize(221, 124))
         self.thumbnail_label.setFrameShape(QtWidgets.QFrame.Box)
@@ -1120,6 +1123,14 @@ class MainUI(QtWidgets.QMainWindow):
         dirFilter_label.setText("Search Filter")
         self.dirFilter_lineEdit = QtWidgets.QLineEdit(self.setProject_Dialog)
         self.dirFilter_lineEdit.setMaximumWidth(175)
+
+        if FORCE_QT4:
+            placeholderFont = QtWidgets.QFont("Seqoe UI Symbol")
+        else:
+            placeholderFont = QtGui.QFont("Seqoe UI Symbol")
+
+        self.dirFilter_lineEdit.setFont(placeholderFont)
+        self.dirFilter_lineEdit.setPlaceholderText("🔍")
 
         M3_horizontalLayout.addWidget(dirFilter_label)
         M3_horizontalLayout.addWidget(self.dirFilter_lineEdit)
@@ -3878,7 +3889,7 @@ class MainUI(QtWidgets.QMainWindow):
         self._initUsers()
 
         # disable the version related stuff
-        self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
+        # self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
         # self._vEnableDisable()
         self.onModeChange()
         # print "ASDFASDFASDFASDF"
@@ -4091,13 +4102,18 @@ class MainUI(QtWidgets.QMainWindow):
             self.tPixmap = QtWidgets.QPixmap(manager.getThumbnail())
         else:
             self.tPixmap = QtGui.QPixmap(manager.getThumbnail())
+
         # self.tPixmap = QtGui.QPixmap(self.manager.getThumbnail())
-        self.thumbnail_label.setPixmap(self.tPixmap)
+
+        if self.tPixmap.isNull():
+            self.thumbnail_label.setPixmap(self.E_tPixmap)
+        else:
+            self.thumbnail_label.setPixmap(self.tPixmap)
 
         if manager.currentVersionIndex != len(manager.getVersions()) and manager.currentVersionIndex != -1:
-            self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: yellow")
+            self.version_comboBox.setStyleSheet("color: yellow")
         else:
-            self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
+            self.version_comboBox.setStyleSheet("color: white")
 
         # self.version_comboBox.blockSignals(False)
         self._vEnableDisable()

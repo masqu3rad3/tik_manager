@@ -465,8 +465,7 @@ class StandaloneManager(RootManager):
         self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "softwareDatabase.json"))
         self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerDefaults.json"))
         self._pathsDict["adminPass"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "adminPass.psw"))
-        self._pathsDict["iconsDir"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icons")
-
+        self._pathsDict["iconsDir"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "CSS", "rc")
     # def init_paths(self, nicename):
     #     """Overriden function"""
     #
@@ -834,7 +833,7 @@ class MainUI(baseUI):
         # init users
         self._initUsers()
         # # disable the version related stuff
-        self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
+        # self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
         self._vEnableDisable()
 
     def _zero(self):
@@ -845,8 +844,8 @@ class MainUI(baseUI):
         self.subProject_comboBox.clear()
         self.scenes_listWidget.clear()
         # self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.swColorDict[str(self.software_comboBox.currentText())])
-        self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
-        self.colorBar.setStyleSheet("background-color: %s; color: black" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
+        self.software_comboBox.setStyleSheet("background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:1 #404040, stop:0.11 #404040, stop:0.1 %s)" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
+        self.colorBar.setStyleSheet("background-color: %s;" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
 
         self._vEnableDisable()
         self.category_tabWidget.blockSignals(False)
@@ -870,8 +869,8 @@ class MainUI(baseUI):
             self.software_comboBox.addItem(x.swNiceName)
 
         # self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.swColorDict[str(self.software_comboBox.currentText())])
-        self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
-        self.colorBar.setStyleSheet("background-color: %s; color: black" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
+        self.software_comboBox.setStyleSheet("background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:1 #404040, stop:0.11 #404040, stop:0.1 %s)" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
+        self.colorBar.setStyleSheet("background-color: %s;" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
 
         self.software_comboBox.blockSignals(False)
 
@@ -883,10 +882,10 @@ class MainUI(baseUI):
         self._initSubProjects()
         self.populateBaseScenes()
         # self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.swColorDict[str(self.software_comboBox.currentText())])
-        self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
-        self.colorBar.setStyleSheet("background-color: %s; color: black" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
+        self.software_comboBox.setStyleSheet("background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:1 #404040, stop:0.11 #404040, stop:0.1 %s)" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
+        self.colorBar.setStyleSheet("background-color: %s;" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
 
-        self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
+        # self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
         self._vEnableDisable()
         manager = self._getManager()
         if manager.swNiceName == "Houdini":

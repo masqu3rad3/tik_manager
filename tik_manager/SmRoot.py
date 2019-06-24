@@ -797,7 +797,6 @@ class RootManager(object):
     def getThumbnail(self):
         """returns (String) absolute thumbnail path of version on cursor position"""
         logger.debug("Func: getThumbnail")
-
         return os.path.join(self.projectDir, self._currentThumbFile)
 
     def getFPS(self):
@@ -845,9 +844,6 @@ class RootManager(object):
 
         # resolve the project path
         resolvedPath = self.resolveProjectPath(projectRoot, projectName, brandName, client)
-        print "resolvedPath", resolvedPath
-        print type(resolvedPath)
-
 
         # check if there is a duplicate
         if not os.path.isdir(os.path.normpath(resolvedPath)):

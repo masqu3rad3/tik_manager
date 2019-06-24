@@ -46,7 +46,7 @@ import _version
 BoilerDict = {"Environment": "Standalone",
               "MainWindow": None,
               "WindowTitle": "Image Viewer Standalone v%s" % _version.__version__,
-              "Stylesheet": "mayaDark.stylesheet"}
+              }
 try:
     from maya import OpenMayaUI as omui
     import maya.cmds as cmds
@@ -228,7 +228,6 @@ class MainUI(QtWidgets.QMainWindow):
         # Set Stylesheet
         dirname = os.path.dirname(os.path.abspath(__file__))
         stylesheetFile = os.path.join(dirname, "CSS", "tikManager.qss")
-        # stylesheetFile = os.path.join(dirname, "CSS", BoilerDict["Stylesheet"])
 
         with open(stylesheetFile, "r") as fh:
             self.setStyleSheet(fh.read())
@@ -873,6 +872,12 @@ class SeqCopyProgress(QtWidgets.QWidget):
         self.errorFlag = False
         # self.copyfileobj(src=self.src, dst=self.dest)
 
+        dirname = os.path.dirname(os.path.abspath(__file__))
+        stylesheetFile = os.path.join(dirname, "CSS", "tikManager.qss")
+
+        with open(stylesheetFile, "r") as fh:
+            self.setStyleSheet(fh.read())
+
     def build_ui(self):
 
         hbox = QtWidgets.QVBoxLayout()
@@ -934,13 +939,14 @@ class SeqCopyProgress(QtWidgets.QWidget):
         if logPath:
             showLogButton = QtWidgets.QPushButton("Show Log File")
             layoutH.addWidget(showLogButton)
-            showLogButton.clicked.connect(lambda dump, x=logPath: os.startfile(x))
+            showLogButton.clicked.connect(lambda: os.startfile(logPath))
         showInExplorer = QtWidgets.QPushButton("Show in Explorer")
         layoutH.addWidget(showInExplorer)
         okButton = QtWidgets.QPushButton("OK")
         layoutH.addWidget(okButton)
 
-        showInExplorer.clicked.connect(lambda dump, x=destPath: self.onShowInExplorer(x))
+        print "HERE"
+        showInExplorer.clicked.connect(lambda: self.onShowInExplorer(destPath))
 
         okButton.clicked.connect(self.msgDialog.close)
 
