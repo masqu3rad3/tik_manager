@@ -35,7 +35,8 @@
     "ClearSelection": true,
     "DisplayTextures": true,
     "WireOnShaded": false,
-    "UseDefaultMaterial": false
+    "UseDefaultMaterial": false,
+    "ConvertMP4": true
   },
   "defaultColorCoding": {
         "": "rgb(0, 0, 0, 0)", 

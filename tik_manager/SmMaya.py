@@ -35,7 +35,6 @@ os.environ["FORCE_QT4"]="0"
 
 # DELETE
 import SmUIRoot
-reload(SmUIRoot)
 # ------
 
 from SmUIRoot import MainUI as baseUI

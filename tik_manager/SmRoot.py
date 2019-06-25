@@ -2110,16 +2110,20 @@ Elapsed Time:{6}
         self._dumpJson(importSettings, self._pathsDict["importSettingsFile"])
         return
 
-    def loadPBSettings(self):
+    def loadPBSettings(self, filePath=None):
         """Loads the preview settings data"""
         # TODO // NEEDS to be IMPROVED and compatible with all softwares (Nuke and Houdini)
+
+        if not filePath:
+            filePath = self._pathsDict["pbSettingsFile"]
+
         logger.debug("Func: loadPBSettings")
-        if not os.path.isfile(self._pathsDict["pbSettingsFile"]):
+        if not os.path.isfile(filePath):
             defaultSettings = self._sceneManagerDefaults["defaultPreviewSettings"]
-            self._dumpJson(defaultSettings, self._pathsDict["pbSettingsFile"])
+            self._dumpJson(defaultSettings, filePath)
             return defaultSettings
         else:
-            pbSettings = self._loadJson(self._pathsDict["pbSettingsFile"])
+            pbSettings = self._loadJson(filePath)
             if pbSettings == -2:
                 return -2
             return pbSettings
