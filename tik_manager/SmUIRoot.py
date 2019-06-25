@@ -1847,6 +1847,8 @@ class MainUI(QtWidgets.QMainWindow):
     def settingsUI(self):
         manager = self._getManager()
 
+        self.allSettingsDict={}
+
         settings_Dialog = QtWidgets.QDialog(parent=self)
         settings_Dialog.setWindowTitle(("Settings"))
         settings_Dialog.resize(961, 638)
@@ -2014,11 +2016,30 @@ class MainUI(QtWidgets.QMainWindow):
         if sw == "maya" or sw == "":
             settingsFilePath = os.path.join(manager._pathsDict["previewsDir"], softwareDB["Maya"]["pbSettingsFile"])
             currentMayaSettings = manager.loadPBSettings(filePath=settingsFilePath)
-            self._previewSettingsContent_maya(currentMayaSettings)
+            # backward compatibility:
+            try:
+                currentMayaSettings["ConvertMP4"]
+                currentMayaSettings["CrfValue"]
+            except KeyError:
+                currentMayaSettings["ConvertMP4"] = True
+                currentMayaSettings["CrfValue"] = 23
+
+
+            # update the settings dictionary
+            self.allSettingsDict["preview_maya"] = {"oldSettings": currentMayaSettings,
+                                                    "newSettings": dict(currentMayaSettings),
+                                                    "databaseFilePath": settingsFilePath
+                                                    }
+            self._previewSettingsContent_maya()
         elif sw == "3dsmax" or sw == "":
             settingsFilePath = os.path.join(manager._pathsDict["previewsDir"], softwareDB["3dsMax"]["pbSettingsFile"])
             currentMaxSettings = manager.loadPBSettings(filePath=settingsFilePath)
-            self._previewSettingsContent_max(currentMaxSettings)
+            # update the settings dictionary
+            self.allSettingsDict["preview_max"] = {"oldSettings": currentMaxSettings,
+                                                    "newSettings": dict(currentMaxSettings),
+                                                    "databaseFilePath": settingsFilePath
+                                                    }
+            self._previewSettingsContent_max()
 
         self.contentsMaster_layout.addWidget(self.previewSettings_vis)
 
@@ -2085,12 +2106,13 @@ class MainUI(QtWidgets.QMainWindow):
                 item[1].setHidden(isVisible)
                 # self.userSettings_vis.setHidden(True)
 
-        buttonBox = QtWidgets.QDialogButtonBox(settings_Dialog)
-        buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Apply|QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
-        verticalLayout.addWidget(buttonBox)
+        self.settingsButtonBox = QtWidgets.QDialogButtonBox(settings_Dialog)
+        self.settingsButtonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Apply|QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        verticalLayout.addWidget(self.settingsButtonBox)
         verticalLayout_2.addLayout(verticalLayout)
 
-        settings_Dialog.setTabOrder(buttonBox, treeWidget)
+        settings_Dialog.setTabOrder(self.settingsButtonBox, treeWidget)
+        self.settingsButtonBox.button(QtWidgets.QDialogButtonBox.Apply).setEnabled(False)
 
         # # SIGNALS
         # # -------
@@ -2433,9 +2455,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.projectSettings_Layout.addItem(spacerItem)
         self.contentsMaster_layout.addWidget(self.projectSettings_vis)
 
-    def _previewSettingsContent_maya(self, settings):
+    def _previewSettingsContent_maya(self):
         manager = self._getManager()
-
+        settings = self.allSettingsDict["preview_maya"]["oldSettings"]
         def updateMayaCodecs():
             codecList = manager.getFormatsAndCodecs()[self.format_Maya_comboBox.currentText()]
             self.codec_Maya_comboBox.clear()
@@ -2443,6 +2465,41 @@ class MainUI(QtWidgets.QMainWindow):
 
         previewSettings_MAYA_Layout = QtWidgets.QVBoxLayout(self.previewSettings_vis)
         previewSettings_MAYA_Layout.setSpacing(0)
+
+        def toggleMp4():
+            state = self.convertMP4_Maya_chb.isChecked()
+            self.crf_Maya_spinBox.setEnabled(state)
+            self.format_Maya_comboBox.setDisabled(state)
+            self.codec_Maya_comboBox.setDisabled(state)
+            self.quality_Maya_spinBox.setDisabled(state)
+
+        def updateDictionary():
+            self.allSettingsDict["preview_maya"]["newSettings"]["ConvertMp4"] = self.convertMP4_Maya_chb.isChecked()
+            self.allSettingsDict["preview_maya"]["newSettings"]["CrfValue"] = self.crf_Maya_spinBox.value()
+            self.allSettingsDict["preview_maya"]["newSettings"]["Format"] = self.format_Maya_comboBox.currentText()
+            self.allSettingsDict["preview_maya"]["newSettings"]["Codec"] = self.codec_Maya_comboBox.currentText()
+            self.allSettingsDict["preview_maya"]["newSettings"]["Quality"] = self.quality_Maya_spinBox.value()
+            self.allSettingsDict["preview_maya"]["newSettings"]["Resolution"] = [self.resX_Maya_spinBox.value(), self.resY_Maya_spinBox.value()]
+            self.allSettingsDict["preview_maya"]["newSettings"]["PolygonOnly"] = self.polygonOnly_Maya_chb.isChecked()
+            self.allSettingsDict["preview_maya"]["newSettings"]["ShowGrid"] = self.showGrid_Maya_chb.isChecked()
+            self.allSettingsDict["preview_maya"]["newSettings"]["ClearSelection"] = self.clearSelection_Maya_chb.isChecked()
+            self.allSettingsDict["preview_maya"]["newSettings"]["DisplayTextures"] = self.displayTextures_Maya_chb.isChecked()
+            self.allSettingsDict["preview_maya"]["newSettings"]["WireOnShaded"] = self.wireOnShaded_Maya_chb.isChecked()
+            self.allSettingsDict["preview_maya"]["newSettings"]["UseDefaultMaterial"] = self.useDefaultMaterial_Maya_chb.isChecked()
+            self.allSettingsDict["preview_maya"]["newSettings"]["ShowFrameNumber"] = self.frameNumber_Maya_chb.isChecked()
+            self.allSettingsDict["preview_maya"]["newSettings"]["ShowCategory"] = self.category_Maya_chb.isChecked()
+            self.allSettingsDict["preview_maya"]["newSettings"]["ShowSceneName"] = self.sceneName_Maya_chb.isChecked()
+            self.allSettingsDict["preview_maya"]["newSettings"]["ShowFPS"] = self.fps_Maya_chb.isChecked()
+            self.allSettingsDict["preview_maya"]["newSettings"]["ShowFrameRange"] = self.frameRange_Maya_chb.isChecked()
+
+            changed = False
+            for key in self.allSettingsDict["preview_maya"]["oldSettings"].keys():
+                if self.allSettingsDict["preview_maya"]["newSettings"][key] != self.allSettingsDict["preview_maya"]["oldSettings"][key]:
+                    changed = True
+                    break
+            self.settingsButtonBox.button(QtWidgets.QDialogButtonBox.Apply).setEnabled(changed)
+
+
 
         ## HEADER
         h1_horizontalLayout = QtWidgets.QHBoxLayout()
@@ -2483,8 +2540,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.convertMP4_Maya_chb = QtWidgets.QCheckBox(self.previewSettings_vis)
         self.convertMP4_Maya_chb.setText("Convert To MP4")
         self.convertMP4_Maya_chb.setMinimumSize(QtCore.QSize(100, 0))
-        self.convertMP4_Maya_chb.setLayoutDirection(QtCore.Qt.RightToLeft)
-        videoProperties_formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.convertMP4_Maya_chb)
+        self.convertMP4_Maya_chb.setLayoutDirection(QtCore.Qt.LeftToRight)
+        # videoProperties_formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.convertMP4_Maya_chb)
+        videoProperties_formLayout.addRow(self.convertMP4_Maya_chb)
         if manager.currentPlatform is not "Windows":
             self.convertMP4_Maya_chb.setChecked(False)
             self.convertMP4_Maya_chb.setEnabled(False)
@@ -2493,6 +2551,16 @@ class MainUI(QtWidgets.QMainWindow):
                 self.convertMP4_Maya_chb.setChecked(settings["ConvertMP4"])
             except KeyError:
                 self.convertMP4_Maya_chb.setChecked(True)
+
+        crf_Maya_label = QtWidgets.QLabel(self.previewSettings_vis)
+        crf_Maya_label.setText("CRF Value (0-51)")
+
+        self.crf_Maya_spinBox = QtWidgets.QSpinBox(self.previewSettings_vis)
+        self.crf_Maya_spinBox.setMinimumWidth(50)
+        self.crf_Maya_spinBox.setMinimum(0)
+        self.crf_Maya_spinBox.setMaximum(51)
+        self.crf_Maya_spinBox.setValue(settings["CrfValue"])
+        videoProperties_formLayout.addRow(crf_Maya_label, self.crf_Maya_spinBox)
 
         format_label = QtWidgets.QLabel(self.previewSettings_vis)
         format_label.setText("Format: ")
@@ -2672,13 +2740,40 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.previewMasterLayout.addLayout(previewSettings_MAYA_Layout)
 
+        toggleMp4()
+
+        ## SIGNALS
+        ## -------
+
+        self.convertMP4_Maya_chb.stateChanged.connect(toggleMp4)
+        self.convertMP4_Maya_chb.stateChanged.connect(updateDictionary)
+
+        self.crf_Maya_spinBox.valueChanged.connect(updateDictionary)
+        self.format_Maya_comboBox.currentIndexChanged.connect(updateDictionary)
+        self.codec_Maya_comboBox.currentIndexChanged.connect(updateDictionary)
+        self.quality_Maya_spinBox.valueChanged.connect(updateDictionary)
+        self.resX_Maya_spinBox.valueChanged.connect(updateDictionary)
+        self.resY_Maya_spinBox.valueChanged.connect(updateDictionary)
+        self.polygonOnly_Maya_chb.stateChanged.connect(updateDictionary)
+        self.showGrid_Maya_chb.stateChanged.connect(updateDictionary)
+        self.clearSelection_Maya_chb.stateChanged.connect(updateDictionary)
+        self.displayTextures_Maya_chb.stateChanged.connect(updateDictionary)
+        self.wireOnShaded_Maya_chb.stateChanged.connect(updateDictionary)
+        self.useDefaultMaterial_Maya_chb.stateChanged.connect(updateDictionary)
+        self.frameNumber_Maya_chb.stateChanged.connect(updateDictionary)
+        self.category_Maya_chb.stateChanged.connect(updateDictionary)
+        self.sceneName_Maya_chb.stateChanged.connect(updateDictionary)
+        self.fps_Maya_chb.stateChanged.connect(updateDictionary)
+        self.frameRange_Maya_chb.stateChanged.connect(updateDictionary)
+
         # spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         # previewMasterLayout.addItem(spacerItem)
 
         # self.contentsMaster_layout.addWidget(self.previewSettings_vis)
 
-    def _previewSettingsContent_max(self, settings):
+    def _previewSettingsContent_max(self):
         manager = self._getManager()
+        settings = self.allSettingsDict["preview_max"]["oldSettings"]
 
         previewSettings_MAX_Layout = QtWidgets.QVBoxLayout(self.previewSettings_vis)
         previewSettings_MAX_Layout.setSpacing(0)
