@@ -92,20 +92,15 @@ class RootManager(object):
         # all paths in here must be absolute paths
         # _softwarePathsDict = self.getSoftwarePaths()
 
-        # self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDirectory(), _softwarePathsDict["userSettingsDir"]))
         self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDir(), "TikManager"))
-        # self._folderCheck(self._pathsDict["userSettingsDir"])
         self._folderCheck(os.path.join(self._pathsDict["userSettingsDir"], nicename))
         self._pathsDict["userSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "userSettings.json"))
-        # self._userSettings = self._loadUserSettings()
 
         self._pathsDict["localBookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], nicename, "smBookmarks.json"))
         self._pathsDict["bookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smBookmarks.json"))
         self._pathsDict["currentsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], nicename, "smCurrents.json"))
-        # self._pathsDict["projectsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], nicename, "smProjects.json"))
         self._pathsDict["projectsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smProjects.json"))
 
-        # self._pathsDict["commonFolderDir"] = os.path.abspath(os.path.join(self._pathsDict["userSettingsDir"], os.pardir))
         self._pathsDict["commonFolderFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smCommonFolder.json"))
 
         self._pathsDict["sharedSettingsDir"] = self._getCommonFolder()
@@ -183,9 +178,12 @@ class RootManager(object):
 
         return commonFolder
 
-    def _defineCommonFolder(self):
+    def _defineCommonFolder(self, path=None):
 
-        selectedDir = self._inputDir()
+        if path:
+            selectedDir = path
+        else:
+            selectedDir = self._inputDir()
 
         if os.path.isdir(selectedDir):
             if self._checkCommonFolder(selectedDir):
