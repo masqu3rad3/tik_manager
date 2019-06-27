@@ -189,14 +189,14 @@ class NukeManager(RootManager, NukeCoreFunctions):
     #     """Overriden function"""
     #     # p_path = pManager.GetProjectFolderDir()
     #     # norm_p_path = os.path.normpath(p_path)
-    #     projectsDict = self._loadProjects()
+    #     projectsDict = self.loadProjects()
     #     print projectsDict
     #     homeDir = os.path.expanduser("~")
     #
     #     if not projectsDict:
     #         norm_p_path = os.path.normpath(homeDir)
     #         projectsDict = {"NukeProject": norm_p_path}
-    #         self._saveProjects(projectsDict)
+    #         self.saveProjects(projectsDict)
     #         return norm_p_path
     #
     #     # get the project defined in the database file
@@ -206,7 +206,7 @@ class NukeManager(RootManager, NukeCoreFunctions):
     #     except KeyError:
     #         norm_p_path = os.path.normpath(homeDir)
     #         projectsDict = {"NukeProject": norm_p_path}
-    #         self._saveProjects(projectsDict)
+    #         self.saveProjects(projectsDict)
     #         return norm_p_path
 
     def getSceneFile(self):
@@ -214,16 +214,16 @@ class NukeManager(RootManager, NukeCoreFunctions):
         logger.debug("Func: getSceneFile")
         return self._getSceneFile()
 
-    def setProject(self, path):
-        """Sets the project"""
-        logger.debug("Func: setProject")
-        projectsDict = self._loadProjects()
-        if not projectsDict:
-            projectsDict = {"NukeProject": path}
-        else:
-            projectsDict["NukeProject"] = path
-        self._saveProjects(projectsDict)
-        self.projectDir = path
+    # def setProject(self, path):
+    #     """Sets the project"""
+    #     logger.debug("Func: setProject")
+    #     projectsDict = self.loadProjects()
+    #     if not projectsDict:
+    #         projectsDict = {"NukeProject": path}
+    #     else:
+    #         projectsDict["NukeProject"] = path
+    #     self.saveProjects(projectsDict)
+    #     self.projectDir = path
 
     def saveBaseScene(self, categoryName, baseName, subProjectIndex=0, makeReference=True, versionNotes="", sceneFormat="nk", *args, **kwargs):
         """
@@ -598,19 +598,19 @@ class NukeManager(RootManager, NukeCoreFunctions):
     #     # TODO : Make sure the time ranges are INTEGERS
     #     cmds.playbackOptions(ast=rangeList[0], min=rangeList[1], max=rangeList[2], aet=rangeList[3])
 
-    def _loadCategories(self):
-        """OVERRIDEN FUNCTION for specific category default of Nuke"""
-        logger.debug("Func: _loadCategories")
-
-        if os.path.isfile(self._pathsDict["categoriesFile"]):
-            categoriesData = self._loadJson(self._pathsDict["categoriesFile"])
-            if categoriesData == -2:
-                return -2
-        else:
-            # categoriesData = self._sceneManagerDefaults["defaultCategories"]
-            categoriesData = ["Comp"]
-            self._dumpJson(categoriesData, self._pathsDict["categoriesFile"])
-        return categoriesData
+    # def loadCategories(self):
+    #     """OVERRIDEN FUNCTION for specific category default of Nuke"""
+    #     logger.debug("Func: loadCategories")
+    #
+    #     if os.path.isfile(self._pathsDict["categoriesFile"]):
+    #         categoriesData = self._loadJson(self._pathsDict["categoriesFile"])
+    #         if categoriesData == -2:
+    #             return -2
+    #     else:
+    #         # categoriesData = self._sceneManagerDefaults["defaultCategories"]
+    #         categoriesData = ["Comp"]
+    #         self._dumpJson(categoriesData, self._pathsDict["categoriesFile"])
+    #     return categoriesData
 
 
 class MainUI(baseUI):

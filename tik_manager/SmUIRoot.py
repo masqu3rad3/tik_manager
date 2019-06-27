@@ -37,6 +37,7 @@
 # ---------------
 import os
 import _version
+from copy import deepcopy
 
 # Below is the standard dictionary for Scene Manager Standalone
 BoilerDict = {"Environment":"Standalone",
@@ -1847,7 +1848,8 @@ class MainUI(QtWidgets.QMainWindow):
     def settingsUI(self):
         manager = self._getManager()
 
-        self.allSettingsDict={}
+        # self.allSettingsDict={}
+        self.allSettingsDict=Settings()
 
         settings_Dialog = QtWidgets.QDialog(parent=self)
         settings_Dialog.setWindowTitle(("Settings"))
@@ -2005,32 +2007,24 @@ class MainUI(QtWidgets.QMainWindow):
         self.passwords_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
         self.namingConventions_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
 
-        softwareDB = manager.getSoftwareDatabase()
+        self.softwareDB = manager.loadSoftwareDatabase()
 
         ## USER SETTINGS
-        currentUserSettings = manager._loadUserSettings()
-        self.allSettingsDict["userSettings"] = {"oldSettings": currentUserSettings,
-                                                "newSettings": dict(currentUserSettings),
-                                                "databaseFilePath": manager._pathsDict["userSettingsFile"]
-                                                }
+        currentUserSettings = manager.loadUserSettings()
+        self.allSettingsDict.add("userSettings", currentUserSettings, manager._pathsDict["userSettingsFile"])
         currentCommonFolder = manager._getCommonFolder()
-        self.allSettingsDict["sharedSettingsDir"] = {"oldSettings": currentCommonFolder,
-                                                "newSettings": str(currentCommonFolder),
-                                                "databaseFilePath": manager._pathsDict["commonFolderFile"]
-                                                }
+        self.allSettingsDict.add("sharedSettingsDir", currentCommonFolder, manager._pathsDict["commonFolderFile"])
         self._userSettingsContent()
 
         self._projectSettingsContent()
 
         ## PREVIEW SETTINGS
-
         self.previewMasterLayout = QtWidgets.QVBoxLayout(self.previewSettings_vis)
         sw = manager.swName.lower()
-
         #temp
-        sw=""
+        # sw=""
         if sw == "maya" or sw == "":
-            settingsFilePath = os.path.join(manager._pathsDict["previewsDir"], softwareDB["Maya"]["pbSettingsFile"])
+            settingsFilePath = os.path.join(manager._pathsDict["previewsDir"], self.softwareDB["Maya"]["pbSettingsFile"])
             currentMayaSettings = manager.loadPBSettings(filePath=settingsFilePath)
             # backward compatibility:
             try:
@@ -2040,15 +2034,12 @@ class MainUI(QtWidgets.QMainWindow):
                 currentMayaSettings["ConvertMP4"] = True
                 currentMayaSettings["CrfValue"] = 23
 
-
             # update the settings dictionary
-            self.allSettingsDict["preview_maya"] = {"oldSettings": currentMayaSettings,
-                                                    "newSettings": dict(currentMayaSettings),
-                                                    "databaseFilePath": settingsFilePath
-                                                    }
+            self.allSettingsDict.add("preview_maya", currentMayaSettings, settingsFilePath)
+
             self._previewSettingsContent_maya()
         if sw == "3dsmax" or sw == "":
-            settingsFilePath = os.path.join(manager._pathsDict["previewsDir"], softwareDB["3dsMax"]["pbSettingsFile"])
+            settingsFilePath = os.path.join(manager._pathsDict["previewsDir"], self.softwareDB["3dsMax"]["pbSettingsFile"])
             currentMaxSettings = manager.loadPBSettings(filePath=settingsFilePath)
             # backward compatibility:
             try:
@@ -2059,19 +2050,38 @@ class MainUI(QtWidgets.QMainWindow):
                 currentMaxSettings["CrfValue"] = 23
 
             # update the settings dictionary
-            self.allSettingsDict["preview_max"] = {"oldSettings": currentMaxSettings,
-                                                    "newSettings": dict(currentMaxSettings),
-                                                    "databaseFilePath": settingsFilePath
-                                                    }
+            self.allSettingsDict.add("preview_max", currentMaxSettings, settingsFilePath)
+
             self._previewSettingsContent_max()
 
         self.contentsMaster_layout.addWidget(self.previewSettings_vis)
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.previewMasterLayout.addItem(spacerItem)
 
-        self._sharedSettingsContent()
+        ## CATEGORIES
+        #temp
+        sw=""
+        if sw == "":
+            # if it is standalone, get all categories for all softwares
+            for value in self.softwareDB.values():
+                niceName = value["niceName"]
+                folderPath = os.path.normpath(os.path.join(manager._pathsDict["masterDir"], value["databaseDir"]))
+                manager._folderCheck(folderPath)
+
+                filePath = os.path.normpath(os.path.join(folderPath, value["categoriesFile"]))
+                categoryData = manager.loadCategories(filePath=filePath, swName=niceName)
+                self.allSettingsDict.add("categories_%s" %niceName, categoryData, filePath)
+        else:
+            currentCategories = manager.loadCategories()
+            self.allSettingsDict.add("categories_%s" %manager.swName, currentCategories, manager._pathsDict["categoriesFile"])
+
+        # pprint.pprint(self.allSettingsDict)
 
         self._categoriesContent()
+
+        self._sharedSettingsContent()
+
+
 
 
         # #QFrame to hold all content
@@ -2146,47 +2156,51 @@ class MainUI(QtWidgets.QMainWindow):
         # self.settingsButtonBox.button(QtWidgets.QDialogButtonBox.Apply).setEnabled(False)
         self.settingsApply_btn.setEnabled(False)
 
+        def applySettingChanges():
+            for x in self.allSettingsDict.apply():
+                manager._dumpJson(x["data"], x["filepath"])
+            self.settingsApply_btn.setEnabled(False)
+
         # # SIGNALS
         # # -------
         #
         self.settingsMenu_treeWidget.currentItemChanged.connect(pageUpdate)
 
-        self.settingsButtonBox.accepted.connect(self._applySettingChanges)
+        self.settingsButtonBox.accepted.connect(applySettingChanges)
         self.settingsButtonBox.accepted.connect(settings_Dialog.accept)
-        self.settingsApply_btn.clicked.connect(self._applySettingChanges)
+        self.settingsApply_btn.clicked.connect(applySettingChanges)
 
         self.settingsButtonBox.rejected.connect(settings_Dialog.reject)
 
-
-
         settings_Dialog.show()
 
-    def _isSettingsChanged(self):
-        for key in self.allSettingsDict.keys():
-            newSettings = self.allSettingsDict[key]["newSettings"]
-            oldSettings = self.allSettingsDict[key]["oldSettings"]
-            if newSettings != oldSettings:
-                self.settingsButtonBox.button(QtWidgets.QDialogButtonBox.Apply).setEnabled(True)
-                return True
-        # self.settingsButtonBox.button(QtWidgets.QDialogButtonBox.Apply).setEnabled(False)
-        self.settingsApply_btn.setEnabled(False)
-        return False
+    # def _isSettingsChanged(self):
+    #     for key in self.allSettingsDict.keys():
+    #         newSettings = self.allSettingsDict[key]["newSettings"]
+    #         oldSettings = self.allSettingsDict[key]["oldSettings"]
+    #         if newSettings != oldSettings:
+    #             self.settingsButtonBox.button(QtWidgets.QDialogButtonBox.Apply).setEnabled(True)
+    #             return True
+    #     # self.settingsButtonBox.button(QtWidgets.QDialogButtonBox.Apply).setEnabled(False)
+    #     self.settingsApply_btn.setEnabled(False)
+    #     return False
 
-    def _applySettingChanges(self):
-        manager = self._getManager()
-        for key in self.allSettingsDict.keys():
-            newSettings = self.allSettingsDict[key]["newSettings"]
-            oldSettings = self.allSettingsDict[key]["oldSettings"]
-            dataPath = self.allSettingsDict[key]["databaseFilePath"]
-            print "new", newSettings
-            print "old", oldSettings
-            print "filePath", dataPath
-            if newSettings != oldSettings:
-                manager._dumpJson(newSettings, dataPath)
-                self.allSettingsDict[key]["oldSettings"] = type(newSettings)(newSettings)
-                print("%s updated" %dataPath)
-        # self.settingsButtonBox.button(QtWidgets.QDialogButtonBox.Apply).setEnabled(False)
-        self.settingsApply_btn.setEnabled(False)
+
+    # def _applySettingChanges(self):
+    #     manager = self._getManager()
+    #     for key in self.allSettingsDict.keys():
+    #         newSettings = self.allSettingsDict[key]["newSettings"]
+    #         oldSettings = self.allSettingsDict[key]["oldSettings"]
+    #         dataPath = self.allSettingsDict[key]["databaseFilePath"]
+    #         print "new", newSettings
+    #         print "old", oldSettings
+    #         print "filePath", dataPath
+    #         if newSettings != oldSettings:
+    #             manager._dumpJson(newSettings, dataPath)
+    #             self.allSettingsDict[key]["oldSettings"] = type(newSettings)(newSettings)
+    #             print("%s updated" %dataPath)
+    #     # self.settingsButtonBox.button(QtWidgets.QDialogButtonBox.Apply).setEnabled(False)
+    #     self.settingsApply_btn.setEnabled(False)
 
     def _userSettingsContent(self):
         manager = self._getManager()
@@ -2194,6 +2208,7 @@ class MainUI(QtWidgets.QMainWindow):
         userSettings_Layout.setSpacing(6)
 
         def updateDictionary():
+            logger.warning("UPDATE DICTIONARY")
 
             self.allSettingsDict["userSettings"]["newSettings"][
                 "globalFavorites"] = globalFavorites_radiobutton.isChecked()
@@ -2205,7 +2220,8 @@ class MainUI(QtWidgets.QMainWindow):
                 commonDir_lineEdit.setText(self.allSettingsDict["sharedSettingsDir"]["oldSettings"])
                 return
 
-            self._isSettingsChanged()
+            self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
+            # self._isSettingsChanged()
 
         userSettings_formLayout = QtWidgets.QFormLayout()
         userSettings_formLayout.setSpacing(6)
@@ -2269,15 +2285,17 @@ class MainUI(QtWidgets.QMainWindow):
         userSettings_formLayout.setLayout(3, QtWidgets.QFormLayout.FieldRole, colorCoding_formlayout)
 
         def colorSet(button, niceName):
+
             color = QtWidgets.QColorDialog.getColor()
             button.setStyleSheet("background-color: %s" % color.name())
-            self.allSettingsDict["userSettings"]["newSettings"]["colorCoding"][niceName] = "rgb %s" % str(
-                color.getRgb())
+            self.allSettingsDict["userSettings"]["newSettings"]["colorCoding"][niceName] = "rgb%s" % str(color.getRgb())
+            self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
 
         def resetColors():
             try:
-                self.allSettingsDict["userSettings"]["newSettings"]["colorCoding"] = manager._sceneManagerDefaults[
-                    "defaultColorCoding"]
+                userSettings = self.allSettingsDict.get("userSettings")
+                userSettings["colorCoding"] = manager._sceneManagerDefaults["defaultColorCoding"]
+                self.allSettingsDict.set("userSettings", userSettings)
             except KeyError:
                 self.infoPop(textTitle="Cannot get default database",
                              textHeader="Default Color Coding Database cannot be found")
@@ -2290,7 +2308,9 @@ class MainUI(QtWidgets.QMainWindow):
                     pushbutton.setStyleSheet("background-color:%s" % color)
                 except AttributeError:
                     pass
-            self._isSettingsChanged()
+            self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
+
+            # self._isSettingsChanged()
 
         def browseCommonDatabase():
             dlg = QtWidgets.QFileDialog()
@@ -2303,30 +2323,48 @@ class MainUI(QtWidgets.QMainWindow):
                     commonDir_lineEdit.setText(selectedroot)
                 else:
                     return
-            self._isSettingsChanged()
+            self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
+
+            # self._isSettingsChanged()
             return
 
-        niceNameList = self.allSettingsDict["userSettings"]["newSettings"]["colorCoding"].keys()
-        for x in range(len(niceNameList)):
+        colorCoding = self.allSettingsDict.get("userSettings")["colorCoding"]
+        for item in colorCoding.items():
             cclabel = QtWidgets.QLabel(self.userSettings_vis)
-            if niceNameList[x] == "":
+            if item[0] == "":
                 cclabel.setText("      Standalone:  ")
             else:
-                cclabel.setText("      %s:  " % niceNameList[x])
-
-            colorCoding_formlayout.setWidget(x, QtWidgets.QFormLayout.LabelRole, cclabel)
-
+                cclabel.setText("      %s:  " % item[0])
             ccpushbutton = QtWidgets.QPushButton(self.userSettings_vis)
-            ccpushbutton.setObjectName("cc_%s" % niceNameList[x])
-            ccpushbutton.setStyleSheet("background-color:%s" % manager.getColorCoding(niceNameList[x]))
+            ccpushbutton.setObjectName("cc_%s" % item[0])
+            ccpushbutton.setStyleSheet("background-color:%s" % item[1])
             ccpushbutton.setMinimumSize(100, 20)
-            colorCoding_formlayout.setWidget(x, QtWidgets.QFormLayout.FieldRole, ccpushbutton)
-            ccpushbutton.clicked.connect(lambda item=ccpushbutton: colorSet(item, niceNameList[x]))
+
+            colorCoding_formlayout.addRow(cclabel, ccpushbutton)
+            ccpushbutton.clicked.connect(lambda button=ccpushbutton: colorSet(button, item[0]))
+
+        # niceNameList = self.allSettingsDict["userSettings"]["newSettings"]["colorCoding"].keys()
+        # for x in range(len(niceNameList)):
+        #     cclabel = QtWidgets.QLabel(self.userSettings_vis)
+        #     if niceNameList[x] == "":
+        #         cclabel.setText("      Standalone:  ")
+        #     else:
+        #         cclabel.setText("      %s:  " % niceNameList[x])
+        #     print "AA", niceNameList
+        #     colorCoding_formlayout.setWidget(x, QtWidgets.QFormLayout.LabelRole, cclabel)
+        #
+        #     ccpushbutton = QtWidgets.QPushButton(self.userSettings_vis)
+        #     ccpushbutton.setObjectName("cc_%s" % niceNameList[x])
+        #     ccpushbutton.setStyleSheet("background-color:%s" % manager.getColorCoding(niceNameList[x]))
+        #     ccpushbutton.setMinimumSize(100, 20)
+        #     colorCoding_formlayout.setWidget(x, QtWidgets.QFormLayout.FieldRole, ccpushbutton)
+        #     ccpushbutton.clicked.connect(lambda item=ccpushbutton: colorSet(item, niceNameList[x]))
 
         ccReset_button = QtWidgets.QPushButton(self.userSettings_vis)
         ccReset_button.setText("Reset Colors")
         ccReset_button.setFixedSize(100, 20)
-        colorCoding_formlayout.setWidget((len(niceNameList)) + 1, QtWidgets.QFormLayout.FieldRole, ccReset_button)
+        colorCoding_formlayout.setWidget((len(colorCoding.items())) + 1, QtWidgets.QFormLayout.FieldRole, ccReset_button)
+        # colorCoding_formlayout.setWidget((len(niceNameList)) + 1, QtWidgets.QFormLayout.FieldRole, ccReset_button)
 
         # end of form
 
@@ -2380,7 +2418,7 @@ class MainUI(QtWidgets.QMainWindow):
 
     def _previewSettingsContent_maya(self):
         manager = self._getManager()
-        settings = self.allSettingsDict["preview_maya"]["oldSettings"]
+        settings = self.allSettingsDict.get("preview_maya")
         def updateMayaCodecs():
             codecList = manager.getFormatsAndCodecs()[self.format_Maya_comboBox.currentText()]
             self.codec_Maya_comboBox.clear()
@@ -2397,32 +2435,27 @@ class MainUI(QtWidgets.QMainWindow):
             self.quality_Maya_spinBox.setDisabled(state)
 
         def updateDictionary():
-            self.allSettingsDict["preview_maya"]["newSettings"]["ConvertMP4"] = self.convertMP4_Maya_chb.isChecked()
-            self.allSettingsDict["preview_maya"]["newSettings"]["CrfValue"] = self.crf_Maya_spinBox.value()
-            self.allSettingsDict["preview_maya"]["newSettings"]["Format"] = self.format_Maya_comboBox.currentText()
-            self.allSettingsDict["preview_maya"]["newSettings"]["Codec"] = self.codec_Maya_comboBox.currentText()
-            self.allSettingsDict["preview_maya"]["newSettings"]["Quality"] = self.quality_Maya_spinBox.value()
-            self.allSettingsDict["preview_maya"]["newSettings"]["Resolution"] = [self.resX_Maya_spinBox.value(), self.resY_Maya_spinBox.value()]
-            self.allSettingsDict["preview_maya"]["newSettings"]["PolygonOnly"] = self.polygonOnly_Maya_chb.isChecked()
-            self.allSettingsDict["preview_maya"]["newSettings"]["ShowGrid"] = self.showGrid_Maya_chb.isChecked()
-            self.allSettingsDict["preview_maya"]["newSettings"]["ClearSelection"] = self.clearSelection_Maya_chb.isChecked()
-            self.allSettingsDict["preview_maya"]["newSettings"]["DisplayTextures"] = self.displayTextures_Maya_chb.isChecked()
-            self.allSettingsDict["preview_maya"]["newSettings"]["WireOnShaded"] = self.wireOnShaded_Maya_chb.isChecked()
-            self.allSettingsDict["preview_maya"]["newSettings"]["UseDefaultMaterial"] = self.useDefaultMaterial_Maya_chb.isChecked()
-            self.allSettingsDict["preview_maya"]["newSettings"]["ShowFrameNumber"] = self.frameNumber_Maya_chb.isChecked()
-            self.allSettingsDict["preview_maya"]["newSettings"]["ShowCategory"] = self.category_Maya_chb.isChecked()
-            self.allSettingsDict["preview_maya"]["newSettings"]["ShowSceneName"] = self.sceneName_Maya_chb.isChecked()
-            self.allSettingsDict["preview_maya"]["newSettings"]["ShowFPS"] = self.fps_Maya_chb.isChecked()
-            self.allSettingsDict["preview_maya"]["newSettings"]["ShowFrameRange"] = self.frameRange_Maya_chb.isChecked()
 
-            # changed = False
-            # for key in self.allSettingsDict["preview_maya"]["oldSettings"].keys():
-            #     if self.allSettingsDict["preview_maya"]["newSettings"][key] != self.allSettingsDict["preview_maya"]["oldSettings"][key]:
-            #         changed = True
-            #         break
-            # self.settingsButtonBox.button(QtWidgets.QDialogButtonBox.Apply).setEnabled(self._isSettingsChanged())
+            settings["ConvertMP4"] = self.convertMP4_Maya_chb.isChecked()
+            settings["CrfValue"] = self.crf_Maya_spinBox.value()
+            settings["Format"] = self.format_Maya_comboBox.currentText()
+            settings["Codec"] = self.codec_Maya_comboBox.currentText()
+            settings["Quality"] = self.quality_Maya_spinBox.value()
+            settings["Resolution"] = [self.resX_Maya_spinBox.value(), self.resY_Maya_spinBox.value()]
+            settings["PolygonOnly"] = self.polygonOnly_Maya_chb.isChecked()
+            settings["ShowGrid"] = self.showGrid_Maya_chb.isChecked()
+            settings["ClearSelection"] = self.clearSelection_Maya_chb.isChecked()
+            settings["DisplayTextures"] = self.displayTextures_Maya_chb.isChecked()
+            settings["WireOnShaded"] = self.wireOnShaded_Maya_chb.isChecked()
+            settings["UseDefaultMaterial"] = self.useDefaultMaterial_Maya_chb.isChecked()
+            settings["ShowFrameNumber"] = self.frameNumber_Maya_chb.isChecked()
+            settings["ShowCategory"] = self.category_Maya_chb.isChecked()
+            settings["ShowSceneName"] = self.sceneName_Maya_chb.isChecked()
+            settings["ShowFPS"] = self.fps_Maya_chb.isChecked()
+            settings["ShowFrameRange"] = self.frameRange_Maya_chb.isChecked()
 
-            self._isSettingsChanged()
+            self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
+
 
         ## HEADER
         h1_horizontalLayout = QtWidgets.QHBoxLayout()
@@ -2694,6 +2727,10 @@ class MainUI(QtWidgets.QMainWindow):
         # self.contentsMaster_layout.addWidget(self.previewSettings_vis)
 
     def _categoriesContent(self):
+        manager = self._getManager()
+        categorySwList = [key for key in self.allSettingsDict.listNames() if key.startswith("categories")]
+        print "categoryList", categorySwList
+
         categories_Layout = QtWidgets.QVBoxLayout(self.categories_vis)
         categories_Layout.setSpacing(0)
 
@@ -2704,11 +2741,124 @@ class MainUI(QtWidgets.QMainWindow):
         h1_horizontalLayout.addWidget(h1_label)
         categories_Layout.addLayout(h1_horizontalLayout)
 
+        h1_s1_layout = QtWidgets.QVBoxLayout(self.categories_vis)
+        h1_s1_layout.setContentsMargins(-1, 15, -1, -1)
+
+        swTabs = QtWidgets.QTabWidget(self.categories_vis)
+        swTabs.setMaximumSize(QtCore.QSize(16777215, 167777))
+        swTabs.setTabPosition(QtWidgets.QTabWidget.North)
+        swTabs.setElideMode(QtCore.Qt.ElideNone)
+        swTabs.setUsesScrollButtons(False)
+
+        def onRemove(settingKey, listWidget):
+            row = listWidget.currentRow()
+            if row == -1:
+                return
+            trashCategory = listWidget.currentItem().text()
+            categories = self.allSettingsDict.get(settingKey)
+            ## check if this is the last category
+            if len(categories) == 1:
+                self.infoPop(textTitle="Cannot Remove Category",
+                             textHeader="Last Category cannot be removed")
+
+            ## Check if this category is REALLY trash
+            niceName=settingKey.replace("categories_", "")
+            dbPath = os.path.normpath(os.path.join(manager._pathsDict["masterDir"], self.softwareDB[niceName]["databaseDir"]))
+
+            if manager.isCategoryTrash(trashCategory, dbPath=dbPath):
+                categories.remove(trashCategory)
+                listWidget.clear()
+                listWidget.addItems(categories)
+            else:
+                self.infoPop(textTitle="Cannot Remove Category",
+                             textHeader="%s Category is not empty. Aborting..." % trashCategory)
+
+
+
+        def onAdd(settingKey, listWidget):
+            addCategory_Dialog = QtWidgets.QDialog(parent=self)
+            addCategory_Dialog.resize(260, 114)
+            addCategory_Dialog.setMaximumSize(QtCore.QSize(16777215, 150))
+            addCategory_Dialog.setFocusPolicy(QtCore.Qt.ClickFocus)
+            addCategory_Dialog.setWindowTitle(("Add New Category"))
+
+            verticalLayout = QtWidgets.QVBoxLayout(addCategory_Dialog)
+
+            addNewCategory_label = QtWidgets.QLabel(addCategory_Dialog)
+            addNewCategory_label.setText("Add New Category:")
+            verticalLayout.addWidget(addNewCategory_label)
+
+            categoryName_lineEdit = QtWidgets.QLineEdit(addCategory_Dialog)
+            categoryName_lineEdit.setPlaceholderText("e.g \'Shading\'")
+            verticalLayout.addWidget(categoryName_lineEdit)
+
+            buttonBox = QtWidgets.QDialogButtonBox(addCategory_Dialog)
+            buttonBox.setOrientation(QtCore.Qt.Horizontal)
+            buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
+            verticalLayout.addWidget(buttonBox)
+            addCategory_Dialog.show()
+
+            buttonBox.setMaximumSize(QtCore.QSize(16777215, 30))
+            buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setMinimumSize(QtCore.QSize(100, 30))
+            buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
+
+            def addCategory():
+                newCategory = categoryName_lineEdit.text()
+                categories = self.allSettingsDict.get(settingKey)
+                for x in categories:
+                    if newCategory.lower() == x.lower():
+                        self.infoPop(textTitle="Cannot Add Category",
+                                     textHeader="%s category already exist" % newCategory)
+                        return False
+
+                categories.append(newCategory)
+                listWidget.clear()
+                listWidget.addItems(categories)
+                addCategory_Dialog.accept()
+
+                # pprint.pprint(self.allSettingsDict)
+
+            buttonBox.accepted.connect(addCategory)
+            buttonBox.rejected.connect(addCategory_Dialog.reject)
+
+        for cat in sorted(categorySwList):
+            tabWidget = QtWidgets.QWidget(self.categories_vis)
+            horizontalLayout = QtWidgets.QHBoxLayout(tabWidget)
+            categories_listWidget = QtWidgets.QListWidget(self.categories_vis)
+            horizontalLayout.addWidget(categories_listWidget)
+
+            verticalLayout = QtWidgets.QVBoxLayout(self.categories_vis)
+            verticalLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
+
+            add_pushButton = QtWidgets.QPushButton(self.categories_vis)
+            add_pushButton.setText(("Add..."))
+            verticalLayout.addWidget(add_pushButton)
+
+            remove_pushButton = QtWidgets.QPushButton(self.categories_vis)
+            remove_pushButton.setText(("Remove"))
+            verticalLayout.addWidget(remove_pushButton)
+
+            spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+            verticalLayout.addItem(spacerItem)
+
+            horizontalLayout.addLayout(verticalLayout)
+
+            swTabs.addTab(tabWidget, cat.replace("categories_", ""))
+
+            categories_listWidget.addItems(self.allSettingsDict[cat]["newSettings"])
+            add_pushButton.clicked.connect(lambda settingKey=cat, listWidget=categories_listWidget: onAdd(settingKey, listWidget))
+            # add_pushButton.clicked.connect(lambda: onAdd(cat, categories_listWidget))
+            remove_pushButton.clicked.connect(lambda settingKey=cat, listWidget=categories_listWidget: onRemove(settingKey, listWidget))
+            # remove_pushButton.clicked.connect(lambda: onRemove(cat, categories_listWidget))
+
+
+        h1_s1_layout.addWidget(swTabs)
+        categories_Layout.addLayout(h1_s1_layout)
+
+
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         categories_Layout.addItem(spacerItem)
-
         self.contentsMaster_layout.addWidget(self.categories_vis)
-
 
 
 
@@ -2716,23 +2866,25 @@ class MainUI(QtWidgets.QMainWindow):
 
     def _previewSettingsContent_max(self):
         manager = self._getManager()
-        settings = self.allSettingsDict["preview_max"]["oldSettings"]
+        # settings = self.allSettingsDict["preview_max"]["oldSettings"]
+        settings = self.allSettingsDict.get("preview_max")
 
         previewSettings_MAX_Layout = QtWidgets.QVBoxLayout(self.previewSettings_vis)
         previewSettings_MAX_Layout.setSpacing(0)
 
 
         def updateDictionary():
-            self.allSettingsDict["preview_max"]["newSettings"]["ConvertMP4"] = self.convertMP4_Max_chb.isChecked()
-            self.allSettingsDict["preview_max"]["newSettings"]["CrfValue"] = self.crf_Max_spinBox.value()
-            self.allSettingsDict["preview_max"]["newSettings"]["Resolution"] = [self.resX_Max_spinBox.value(), self.resY_Max_spinBox.value()]
-            self.allSettingsDict["preview_max"]["newSettings"]["PolygonOnly"] = self.polygonOnly_Max_chb.isChecked()
-            self.allSettingsDict["preview_max"]["newSettings"]["ShowGrid"] = self.showGrid_Max_chb.isChecked()
-            self.allSettingsDict["preview_max"]["newSettings"]["ClearSelection"] = self.clearSelection_Max_chb.isChecked()
-            self.allSettingsDict["preview_max"]["newSettings"]["WireOnShaded"] = self.wireOnShaded_Max_chb.isChecked()
-            self.allSettingsDict["preview_max"]["newSettings"]["ShowFrameNumber"] = self.frameNumber_Max_chb.isChecked()
+            settings["ConvertMP4"] = self.convertMP4_Max_chb.isChecked()
+            settings["CrfValue"] = self.crf_Max_spinBox.value()
+            settings["Resolution"] = [self.resX_Max_spinBox.value(), self.resY_Max_spinBox.value()]
+            settings["PolygonOnly"] = self.polygonOnly_Max_chb.isChecked()
+            settings["ShowGrid"] = self.showGrid_Max_chb.isChecked()
+            settings["ClearSelection"] = self.clearSelection_Max_chb.isChecked()
+            settings["WireOnShaded"] = self.wireOnShaded_Max_chb.isChecked()
+            settings["ShowFrameNumber"] = self.frameNumber_Max_chb.isChecked()
 
-            self._isSettingsChanged()
+            self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
+            # self._isSettingsChanged()
 
         ## HEADER
         h1_horizontalLayout = QtWidgets.QHBoxLayout(self.previewSettings_vis)
@@ -5236,3 +5388,53 @@ class Browse(object):
     def isForwardLocked(self):
         return self.index == (len(self.history)-1)
 
+class Settings(dict):
+    def __init__(self):
+        super(Settings, self).__init__()
+
+    def isChanged(self):
+        """Checks for differences between old and new settings"""
+        for key in self.listNames():
+            if self[key]["newSettings"] != self[key]["oldSettings"]:
+                return True
+        return False
+
+    def apply(self):
+        """Equals original settings to the new settings"""
+        applyList=[]
+        for key in self.listNames():
+            newSettings = self[key]["newSettings"]
+            oldSettings = self[key]["oldSettings"]
+            if newSettings != oldSettings:
+                self[key]["oldSettings"] = deepcopy(newSettings)
+                applyInfo = {"data": newSettings,
+                               "filepath": self[key]["databaseFilePath"]}
+                applyList.append(applyInfo)
+        return applyList
+
+    def add(self, name, data, filePath):
+        """Adds a new setting database"""
+        # self[name] = {"oldSettings": type(data)(data),
+        #               "newSettings": type(data)(data),
+        #               "databaseFilePath": filePath}
+        self[name] = {"oldSettings": deepcopy(data),
+                      "newSettings": deepcopy(data),
+                      "databaseFilePath": filePath}
+        return True
+
+
+    def listNames(self):
+        """Returns all setting names"""
+        return self.keys()
+
+    def getOriginal(self, settingName):
+        return self[settingName]["oldSettings"]
+
+    def setOriginal(self, settingName, data):
+        self[settingName]["oldSettings"] = deepcopy(data)
+
+    def get(self, settingName):
+        return self[settingName]["newSettings"]
+
+    def set(self, settingName, data):
+        self[settingName]["newSettings"] = deepcopy(data)

@@ -369,12 +369,12 @@ class MayaManager(RootManager, MayaCoreFunctions):
     #
     #
     #     currentProject = self._getProject()
-    #     projectsDict = self._loadProjects()
+    #     projectsDict = self.loadProjects()
     #
     #     if not projectsDict: # if there is no project database file at all
     #         projectsDict = {"MayaProject": currentProject,
     #                         "LastProject": currentProject}
-    #         self._saveProjects(projectsDict)
+    #         self.saveProjects(projectsDict)
     #         return currentProject
     #
     #     # get the project defined in the database file
@@ -389,7 +389,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
     #
     #
     #     projectsDict["MayaProject"] = currentProject
-    #     self._saveProjects(projectsDict)
+    #     self.saveProjects(projectsDict)
     #     return currentProject
 
 
@@ -401,11 +401,11 @@ class MayaManager(RootManager, MayaCoreFunctions):
     #     # In addition it updates the projects file for (planned) interactivities with concurrent softwares
     #     # p_path = cmds.workspace(q=1, rd=1)
     #     norm_p_path = self._getProject()
-    #     projectsDict = self._loadProjects()
+    #     projectsDict = self.loadProjects()
     #
     #     if not projectsDict: # if there is no project database file at all
     #         projectsDict = {"MayaProject": norm_p_path}
-    #         self._saveProjects(projectsDict)
+    #         self.saveProjects(projectsDict)
     #         return norm_p_path
     #
     #     # get the project defined in the database file
@@ -420,11 +420,11 @@ class MayaManager(RootManager, MayaCoreFunctions):
     #
     #     if dbProject:
     #         projectsDict["MayaProject"] = norm_p_path
-    #         self._saveProjects(projectsDict)
+    #         self.saveProjects(projectsDict)
     #         return norm_p_path
     #     else:
     #         projectsDict = {"MayaProject": norm_p_path}
-    #         self._saveProjects(projectsDict)
+    #         self.saveProjects(projectsDict)
     #         return norm_p_path
 
     def getSceneFile(self):

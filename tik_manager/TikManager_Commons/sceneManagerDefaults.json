@@ -1,22 +1,4 @@
 {
-  "defaultCategories": [
-    "Model",
-    "Shading",
-    "Rig",
-    "Layout",
-    "Animation",
-    "Render",
-    "Other"
-  ],
-  "defaultNukeCategories": [
-    "Comp"
-  ],
-  "defaultPSCategories": [
-    "Concept",
-    "Storyboard",
-    "Texture",
-    "Other"
-  ],
   "defaultPreviewSettings": {
     "Resolution": [
     1280, 720
@@ -38,8 +20,46 @@
     "UseDefaultMaterial": false,
     "ConvertMP4": true
   },
+  "defaultCategories": {
+        "Maya": [
+            "Model",
+            "Shading",
+            "Rig",
+            "Layout",
+            "Animation",
+            "Render",
+            "Other"
+          ],
+        "3dsMax": [
+            "Model",
+            "Shading",
+            "Rig",
+            "Layout",
+            "Animation",
+            "Render",
+            "Other"
+          ],
+        "Houdini": [
+            "Model",
+            "Shading",
+            "Rig",
+            "Layout",
+            "Animation",
+            "Render",
+            "Other"
+          ],
+        "Nuke": [
+            "Comp"
+          ],
+        "Photoshop": [
+            "Concept",
+            "Storyboard",
+            "Texture",
+            "Other"
+          ]
+  },
   "defaultColorCoding": {
-        "": "rgb(0, 0, 0, 0)", 
+        "": "rgb(0, 0, 0, 255)", 
         "Photoshop": "rgb(60, 60, 250, 255)", 
         "Nuke": "rgb(246, 100, 100, 255)", 
         "Maya": "rgb(81, 230, 247, 255)", 

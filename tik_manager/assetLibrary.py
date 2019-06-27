@@ -254,11 +254,11 @@ class AssetLibrary(AssetEditor, RootManager):
         self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "alImportSettings.json"))
 
     def init_database(self):
-        self._sceneManagerDefaults = self._loadManagerDefaults()
-        self.exportSettings = self._loadExportSettings()
-        self.importSettings = self._loadImportSettings()
+        self._sceneManagerDefaults = self.loadManagerDefaults()
+        self.exportSettings = self.loadExportSettings()
+        self.importSettings = self.loadImportSettings()
 
-    # def _loadExportSettings(self):
+    # def loadExportSettings(self):
     #     """Load Export Setting options from file in Common Folder"""
     #
     #     if os.path.isfile(self._pathsDict["exportSettingsFile"]):

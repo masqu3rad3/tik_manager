@@ -75,7 +75,8 @@ class SwViewer(RootManager):
     def __init__(self, swDict, projectDir, commonFolder):
         super(SwViewer, self).__init__()
         self.swDict = swDict
-        self.swNiceName = swDict["niceName"]
+        # self.swNiceName = swDict["niceName"]
+        self.swName = swDict["niceName"]
         self.projectDir = projectDir
 
         self.init_paths(swDict["niceName"])
@@ -501,11 +502,11 @@ class StandaloneManager(RootManager):
 
     def init_database(self):
         """OVERRIDEN FUNCTION"""
-        self._sceneManagerDefaults = self._loadManagerDefaults()
-        self._userSettings = self._loadUserSettings()
+        self._sceneManagerDefaults = self.loadManagerDefaults()
+        self._userSettings = self.loadUserSettings()
 
         self._usersDict = self._loadUsers()
-        self._currentsDict = self._loadUserPrefs()
+        self._currentsDict = self.loadUserPrefs()
         # get hardcoded software list
         # hardCodedSwPath = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "softwareDatabase.json"))
 
@@ -515,12 +516,12 @@ class StandaloneManager(RootManager):
     def getProjectDir(self):
         """OVERRIDEN FUNCTION"""
         # get the projects file for standalone manager
-        projectsDict = self._loadProjects()
+        projectsDict = self.loadProjects()
 
         if not projectsDict:
             currentProject = os.path.normpath(os.path.expanduser("~"))
             projectsDict = {"Standalone": currentProject}
-            self._saveProjects(projectsDict)
+            self.saveProjects(projectsDict)
             return currentProject
 
         # get the project defined in the database file
@@ -533,17 +534,17 @@ class StandaloneManager(RootManager):
         except KeyError:
             currentProject = os.path.normpath(os.path.expanduser("~"))
             projectsDict = {"Standalone": currentProject}
-            self._saveProjects(projectsDict)
+            self.saveProjects(projectsDict)
             return currentProject
 
     def setProject(self, path):
         """Sets the project"""
-        projectsDict = self._loadProjects()
+        projectsDict = self.loadProjects()
         if not projectsDict:
             projectsDict = {"Standalone": path}
         else:
             projectsDict["Standalone"] = path
-        self._saveProjects(projectsDict)
+        self.saveProjects(projectsDict)
         self.projectDir = path
         self.init_paths("Standalone")
         self.init_database()
@@ -741,7 +742,7 @@ class StandaloneManager(RootManager):
     #         msg = "Cannot save common folder file"
     #         return -1, msg
 
-    def _loadUserPrefs(self):
+    def loadUserPrefs(self):
         """OVERRIDEN FUNCTION Load Last CategoryIndex, SubProject Index,
         User name and Access mode from file as dictionary"""
 
@@ -870,7 +871,7 @@ class MainUI(baseUI):
 
         self.software_comboBox.clear()
         for x in self.manager.swList:
-            self.software_comboBox.addItem(x.swNiceName)
+            self.software_comboBox.addItem(x.swName)
 
         # self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.swColorDict[str(self.software_comboBox.currentText())])
         self.software_comboBox.setStyleSheet("background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:1 #404040, stop:0.11 #404040, stop:0.1 %s)" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
@@ -892,7 +893,7 @@ class MainUI(baseUI):
         # self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
         self._vEnableDisable()
         manager = self._getManager()
-        if manager.swNiceName == "Houdini":
+        if manager.swName == "Houdini":
             self.makeReference_pushButton.setVisible(False)
         else:
             self.makeReference_pushButton.setVisible(True)

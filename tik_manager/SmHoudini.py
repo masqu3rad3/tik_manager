@@ -375,14 +375,14 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
     #     """Overriden function"""
     #     logger.debug("Func: getProjectDir")
     #
-    #     projectsDict = self._loadProjects()
+    #     projectsDict = self.loadProjects()
     #
     #     if not projectsDict:
     #         # p_path = (hou.hscript('echo $JOB')[0])[:-1] # [:-1] is for the extra \n
     #         # norm_p_path = os.path.normpath(p_path)
     #         norm_p_path = self._getProject()
     #         projectsDict = {"HoudiniProject": norm_p_path}
-    #         self._saveProjects(projectsDict)
+    #         self.saveProjects(projectsDict)
     #         return norm_p_path
     #
     #     # get the project defined in the database file
@@ -394,7 +394,7 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
     #         p_path = (hou.hscript('echo $JOB')[0])[:-1] # [:-1] is for the extra \n
     #         norm_p_path = os.path.normpath(p_path)
     #         projectsDict = {"HoudiniProject": norm_p_path}
-    #         self._saveProjects(projectsDict)
+    #         self.saveProjects(projectsDict)
     #         return norm_p_path
 
     def getSceneFile(self):
@@ -414,12 +414,12 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
 
         logger.debug("Func: setProject")
 
-        projectsDict = self._loadProjects()
+        projectsDict = self.loadProjects()
         if not projectsDict:
             projectsDict = {"HoudiniProject": path}
         else:
             projectsDict["HoudiniProject"] = path
-        self._saveProjects(projectsDict)
+        self.saveProjects(projectsDict)
         self.projectDir = path
         # self._setEnvVariable('JOB', path)
         self._setProject(path)

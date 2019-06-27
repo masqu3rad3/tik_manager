@@ -192,12 +192,12 @@ class PsManager(RootManager, PsCoreFunctions):
     # def getProjectDir(self):
     #     """OVERRIDEN FUNCTION"""
     #     # get the projects file for standalone manager
-    #     projectsDict = self._loadProjects()
+    #     projectsDict = self.loadProjects()
     #     if not projectsDict:
     #         norm_p_path = os.path.normpath(os.path.expanduser("~"))
     #         projectsDict = {"PhotoshopProject": norm_p_path}
     #
-    #         self._saveProjects(projectsDict)
+    #         self.saveProjects(projectsDict)
     #         return norm_p_path
     #
     #     # get the project defined in the database file
@@ -210,21 +210,24 @@ class PsManager(RootManager, PsCoreFunctions):
     #     except KeyError:
     #         norm_p_path = os.path.normpath(os.path.expanduser("~"))
     #         projectsDict = {"PhotoshopProject": norm_p_path}
-    #         self._saveProjects(projectsDict)
+    #         self.saveProjects(projectsDict)
     #         return norm_p_path
 
-    def setProject(self, path):
-        """Sets the project"""
-        projectsDict = self._loadProjects()
-        if not projectsDict:
-            projectsDict = {"PhotoshopProject": path}
-        else:
-            projectsDict["PhotoshopProject"] = path
-        self._saveProjects(projectsDict)
-        self.projectDir = path
-        self.init_paths("Photoshop")
-        self.init_database()
-        # self.initSoftwares()
+    # def setProject(self, path):
+    #     """Sets the project"""
+    #     print "ANAN", path
+    #     projectsDict = self.loadProjects()
+    #     if not projectsDict:
+    #         projectsDict = {"PhotoshopProject": path}
+    #     else:
+    #         projectsDict["PhotoshopProject"] = path
+    #     self.saveProjects(projectsDict)
+    #     self.projectDir = path
+    #     self.init_paths("Photoshop")
+    #     self.init_database()
+    #     # self.initSoftwares()
+
+
 
     def getSceneFile(self):
         # """This method must be overridden to return the full scene path ('' for unsaved) of current scene"""
@@ -739,19 +742,22 @@ class PsManager(RootManager, PsCoreFunctions):
         logger.debug("Func: isSceneModified")
         return False
 
-    def _loadCategories(self):
-        """OVERRIDEN FUNCTION for specific category default of Photoshop"""
-        logger.debug("Func: _loadCategories")
-
-        if os.path.isfile(self._pathsDict["categoriesFile"]):
-            categoriesData = self._loadJson(self._pathsDict["categoriesFile"])
-            if categoriesData == -2:
-                return -2
-        else:
-            categoriesData = self._sceneManagerDefaults["defaultPSCategories"]
-            # categoriesData = ["Concept", "Storyboard", "Texture", "Other"]
-            self._dumpJson(categoriesData, self._pathsDict["categoriesFile"])
-        return categoriesData
+    # def loadCategories(self, filePath=None):
+    #     """OVERRIDEN FUNCTION for specific category default of Photoshop"""
+    #     logger.debug("Func: loadCategories")
+    #
+    #     if not filePath:
+    #         filePath = self._pathsDict["categoriesFile"]
+    #
+    #     if os.path.isfile(filePath):
+    #         categoriesData = self._loadJson(filePath)
+    #         if categoriesData == -2:
+    #             return -2
+    #     else:
+    #         categoriesData = self._sceneManagerDefaults["defaultPSCategories"]
+    #         # categoriesData = ["Concept", "Storyboard", "Texture", "Other"]
+    #         self._dumpJson(categoriesData, filePath)
+    #     return categoriesData
 
 
 

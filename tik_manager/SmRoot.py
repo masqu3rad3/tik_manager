@@ -208,13 +208,13 @@ class RootManager(object):
     def getProjectDir(self):
 
         ## Load dictionary from database
-        projectsDict = self._loadProjects()
+        projectsDict = self.loadProjects()
         currentProject = self._getProject()
 
         ## If there is no database, create one with current project and return
         if not projectsDict:
             projectsDict = {self.swName: currentProject}
-            self._saveProjects(projectsDict)
+            self.saveProjects(projectsDict)
             return currentProject
 
         # get the project defined in the database file
@@ -223,7 +223,7 @@ class RootManager(object):
         except KeyError:
             # if the software is not in the database create the key, dump db and return
             projectsDict[self.swName] = currentProject
-            self._saveProjects(projectsDict)
+            self.saveProjects(projectsDict)
             return currentProject
 
         # if the current project matches with the database, return it
@@ -233,35 +233,35 @@ class RootManager(object):
         # make an exception for maya. Maya returns the currently set project always
         if self.swName == "Maya":
             projectsDict[self.swName] = currentProject
-            self._saveProjects(projectsDict)
+            self.saveProjects(projectsDict)
             return currentProject
         else:
             projectsDict[self.swName] = dbProject
-            self._saveProjects(projectsDict)
+            self.saveProjects(projectsDict)
             return dbProject
 
     def setProject(self, path):
         """Sets the project"""
         logger.debug("Func: setProject")
-        projectsDict = self._loadProjects()
+        projectsDict = self.loadProjects()
         if not projectsDict:
             projectsDict = {self.swName: path}
         else:
             projectsDict[self.swName] = path
-        self._saveProjects(projectsDict)
+        self.saveProjects(projectsDict)
         self.projectDir = path
 
     # def getProjectDir(self, softwareName):
     #
     #     ## Load dictionary from database
-    #     projectsDict = self._loadProjects()
+    #     projectsDict = self.loadProjects()
     #
     #     ## If there is no database, create one with current project and return
     #     if not projectsDict:
     #         currentProject = self._getProject()
     #         projectsDict = {softwareName: currentProject,
     #                         "LastProject": currentProject}
-    #         self._saveProjects(projectsDict)
+    #         self.saveProjects(projectsDict)
     #         return currentProject
     #
     #     # get the project defined in the database file
@@ -276,7 +276,7 @@ class RootManager(object):
     #         currentProject = self._getProject()
     #         projectsDict[softwareName] = currentProject
     #         projectsDict["LastProject"] = currentProject
-    #         self._saveProjects(projectsDict)
+    #         self.saveProjects(projectsDict)
     #         return currentProject
 
     def getSoftwarePaths(self):
@@ -285,11 +285,6 @@ class RootManager(object):
         softwareDatabaseFile = os.path.normpath(os.path.join(self.getSharedSettingsDir(), "softwareDatabase.json"))
         softwareDB = self._loadJson(softwareDatabaseFile)
         return softwareDB[self.swName]
-
-    def getSoftwareDatabase(self):
-        """Returns all softwareDatabase"""
-        softwareDB = self._loadJson(self._pathsDict["softwareDatabase"])
-        return softwareDB
 
     def getSceneFile(self):
         """This method must be overridden to return the full scene path ('' for unsaved) of current scene"""
@@ -308,15 +303,15 @@ class RootManager(object):
 
 
         # defaults dictionary holding "defaultCategories", "defaultPreviewSettings", "defaultUsers"
-        self._sceneManagerDefaults = self._loadManagerDefaults()
-        self._userSettings = self._loadUserSettings()
-        self._nameConventions = self._loadNameConventions()
+        self._sceneManagerDefaults = self.loadManagerDefaults()
+        self._userSettings = self.loadUserSettings()
+        self._nameConventions = self.loadNameConventions()
 
         # self.currentPlatform = platform.system()
-        self._categories = self._loadCategories()
+        self._categories = self.loadCategories()
         self._usersDict = self._loadUsers()
-        self._currentsDict = self._loadUserPrefs()
-        self._subProjectsList = self._loadSubprojects()
+        self._currentsDict = self.loadUserPrefs()
+        self._subProjectsList = self.loadSubprojects()
 
         # unsaved DB
         self._baseScenesInCategory = []
@@ -340,7 +335,7 @@ class RootManager(object):
         logger.debug("Func: _setCurrents")
 
         self._currentsDict[att] = newdata
-        self._saveUserPrefs(self._currentsDict)
+        self.saveUserPrefs(self._currentsDict)
 
     @property
     def projectDir(self):
@@ -503,7 +498,7 @@ class RootManager(object):
             return
 
         self._currentBaseSceneName = sceneName
-        self._currentSceneInfo = self._loadSceneInfo()
+        self._currentSceneInfo = self.loadSceneInfo()
 
 
         # assert (self._currentSceneInfo == -2)
@@ -980,7 +975,7 @@ class RootManager(object):
             return
 
         self._subProjectsList.append(nameOfSubProject)
-        self._saveSubprojects(self._subProjectsList)
+        self.saveSubprojects(self._subProjectsList)
         self.currentSubIndex = len(self._subProjectsList)-1
         return self._subProjectsList
 
@@ -1002,9 +997,11 @@ class RootManager(object):
         #     self._exception(210, msg)
         #     return
 
-    def scanBaseScenes(self, categoryAs=None, subProjectAs=None):
+    def scanBaseScenes(self, categoryAs=None, subProjectAs=None, databaseDirAs=None):
         """Returns the basescene database files in current category"""
         logger.debug("Func: scanBaseScenes")
+        if not databaseDirAs:
+            databaseDirAs = self._pathsDict["databaseDir"]
 
         if self.currentSubIndex >= len(self._subProjectsList):
             self.currentSubIndex = 0
@@ -1026,7 +1023,7 @@ class RootManager(object):
         else:
             subProject = self._subProjectsList[self.currentSubIndex]
 
-        categoryDBpath = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], category))
+        categoryDBpath = os.path.normpath(os.path.join(databaseDirAs, category))
         self._folderCheck(categoryDBpath)
         if not (self.currentSubIndex == 0):
             try:
@@ -1059,7 +1056,7 @@ class RootManager(object):
 
         subFolders = os.path.dirname(os.path.normpath(name))
         baseName = os.path.basename(name)
-        exportSettings = self._loadExportSettings()
+        exportSettings = self.loadExportSettings()
 
 
         if isObj:
@@ -1128,7 +1125,7 @@ class RootManager(object):
         return True
 
     def importTransfers(self, itemAbsPath):
-        importSettings = self._loadImportSettings()
+        importSettings = self.loadImportSettings()
         extension = os.path.splitext(itemAbsPath)[1]
 
         if extension == ".obj":
@@ -1361,7 +1358,7 @@ Elapsed Time:{6}
 
     def addCategory(self, categoryName):
         """Adds a new category to the database"""
-        curCategories = self._loadCategories()
+        curCategories = self.loadCategories()
         if categoryName in curCategories:
             msg = "Duplicate Category names are not allowed"
             # logger.warning(msg)
@@ -1382,7 +1379,7 @@ Elapsed Time:{6}
         if direction == "right" or direction == "up":
             dir = 1
 
-        curCategories = self._loadCategories()
+        curCategories = self.loadCategories()
 
         index = curCategories.index(categoryName)
         newindex= index+dir
@@ -1398,10 +1395,19 @@ Elapsed Time:{6}
         self._categories = curCategories
         return
 
+    def isCategoryTrash(self, categoryName, dbPath=None):
+        if not dbPath:
+            dbPath = self._pathsDict["databaseDir"]
+        for subP in self._subProjectsList:
+            baseScenes = self.scanBaseScenes(categoryAs=categoryName, subProjectAs=subP, databaseDirAs=dbPath)
+            if baseScenes:
+                return False #This category is NOT TRASH
+        return True
+
 
     def removeCategory(self, categoryName):
         """Removes the category from database"""
-        curCategories = self._loadCategories()
+        curCategories = self.loadCategories()
         if len(curCategories) == 1:
             # Last category cannot be removed
             msg = "Last Category cannot be removed"
@@ -1944,12 +1950,16 @@ Elapsed Time:{6}
 
         return template
 
+    def loadSoftwareDatabase(self):
+        """Returns all softwareDatabase"""
+        softwareDB = self._loadJson(self._pathsDict["softwareDatabase"])
+        return softwareDB
 
-    def _loadManagerDefaults(self):
+    def loadManagerDefaults(self):
         """returns the scene manager defaults from the common folder"""
         return self._loadJson(self._pathsDict["sceneManagerDefaults"])
 
-    def _loadNameConventions(self):
+    def loadNameConventions(self):
         if os.path.isfile(self._pathsDict["tikConventions"]):
             nameConventions = self._loadJson(self._pathsDict["tikConventions"])
             return nameConventions
@@ -1967,32 +1977,38 @@ Elapsed Time:{6}
             self._dumpJson(defaultNameConventions, self._pathsDict["tikConventions"])
             return defaultNameConventions
 
-    def _loadCategories(self):
+    def loadCategories(self, filePath=None, swName=None):
         """Load Categories from file"""
-        logger.debug("Func: _loadCategories")
+        logger.debug("Func: loadCategories")
 
-        if os.path.isfile(self._pathsDict["categoriesFile"]):
-            categoriesData = self._loadJson(self._pathsDict["categoriesFile"])
+        if not swName:
+            swName = self.swName
+
+        if not filePath:
+            filePath = self._pathsDict["categoriesFile"]
+
+        if os.path.isfile(filePath):
+            categoriesData = self._loadJson(filePath)
             if categoriesData == -2:
                 return -2
         else:
-            categoriesData = self._sceneManagerDefaults["defaultCategories"]
+            categoriesData = self._sceneManagerDefaults["defaultCategories"][swName]
             # categoriesData = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
-            self._dumpJson(categoriesData, self._pathsDict["categoriesFile"])
+            self._dumpJson(categoriesData, filePath)
         return categoriesData
 
-    def _loadSceneInfo(self):
+    def loadSceneInfo(self):
         """Returns scene info of base scene at cursor position"""
-        logger.debug("Func: _loadSceneInfo")
+        logger.debug("Func: loadSceneInfo")
 
         sceneInfo = self._loadJson(self._baseScenesInCategory[self._currentBaseSceneName])
         if sceneInfo == -2:
             return -2
         return sceneInfo
 
-    def _loadUserPrefs(self):
+    def loadUserPrefs(self):
         """Load Last CategoryIndex, SubProject Index, User name and Access mode from file as dictionary"""
-        logger.debug("Func: _loadUserPrefs")
+        logger.debug("Func: loadUserPrefs")
 
         if os.path.isfile(self._pathsDict["currentsFile"]):
             settingsData = self._loadJson(self._pathsDict["currentsFile"])
@@ -2004,9 +2020,9 @@ Elapsed Time:{6}
             self._dumpJson(settingsData, self._pathsDict["currentsFile"])
         return settingsData
 
-    def _saveUserPrefs(self, settingsData):
+    def saveUserPrefs(self, settingsData):
         """Save Last CategoryIndex, SubProject Index, User name and Access mode to file as dictionary"""
-        logger.debug("Func: _saveUserPrefs")
+        logger.debug("Func: saveUserPrefs")
         try:
             self._dumpJson(settingsData, self._pathsDict["currentsFile"])
             msg = ""
@@ -2015,9 +2031,9 @@ Elapsed Time:{6}
             msg = "Cannot save current settings"
             return -1, msg
 
-    def _loadSubprojects(self):
+    def loadSubprojects(self):
         """Loads Subprojects of current project"""
-        logger.debug("Func: _loadSubprojects")
+        logger.debug("Func: loadSubprojects")
 
         if not os.path.isfile(self._pathsDict["subprojectsFile"]):
             data = ["None"]
@@ -2028,15 +2044,15 @@ Elapsed Time:{6}
                 return -2
         return data
 
-    def _saveSubprojects(self, subprojectsList):
+    def saveSubprojects(self, subprojectsList):
         """Save Subprojects to the file"""
-        logger.debug("Func: _saveSubprojects")
+        logger.debug("Func: saveSubprojects")
 
         self._dumpJson(subprojectsList, self._pathsDict["subprojectsFile"])
 
-    def _loadProjects(self):
+    def loadProjects(self):
         """Loads Projects dictionary for each software"""
-        logger.debug("Func: _loadProjects")
+        logger.debug("Func: loadProjects")
 
         if not os.path.isfile(self._pathsDict["projectsFile"]):
             return
@@ -2046,31 +2062,30 @@ Elapsed Time:{6}
                 return -2
         return projectsData
 
-    def _saveProjects(self, data):
+    def saveProjects(self, data):
         """Saves the current project data to the file"""
-        logger.debug("Func: _saveProjects %s")
-
+        logger.debug("Func: saveProjects %s")
         self._dumpJson(data, self._pathsDict["projectsFile"])
 
-    def _loadUserSettings(self):
+    def loadUserSettings(self):
         if os.path.isfile(self._pathsDict["userSettingsFile"]):
             userSettings = self._loadJson(self._pathsDict["userSettingsFile"])
             if userSettings == -2:
                 return -2
         else:
-            # self._sceneManagerDefaults = self._loadManagerDefaults()
+            # self._sceneManagerDefaults = self.loadManagerDefaults()
             userSettings = self._sceneManagerDefaults["defaultUserSettings"]
-            self._saveUserSettings(userSettings)
+            self.saveUserSettings(userSettings)
         return userSettings
 
-    def _saveUserSettings(self, userSettings):
+    def saveUserSettings(self, userSettings):
         """Dumps the data to the database"""
         logger.debug("Func: savePBSettings")
         self._userSettings = userSettings
         self._dumpJson(userSettings, self._pathsDict["userSettingsFile"])
         return
 
-    def _loadExportSettings(self):
+    def loadExportSettings(self):
         """Load Export Setting options from file in Common Folder"""
 
         if os.path.isfile(self._pathsDict["exportSettingsFile"]):
@@ -2078,18 +2093,18 @@ Elapsed Time:{6}
             if exportSettings == -2:
                 return -2
         else:
-            # self._sceneManagerDefaults = self._loadManagerDefaults()
+            # self._sceneManagerDefaults = self.loadManagerDefaults()
             exportSettings = self._sceneManagerDefaults["transferExportSettings"]
-            self._saveExportSettings(exportSettings)
+            self.saveExportSettings(exportSettings)
         return exportSettings
 
-    def _saveExportSettings(self, exportSettings):
+    def saveExportSettings(self, exportSettings):
         """Dumps the data to the database"""
         logger.debug("Func: savePBSettings")
         self._dumpJson(exportSettings, self._pathsDict["exportSettingsFile"])
         return
 
-    def _loadImportSettings(self):
+    def loadImportSettings(self):
         """Load Export Setting options from file in Common Folder"""
 
         if os.path.isfile(self._pathsDict["importSettingsFile"]):
@@ -2097,12 +2112,12 @@ Elapsed Time:{6}
             if importSettings == -2:
                 return -2
         else:
-            # self._sceneManagerDefaults = self._loadManagerDefaults()
+            # self._sceneManagerDefaults = self.loadManagerDefaults()
             importSettings = self._sceneManagerDefaults["transferImportSettings"]
-            self._saveImportSettings(importSettings)
+            self.saveImportSettings(importSettings)
         return importSettings
 
-    def _saveImportSettings(self, importSettings):
+    def saveImportSettings(self, importSettings):
         """Dumps the data to the database"""
         logger.debug("Func: savePBSettings")
         self._dumpJson(importSettings, self._pathsDict["importSettingsFile"])
@@ -2135,8 +2150,8 @@ Elapsed Time:{6}
         self._dumpJson(pbSettings, self._pathsDict["pbSettingsFile"])
         return
 
-    def _loadConversionLUT(self):
-        logger.debug("Func: _loadConversionLUT")
+    def loadConversionLUT(self):
+        logger.debug("Func: loadConversionLUT")
         if not os.path.isfile(self._pathsDict["conversionLUTFile"]):
             defaultLUT = self._sceneManagerDefaults["defaultConversionLUT"]
             self._dumpJson(defaultLUT, self._pathsDict["conversionLUTFile"])
@@ -2146,8 +2161,9 @@ Elapsed Time:{6}
             if conversionLUT == -2:
                 return -2
             return conversionLUT
-    def _saveConverionLUT(self, conversionLUT):
-        logger.debug("Func: _saveConverionLUT")
+
+    def saveConverionLUT(self, conversionLUT):
+        logger.debug("Func: saveConverionLUT")
         self._dumpJson(conversionLUT, self._pathsDict["conversionLUTFile"])
         return
 
@@ -2202,7 +2218,7 @@ Elapsed Time:{6}
             return
 
         # get the conversion lut
-        presetLUT = self._loadConversionLUT()
+        presetLUT = self.loadConversionLUT()
 
         # set output file
         base, ext = os.path.splitext(sourceFile)

@@ -846,7 +846,7 @@ class ProjectMaterials(RootManager):
     def init_database(self):
         """OVERRIDEN FUNCTION - Initializes only necessary databases"""
 
-        self._subProjectsList = self._loadSubprojects()
+        self._subProjectsList = self.loadSubprojects()
 
         # override _currentsDict (disconnected from  the json database)
         self._currentsDict = {"currentSubIndex": 0}  # default is 0 as "None"

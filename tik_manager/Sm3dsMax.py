@@ -407,14 +407,14 @@ class MaxManager(RootManager, MaxCoreFunctions):
     # def getProjectDir(self, softwareName):
     #
     #     ## Load dictionary from database
-    #     projectsDict = self._loadProjects()
+    #     projectsDict = self.loadProjects()
     #
     #     ## If there is no database, create one with current project and return
     #     if not projectsDict:
     #         currentProject = self._getProject()
     #         projectsDict = {softwareName: currentProject,
     #                         "LastProject": currentProject}
-    #         self._saveProjects(projectsDict)
+    #         self.saveProjects(projectsDict)
     #         return currentProject
     #
     #
@@ -430,7 +430,7 @@ class MaxManager(RootManager, MaxCoreFunctions):
     #         currentProject = self._getProject()
     #         projectsDict[softwareName] = currentProject
     #         projectsDict["LastProject"] = currentProject
-    #         self._saveProjects(projectsDict)
+    #         self.saveProjects(projectsDict)
     #         return currentProject
 
 
@@ -441,14 +441,14 @@ class MaxManager(RootManager, MaxCoreFunctions):
     # def getProjectDir(self):
     #     """Overriden function"""
     #
-    #     projectsDict = self._loadProjects()
+    #     projectsDict = self.loadProjects()
     #
     #
     #     if not projectsDict:
     #         currentProject = self._getProject()
     #         projectsDict = {"3dsMaxProject": currentProject,
     #                         "LastProject": currentProject}
-    #         self._saveProjects(projectsDict)
+    #         self.saveProjects(projectsDict)
     #         return currentProject
     #
     #     # get the project defined in the database file
@@ -459,7 +459,7 @@ class MaxManager(RootManager, MaxCoreFunctions):
     #         currentProject = self._getProject()
     #         projectsDict["3dsMaxProject"] = currentProject
     #         projectsDict["LastProject"] = currentProject
-    #         self._saveProjects(projectsDict)
+    #         self.saveProjects(projectsDict)
     #         return currentProject
 
 
@@ -474,12 +474,12 @@ class MaxManager(RootManager, MaxCoreFunctions):
 
     # def setProject(self, path):
     #     """Sets the project"""
-    #     projectsDict = self._loadProjects()
+    #     projectsDict = self.loadProjects()
     #     if not projectsDict:
     #         projectsDict = {"3dsMax": path}
     #     else:
     #         projectsDict["3dsMax"] = path
-    #     self._saveProjects(projectsDict)
+    #     self.saveProjects(projectsDict)
     #     self.projectDir = path
 
     def saveBaseScene(self, categoryName, baseName, subProjectIndex=0, makeReference=True, versionNotes="", sceneFormat="max", *args, **kwargs):
