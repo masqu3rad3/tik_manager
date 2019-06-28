@@ -13,7 +13,6 @@ QWidget {
 
 QWidget:item:selected
 {
-  /*background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #ff8d1c, stop: 1 #d7801a);*/
   background-color: #ff8d1c;
   color: #000000;
 }
@@ -24,7 +23,6 @@ QWidget:disabled
   border: 1px solid #404040;
   color: #505050;
 }
-
 
 /* QMainWindow ------------------------------------------------------------
 
@@ -638,22 +636,6 @@ QProgressBar::chunk:disabled {
   margin: 0.5px;
 }
 
-/*
-QProgressBar
-{
-    border: 2px solid grey;
-    border-radius: 5px;
-    text-align: center;
-}
-
-QProgressBar::chunk
-{
-    background-color: #fe7e00;
-    width: 2.15px;
-    margin: 0.5px;
-}
-*/
-
 /* ------------------------------------------------------------------------ */
 /* BUTTONS ---------------------------------------------------------------- */
 /* ------------------------------------------------------------------------ */
@@ -673,6 +655,7 @@ QPushButton
     font-size: 12px;
     padding-left: 5px;
     padding-right: 5px;
+    min-width: 60px;
 }
 
 

@@ -828,6 +828,10 @@ class RootManager(object):
         else:
             return self._userSettings["colorCoding"]
 
+    def getFormatsAndCodecs(self):
+        """Returns the codecs which can be used in current workstation"""
+        return None
+
     def createNewProject(self, projectRoot, projectName, brandName, client, settingsData=None):
         """
         Creates New Project Structure

@@ -182,7 +182,6 @@ class MainUI(QtWidgets.QMainWindow):
         # super(MainUI, self).closeEvent(event)
 
     def buildUI(self):
-
         self.setObjectName(self.windowName)
         self.resize(680, 600)
         self.setWindowTitle(self.windowName)
@@ -2009,17 +2008,45 @@ class MainUI(QtWidgets.QMainWindow):
 
 
         # Visibility Widgets for EACH page
-        self.userSettings_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
-        self.projectSettings_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
-        self.previewSettings_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
-        self.categories_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
-        self.importExportOptions_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
-        self.sharedSettings_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
-        self.users_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
-        self.passwords_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
-        self.namingConventions_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
+        # self.userSettings_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
+        # self.projectSettings_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
+        # self.previewSettings_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
+        # self.categories_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
+        # self.importExportOptions_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
+        # self.sharedSettings_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
+        # self.users_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
+        # self.passwords_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
+        # self.namingConventions_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
+
+        self.userSettings_vis = QtWidgets.QWidget()
+        self.projectSettings_vis = QtWidgets.QWidget()
+        self.previewSettings_vis = QtWidgets.QWidget()
+        self.categories_vis = QtWidgets.QWidget()
+        self.importExportOptions_vis = QtWidgets.QWidget()
+        self.sharedSettings_vis = QtWidgets.QWidget()
+        self.users_vis = QtWidgets.QWidget()
+        self.passwords_vis = QtWidgets.QWidget()
+        self.namingConventions_vis = QtWidgets.QWidget()
+
+        def pageUpdate():
+            allPages = {"User Settings": self.userSettings_vis,
+                        "Project Settings": self.projectSettings_vis,
+                        "Preview Settings": self.previewSettings_vis,
+                        "Categories": self.categories_vis,
+                        "Import/Export Options": self.importExportOptions_vis,
+                        "Shared Settings": self.sharedSettings_vis,
+                        "Users": self.users_vis,
+                        "Passwords": self.passwords_vis,
+                        "Naming Conventions": self.namingConventions_vis}
+            for item in allPages.items():
+                isVisible = False if item[0] == self.settingsMenu_treeWidget.currentItem().text(0) else True
+                # print item[0], item[1], isVisible
+                item[1].setHidden(isVisible)
+                # self.userSettings_vis.setHidden(True)
 
         self.softwareDB = manager.loadSoftwareDatabase()
+
+
 
         ## USER SETTINGS
         currentUserSettings = manager.loadUserSettings()
@@ -2027,8 +2054,8 @@ class MainUI(QtWidgets.QMainWindow):
         currentCommonFolder = manager._getCommonFolder()
         self.allSettingsDict.add("sharedSettingsDir", currentCommonFolder, manager._pathsDict["commonFolderFile"])
         self._userSettingsContent()
-
-
+        #
+        #
         ## PROJECT SETTINGS
         currentProjectSettings = manager.loadProjectSettings()
         self.allSettingsDict.add("projectSettings", currentProjectSettings, manager._pathsDict["projectSettingsFile"])
@@ -2036,10 +2063,11 @@ class MainUI(QtWidgets.QMainWindow):
 
         ## PREVIEW SETTINGS
         self.previewMasterLayout = QtWidgets.QVBoxLayout(self.previewSettings_vis)
-        sw = manager.swName.lower()
+        sw = BoilerDict["Environment"].lower()
         #temp
         # sw=""
-        if sw == "maya" or sw == "":
+
+        if sw == "maya" or sw == "standalone":
             settingsFilePath = os.path.join(manager._pathsDict["previewsDir"], self.softwareDB["Maya"]["pbSettingsFile"])
             currentMayaSettings = manager.loadPBSettings(filePath=settingsFilePath)
             # backward compatibility:
@@ -2054,7 +2082,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.allSettingsDict.add("preview_maya", currentMayaSettings, settingsFilePath)
 
             self._previewSettingsContent_maya()
-        if sw == "3dsmax" or sw == "":
+        if sw == "3dsmax" or sw == "standalone":
             settingsFilePath = os.path.join(manager._pathsDict["previewsDir"], self.softwareDB["3dsMax"]["pbSettingsFile"])
             currentMaxSettings = manager.loadPBSettings(filePath=settingsFilePath)
             # backward compatibility:
@@ -2076,8 +2104,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         ## CATEGORIES
         #temp
-        # sw=""
-        if sw == "":
+
+        if sw == "standalone":
             # if it is standalone, get all categories for all softwares
             for value in self.softwareDB.values():
                 niceName = value["niceName"]
@@ -2094,7 +2122,7 @@ class MainUI(QtWidgets.QMainWindow):
         # pprint.pprint(self.allSettingsDict)
 
         self._categoriesContent()
-
+        #
         ## IMPORT/EXPORT OPTIONS
         currentImportSettings = manager.loadImportSettings()
         self.allSettingsDict.add("importSettings", currentImportSettings, manager._pathsDict["importSettingsFile"])
@@ -2105,21 +2133,6 @@ class MainUI(QtWidgets.QMainWindow):
         self._sharedSettingsContent()
 
 
-        def pageUpdate():
-            allPages = {"User Settings": self.userSettings_vis,
-                        "Project Settings": self.projectSettings_vis,
-                        "Preview Settings": self.previewSettings_vis,
-                        "Categories": self.categories_vis,
-                        "Import/Export Options": self.importExportOptions_vis,
-                        "Shared Settings": self.sharedSettings_vis,
-                        "Users": self.users_vis,
-                        "Passwords": self.passwords_vis,
-                        "Naming Conventions": self.namingConventions_vis}
-            for item in allPages.items():
-                isVisible = False if item[0] == self.settingsMenu_treeWidget.currentItem().text(0) else True
-                # print item[0], item[1], isVisible
-                item[1].setHidden(isVisible)
-                # self.userSettings_vis.setHidden(True)
 
 
         self.settingsButtonBox = QtWidgets.QDialogButtonBox(settings_Dialog)
@@ -2136,6 +2149,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         def applySettingChanges():
             for x in self.allSettingsDict.apply():
+                print "hede", x
                 manager._dumpJson(x["data"], x["filepath"])
             self.settingsApply_btn.setEnabled(False)
 
@@ -2143,6 +2157,7 @@ class MainUI(QtWidgets.QMainWindow):
         # # -------
         #
         self.settingsMenu_treeWidget.currentItemChanged.connect(pageUpdate)
+        self.settingsMenu_treeWidget.setCurrentItem(self.userSettings_item)
 
         self.settingsButtonBox.accepted.connect(applySettingChanges)
         self.settingsButtonBox.accepted.connect(settings_Dialog.accept)
@@ -2157,12 +2172,16 @@ class MainUI(QtWidgets.QMainWindow):
         manager = self._getManager()
         userSettings_Layout = QtWidgets.QVBoxLayout(self.userSettings_vis)
         userSettings_Layout.setSpacing(6)
+        userSettings = self.allSettingsDict.get("userSettings")
+        sharedSettingsDir = self.allSettingsDict.get("sharedSettingsDir")
+
 
         def updateDictionary():
-            self.allSettingsDict["userSettings"]["newSettings"][
-                "globalFavorites"] = globalFavorites_radiobutton.isChecked()
+            # self.allSettingsDict["userSettings"]["newSettings"][
+            #     "globalFavorites"] = globalFavorites_radiobutton.isChecked()
+            userSettings["globalFavorites"] = globalFavorites_radiobutton.isChecked()
 
-            enteredPath = os.path.normpath(commonDir_lineEdit.text())
+            enteredPath = os.path.normpath(unicode(commonDir_lineEdit.text()).encode("utf-8"))
             if manager._checkCommonFolder(enteredPath):
                 self.allSettingsDict["sharedSettingsDir"]["newSettings"] = enteredPath
             else:
@@ -2180,26 +2199,26 @@ class MainUI(QtWidgets.QMainWindow):
         userSettings_Layout.addLayout(userSettings_formLayout)
 
         # form item 0
-        userSettings_label = QtWidgets.QLabel(self.userSettings_vis)
+        userSettings_label = QtWidgets.QLabel()
         userSettings_label.setFont(self.headerAFont)
         userSettings_label.setText(("User Settings"))
         userSettings_formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, userSettings_label)
 
         # form item 1
-        favorites_label = QtWidgets.QLabel(self.userSettings_vis)
+        favorites_label = QtWidgets.QLabel()
         favorites_label.setText("Project Favorites:")
         userSettings_formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, favorites_label)
 
         favorites_layout = QtWidgets.QHBoxLayout()
-        globalFavorites_radiobutton = QtWidgets.QRadioButton(self.userSettings_vis)
+        globalFavorites_radiobutton = QtWidgets.QRadioButton()
         globalFavorites_radiobutton.setText("Global Favorites")
         globalFavorites_radiobutton.setChecked(manager.isGlobalFavorites())
 
-        localFavorites_radiobutton = QtWidgets.QRadioButton(self.userSettings_vis)
+        localFavorites_radiobutton = QtWidgets.QRadioButton()
         localFavorites_radiobutton.setText("Software Specific")
         localFavorites_radiobutton.setChecked(not manager.isGlobalFavorites())
 
-        favorites_buttonGroup = QtWidgets.QButtonGroup(self.userSettings_vis)
+        favorites_buttonGroup = QtWidgets.QButtonGroup()
         favorites_buttonGroup.addButton(globalFavorites_radiobutton)
         favorites_buttonGroup.addButton(localFavorites_radiobutton)
         favorites_layout.addWidget(globalFavorites_radiobutton)
@@ -2207,56 +2226,55 @@ class MainUI(QtWidgets.QMainWindow):
         userSettings_formLayout.setLayout(1, QtWidgets.QFormLayout.FieldRole, favorites_layout)
 
         # form item 2
-        commonDir_label = QtWidgets.QLabel(self.userSettings_vis)
+        commonDir_label = QtWidgets.QLabel()
         commonDir_label.setText("Common Settings Directory:")
         userSettings_formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, commonDir_label)
 
         commonDir_layout = QtWidgets.QHBoxLayout()
         commonDir_layout.setSpacing(2)
 
-        commonDir_lineEdit = QtWidgets.QLineEdit(self.userSettings_vis)
+        commonDir_lineEdit = QtWidgets.QLineEdit()
         commonDir_lineEdit.setText(manager.getSharedSettingsDir())
         commonDir_layout.addWidget(commonDir_lineEdit)
 
-        setCommon_button = QtWidgets.QPushButton(self.userSettings_vis)
+        setCommon_button = QtWidgets.QPushButton()
         setCommon_button.setText("...")
         commonDir_layout.addWidget(setCommon_button)
         userSettings_formLayout.setLayout(2, QtWidgets.QFormLayout.FieldRole, commonDir_layout)
 
         # form item 3
-        colorCoding_label = QtWidgets.QLabel(self.userSettings_vis)
+        colorCoding_label = QtWidgets.QLabel()
         colorCoding_label.setText("Color Codes: ")
         userSettings_formLayout.setWidget(3, QtWidgets.QFormLayout.LabelRole, colorCoding_label)
 
-        colorCoding_formlayout = QtWidgets.QFormLayout(self.userSettings_vis)
+        colorCoding_formlayout = QtWidgets.QFormLayout()
         colorCoding_formlayout.setSpacing(2)
         colorCoding_formlayout.setVerticalSpacing(5)
         userSettings_formLayout.setLayout(3, QtWidgets.QFormLayout.FieldRole, colorCoding_formlayout)
 
         def colorSet(button, niceName):
-
             color = QtWidgets.QColorDialog.getColor()
             button.setStyleSheet("background-color: %s" % color.name())
-            self.allSettingsDict["userSettings"]["newSettings"]["colorCoding"][niceName] = "rgb%s" % str(color.getRgb())
+            userSettings["colorCoding"][niceName] = "rgb%s" % str(color.getRgb())
+            # self.allSettingsDict["userSettings"]["newSettings"]["colorCoding"][niceName] = "rgb%s" % str(color.getRgb())
             self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
 
         def resetColors():
             try:
-                userSettings = self.allSettingsDict.get("userSettings")
                 userSettings["colorCoding"] = manager._sceneManagerDefaults["defaultColorCoding"]
                 self.allSettingsDict.set("userSettings", userSettings)
             except KeyError:
                 self.infoPop(textTitle="Cannot get default database",
                              textHeader="Default Color Coding Database cannot be found")
                 return
-            for item in self.allSettingsDict["userSettings"]["newSettings"]["colorCoding"].items():
+            for item in userSettings["colorCoding"].items():
                 niceName = item[0]
                 color = item[1]
-                try:
-                    pushbutton = self.findChild(QtWidgets.QPushButton, "cc_%s" % niceName)
-                    pushbutton.setStyleSheet("background-color:%s" % color)
-                except AttributeError:
-                    pass
+                # try:
+                pushbutton = self.findChild(QtWidgets.QPushButton, "cc_%s" % niceName)
+                pushbutton.setStyleSheet("background-color:%s" % color)
+                # except AttributeError:
+                #     pass
             self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
 
             # self._isSettingsChanged()
@@ -2277,20 +2295,21 @@ class MainUI(QtWidgets.QMainWindow):
             # self._isSettingsChanged()
             return
 
-        colorCoding = self.allSettingsDict.get("userSettings")["colorCoding"]
-        for item in colorCoding.items():
-            cclabel = QtWidgets.QLabel(self.userSettings_vis)
+        # colorCoding = self.allSettingsDict.get("userSettings")["colorCoding"]
+        # for item in colorCoding.items():
+        for item in userSettings["colorCoding"].items():
+            cclabel = QtWidgets.QLabel()
             if item[0] == "":
                 cclabel.setText("      Standalone:  ")
             else:
                 cclabel.setText("      %s:  " % item[0])
-            ccpushbutton = QtWidgets.QPushButton(self.userSettings_vis)
+            ccpushbutton = QtWidgets.QPushButton()
             ccpushbutton.setObjectName("cc_%s" % item[0])
             ccpushbutton.setStyleSheet("background-color:%s" % item[1])
             ccpushbutton.setMinimumSize(100, 20)
 
             colorCoding_formlayout.addRow(cclabel, ccpushbutton)
-            ccpushbutton.clicked.connect(lambda button=ccpushbutton: colorSet(button, item[0]))
+            ccpushbutton.clicked.connect(lambda ignore, button=ccpushbutton, item=item[0]: colorSet(button, item))
 
         # niceNameList = self.allSettingsDict["userSettings"]["newSettings"]["colorCoding"].keys()
         # for x in range(len(niceNameList)):
@@ -2309,10 +2328,10 @@ class MainUI(QtWidgets.QMainWindow):
         #     colorCoding_formlayout.setWidget(x, QtWidgets.QFormLayout.FieldRole, ccpushbutton)
         #     ccpushbutton.clicked.connect(lambda item=ccpushbutton: colorSet(item, niceNameList[x]))
 
-        ccReset_button = QtWidgets.QPushButton(self.userSettings_vis)
+        ccReset_button = QtWidgets.QPushButton()
         ccReset_button.setText("Reset Colors")
         ccReset_button.setFixedSize(100, 20)
-        colorCoding_formlayout.setWidget((len(colorCoding.items())) + 1, QtWidgets.QFormLayout.FieldRole, ccReset_button)
+        colorCoding_formlayout.setWidget((len(userSettings["colorCoding"].items())) + 1, QtWidgets.QFormLayout.FieldRole, ccReset_button)
         # colorCoding_formlayout.setWidget((len(niceNameList)) + 1, QtWidgets.QFormLayout.FieldRole, ccReset_button)
 
         # end of form
@@ -2320,7 +2339,6 @@ class MainUI(QtWidgets.QMainWindow):
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         userSettings_Layout.addItem(spacerItem)
         self.contentsMaster_layout.addWidget(self.userSettings_vis)
-        print "DEBUGwe"
 
         # SIGNALS USER SETTINGS
         # ---------------------
@@ -2347,14 +2365,14 @@ class MainUI(QtWidgets.QMainWindow):
         projectSettings_Layout = QtWidgets.QVBoxLayout(self.projectSettings_vis)
         projectSettings_Layout.setSpacing(0)
 
-        h1_horizontalLayout = QtWidgets.QHBoxLayout(self.projectSettings_vis)
+        h1_horizontalLayout = QtWidgets.QHBoxLayout()
         h1_label = QtWidgets.QLabel(self.projectSettings_vis)
         h1_label.setText("Project Settings")
         h1_label.setFont(self.headerAFont)
         h1_horizontalLayout.addWidget(h1_label)
         projectSettings_Layout.addLayout(h1_horizontalLayout)
 
-        projectSettings_formLayout = QtWidgets.QFormLayout(self.projectSettings_vis)
+        projectSettings_formLayout = QtWidgets.QFormLayout()
         projectSettings_formLayout.setSpacing(2)
         projectSettings_formLayout.setVerticalSpacing(5)
         # projectSettings_formLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
@@ -2407,19 +2425,19 @@ class MainUI(QtWidgets.QMainWindow):
         # projectSettings_label.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
         # projectSettings_Layout.addWidget(projectSettings_label)
 
-        cmdButtons_layout = QtWidgets.QVBoxLayout(self.projectSettings_vis)
+        cmdButtons_layout = QtWidgets.QVBoxLayout()
         cmdButtons_layout.setContentsMargins(-1, 15, -1, -1)
         projectSettings_Layout.addLayout(cmdButtons_layout)
 
-        previewSettings_cmdButton = QtWidgets.QCommandLinkButton(self.projectSettings_vis)
+        previewSettings_cmdButton = QtWidgets.QCommandLinkButton()
         previewSettings_cmdButton.setText("Preview Settings")
         cmdButtons_layout.addWidget(previewSettings_cmdButton)
 
-        categories_cmdButton = QtWidgets.QCommandLinkButton(self.projectSettings_vis)
+        categories_cmdButton = QtWidgets.QCommandLinkButton()
         categories_cmdButton.setText("Categories")
         cmdButtons_layout.addWidget(categories_cmdButton)
 
-        importExportOptions_cmdButton = QtWidgets.QCommandLinkButton(self.projectSettings_vis)
+        importExportOptions_cmdButton = QtWidgets.QCommandLinkButton()
         importExportOptions_cmdButton.setText("Import/Export Options")
         cmdButtons_layout.addWidget(importExportOptions_cmdButton)
 
@@ -2444,7 +2462,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.codec_Maya_comboBox.clear()
             self.codec_Maya_comboBox.addItems(codecList)
 
-        previewSettings_MAYA_Layout = QtWidgets.QVBoxLayout(self.previewSettings_vis)
+        previewSettings_MAYA_Layout = QtWidgets.QVBoxLayout()
         previewSettings_MAYA_Layout.setSpacing(0)
 
         def toggleMp4():
@@ -2480,7 +2498,7 @@ class MainUI(QtWidgets.QMainWindow):
         ## HEADER
         h1_horizontalLayout = QtWidgets.QHBoxLayout()
         # h1_horizontalLayout.setContentsMargins(-1, -1, -1, 10)
-        h1_label = QtWidgets.QLabel(self.previewSettings_vis)
+        h1_label = QtWidgets.QLabel()
         h1_label.setText("Maya Playblast Settings")
         h1_label.setFont(self.headerAFont)
         h1_horizontalLayout.addWidget(h1_label)
@@ -2489,12 +2507,12 @@ class MainUI(QtWidgets.QMainWindow):
         ## VIDEO PROPERTIES
         h1_s1_horizontalLayout = QtWidgets.QHBoxLayout()
         h1_s1_horizontalLayout.setContentsMargins(-1, 15, -1, -1)
-        h1_s1_label = QtWidgets.QLabel(self.previewSettings_vis)
+        h1_s1_label = QtWidgets.QLabel()
         h1_s1_label.setText("Video Properties  ")
         h1_s1_label.setFont(self.headerBFont)
         h1_s1_horizontalLayout.addWidget(h1_s1_label)
 
-        h1_s1_line = QtWidgets.QLabel(self.previewSettings_vis)
+        h1_s1_line = QtWidgets.QLabel()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(1)
         h1_s1_line.setSizePolicy(sizePolicy)
@@ -2506,14 +2524,14 @@ class MainUI(QtWidgets.QMainWindow):
         h1_s1_line.setMaximumHeight(1)
         previewSettings_MAYA_Layout.addLayout(h1_s1_horizontalLayout)
 
-        h1_s2_horizontalLayout = QtWidgets.QHBoxLayout(self.previewSettings_vis)
+        h1_s2_horizontalLayout = QtWidgets.QHBoxLayout()
         h1_s2_horizontalLayout.setContentsMargins(20, 10, -1, -1)
         h1_s2_horizontalLayout.setSpacing(6)
 
-        videoProperties_formLayout = QtWidgets.QFormLayout(self.previewSettings_vis)
+        videoProperties_formLayout = QtWidgets.QFormLayout()
         h1_s2_horizontalLayout.addLayout(videoProperties_formLayout)
 
-        self.convertMP4_Maya_chb = QtWidgets.QCheckBox(self.previewSettings_vis)
+        self.convertMP4_Maya_chb = QtWidgets.QCheckBox()
         self.convertMP4_Maya_chb.setText("Convert To MP4")
         self.convertMP4_Maya_chb.setMinimumSize(QtCore.QSize(100, 0))
         self.convertMP4_Maya_chb.setLayoutDirection(QtCore.Qt.LeftToRight)
@@ -2528,19 +2546,19 @@ class MainUI(QtWidgets.QMainWindow):
             except KeyError:
                 self.convertMP4_Maya_chb.setChecked(True)
 
-        crf_Maya_label = QtWidgets.QLabel(self.previewSettings_vis)
+        crf_Maya_label = QtWidgets.QLabel()
         crf_Maya_label.setText("CRF Value (0-51)")
 
-        self.crf_Maya_spinBox = QtWidgets.QSpinBox(self.previewSettings_vis)
+        self.crf_Maya_spinBox = QtWidgets.QSpinBox()
         self.crf_Maya_spinBox.setMinimumWidth(50)
         self.crf_Maya_spinBox.setMinimum(0)
         self.crf_Maya_spinBox.setMaximum(51)
         self.crf_Maya_spinBox.setValue(settings["CrfValue"])
         videoProperties_formLayout.addRow(crf_Maya_label, self.crf_Maya_spinBox)
 
-        format_label = QtWidgets.QLabel(self.previewSettings_vis)
+        format_label = QtWidgets.QLabel()
         format_label.setText("Format: ")
-        self.format_Maya_comboBox = QtWidgets.QComboBox(self.previewSettings_vis)
+        self.format_Maya_comboBox = QtWidgets.QComboBox()
         videoProperties_formLayout.addRow(format_label, self.format_Maya_comboBox)
 
         formatsAndCodecs = manager.getFormatsAndCodecs()
@@ -2556,9 +2574,9 @@ class MainUI(QtWidgets.QMainWindow):
             except:
                 pass
 
-        codec_label = QtWidgets.QLabel(self.previewSettings_vis)
+        codec_label = QtWidgets.QLabel()
         codec_label.setText("Codec: ")
-        self.codec_Maya_comboBox = QtWidgets.QComboBox(self.previewSettings_vis)
+        self.codec_Maya_comboBox = QtWidgets.QComboBox()
         videoProperties_formLayout.addRow(codec_label, self.codec_Maya_comboBox)
 
         if not formatsAndCodecs:
@@ -2568,25 +2586,25 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.format_Maya_comboBox.currentIndexChanged.connect(updateMayaCodecs)
 
-        quality_label = QtWidgets.QLabel(self.previewSettings_vis)
+        quality_label = QtWidgets.QLabel()
         quality_label.setText("Quality: ")
-        self.quality_Maya_spinBox = QtWidgets.QSpinBox(self.previewSettings_vis)
+        self.quality_Maya_spinBox = QtWidgets.QSpinBox()
         self.quality_Maya_spinBox.setMinimumWidth(50)
         self.quality_Maya_spinBox.setMinimum(1)
         self.quality_Maya_spinBox.setMaximum(100)
         self.quality_Maya_spinBox.setValue(settings["Quality"])
         videoProperties_formLayout.addRow(quality_label, self.quality_Maya_spinBox)
 
-        resolution_label = QtWidgets.QLabel(self.previewSettings_vis)
+        resolution_label = QtWidgets.QLabel()
         resolution_label.setText("Resolution: ")
-        resolution_horizontalLayout = QtWidgets.QHBoxLayout(self.previewSettings_vis)
-        self.resX_Maya_spinBox = QtWidgets.QSpinBox(self.previewSettings_vis)
+        resolution_horizontalLayout = QtWidgets.QHBoxLayout()
+        self.resX_Maya_spinBox = QtWidgets.QSpinBox()
         self.resX_Maya_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
         self.resX_Maya_spinBox.setMinimum(1)
         self.resX_Maya_spinBox.setMaximum(99999)
         self.resX_Maya_spinBox.setValue(settings["Resolution"][0])
         resolution_horizontalLayout.addWidget(self.resX_Maya_spinBox)
-        self.resY_Maya_spinBox = QtWidgets.QSpinBox(self.previewSettings_vis)
+        self.resY_Maya_spinBox = QtWidgets.QSpinBox()
         self.resY_Maya_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
         self.resY_Maya_spinBox.setMinimum(1)
         self.resY_Maya_spinBox.setMaximum(99999)
@@ -2599,12 +2617,12 @@ class MainUI(QtWidgets.QMainWindow):
         ## VIEWPORT OPTIONS
         h1_s3_horizontalLayout = QtWidgets.QHBoxLayout()
         h1_s3_horizontalLayout.setContentsMargins(-1, 30, -1, -1)
-        h1_s3_label = QtWidgets.QLabel(self.previewSettings_vis)
+        h1_s3_label = QtWidgets.QLabel()
         h1_s3_label.setText("Viewport Options  ")
         h1_s3_label.setFont(self.headerBFont)
         h1_s3_horizontalLayout.addWidget(h1_s3_label)
 
-        h1_s3_line = QtWidgets.QLabel(self.previewSettings_vis)
+        h1_s3_line = QtWidgets.QLabel()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(1)
         h1_s3_line.setSizePolicy(sizePolicy)
@@ -2616,39 +2634,39 @@ class MainUI(QtWidgets.QMainWindow):
         h1_s3_line.setMaximumHeight(1)
         previewSettings_MAYA_Layout.addLayout(h1_s3_horizontalLayout)
 
-        h1_s4_horizontalLayout = QtWidgets.QHBoxLayout(self.previewSettings_vis)
+        h1_s4_horizontalLayout = QtWidgets.QHBoxLayout()
         h1_s4_horizontalLayout.setContentsMargins(20, 10, -1, -1)
 
-        viewportOptions_gridLayout = QtWidgets.QGridLayout(self.previewSettings_vis)
+        viewportOptions_gridLayout = QtWidgets.QGridLayout()
         # viewportOptions_gridLayout.setContentsMargins(-1, 15, -1, -1)
         h1_s4_horizontalLayout.addLayout(viewportOptions_gridLayout)
 
-        self.polygonOnly_Maya_chb = QtWidgets.QCheckBox(self.previewSettings_vis)
+        self.polygonOnly_Maya_chb = QtWidgets.QCheckBox()
         self.polygonOnly_Maya_chb.setText("Polygon Only")
         viewportOptions_gridLayout.addWidget(self.polygonOnly_Maya_chb, 0, 0)
         self.polygonOnly_Maya_chb.setChecked(settings["PolygonOnly"])
 
-        self.showGrid_Maya_chb = QtWidgets.QCheckBox(self.previewSettings_vis)
+        self.showGrid_Maya_chb = QtWidgets.QCheckBox()
         self.showGrid_Maya_chb.setText("Show Grid")
         viewportOptions_gridLayout.addWidget(self.showGrid_Maya_chb, 0, 1)
         self.showGrid_Maya_chb.setChecked(settings["ShowGrid"])
 
-        self.clearSelection_Maya_chb = QtWidgets.QCheckBox(self.previewSettings_vis)
+        self.clearSelection_Maya_chb = QtWidgets.QCheckBox()
         self.clearSelection_Maya_chb.setText("Clear Selection")
         viewportOptions_gridLayout.addWidget(self.clearSelection_Maya_chb, 1, 0)
         self.clearSelection_Maya_chb.setChecked(settings["ClearSelection"])
 
-        self.displayTextures_Maya_chb = QtWidgets.QCheckBox(self.previewSettings_vis)
+        self.displayTextures_Maya_chb = QtWidgets.QCheckBox()
         self.displayTextures_Maya_chb.setText("Display Textures")
         viewportOptions_gridLayout.addWidget(self.displayTextures_Maya_chb, 1, 1)
         self.displayTextures_Maya_chb.setChecked(settings["DisplayTextures"])
 
-        self.wireOnShaded_Maya_chb = QtWidgets.QCheckBox(self.previewSettings_vis)
+        self.wireOnShaded_Maya_chb = QtWidgets.QCheckBox()
         self.wireOnShaded_Maya_chb.setText("Wire On Shaded")
         viewportOptions_gridLayout.addWidget(self.wireOnShaded_Maya_chb, 2, 0)
         self.wireOnShaded_Maya_chb.setChecked(settings["WireOnShaded"])
 
-        self.useDefaultMaterial_Maya_chb = QtWidgets.QCheckBox(self.previewSettings_vis)
+        self.useDefaultMaterial_Maya_chb = QtWidgets.QCheckBox()
         self.useDefaultMaterial_Maya_chb.setText("Use Default Material")
         viewportOptions_gridLayout.addWidget(self.useDefaultMaterial_Maya_chb, 2, 1)
         self.useDefaultMaterial_Maya_chb.setChecked(settings["UseDefaultMaterial"])
@@ -2659,12 +2677,12 @@ class MainUI(QtWidgets.QMainWindow):
         ## HUD OPTIONS
         h1_s5_horizontalLayout = QtWidgets.QHBoxLayout()
         h1_s5_horizontalLayout.setContentsMargins(-1, 30, -1, -1)
-        h1_s5_label = QtWidgets.QLabel(self.previewSettings_vis)
+        h1_s5_label = QtWidgets.QLabel()
         h1_s5_label.setText("Heads Up Display Options  ")
         h1_s5_label.setFont(self.headerBFont)
         h1_s5_horizontalLayout.addWidget(h1_s5_label)
 
-        h1_s5_line = QtWidgets.QLabel(self.previewSettings_vis)
+        h1_s5_line = QtWidgets.QLabel()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(1)
         h1_s5_line.setSizePolicy(sizePolicy)
@@ -2676,36 +2694,36 @@ class MainUI(QtWidgets.QMainWindow):
         h1_s5_line.setMaximumHeight(1)
         previewSettings_MAYA_Layout.addLayout(h1_s5_horizontalLayout)
 
-        h1_s6_horizontalLayout = QtWidgets.QHBoxLayout(self.previewSettings_vis)
+        h1_s6_horizontalLayout = QtWidgets.QHBoxLayout()
         h1_s6_horizontalLayout.setContentsMargins(20, 10, -1, 30)
 
-        hudOptions_gridLayout = QtWidgets.QGridLayout(self.previewSettings_vis)
+        hudOptions_gridLayout = QtWidgets.QGridLayout()
         h1_s6_horizontalLayout.addLayout(hudOptions_gridLayout)
 
-        self.frameNumber_Maya_chb = QtWidgets.QCheckBox(self.previewSettings_vis)
+        self.frameNumber_Maya_chb = QtWidgets.QCheckBox()
         self.frameNumber_Maya_chb.setText("Frame Number")
         hudOptions_gridLayout.addWidget(self.frameNumber_Maya_chb, 0, 0)
         self.frameNumber_Maya_chb.setChecked(settings["ShowFrameNumber"])
 
-        self.category_Maya_chb = QtWidgets.QCheckBox(self.previewSettings_vis)
+        self.category_Maya_chb = QtWidgets.QCheckBox()
         self.category_Maya_chb.setText("Category")
         hudOptions_gridLayout.addWidget(self.category_Maya_chb, 0, 1)
         self.category_Maya_chb.setChecked(settings["ShowCategory"])
 
 
-        self.sceneName_Maya_chb = QtWidgets.QCheckBox(self.previewSettings_vis)
+        self.sceneName_Maya_chb = QtWidgets.QCheckBox()
         self.sceneName_Maya_chb.setText("Scene Name")
         hudOptions_gridLayout.addWidget(self.sceneName_Maya_chb, 1, 0)
         self.sceneName_Maya_chb.setChecked(settings["ShowSceneName"])
 
 
-        self.fps_Maya_chb = QtWidgets.QCheckBox(self.previewSettings_vis)
+        self.fps_Maya_chb = QtWidgets.QCheckBox()
         self.fps_Maya_chb.setText("FPS")
         hudOptions_gridLayout.addWidget(self.fps_Maya_chb, 1, 1)
         self.fps_Maya_chb.setChecked(settings["ShowFPS"])
 
 
-        self.frameRange_Maya_chb = QtWidgets.QCheckBox(self.previewSettings_vis)
+        self.frameRange_Maya_chb = QtWidgets.QCheckBox()
         self.frameRange_Maya_chb.setText("Frame Range")
         hudOptions_gridLayout.addWidget(self.frameRange_Maya_chb, 2, 0)
         self.frameRange_Maya_chb.setChecked(settings["ShowFrameRange"])
@@ -2751,7 +2769,7 @@ class MainUI(QtWidgets.QMainWindow):
         # settings = self.allSettingsDict["preview_max"]["oldSettings"]
         settings = self.allSettingsDict.get("preview_max")
 
-        previewSettings_MAX_Layout = QtWidgets.QVBoxLayout(self.previewSettings_vis)
+        previewSettings_MAX_Layout = QtWidgets.QVBoxLayout()
         previewSettings_MAX_Layout.setSpacing(0)
 
 
@@ -2769,7 +2787,7 @@ class MainUI(QtWidgets.QMainWindow):
             # self._isSettingsChanged()
 
         ## HEADER
-        h1_horizontalLayout = QtWidgets.QHBoxLayout(self.previewSettings_vis)
+        h1_horizontalLayout = QtWidgets.QHBoxLayout()
         # h1_horizontalLayout.setContentsMargins(-1, -1, -1, 10)
         h1_label = QtWidgets.QLabel(self.previewSettings_vis)
         h1_label.setText("3ds Max Preview Animation Settings")
@@ -2778,14 +2796,14 @@ class MainUI(QtWidgets.QMainWindow):
         previewSettings_MAX_Layout.addLayout(h1_horizontalLayout)
 
         ## VIDEO PROPERTIES
-        h1_s1_horizontalLayout = QtWidgets.QHBoxLayout(self.previewSettings_vis)
+        h1_s1_horizontalLayout = QtWidgets.QHBoxLayout()
         h1_s1_horizontalLayout.setContentsMargins(-1, 15, -1, -1)
-        h1_s1_label = QtWidgets.QLabel(self.previewSettings_vis)
+        h1_s1_label = QtWidgets.QLabel()
         h1_s1_label.setText("Video Properties  ")
         h1_s1_label.setFont(self.headerBFont)
         h1_s1_horizontalLayout.addWidget(h1_s1_label)
 
-        h1_s1_line = QtWidgets.QLabel(self.previewSettings_vis)
+        h1_s1_line = QtWidgets.QLabel()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(1)
         h1_s1_line.setSizePolicy(sizePolicy)
@@ -2797,15 +2815,15 @@ class MainUI(QtWidgets.QMainWindow):
         h1_s1_line.setMaximumHeight(1)
         previewSettings_MAX_Layout.addLayout(h1_s1_horizontalLayout)
 
-        h1_s2_horizontalLayout = QtWidgets.QHBoxLayout(self.previewSettings_vis)
+        h1_s2_horizontalLayout = QtWidgets.QHBoxLayout()
         h1_s2_horizontalLayout.setContentsMargins(20, 10, -1, -1)
         h1_s2_horizontalLayout.setSpacing(6)
 
-        videoProperties_formLayout = QtWidgets.QFormLayout(self.previewSettings_vis)
+        videoProperties_formLayout = QtWidgets.QFormLayout()
         # videoProperties_formLayout.setContentsMargins(10, -1, -1, -1)
         h1_s2_horizontalLayout.addLayout(videoProperties_formLayout)
 
-        self.convertMP4_Max_chb = QtWidgets.QCheckBox(self.previewSettings_vis)
+        self.convertMP4_Max_chb = QtWidgets.QCheckBox()
         self.convertMP4_Max_chb.setText("Convert To MP4")
         self.convertMP4_Max_chb.setMinimumSize(QtCore.QSize(100, 0))
         self.convertMP4_Max_chb.setLayoutDirection(QtCore.Qt.LeftToRight)
@@ -2820,26 +2838,26 @@ class MainUI(QtWidgets.QMainWindow):
             except KeyError:
                 self.convertMP4_Max_chb.setChecked(True)
 
-        crf_Max_label = QtWidgets.QLabel(self.previewSettings_vis)
+        crf_Max_label = QtWidgets.QLabel()
         crf_Max_label.setText("CRF Value (0-51)")
 
-        self.crf_Max_spinBox = QtWidgets.QSpinBox(self.previewSettings_vis)
+        self.crf_Max_spinBox = QtWidgets.QSpinBox()
         self.crf_Max_spinBox.setMinimumWidth(50)
         self.crf_Max_spinBox.setMinimum(0)
         self.crf_Max_spinBox.setMaximum(51)
         self.crf_Max_spinBox.setValue(settings["CrfValue"])
         videoProperties_formLayout.addRow(crf_Max_label, self.crf_Max_spinBox)
 
-        resolution_label = QtWidgets.QLabel(self.previewSettings_vis)
+        resolution_label = QtWidgets.QLabel()
         resolution_label.setText("Resolution: ")
-        resolution_horizontalLayout = QtWidgets.QHBoxLayout(self.previewSettings_vis)
-        self.resX_Max_spinBox = QtWidgets.QSpinBox(self.previewSettings_vis)
+        resolution_horizontalLayout = QtWidgets.QHBoxLayout()
+        self.resX_Max_spinBox = QtWidgets.QSpinBox()
         self.resX_Max_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
         self.resX_Max_spinBox.setMinimum(1)
         self.resX_Max_spinBox.setMaximum(99999)
         self.resX_Max_spinBox.setValue(settings["Resolution"][0])
         resolution_horizontalLayout.addWidget(self.resX_Max_spinBox)
-        self.resY_Max_spinBox = QtWidgets.QSpinBox(self.previewSettings_vis)
+        self.resY_Max_spinBox = QtWidgets.QSpinBox()
         self.resY_Max_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
         self.resY_Max_spinBox.setMinimum(1)
         self.resY_Max_spinBox.setMaximum(99999)
@@ -2850,14 +2868,14 @@ class MainUI(QtWidgets.QMainWindow):
         previewSettings_MAX_Layout.addLayout(h1_s2_horizontalLayout)
 
         ## VIEWPORT OPTIONS
-        h1_s3_horizontalLayout = QtWidgets.QHBoxLayout(self.previewSettings_vis)
+        h1_s3_horizontalLayout = QtWidgets.QHBoxLayout()
         h1_s3_horizontalLayout.setContentsMargins(-1, 30, -1, -1)
-        h1_s3_label = QtWidgets.QLabel(self.previewSettings_vis)
+        h1_s3_label = QtWidgets.QLabel()
         h1_s3_label.setText("Viewport Options  ")
         h1_s3_label.setFont(self.headerBFont)
         h1_s3_horizontalLayout.addWidget(h1_s3_label)
 
-        h1_s3_line = QtWidgets.QLabel(self.previewSettings_vis)
+        h1_s3_line = QtWidgets.QLabel()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(1)
         h1_s3_line.setSizePolicy(sizePolicy)
@@ -2869,28 +2887,28 @@ class MainUI(QtWidgets.QMainWindow):
         h1_s3_line.setMaximumHeight(1)
         previewSettings_MAX_Layout.addLayout(h1_s3_horizontalLayout)
 
-        h1_s4_horizontalLayout = QtWidgets.QHBoxLayout(self.previewSettings_vis)
+        h1_s4_horizontalLayout = QtWidgets.QHBoxLayout()
         h1_s4_horizontalLayout.setContentsMargins(20, 10, -1, -1)
 
-        viewportOptions_gridLayout = QtWidgets.QGridLayout(self.previewSettings_vis)
+        viewportOptions_gridLayout = QtWidgets.QGridLayout()
         h1_s4_horizontalLayout.addLayout(viewportOptions_gridLayout)
 
-        self.polygonOnly_Max_chb = QtWidgets.QCheckBox(self.previewSettings_vis)
+        self.polygonOnly_Max_chb = QtWidgets.QCheckBox()
         self.polygonOnly_Max_chb.setText("Polygon Only")
         viewportOptions_gridLayout.addWidget(self.polygonOnly_Max_chb, 0, 0)
         self.polygonOnly_Max_chb.setChecked(settings["PolygonOnly"])
 
-        self.showGrid_Max_chb = QtWidgets.QCheckBox(self.previewSettings_vis)
+        self.showGrid_Max_chb = QtWidgets.QCheckBox()
         self.showGrid_Max_chb.setText("Show Grid")
         viewportOptions_gridLayout.addWidget(self.showGrid_Max_chb, 0, 1)
         self.showGrid_Max_chb.setChecked(settings["ShowGrid"])
 
-        self.clearSelection_Max_chb = QtWidgets.QCheckBox(self.previewSettings_vis)
+        self.clearSelection_Max_chb = QtWidgets.QCheckBox()
         self.clearSelection_Max_chb.setText("Clear Selection")
         viewportOptions_gridLayout.addWidget(self.clearSelection_Max_chb, 1, 0)
         self.clearSelection_Max_chb.setChecked(settings["ClearSelection"])
 
-        self.wireOnShaded_Max_chb = QtWidgets.QCheckBox(self.previewSettings_vis)
+        self.wireOnShaded_Max_chb = QtWidgets.QCheckBox()
         self.wireOnShaded_Max_chb.setText("Wire On Shaded")
         viewportOptions_gridLayout.addWidget(self.wireOnShaded_Max_chb, 1, 1)
         self.wireOnShaded_Max_chb.setChecked(settings["WireOnShaded"])
@@ -2898,14 +2916,14 @@ class MainUI(QtWidgets.QMainWindow):
         previewSettings_MAX_Layout.addLayout(h1_s4_horizontalLayout)
 
         ## HUD OPTIONS
-        h1_s5_horizontalLayout = QtWidgets.QHBoxLayout(self.previewSettings_vis)
+        h1_s5_horizontalLayout = QtWidgets.QHBoxLayout()
         h1_s5_horizontalLayout.setContentsMargins(-1, 30, -1, -1)
-        h1_s5_label = QtWidgets.QLabel(self.previewSettings_vis)
+        h1_s5_label = QtWidgets.QLabel()
         h1_s5_label.setText("Heads Up Display Options  ")
         h1_s5_label.setFont(self.headerBFont)
         h1_s5_horizontalLayout.addWidget(h1_s5_label)
 
-        h1_s5_line = QtWidgets.QLabel(self.previewSettings_vis)
+        h1_s5_line = QtWidgets.QLabel()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(1)
         h1_s5_line.setSizePolicy(sizePolicy)
@@ -2917,13 +2935,13 @@ class MainUI(QtWidgets.QMainWindow):
         h1_s5_line.setMaximumHeight(1)
         previewSettings_MAX_Layout.addLayout(h1_s5_horizontalLayout)
 
-        h1_s6_horizontalLayout = QtWidgets.QHBoxLayout(self.previewSettings_vis)
+        h1_s6_horizontalLayout = QtWidgets.QHBoxLayout()
         h1_s6_horizontalLayout.setContentsMargins(20, 10, -1, -1)
 
-        hudOptions_gridLayout = QtWidgets.QGridLayout(self.previewSettings_vis)
+        hudOptions_gridLayout = QtWidgets.QGridLayout()
         h1_s6_horizontalLayout.addLayout(hudOptions_gridLayout)
 
-        self.frameNumber_Max_chb = QtWidgets.QCheckBox(self.previewSettings_vis)
+        self.frameNumber_Max_chb = QtWidgets.QCheckBox()
         self.frameNumber_Max_chb.setText("Frame Number")
         hudOptions_gridLayout.addWidget(self.frameNumber_Max_chb, 0, 0)
         self.frameNumber_Max_chb.setChecked(settings["ShowFrameNumber"])
@@ -2959,17 +2977,17 @@ class MainUI(QtWidgets.QMainWindow):
         categories_Layout = QtWidgets.QVBoxLayout(self.categories_vis)
         categories_Layout.setSpacing(0)
 
-        h1_horizontalLayout = QtWidgets.QHBoxLayout(self.categories_vis)
-        h1_label = QtWidgets.QLabel(self.categories_vis)
+        h1_horizontalLayout = QtWidgets.QHBoxLayout()
+        h1_label = QtWidgets.QLabel()
         h1_label.setText("Add/Remove Categories")
         h1_label.setFont(self.headerAFont)
         h1_horizontalLayout.addWidget(h1_label)
         categories_Layout.addLayout(h1_horizontalLayout)
 
-        h1_s1_layout = QtWidgets.QVBoxLayout(self.categories_vis)
+        h1_s1_layout = QtWidgets.QVBoxLayout()
         h1_s1_layout.setContentsMargins(-1, 15, -1, -1)
 
-        swTabs = QtWidgets.QTabWidget(self.categories_vis)
+        swTabs = QtWidgets.QTabWidget()
         swTabs.setMaximumSize(QtCore.QSize(16777215, 167777))
         swTabs.setTabPosition(QtWidgets.QTabWidget.North)
         swTabs.setElideMode(QtCore.Qt.ElideNone)
@@ -3045,19 +3063,19 @@ class MainUI(QtWidgets.QMainWindow):
             buttonBox.rejected.connect(addCategory_Dialog.reject)
 
         for cat in sorted(categorySwList):
-            tabWidget = QtWidgets.QWidget(self.categories_vis)
+            tabWidget = QtWidgets.QWidget()
             horizontalLayout = QtWidgets.QHBoxLayout(tabWidget)
-            categories_listWidget = QtWidgets.QListWidget(self.categories_vis)
+            categories_listWidget = QtWidgets.QListWidget()
             horizontalLayout.addWidget(categories_listWidget)
 
-            verticalLayout = QtWidgets.QVBoxLayout(self.categories_vis)
+            verticalLayout = QtWidgets.QVBoxLayout()
             verticalLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
 
-            add_pushButton = QtWidgets.QPushButton(self.categories_vis)
+            add_pushButton = QtWidgets.QPushButton()
             add_pushButton.setText(("Add..."))
             verticalLayout.addWidget(add_pushButton)
 
-            remove_pushButton = QtWidgets.QPushButton(self.categories_vis)
+            remove_pushButton = QtWidgets.QPushButton()
             remove_pushButton.setText(("Remove"))
             verticalLayout.addWidget(remove_pushButton)
 
@@ -3085,7 +3103,8 @@ class MainUI(QtWidgets.QMainWindow):
 
     def _importExportContent(self):
         manager = self._getManager()
-        sw = manager.swName.lower()
+        # sw = manager.swName.lower()
+        sw = BoilerDict["Environment"].lower()
         exportSettings = self.allSettingsDict.get("exportSettings")
         importSettings = self.allSettingsDict.get("importSettings")
 
@@ -3102,24 +3121,24 @@ class MainUI(QtWidgets.QMainWindow):
         importExport_Layout = QtWidgets.QVBoxLayout(self.importExportOptions_vis)
         importExport_Layout.setSpacing(0)
 
-        h1_horizontalLayout = QtWidgets.QHBoxLayout(self.importExportOptions_vis)
-        h1_label = QtWidgets.QLabel(self.importExportOptions_vis)
+        h1_horizontalLayout = QtWidgets.QHBoxLayout()
+        h1_label = QtWidgets.QLabel()
         h1_label.setText("Import/Export Geometry Settings")
         h1_label.setFont(self.headerAFont)
         h1_horizontalLayout.addWidget(h1_label)
         importExport_Layout.addLayout(h1_horizontalLayout)
 
-        h1_s1_layout = QtWidgets.QVBoxLayout(self.importExportOptions_vis)
+        h1_s1_layout = QtWidgets.QVBoxLayout()
         h1_s1_layout.setContentsMargins(-1, 15, -1, -1)
 
-        softwaresTabWidget = QtWidgets.QTabWidget(self.importExportOptions_vis)
+        softwaresTabWidget = QtWidgets.QTabWidget()
         softwaresTabWidget.setMaximumSize(QtCore.QSize(16777215, 167777))
         softwaresTabWidget.setTabPosition(QtWidgets.QTabWidget.North)
         softwaresTabWidget.setElideMode(QtCore.Qt.ElideNone)
         softwaresTabWidget.setUsesScrollButtons(False)
 
-        if sw == "maya" or sw == "":
-            mayaTab = QtWidgets.QWidget(self.importExportOptions_vis)
+        if sw == "maya" or sw == "standalone":
+            mayaTab = QtWidgets.QWidget()
             maya_verticalLayout = QtWidgets.QVBoxLayout(mayaTab)
             maya_verticalLayout.setSpacing(0)
 
@@ -3708,22 +3727,22 @@ class MainUI(QtWidgets.QMainWindow):
         sharedSettings_Layout = QtWidgets.QVBoxLayout(self.sharedSettings_vis)
         sharedSettings_Layout.setSpacing(6)
 
-        sharedSettings_label = QtWidgets.QLabel(self.sharedSettings_vis)
+        sharedSettings_label = QtWidgets.QLabel()
         sharedSettings_label.setText("Shared Settings")
         sharedSettings_label.setFont(self.headerAFont)
         sharedSettings_label.setIndent(10)
         sharedSettings_label.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
         sharedSettings_Layout.addWidget(sharedSettings_label)
 
-        users_cmdButton = QtWidgets.QCommandLinkButton(self.sharedSettings_vis)
+        users_cmdButton = QtWidgets.QCommandLinkButton()
         users_cmdButton.setText("Users")
         sharedSettings_Layout.addWidget(users_cmdButton)
 
-        passwords_cmdButton = QtWidgets.QCommandLinkButton(self.sharedSettings_vis)
+        passwords_cmdButton = QtWidgets.QCommandLinkButton()
         passwords_cmdButton.setText("Passwords")
         sharedSettings_Layout.addWidget(passwords_cmdButton)
 
-        namingConventions_cmdButton = QtWidgets.QCommandLinkButton(self.sharedSettings_vis)
+        namingConventions_cmdButton = QtWidgets.QCommandLinkButton()
         namingConventions_cmdButton.setText("Naming Conventions")
         sharedSettings_Layout.addWidget(namingConventions_cmdButton)
 

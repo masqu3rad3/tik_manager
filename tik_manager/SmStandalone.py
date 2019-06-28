@@ -595,9 +595,6 @@ class StandaloneManager(RootManager):
     # def getSoftwareList(self):
     #     return self.swList
 
-    def getFormatsAndCodecs(self):
-        """Returns the codecs which can be used in current workstation"""
-        return None
 
     def _exception(self, code, msg):
         """OVERRIDEN"""
@@ -775,6 +772,7 @@ class MainUI(baseUI):
         self.extraMenus()
         self.modify()
         self.initMainUI(newborn=True)
+        self.settingsUI()
 
     def extraMenus(self):
         """Adds extra menu and widgets to the base UI"""
