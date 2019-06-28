@@ -55,8 +55,9 @@ from win32com.client import Dispatch
 # import pprint
 import logging
 
-# psApp = ct.CreateObject('Photoshop.Application')
-# psApp = "anan"
+## DO NOT REMOVE THIS:
+import iconsSource as icons
+## DO NOT REMOVE THIS:
 
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Scene Manager for Photoshop"
@@ -1070,7 +1071,7 @@ class MainUI(baseUI):
 if __name__ == '__main__':
     selfLoc = os.path.dirname(os.path.abspath(__file__))
     app = QtWidgets.QApplication(sys.argv)
-    stylesheetFile = os.path.join(selfLoc, "CSS", "darkorange.stylesheet")
+    stylesheetFile = os.path.join(selfLoc, "CSS", "tikManager.qss")
     if os.path.isfile(stylesheetFile):
         with open(stylesheetFile, "r") as fh:
             app.setStyleSheet(fh.read())

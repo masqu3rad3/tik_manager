@@ -20,6 +20,12 @@
     "UseDefaultMaterial": false,
     "ConvertMP4": true
   },
+  "defaultProjectSettings": {
+    "Resolution": [
+    1920, 1080
+    ],
+    "FPS": 25
+  },
   "defaultCategories": {
         "Maya": [
             "Model",

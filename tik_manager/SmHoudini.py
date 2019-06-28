@@ -54,8 +54,11 @@ import subprocess
 import platform
 
 from Qt import QtWidgets, QtCore, QtGui
-# from PySide2 import QtWidgets
-# from PySide2 import QtGui
+
+## DO NOT REMOVE THIS:
+import iconsSource as icons
+## DO NOT REMOVE THIS:
+
 
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Scene Manager for Maya Project"

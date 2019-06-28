@@ -81,3 +81,12 @@ up icon
 down icon
 back icon
 forward icon
+
+pyrcc4 -o TEMPORARY.py tikManager.qrc
+
+by default pyrcc4 creates the file with "from PyQt4 import QtCore"
+which is incompatible with software versions.
+- write it out into a TEMPORARY.py
+- copy/paste contents into iconSource.py excluding imports. (use iconSource.py imports)
+
+

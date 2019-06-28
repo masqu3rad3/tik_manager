@@ -52,7 +52,9 @@ from Qt import QtWidgets, QtCore, QtGui
 
 import _version
 
-# import pprint
+## DO NOT REMOVE THIS:
+import iconsSource as icons
+## DO NOT REMOVE THIS:
 
 
 

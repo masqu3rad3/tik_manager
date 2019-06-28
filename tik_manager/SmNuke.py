@@ -47,6 +47,10 @@ from glob import glob
 
 from Qt import QtWidgets, QtCore, QtGui
 
+## DO NOT REMOVE THIS:
+import iconsSource as icons
+## DO NOT REMOVE THIS:
+
 logging.basicConfig()
 logger = logging.getLogger('smMaya')
 logger.setLevel(logging.WARNING)

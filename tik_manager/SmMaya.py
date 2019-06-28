@@ -56,6 +56,10 @@ import ImMaya
 # import Qt
 from Qt import QtWidgets, QtCore, QtGui
 
+## DO NOT REMOVE THIS:
+import iconsSource as icons
+## DO NOT REMOVE THIS:
+
 logging.basicConfig()
 logger = logging.getLogger('smMaya')
 logger.setLevel(logging.WARNING)
@@ -1250,7 +1254,8 @@ class MainUI(baseUI):
         self.modify()
 
     def modify(self):
-        self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "iconMaya.png"))
+        # self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "iconMaya.png"))
+        self.mIconPixmap = QtGui.QPixmap(":/icons/CSS/rc/iconMaya.png")
         self.managerIcon_label.setPixmap(self.mIconPixmap)
         # idk why this became necessary for houdini..
 

@@ -73,7 +73,11 @@ class RootManager(object):
 
         self.currentPlatform = platform.system()
         self._pathsDict={}
-        self.fpsList=["15", "24", "25", "30", "48", "50", "60"]
+        self.fpsList=["2", "3", "4", "5", "6", "8", "10", "12", "15", "16", "20",
+                      "23.976", "24", "25", "29.97", "30", "40", "47.952", "48",
+                      "50", "59.94", "60", "75", "80", "100", "120", "125", "150",
+                      "200", "240", "250", "300", "375", "400", "500", "600", "750",
+                      "1200", "1500", "2000", "3000", "6000", "44100", "48000"]
         # self.padding = 3
 
         self.errorCodeDict = {200: "Corrupted File",
@@ -1856,10 +1860,9 @@ Elapsed Time:{6}
     def loadProjectSettings(self):
         """Loads Project Settings from file"""
         if not os.path.isfile(self._pathsDict["projectSettingsFile"]):
-            projectSettingsDB = {"Resolution": [1920, 1080],
-                                   "FPS": 25}
-            self._dumpJson(projectSettingsDB, self._pathsDict["projectSettingsFile"])
-            return projectSettingsDB
+            defaultProjectSettings = self._sceneManagerDefaults["defaultProjectSettings"]
+            self._dumpJson(defaultProjectSettings, self._pathsDict["projectSettingsFile"])
+            return defaultProjectSettings
         else:
             projectSettingsDB = self._loadJson(self._pathsDict["projectSettingsFile"])
             if projectSettingsDB== -2:

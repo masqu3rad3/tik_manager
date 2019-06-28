@@ -43,7 +43,6 @@ from copy import deepcopy
 BoilerDict = {"Environment":"Standalone",
               "MainWindow":None,
               "WindowTitle":"Scene Manager Standalone v%s" %_version.__version__,
-              "Stylesheet":"mayaDark.stylesheet",
               "SceneFormats":None
               }
 
@@ -112,7 +111,9 @@ except ImportError:
 
 import webbrowser
 
+## DO NOT REMOVE THIS:
 import iconsSource as icons
+## DO NOT REMOVE THIS:
 
 import pprint
 
@@ -132,13 +133,6 @@ __status__ = "Development"
 logging.basicConfig()
 logger = logging.getLogger('smPhotoshop')
 logger.setLevel(logging.WARNING)
-
-
-
-
-
-
-
 
 def getMainWindow():
     """This function should be overriden"""
@@ -161,7 +155,6 @@ def getMainWindow():
 
     else:
         return None
-
 
 class MainUI(QtWidgets.QMainWindow):
     """Main UI Class for Tik Scene Manager"""
@@ -203,6 +196,10 @@ class MainUI(QtWidgets.QMainWindow):
         self.setCentralWidget(self.centralwidget)
 
         mainLayout = QtWidgets.QVBoxLayout(self.centralwidget)
+        try: mainLayout.setMargin(0)
+        except AttributeError: pass
+
+        mainLayout.setContentsMargins(10, 10, 10, 10)
 
         # ----------
         # HEADER BAR
@@ -235,9 +232,11 @@ class MainUI(QtWidgets.QMainWindow):
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
         if FORCE_QT4:
-            headerBitmap = QtWidgets.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
+            # headerBitmap = QtWidgets.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
+            headerBitmap = QtWidgets.QPixmap(":/icons/CSS/rc/tmMain.png")
         else:
-            headerBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
+            # headerBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
+            headerBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmMain.png")
         tikIcon_label.setPixmap(headerBitmap)
 
         headerLayout.addWidget(tikIcon_label)
@@ -468,11 +467,14 @@ class MainUI(QtWidgets.QMainWindow):
 
         # PyInstaller and Standalone version compatibility
 
-        emptyIcon = os.path.normpath(os.path.join(self.manager.getIconsDir(), "empty_thumbnail.png"))
+        # emptyIcon = os.path.normpath(os.path.join(self.manager.getIconsDir(), "empty_thumbnail.png"))
+
         if FORCE_QT4:
-            self.E_tPixmap = QtWidgets.QPixmap(emptyIcon)
+            # self.E_tPixmap = QtWidgets.QPixmap(emptyIcon)
+            self.E_tPixmap = QtWidgets.QPixmap(":/icons/CSS/rc/empty_thumbnail.png")
         else:
-            self.E_tPixmap = QtGui.QPixmap(emptyIcon)
+            # self.E_tPixmap = QtGui.QPixmap(emptyIcon)
+            self.E_tPixmap = QtGui.QPixmap(":/icons/CSS/rc/empty_thumbnail.png")
         self.thumbnail_label = ImageWidget(self.frame)
         self.thumbnail_label.setObjectName("image")
         self.thumbnail_label.setPixmap(self.E_tPixmap)
@@ -557,6 +559,9 @@ class MainUI(QtWidgets.QMainWindow):
         add_remove_users_fm = QtWidgets.QAction("&Add/Remove Users", self)
 
         add_remove_categories_fm = QtWidgets.QAction("&Add/Remove Categories", self)
+
+        settings_fm = QtWidgets.QAction("&Settings", self)
+
         pb_settings_fm = QtWidgets.QAction("&Playblast Settings", self)
 
         projectSettings_fm = QtWidgets.QAction("&Project Settings", self)
@@ -565,7 +570,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.changeCommonFolder =  QtWidgets.QAction("&Change Common Database", self)
         # self.changeCommonFolder.setVisible(False)
-
 
         deleteFile_fm = QtWidgets.QAction("&Delete Selected Base Scene", self)
         deleteReference_fm = QtWidgets.QAction("&Delete Reference of Selected Scene", self)
@@ -587,6 +591,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.fileMenu.addSeparator()
 
         #settings
+        self.fileMenu.addAction(settings_fm)
         self.fileMenu.addAction(add_remove_users_fm)
         self.fileMenu.addAction(add_remove_categories_fm)
         self.fileMenu.addAction(pb_settings_fm)
@@ -699,6 +704,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         createProject_fm.triggered.connect(self.createProjectUI)
 
+        settings_fm.triggered.connect(self.settingsUI)
         add_remove_users_fm.triggered.connect(self.addRemoveUserUI)
         pb_settings_fm.triggered.connect(self.onPbSettings)
 
@@ -763,8 +769,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.addNote_pushButton.clicked.connect(self.addNoteDialog)
 
         self.export_pushButton.clicked.connect(self.transferCentralUI)
-
-
 
     def createSubProjectUI(self):
 
@@ -1390,7 +1394,8 @@ class MainUI(QtWidgets.QMainWindow):
         except AttributeError: pass
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
-        testBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmTransfer.png"))
+        # testBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmTransfer.png"))
+        testBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmTransfer.png")
         tikIcon_label.setPixmap(testBitmap)
 
         headerLayout.addWidget(tikIcon_label)
@@ -1839,7 +1844,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.transferCentral_Dialog.show()
 
-
     def _filterDirectories(self):
         filterWord = self.dirFilter_lineEdit.text()
         self.DirFilter = [(unicode("*%s*" %filterWord))]
@@ -1853,38 +1857,41 @@ class MainUI(QtWidgets.QMainWindow):
 
         settings_Dialog = QtWidgets.QDialog(parent=self)
         settings_Dialog.setWindowTitle(("Settings"))
-        settings_Dialog.resize(961, 638)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(settings_Dialog.sizePolicy().hasHeightForWidth())
+        settings_Dialog.resize(960, 630)
+        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+        # sizePolicy.setHorizontalStretch(0)
+        # sizePolicy.setVerticalStretch(0)
+        # sizePolicy.setHeightForWidth(settings_Dialog.sizePolicy().hasHeightForWidth())
 
-        settings_Dialog.setSizePolicy(sizePolicy)
+        # settings_Dialog.setSizePolicy(sizePolicy)
 
         verticalLayout_2 = QtWidgets.QVBoxLayout(settings_Dialog)
-        verticalLayout_2.setObjectName(("verticalLayout_2"))
+        # verticalLayout_2.setContentsMargins(-1, -1, -1, -1)
+        try: verticalLayout_2.setMargin(0)
+        except AttributeError: pass
+        verticalLayout_2.setContentsMargins(10, 10 ,10 ,10)
 
         verticalLayout = QtWidgets.QVBoxLayout()
         verticalLayout.setSpacing(6)
-        verticalLayout.setObjectName(("verticalLayout"))
 
         splitter = QtWidgets.QSplitter(settings_Dialog)
+        splitter.setChildrenCollapsible(False)
 
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(splitter.sizePolicy().hasHeightForWidth())
-        splitter.setSizePolicy(sizePolicy)
+        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        # sizePolicy.setHorizontalStretch(0)
+        # sizePolicy.setVerticalStretch(0)
+        # sizePolicy.setHeightForWidth(splitter.sizePolicy().hasHeightForWidth())
+        # splitter.setSizePolicy(sizePolicy)
         splitter.setLineWidth(0)
         splitter.setOrientation(QtCore.Qt.Horizontal)
 
         left_frame = QtWidgets.QFrame(splitter)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(left_frame.sizePolicy().hasHeightForWidth())
-        left_frame.setSizePolicy(sizePolicy)
-        left_frame.setMinimumSize(QtCore.QSize(0, 0))
+        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+        # sizePolicy.setHorizontalStretch(0)
+        # sizePolicy.setVerticalStretch(0)
+        # sizePolicy.setHeightForWidth(left_frame.sizePolicy().hasHeightForWidth())
+        # left_frame.setSizePolicy(sizePolicy)
+        left_frame.setMinimumSize(QtCore.QSize(150, 0))
         left_frame.setMaximumSize(QtCore.QSize(16777215, 16777215))
         left_frame.setFrameShape(QtWidgets.QFrame.NoFrame)
         left_frame.setFrameShadow(QtWidgets.QFrame.Plain)
@@ -1902,11 +1909,16 @@ class MainUI(QtWidgets.QMainWindow):
         self.settingsMenu_treeWidget.setLineWidth(1)
         self.settingsMenu_treeWidget.setRootIsDecorated(True)
         self.settingsMenu_treeWidget.setHeaderHidden(True)
-        font = QtGui.QFont()
-        font.setPointSize(14)
+        if FORCE_QT4:
+            font = QtWidgets.QFont()
+        else:
+            font = QtGui.QFont()
+        # font = QtGui.QFont()
+        font.setPointSize(12)
         # font.setBold(False)
         # font.setWeight(75)
         self.settingsMenu_treeWidget.setFont(font)
+
 
         self.userSettings_item = QtWidgets.QTreeWidgetItem(["User Settings"])
         self.settingsMenu_treeWidget.addTopLevelItem(self.userSettings_item)
@@ -1966,7 +1978,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.scrollArea.setWidgetResizable(True)
 
         self.scrollAreaWidgetContents_2 = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents_2.setGeometry(QtCore.QRect(0, 0, 656, 567))
+        # self.scrollAreaWidgetContents_2.setGeometry(QtCore.QRect(0, 0, 656, 567))
 
         self.contentsMaster_layout = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents_2)
         self.contentsMaster_layout.setMargin(9)
@@ -2016,6 +2028,10 @@ class MainUI(QtWidgets.QMainWindow):
         self.allSettingsDict.add("sharedSettingsDir", currentCommonFolder, manager._pathsDict["commonFolderFile"])
         self._userSettingsContent()
 
+
+        ## PROJECT SETTINGS
+        currentProjectSettings = manager.loadProjectSettings()
+        self.allSettingsDict.add("projectSettings", currentProjectSettings, manager._pathsDict["projectSettingsFile"])
         self._projectSettingsContent()
 
         ## PREVIEW SETTINGS
@@ -2060,7 +2076,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         ## CATEGORIES
         #temp
-        sw=""
+        # sw=""
         if sw == "":
             # if it is standalone, get all categories for all softwares
             for value in self.softwareDB.values():
@@ -2079,55 +2095,16 @@ class MainUI(QtWidgets.QMainWindow):
 
         self._categoriesContent()
 
+        ## IMPORT/EXPORT OPTIONS
+        currentImportSettings = manager.loadImportSettings()
+        self.allSettingsDict.add("importSettings", currentImportSettings, manager._pathsDict["importSettingsFile"])
+        currentExportSettings = manager.loadExportSettings()
+        self.allSettingsDict.add("exportSettings", currentExportSettings, manager._pathsDict["exportSettingsFile"])
+        self._importExportContent()
+
         self._sharedSettingsContent()
 
 
-
-
-        # #QFrame to hold all content
-        # contents_frame = QtWidgets.QFrame(splitter)
-        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        # sizePolicy.setHorizontalStretch(100)
-        # sizePolicy.setHeightForWidth(contents_frame.sizePolicy().hasHeightForWidth())
-        # contents_frame.setSizePolicy(sizePolicy)
-        # contents_frame.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        # contents_frame.setFrameShadow(QtWidgets.QFrame.Raised)
-        # self.contentsMaster_layout = QtWidgets.QVBoxLayout(contents_frame)
-        # verticalLayout.addWidget(splitter)
-        #
-        # ## CONTENTS START
-        # if FORCE_QT4:
-        #     self.headerAFont = QtWidgets.QFont()
-        #     self.headerBFont = QtWidgets.QFont()
-        # else:
-        #     self.headerAFont = QtGui.QFont()
-        #     self.headerBFont = QtGui.QFont()
-        #
-        # self.headerAFont.setPointSize(14)
-        # self.headerAFont.setBold(True)
-        # self.headerAFont.setWeight(75)
-        #
-        # self.headerBFont.setPointSize(10)
-        # self.headerBFont.setBold(True)
-        # self.headerBFont.setWeight(75)
-        #
-        # # Visibility Widgets for EACH page
-        # self.userSettings_vis = QtWidgets.QWidget(contents_frame)
-        # self.projectSettings_vis = QtWidgets.QWidget(contents_frame)
-        # self.previewSettings_vis = QtWidgets.QWidget(contents_frame)
-        # self.categories_vis = QtWidgets.QWidget(contents_frame)
-        # self.importExportOptions_vis = QtWidgets.QWidget(contents_frame)
-        # self.sharedSettings_vis = QtWidgets.QWidget(contents_frame)
-        # self.users_vis = QtWidgets.QWidget(contents_frame)
-        # self.passwords_vis = QtWidgets.QWidget(contents_frame)
-        # self.namingConventions_vis = QtWidgets.QWidget(contents_frame)
-        #
-        # self._userSettingsContent()
-        # self._projectSettingsContent()
-        # self._previewSettingsContent()
-        # self._sharedSettingsContent()
-        #
-        ## CONTENTS END
         def pageUpdate():
             allPages = {"User Settings": self.userSettings_vis,
                         "Project Settings": self.projectSettings_vis,
@@ -2143,6 +2120,7 @@ class MainUI(QtWidgets.QMainWindow):
                 # print item[0], item[1], isVisible
                 item[1].setHidden(isVisible)
                 # self.userSettings_vis.setHidden(True)
+
 
         self.settingsButtonBox = QtWidgets.QDialogButtonBox(settings_Dialog)
         self.settingsButtonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Apply|QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
@@ -2172,35 +2150,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.settingsButtonBox.rejected.connect(settings_Dialog.reject)
 
+        splitter.setStretchFactor(1, 20)
         settings_Dialog.show()
-
-    # def _isSettingsChanged(self):
-    #     for key in self.allSettingsDict.keys():
-    #         newSettings = self.allSettingsDict[key]["newSettings"]
-    #         oldSettings = self.allSettingsDict[key]["oldSettings"]
-    #         if newSettings != oldSettings:
-    #             self.settingsButtonBox.button(QtWidgets.QDialogButtonBox.Apply).setEnabled(True)
-    #             return True
-    #     # self.settingsButtonBox.button(QtWidgets.QDialogButtonBox.Apply).setEnabled(False)
-    #     self.settingsApply_btn.setEnabled(False)
-    #     return False
-
-
-    # def _applySettingChanges(self):
-    #     manager = self._getManager()
-    #     for key in self.allSettingsDict.keys():
-    #         newSettings = self.allSettingsDict[key]["newSettings"]
-    #         oldSettings = self.allSettingsDict[key]["oldSettings"]
-    #         dataPath = self.allSettingsDict[key]["databaseFilePath"]
-    #         print "new", newSettings
-    #         print "old", oldSettings
-    #         print "filePath", dataPath
-    #         if newSettings != oldSettings:
-    #             manager._dumpJson(newSettings, dataPath)
-    #             self.allSettingsDict[key]["oldSettings"] = type(newSettings)(newSettings)
-    #             print("%s updated" %dataPath)
-    #     # self.settingsButtonBox.button(QtWidgets.QDialogButtonBox.Apply).setEnabled(False)
-    #     self.settingsApply_btn.setEnabled(False)
 
     def _userSettingsContent(self):
         manager = self._getManager()
@@ -2208,8 +2159,6 @@ class MainUI(QtWidgets.QMainWindow):
         userSettings_Layout.setSpacing(6)
 
         def updateDictionary():
-            logger.warning("UPDATE DICTIONARY")
-
             self.allSettingsDict["userSettings"]["newSettings"][
                 "globalFavorites"] = globalFavorites_radiobutton.isChecked()
 
@@ -2370,8 +2319,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         userSettings_Layout.addItem(spacerItem)
-
         self.contentsMaster_layout.addWidget(self.userSettings_vis)
+        print "DEBUGwe"
 
         # SIGNALS USER SETTINGS
         # ---------------------
@@ -2380,38 +2329,109 @@ class MainUI(QtWidgets.QMainWindow):
 
         globalFavorites_radiobutton.clicked.connect(updateDictionary)
         localFavorites_radiobutton.clicked.connect(updateDictionary)
-
         # commonDir_lineEdit.textChanged.connect(updateDictionary)
         commonDir_lineEdit.editingFinished.connect(updateDictionary)
 
-    def _projectSettingsContent(self):
-        self.projectSettings_Layout = QtWidgets.QVBoxLayout(self.projectSettings_vis)
-        self.projectSettings_Layout.setSpacing(6)
 
-        projectSettings_label = QtWidgets.QLabel(self.projectSettings_vis)
-        projectSettings_label.setText("Project Settings")
-        projectSettings_label.setFont(self.headerAFont)
-        projectSettings_label.setIndent(10)
-        projectSettings_label.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
-        self.projectSettings_Layout.addWidget(projectSettings_label)
+
+    def _projectSettingsContent(self):
+        manager = self._getManager()
+        settings = self.allSettingsDict.get("projectSettings")
+
+        def updateDictionary():
+            settings["Resolution"] = [resolutionX_spinBox.value(), resolutionY_spinBox.value()]
+            settings["FPS"] = float(fps_comboBox.currentText())
+
+            self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
+
+        projectSettings_Layout = QtWidgets.QVBoxLayout(self.projectSettings_vis)
+        projectSettings_Layout.setSpacing(0)
+
+        h1_horizontalLayout = QtWidgets.QHBoxLayout(self.projectSettings_vis)
+        h1_label = QtWidgets.QLabel(self.projectSettings_vis)
+        h1_label.setText("Project Settings")
+        h1_label.setFont(self.headerAFont)
+        h1_horizontalLayout.addWidget(h1_label)
+        projectSettings_Layout.addLayout(h1_horizontalLayout)
+
+        projectSettings_formLayout = QtWidgets.QFormLayout(self.projectSettings_vis)
+        projectSettings_formLayout.setSpacing(2)
+        projectSettings_formLayout.setVerticalSpacing(5)
+        # projectSettings_formLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
+        # projectSettings_formLayout.setLabelAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        # projectSettings_formLayout.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+        projectSettings_formLayout.setContentsMargins(-1, 15, -1, -1)
+
+        resolution_label = QtWidgets.QLabel(self.projectSettings_vis)
+        resolution_label.setText("Resolution: ")
+        resolution_label.setObjectName("resolution_label")
+
+        horizontalLayout = QtWidgets.QHBoxLayout()
+        horizontalLayout.setObjectName("horizontalLayout")
+
+        resolutionX_spinBox = QtWidgets.QSpinBox(self.projectSettings_vis)
+        resolutionX_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        horizontalLayout.addWidget(resolutionX_spinBox)
+        resolutionX_spinBox.setRange(1, 99999)
+        resolutionX_spinBox.setValue(settings["Resolution"][0])
+
+        resolutionY_spinBox = QtWidgets.QSpinBox(self.projectSettings_vis)
+        resolutionY_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        horizontalLayout.addWidget(resolutionY_spinBox)
+        resolutionY_spinBox.setRange(1, 99999)
+        resolutionY_spinBox.setValue(settings["Resolution"][1])
+
+        projectSettings_formLayout.addRow(resolution_label, horizontalLayout)
+
+        fps_label = QtWidgets.QLabel(self.projectSettings_vis)
+        fps_label.setText("FPS: ")
+        fps_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+
+        fps_comboBox = QtWidgets.QComboBox(self.projectSettings_vis)
+        # fps_comboBox.setMaximumSize(QtCore.QSize(60, 16777215))
+        fps_comboBox.addItems(manager.fpsList)
+        try:
+            index = self.manager.fpsList.index(str(settings["FPS"]))
+        except:
+            index = 13
+        fps_comboBox.setCurrentIndex(index)
+
+        projectSettings_formLayout.addRow(fps_label, fps_comboBox)
+
+        projectSettings_Layout.addLayout(projectSettings_formLayout)
+
+        # projectSettings_label = QtWidgets.QLabel(self.projectSettings_vis)
+        # projectSettings_label.setText("Project Settings")
+        # projectSettings_label.setFont(self.headerAFont)
+        # projectSettings_label.setIndent(10)
+        # projectSettings_label.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+        # projectSettings_Layout.addWidget(projectSettings_label)
+
+        cmdButtons_layout = QtWidgets.QVBoxLayout(self.projectSettings_vis)
+        cmdButtons_layout.setContentsMargins(-1, 15, -1, -1)
+        projectSettings_Layout.addLayout(cmdButtons_layout)
 
         previewSettings_cmdButton = QtWidgets.QCommandLinkButton(self.projectSettings_vis)
         previewSettings_cmdButton.setText("Preview Settings")
-        self.projectSettings_Layout.addWidget(previewSettings_cmdButton)
+        cmdButtons_layout.addWidget(previewSettings_cmdButton)
 
         categories_cmdButton = QtWidgets.QCommandLinkButton(self.projectSettings_vis)
         categories_cmdButton.setText("Categories")
-        self.projectSettings_Layout.addWidget(categories_cmdButton)
+        cmdButtons_layout.addWidget(categories_cmdButton)
 
         importExportOptions_cmdButton = QtWidgets.QCommandLinkButton(self.projectSettings_vis)
         importExportOptions_cmdButton.setText("Import/Export Options")
-        self.projectSettings_Layout.addWidget(importExportOptions_cmdButton)
+        cmdButtons_layout.addWidget(importExportOptions_cmdButton)
 
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.projectSettings_Layout.addItem(spacerItem)
+        projectSettings_Layout.addItem(spacerItem)
         self.contentsMaster_layout.addWidget(self.projectSettings_vis)
 
         # SIGNALS
+        resolutionX_spinBox.valueChanged.connect(updateDictionary)
+        resolutionY_spinBox.valueChanged.connect(updateDictionary)
+        fps_comboBox.currentIndexChanged.connect(updateDictionary)
+
         previewSettings_cmdButton.clicked.connect(lambda: self.settingsMenu_treeWidget.setCurrentItem(self.previewSettings_item))
         categories_cmdButton.clicked.connect(lambda: self.settingsMenu_treeWidget.setCurrentItem(self.categories_item))
         importExportOptions_cmdButton.clicked.connect(lambda: self.settingsMenu_treeWidget.setCurrentItem(self.importExport_item))
@@ -2726,144 +2746,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         # self.contentsMaster_layout.addWidget(self.previewSettings_vis)
 
-    def _categoriesContent(self):
-        manager = self._getManager()
-        categorySwList = [key for key in self.allSettingsDict.listNames() if key.startswith("categories")]
-        print "categoryList", categorySwList
-
-        categories_Layout = QtWidgets.QVBoxLayout(self.categories_vis)
-        categories_Layout.setSpacing(0)
-
-        h1_horizontalLayout = QtWidgets.QHBoxLayout(self.categories_vis)
-        h1_label = QtWidgets.QLabel(self.categories_vis)
-        h1_label.setText("Add/Remove Categories")
-        h1_label.setFont(self.headerAFont)
-        h1_horizontalLayout.addWidget(h1_label)
-        categories_Layout.addLayout(h1_horizontalLayout)
-
-        h1_s1_layout = QtWidgets.QVBoxLayout(self.categories_vis)
-        h1_s1_layout.setContentsMargins(-1, 15, -1, -1)
-
-        swTabs = QtWidgets.QTabWidget(self.categories_vis)
-        swTabs.setMaximumSize(QtCore.QSize(16777215, 167777))
-        swTabs.setTabPosition(QtWidgets.QTabWidget.North)
-        swTabs.setElideMode(QtCore.Qt.ElideNone)
-        swTabs.setUsesScrollButtons(False)
-
-        def onRemove(settingKey, listWidget):
-            row = listWidget.currentRow()
-            if row == -1:
-                return
-            trashCategory = listWidget.currentItem().text()
-            categories = self.allSettingsDict.get(settingKey)
-            ## check if this is the last category
-            if len(categories) == 1:
-                self.infoPop(textTitle="Cannot Remove Category",
-                             textHeader="Last Category cannot be removed")
-
-            ## Check if this category is REALLY trash
-            niceName=settingKey.replace("categories_", "")
-            dbPath = os.path.normpath(os.path.join(manager._pathsDict["masterDir"], self.softwareDB[niceName]["databaseDir"]))
-
-            if manager.isCategoryTrash(trashCategory, dbPath=dbPath):
-                categories.remove(trashCategory)
-                listWidget.clear()
-                listWidget.addItems(categories)
-            else:
-                self.infoPop(textTitle="Cannot Remove Category",
-                             textHeader="%s Category is not empty. Aborting..." % trashCategory)
-
-
-
-        def onAdd(settingKey, listWidget):
-            addCategory_Dialog = QtWidgets.QDialog(parent=self)
-            addCategory_Dialog.resize(260, 114)
-            addCategory_Dialog.setMaximumSize(QtCore.QSize(16777215, 150))
-            addCategory_Dialog.setFocusPolicy(QtCore.Qt.ClickFocus)
-            addCategory_Dialog.setWindowTitle(("Add New Category"))
-
-            verticalLayout = QtWidgets.QVBoxLayout(addCategory_Dialog)
-
-            addNewCategory_label = QtWidgets.QLabel(addCategory_Dialog)
-            addNewCategory_label.setText("Add New Category:")
-            verticalLayout.addWidget(addNewCategory_label)
-
-            categoryName_lineEdit = QtWidgets.QLineEdit(addCategory_Dialog)
-            categoryName_lineEdit.setPlaceholderText("e.g \'Shading\'")
-            verticalLayout.addWidget(categoryName_lineEdit)
-
-            buttonBox = QtWidgets.QDialogButtonBox(addCategory_Dialog)
-            buttonBox.setOrientation(QtCore.Qt.Horizontal)
-            buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
-            verticalLayout.addWidget(buttonBox)
-            addCategory_Dialog.show()
-
-            buttonBox.setMaximumSize(QtCore.QSize(16777215, 30))
-            buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setMinimumSize(QtCore.QSize(100, 30))
-            buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
-
-            def addCategory():
-                newCategory = categoryName_lineEdit.text()
-                categories = self.allSettingsDict.get(settingKey)
-                for x in categories:
-                    if newCategory.lower() == x.lower():
-                        self.infoPop(textTitle="Cannot Add Category",
-                                     textHeader="%s category already exist" % newCategory)
-                        return False
-
-                categories.append(newCategory)
-                listWidget.clear()
-                listWidget.addItems(categories)
-                addCategory_Dialog.accept()
-
-                # pprint.pprint(self.allSettingsDict)
-
-            buttonBox.accepted.connect(addCategory)
-            buttonBox.rejected.connect(addCategory_Dialog.reject)
-
-        for cat in sorted(categorySwList):
-            tabWidget = QtWidgets.QWidget(self.categories_vis)
-            horizontalLayout = QtWidgets.QHBoxLayout(tabWidget)
-            categories_listWidget = QtWidgets.QListWidget(self.categories_vis)
-            horizontalLayout.addWidget(categories_listWidget)
-
-            verticalLayout = QtWidgets.QVBoxLayout(self.categories_vis)
-            verticalLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
-
-            add_pushButton = QtWidgets.QPushButton(self.categories_vis)
-            add_pushButton.setText(("Add..."))
-            verticalLayout.addWidget(add_pushButton)
-
-            remove_pushButton = QtWidgets.QPushButton(self.categories_vis)
-            remove_pushButton.setText(("Remove"))
-            verticalLayout.addWidget(remove_pushButton)
-
-            spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-            verticalLayout.addItem(spacerItem)
-
-            horizontalLayout.addLayout(verticalLayout)
-
-            swTabs.addTab(tabWidget, cat.replace("categories_", ""))
-
-            categories_listWidget.addItems(self.allSettingsDict[cat]["newSettings"])
-            add_pushButton.clicked.connect(lambda settingKey=cat, listWidget=categories_listWidget: onAdd(settingKey, listWidget))
-            # add_pushButton.clicked.connect(lambda: onAdd(cat, categories_listWidget))
-            remove_pushButton.clicked.connect(lambda settingKey=cat, listWidget=categories_listWidget: onRemove(settingKey, listWidget))
-            # remove_pushButton.clicked.connect(lambda: onRemove(cat, categories_listWidget))
-
-
-        h1_s1_layout.addWidget(swTabs)
-        categories_Layout.addLayout(h1_s1_layout)
-
-
-        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        categories_Layout.addItem(spacerItem)
-        self.contentsMaster_layout.addWidget(self.categories_vis)
-
-
-
-
-
     def _previewSettingsContent_max(self):
         manager = self._getManager()
         # settings = self.allSettingsDict["preview_max"]["oldSettings"]
@@ -3069,6 +2951,758 @@ class MainUI(QtWidgets.QMainWindow):
         # self.previewMasterLayout.addItem(spacerItem)
 
         # self.contentsMaster_layout.addWidget(self.previewSettings_vis)
+
+    def _categoriesContent(self):
+        manager = self._getManager()
+        categorySwList = [key for key in self.allSettingsDict.listNames() if key.startswith("categories")]
+
+        categories_Layout = QtWidgets.QVBoxLayout(self.categories_vis)
+        categories_Layout.setSpacing(0)
+
+        h1_horizontalLayout = QtWidgets.QHBoxLayout(self.categories_vis)
+        h1_label = QtWidgets.QLabel(self.categories_vis)
+        h1_label.setText("Add/Remove Categories")
+        h1_label.setFont(self.headerAFont)
+        h1_horizontalLayout.addWidget(h1_label)
+        categories_Layout.addLayout(h1_horizontalLayout)
+
+        h1_s1_layout = QtWidgets.QVBoxLayout(self.categories_vis)
+        h1_s1_layout.setContentsMargins(-1, 15, -1, -1)
+
+        swTabs = QtWidgets.QTabWidget(self.categories_vis)
+        swTabs.setMaximumSize(QtCore.QSize(16777215, 167777))
+        swTabs.setTabPosition(QtWidgets.QTabWidget.North)
+        swTabs.setElideMode(QtCore.Qt.ElideNone)
+        swTabs.setUsesScrollButtons(False)
+
+        def onRemove(settingKey, listWidget):
+            row = listWidget.currentRow()
+            if row == -1:
+                return
+            trashCategory = listWidget.currentItem().text()
+            categories = self.allSettingsDict.get(settingKey)
+            ## check if this is the last category
+            if len(categories) == 1:
+                self.infoPop(textTitle="Cannot Remove Category",
+                             textHeader="Last Category cannot be removed")
+
+            ## Check if this category is REALLY trash
+            niceName=settingKey.replace("categories_", "")
+            dbPath = os.path.normpath(os.path.join(manager._pathsDict["masterDir"], self.softwareDB[niceName]["databaseDir"]))
+
+            if manager.isCategoryTrash(trashCategory, dbPath=dbPath):
+                categories.remove(trashCategory)
+                listWidget.clear()
+                listWidget.addItems(categories)
+            else:
+                self.infoPop(textTitle="Cannot Remove Category",
+                             textHeader="%s Category is not empty. Aborting..." % trashCategory)
+
+        def onAdd(settingKey, listWidget):
+            addCategory_Dialog = QtWidgets.QDialog(parent=self)
+            addCategory_Dialog.resize(260, 114)
+            addCategory_Dialog.setMaximumSize(QtCore.QSize(16777215, 150))
+            addCategory_Dialog.setFocusPolicy(QtCore.Qt.ClickFocus)
+            addCategory_Dialog.setWindowTitle(("Add New Category"))
+
+            verticalLayout = QtWidgets.QVBoxLayout(addCategory_Dialog)
+
+            addNewCategory_label = QtWidgets.QLabel(addCategory_Dialog)
+            addNewCategory_label.setText("Add New Category:")
+            verticalLayout.addWidget(addNewCategory_label)
+
+            categoryName_lineEdit = QtWidgets.QLineEdit(addCategory_Dialog)
+            categoryName_lineEdit.setPlaceholderText("e.g \'Shading\'")
+            verticalLayout.addWidget(categoryName_lineEdit)
+
+            buttonBox = QtWidgets.QDialogButtonBox(addCategory_Dialog)
+            buttonBox.setOrientation(QtCore.Qt.Horizontal)
+            buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
+            verticalLayout.addWidget(buttonBox)
+            addCategory_Dialog.show()
+
+            buttonBox.setMaximumSize(QtCore.QSize(16777215, 30))
+            buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setMinimumSize(QtCore.QSize(100, 30))
+            buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
+
+            def addCategory():
+                newCategory = categoryName_lineEdit.text()
+                categories = self.allSettingsDict.get(settingKey)
+                for x in categories:
+                    if newCategory.lower() == x.lower():
+                        self.infoPop(textTitle="Cannot Add Category",
+                                     textHeader="%s category already exist" % newCategory)
+                        return False
+
+                categories.append(newCategory)
+                listWidget.clear()
+                listWidget.addItems(categories)
+                addCategory_Dialog.accept()
+
+                # pprint.pprint(self.allSettingsDict)
+
+            buttonBox.accepted.connect(addCategory)
+            buttonBox.rejected.connect(addCategory_Dialog.reject)
+
+        for cat in sorted(categorySwList):
+            tabWidget = QtWidgets.QWidget(self.categories_vis)
+            horizontalLayout = QtWidgets.QHBoxLayout(tabWidget)
+            categories_listWidget = QtWidgets.QListWidget(self.categories_vis)
+            horizontalLayout.addWidget(categories_listWidget)
+
+            verticalLayout = QtWidgets.QVBoxLayout(self.categories_vis)
+            verticalLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
+
+            add_pushButton = QtWidgets.QPushButton(self.categories_vis)
+            add_pushButton.setText(("Add..."))
+            verticalLayout.addWidget(add_pushButton)
+
+            remove_pushButton = QtWidgets.QPushButton(self.categories_vis)
+            remove_pushButton.setText(("Remove"))
+            verticalLayout.addWidget(remove_pushButton)
+
+            spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+            verticalLayout.addItem(spacerItem)
+
+            horizontalLayout.addLayout(verticalLayout)
+
+            swTabs.addTab(tabWidget, cat.replace("categories_", ""))
+
+            categories_listWidget.addItems(self.allSettingsDict[cat]["newSettings"])
+            add_pushButton.clicked.connect(lambda settingKey=cat, listWidget=categories_listWidget: onAdd(settingKey, listWidget))
+            # add_pushButton.clicked.connect(lambda: onAdd(cat, categories_listWidget))
+            remove_pushButton.clicked.connect(lambda settingKey=cat, listWidget=categories_listWidget: onRemove(settingKey, listWidget))
+            # remove_pushButton.clicked.connect(lambda: onRemove(cat, categories_listWidget))
+
+
+        h1_s1_layout.addWidget(swTabs)
+        categories_Layout.addLayout(h1_s1_layout)
+
+
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        categories_Layout.addItem(spacerItem)
+        self.contentsMaster_layout.addWidget(self.categories_vis)
+
+    def _importExportContent(self):
+        manager = self._getManager()
+        sw = manager.swName.lower()
+        exportSettings = self.allSettingsDict.get("exportSettings")
+        importSettings = self.allSettingsDict.get("importSettings")
+
+        def updateImportDictionary(sw, key, value):
+            importSettings[sw][key]=value
+            print sw, key, importSettings[sw][key]
+            pass
+
+        def updateExportDictionary(sw, key, value):
+            exportSettings[sw][key] = value
+            print sw, key, exportSettings[sw][key]
+            pass
+
+        importExport_Layout = QtWidgets.QVBoxLayout(self.importExportOptions_vis)
+        importExport_Layout.setSpacing(0)
+
+        h1_horizontalLayout = QtWidgets.QHBoxLayout(self.importExportOptions_vis)
+        h1_label = QtWidgets.QLabel(self.importExportOptions_vis)
+        h1_label.setText("Import/Export Geometry Settings")
+        h1_label.setFont(self.headerAFont)
+        h1_horizontalLayout.addWidget(h1_label)
+        importExport_Layout.addLayout(h1_horizontalLayout)
+
+        h1_s1_layout = QtWidgets.QVBoxLayout(self.importExportOptions_vis)
+        h1_s1_layout.setContentsMargins(-1, 15, -1, -1)
+
+        softwaresTabWidget = QtWidgets.QTabWidget(self.importExportOptions_vis)
+        softwaresTabWidget.setMaximumSize(QtCore.QSize(16777215, 167777))
+        softwaresTabWidget.setTabPosition(QtWidgets.QTabWidget.North)
+        softwaresTabWidget.setElideMode(QtCore.Qt.ElideNone)
+        softwaresTabWidget.setUsesScrollButtons(False)
+
+        if sw == "maya" or sw == "":
+            mayaTab = QtWidgets.QWidget(self.importExportOptions_vis)
+            maya_verticalLayout = QtWidgets.QVBoxLayout(mayaTab)
+            maya_verticalLayout.setSpacing(0)
+
+            softwaresTabWidget.addTab(mayaTab, "Maya")
+
+            formatsTabWidget = QtWidgets.QTabWidget(mayaTab)
+            objTab = QtWidgets.QWidget(mayaTab)
+            fbxTab = QtWidgets.QWidget(mayaTab)
+            alembicTab = QtWidgets.QWidget(mayaTab)
+            formatsTabWidget.addTab(objTab, "Obj")
+            formatsTabWidget.addTab(fbxTab, "FBX")
+            formatsTabWidget.addTab(alembicTab, "Alembic")
+            maya_verticalLayout.addWidget(formatsTabWidget)
+
+            ## MAYA OBJ
+            ## --------
+            def _maya_obj():
+                obj_horizontal_layout = QtWidgets.QHBoxLayout(objTab)
+                obj_import_layout = QtWidgets.QVBoxLayout()
+                obj_seperator = QtWidgets.QLabel()
+                obj_seperator.setStyleSheet("background-color: rgb(255,141,28,60);")
+                obj_seperator.setMaximumWidth(2)
+                obj_export_layout = QtWidgets.QVBoxLayout()
+
+                obj_horizontal_layout.addLayout(obj_import_layout)
+                obj_horizontal_layout.addWidget(obj_seperator)
+                obj_horizontal_layout.addLayout(obj_export_layout)
+
+                ## MAYA OBJ IMPORT WIDGETS
+                obj_import_label = QtWidgets.QLabel()
+                obj_import_label.setText("Obj Import Settings")
+                obj_import_label.setFont(self.headerBFont)
+                obj_import_layout.addWidget(obj_import_label)
+
+                obj_import_formlayout = QtWidgets.QFormLayout()
+                obj_import_layout.addLayout(obj_import_formlayout)
+
+                LegacyVertexOrdering_chb = QtWidgets.QCheckBox()
+                LegacyVertexOrdering_chb.setText("Legacy Vertex Ordering")
+                LegacyVertexOrdering_chb.setObjectName("LegacyVertexOrdering")
+                LegacyVertexOrdering_chb.setChecked(bool(int(importSettings["objImportMaya"]["LegacyVertexOrdering"].replace("lo=", ""))))
+                obj_import_formlayout.addRow(LegacyVertexOrdering_chb)
+                LegacyVertexOrdering_chb.stateChanged.connect(
+                    lambda state: updateImportDictionary("objImportMaya", "LegacyVertexOrdering", "lo=%s" %int(bool(state))))
+
+                MultipleObjects_chb = QtWidgets.QCheckBox()
+                MultipleObjects_chb.setText("Multiple Objects")
+                MultipleObjects_chb.setObjectName("MultipleObjects")
+                MultipleObjects_chb.setChecked(bool(int(importSettings["objImportMaya"]["MultipleObjects"].replace("mo=", ""))))
+                obj_import_formlayout.addRow(MultipleObjects_chb)
+                # MultipleObjects_chb.stateChanged.connect(lambda state=MultipleObjects_chb.isChecked():
+                #                                               updateImportDictionary("objImportMaya", "MultipleObjects", "lo=%s" %int(bool(state))))
+                MultipleObjects_chb.stateChanged.connect(
+                    lambda state: updateImportDictionary("objImportMaya", "MultipleObjects", "lo=%s" % int(bool(state))))
+
+                spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
+                                                   QtWidgets.QSizePolicy.Expanding)
+                obj_import_layout.addItem(spacerItem)
+
+                ## MAYA OBJ EXPORT WIDGETS
+                obj_export_label = QtWidgets.QLabel()
+                obj_export_label.setText("Obj Export Settings")
+                obj_export_label.setFont(self.headerBFont)
+                obj_export_layout.addWidget(obj_export_label)
+
+                obj_export_formlayout = QtWidgets.QFormLayout()
+                obj_export_layout.addLayout(obj_export_formlayout)
+
+                normals_chb = QtWidgets.QCheckBox()
+                normals_chb.setText("Normals")
+                normals_chb.setObjectName("normals")
+                obj_export_formlayout.addRow(normals_chb)
+                normals_chb.setChecked(bool(int(exportSettings["objExportMaya"]["normals"])))
+                normals_chb.stateChanged.connect(
+                    lambda state: updateExportDictionary("objExportMaya", "normals", "%s" %int(bool(state))))
+
+                materials_chb = QtWidgets.QCheckBox()
+                materials_chb.setText("Materials")
+                materials_chb.setObjectName("materials")
+                obj_export_formlayout.addRow(materials_chb)
+                materials_chb.setChecked(bool(int(exportSettings["objExportMaya"]["materials"])))
+                materials_chb.stateChanged.connect(
+                    lambda state: updateExportDictionary("objExportMaya", "materials", "%s" %int(bool(state))))
+
+                ptgroups_chb = QtWidgets.QCheckBox()
+                ptgroups_chb.setText("Point Groups")
+                ptgroups_chb.setObjectName("ptgroups")
+                obj_export_formlayout.addRow(ptgroups_chb)
+                ptgroups_chb.setChecked(bool(int(exportSettings["objExportMaya"]["ptgroups"])))
+                ptgroups_chb.stateChanged.connect(
+                    lambda state: updateExportDictionary("objExportMaya", "ptgroups", "%s" % int(bool(state))))
+
+                groups_chb = QtWidgets.QCheckBox()
+                groups_chb.setText("Groups")
+                groups_chb.setObjectName("groups")
+                obj_export_formlayout.addRow(groups_chb)
+                groups_chb.setChecked(bool(int(exportSettings["objExportMaya"]["groups"])))
+                groups_chb.stateChanged.connect(
+                    lambda state: updateExportDictionary("objExportMaya", "groups", "%s" % int(bool(state))))
+
+                smoothing_chb = QtWidgets.QCheckBox()
+                smoothing_chb.setText("Smoothing")
+                smoothing_chb.setObjectName("smoothing")
+                obj_export_formlayout.addRow(smoothing_chb)
+                smoothing_chb.setChecked(bool(int(exportSettings["objExportMaya"]["smoothing"])))
+                smoothing_chb.stateChanged.connect(
+                    lambda state: updateExportDictionary("objExportMaya", "smoothing", "%s" % int(bool(state))))
+
+                spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
+                                                   QtWidgets.QSizePolicy.Expanding)
+                obj_export_layout.addItem(spacerItem)
+
+            ## MAYA FBX
+            ## --------
+            def _maya_fbx():
+                fbx_horizontal_layout = QtWidgets.QHBoxLayout(fbxTab)
+                fbx_import_layout = QtWidgets.QVBoxLayout()
+                fbx_seperator = QtWidgets.QLabel()
+                fbx_seperator.setStyleSheet("background-color: rgb(255,141,28,60);")
+                fbx_seperator.setMaximumWidth(2)
+                fbx_export_layout = QtWidgets.QVBoxLayout()
+
+                fbx_horizontal_layout.addLayout(fbx_import_layout)
+                fbx_horizontal_layout.addWidget(fbx_seperator)
+                fbx_horizontal_layout.addLayout(fbx_export_layout)
+
+                ## MAYA FBX IMPORT WIDGETS
+                fbx_import_label = QtWidgets.QLabel()
+                fbx_import_label.setText("Fbx Import Settings")
+                fbx_import_label.setFont(self.headerBFont)
+                fbx_import_layout.addWidget(fbx_import_label)
+
+                fbx_import_formlayout = QtWidgets.QFormLayout()
+                fbx_import_layout.addLayout(fbx_import_formlayout)
+
+                FBXImportUpAxis_lbl = QtWidgets.QLabel()
+                FBXImportUpAxis_lbl.setText("Up Axis: ")
+                FBXImportUpAxis_combo = QtWidgets.QComboBox()
+                FBXImportUpAxis_combo.addItems(["y", "z"])
+                FBXImportUpAxis_combo.setObjectName("FBXImportUpAxis")
+                fbx_import_formlayout.addRow(FBXImportUpAxis_lbl, FBXImportUpAxis_combo)
+                ffindex = FBXImportUpAxis_combo.findText(importSettings["fbxImportMaya"]["FBXImportUpAxis"], QtCore.Qt.MatchFixedString)
+                FBXImportUpAxis_combo.setCurrentIndex(ffindex)
+                FBXImportUpAxis_combo.currentIndexChanged.connect(
+                    lambda: updateImportDictionary("fbxImportMaya", "FBXImportUpAxis", FBXImportUpAxis_combo.currentText()))
+
+                FBXImportMode_lbl = QtWidgets.QLabel()
+                FBXImportMode_lbl.setText("Import Mode")
+                FBXImportMode_combo = QtWidgets.QComboBox()
+                FBXImportMode_combo.addItems(["add", "merge", "exmerge"])
+                FBXImportMode_combo.setObjectName("FBXImportMode")
+                fbx_import_formlayout.addRow(FBXImportMode_lbl, FBXImportMode_combo)
+                ffindex = FBXImportMode_combo.findText(importSettings["fbxImportMaya"]["FBXImportMode"].replace("-v ", ""),
+                                                         QtCore.Qt.MatchFixedString)
+                FBXImportMode_combo.setCurrentIndex(ffindex)
+                FBXImportMode_combo.currentIndexChanged.connect(
+                    lambda: updateImportDictionary("fbxImportMaya", "FBXImportUpAxis", "-v %s" %FBXImportMode_combo.currentText()))
+
+                FBXImportScaleFactor_lbl = QtWidgets.QLabel()
+                FBXImportScaleFactor_lbl.setText("Scale Factor")
+                FBXImportScaleFactor_spn = QtWidgets.QDoubleSpinBox()
+                FBXImportScaleFactor_spn.setObjectName("FBXImportScaleFactor")
+                fbx_import_formlayout.addRow(FBXImportScaleFactor_lbl, FBXImportScaleFactor_spn)
+                FBXImportScaleFactor_spn.setValue(float(importSettings["fbxImportMaya"]["FBXImportScaleFactor"]))
+                FBXImportScaleFactor_spn.valueChanged.connect(
+                    lambda: updateImportDictionary("fbxImportMaya", "FBXImportScaleFactor", str(FBXImportScaleFactor_spn.value()))
+                )
+
+                FBXImportQuaternion_lbl = QtWidgets.QLabel()
+                FBXImportQuaternion_lbl.setText("Treat Quaternions: ")
+                FBXImportQuaternion_combo = QtWidgets.QComboBox()
+                FBXImportQuaternion_combo.addItems(["quaternion", "euler", "resample"])
+                FBXImportQuaternion_combo.setObjectName("FBXImportQuaternion")
+                fbx_import_formlayout.addRow(FBXImportQuaternion_lbl, FBXImportQuaternion_combo)
+
+                FBXImportResamplingRateSource_lbl = QtWidgets.QLabel()
+                FBXImportResamplingRateSource_lbl.setText("Resampling Rate Source: ")
+                FBXImportResamplingRateSource_combo = QtWidgets.QComboBox()
+                FBXImportResamplingRateSource_combo.addItems(["Maya", "FBX"])
+                FBXImportResamplingRateSource_combo.setObjectName("FBXImportResamplingRateSource")
+                fbx_import_formlayout.addRow(FBXImportResamplingRateSource_lbl, FBXImportResamplingRateSource_combo)
+
+                FBXImportMergeBackNullPivots_chb = QtWidgets.QCheckBox()
+                FBXImportMergeBackNullPivots_chb.setText("Merge Back Null Pivots")
+                FBXImportMergeBackNullPivots_chb.setObjectName("FBXImportMergeBackNullPivots")
+                fbx_import_formlayout.addRow(FBXImportMergeBackNullPivots_chb)
+
+                FBXImportSetLockedAttribute_chb = QtWidgets.QCheckBox()
+                FBXImportSetLockedAttribute_chb.setText("Set Locked Attribute")
+                FBXImportSetLockedAttribute_chb.setObjectName("FBXImportSetLockedAttribute")
+                fbx_import_formlayout.addRow(FBXImportSetLockedAttribute_chb)
+
+                FBXImportUnlockNormals_chb = QtWidgets.QCheckBox()
+                FBXImportUnlockNormals_chb.setText("Unlock Normals")
+                FBXImportUnlockNormals_chb.setObjectName("FBXImportUnlockNormals")
+                fbx_import_formlayout.addRow(FBXImportUnlockNormals_chb)
+
+                FBXImportProtectDrivenKeys_chb = QtWidgets.QCheckBox()
+                FBXImportProtectDrivenKeys_chb.setText("Protect Driven Keys")
+                FBXImportProtectDrivenKeys_chb.setObjectName("FBXImportProtectDrivenKeys")
+                fbx_import_formlayout.addRow(FBXImportProtectDrivenKeys_chb)
+
+                FBXImportShapes_chb = QtWidgets.QCheckBox()
+                FBXImportShapes_chb.setText("Shapes")
+                FBXImportShapes_chb.setObjectName("FBXImportShapes")
+                fbx_import_formlayout.addRow(FBXImportShapes_chb)
+
+                FBXImportCameras_chb = QtWidgets.QCheckBox()
+                FBXImportCameras_chb.setText("Cameras")
+                FBXImportCameras_chb.setObjectName("FBXImportCameras")
+                fbx_import_formlayout.addRow(FBXImportCameras_chb)
+
+                FBXImportSetMayaFrameRate_chb = QtWidgets.QCheckBox()
+                FBXImportSetMayaFrameRate_chb.setText("Set Maya Frame Rate")
+                FBXImportSetMayaFrameRate_chb.setObjectName("FBXImportSetMayaFrameRate")
+                fbx_import_formlayout.addRow(FBXImportSetMayaFrameRate_chb)
+
+                FBXImportGenerateLog_chb = QtWidgets.QCheckBox()
+                FBXImportGenerateLog_chb.setText("Generate Log")
+                FBXImportGenerateLog_chb.setObjectName("FBXImportGenerateLog")
+                fbx_import_formlayout.addRow(FBXImportGenerateLog_chb)
+
+                FBXImportConstraints_chb = QtWidgets.QCheckBox()
+                FBXImportConstraints_chb.setText("Constraints")
+                FBXImportConstraints_chb.setObjectName("FBXImportConstraints")
+                fbx_import_formlayout.addRow(FBXImportConstraints_chb)
+
+                FBXImportLights_chb = QtWidgets.QCheckBox()
+                FBXImportLights_chb.setText("Lights")
+                FBXImportLights_chb.setObjectName("FBXImportLights")
+                fbx_import_formlayout.addRow(FBXImportLights_chb)
+
+                FBXImportConvertDeformingNullsToJoint_chb = QtWidgets.QCheckBox()
+                FBXImportConvertDeformingNullsToJoint_chb.setText("Convert Nulls to Joints")
+                FBXImportConvertDeformingNullsToJoint_chb.setObjectName("FBXImportConvertDeformingNullsToJoint")
+                fbx_import_formlayout.addRow(FBXImportConvertDeformingNullsToJoint_chb)
+
+                FBXImportFillTimeline_chb = QtWidgets.QCheckBox()
+                FBXImportFillTimeline_chb.setText("Fill Timeline")
+                FBXImportFillTimeline_chb.setObjectName("FBXImportFillTimeline")
+                fbx_import_formlayout.addRow(FBXImportFillTimeline_chb)
+
+                FBXImportMergeAnimationLayers_chb = QtWidgets.QCheckBox()
+                FBXImportMergeAnimationLayers_chb.setText("Merge Animation Layers")
+                FBXImportMergeAnimationLayers_chb.setObjectName("FBXImportMergeAnimationLayers")
+                fbx_import_formlayout.addRow(FBXImportMergeAnimationLayers_chb)
+
+                FBXImportHardEdges_chb = QtWidgets.QCheckBox()
+                FBXImportHardEdges_chb.setText("Hard Edges")
+                FBXImportHardEdges_chb.setObjectName("FBXImportHardEdges")
+                fbx_import_formlayout.addRow(FBXImportHardEdges_chb)
+
+                FBXImportAxisConversionEnable_chb = QtWidgets.QCheckBox()
+                FBXImportAxisConversionEnable_chb.setText("Axis Conversion Enable")
+                FBXImportAxisConversionEnable_chb.setObjectName("FBXImportAxisConversionEnable")
+                fbx_import_formlayout.addRow(FBXImportAxisConversionEnable_chb)
+
+                FBXImportCacheFile_chb = QtWidgets.QCheckBox()
+                FBXImportCacheFile_chb.setText("Cache File")
+                FBXImportCacheFile_chb.setObjectName("FBXImportCacheFile")
+                fbx_import_formlayout.addRow(FBXImportCacheFile_chb)
+
+                FBXImportSkins_chb = QtWidgets.QCheckBox()
+                FBXImportSkins_chb.setText("Skins")
+                FBXImportSkins_chb.setObjectName("FBXImportSkins")
+                fbx_import_formlayout.addRow(FBXImportSkins_chb)
+
+                FBXImportConvertUnitString_chb = QtWidgets.QCheckBox()
+                FBXImportConvertUnitString_chb.setText("Convert Unit String")
+                FBXImportConvertUnitString_chb.setObjectName("FBXImportConvertUnitString")
+                fbx_import_formlayout.addRow(FBXImportConvertUnitString_chb)
+
+                spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
+                                                   QtWidgets.QSizePolicy.Expanding)
+                fbx_import_layout.addItem(spacerItem)
+
+                ## MAYA FBX EXPORT WIDGETS
+                fbx_export_label = QtWidgets.QLabel()
+                fbx_export_label.setText("Fbx Export Settings")
+                fbx_export_label.setFont(self.headerBFont)
+                fbx_export_layout.addWidget(fbx_export_label)
+
+                fbx_export_formlayout = QtWidgets.QFormLayout()
+                fbx_export_layout.addLayout(fbx_export_formlayout)
+
+                FBXExportUpAxis_lbl = QtWidgets.QLabel()
+                FBXExportUpAxis_lbl.setText("Up Axis: ")
+                FBXExportUpAxis_combo = QtWidgets.QComboBox()
+                FBXExportUpAxis_combo.addItems(["y", "z"])
+                FBXExportUpAxis_combo.setObjectName("FBXExportUpAxis")
+                fbx_export_formlayout.addRow(FBXExportUpAxis_lbl, FBXExportUpAxis_combo)
+
+                FBXExportAxisConversionMethod_lbl = QtWidgets.QLabel()
+                FBXExportAxisConversionMethod_lbl.setText("Axis Conversion Method: ")
+                FBXExportAxisConversionMethod_combo = QtWidgets.QComboBox()
+                FBXExportAxisConversionMethod_combo.addItems(["none", "convertAnimation", "addFbxRoot"])
+                FBXExportAxisConversionMethod_combo.setObjectName("FBXExportAxisConversionMethod")
+                fbx_export_formlayout.addRow(FBXExportAxisConversionMethod_lbl, FBXExportAxisConversionMethod_combo)
+
+                FBXExportBakeComplexStep_lbl = QtWidgets.QLabel()
+                FBXExportBakeComplexStep_lbl.setText("Bake Step: ")
+                FBXExportBakeComplexStep_spb = QtWidgets.QSpinBox()
+                FBXExportBakeComplexStep_spb.setValue(1)
+                FBXExportBakeComplexStep_spb.setObjectName("FBXExportBakeComplexStep")
+                fbx_export_formlayout.addRow(FBXExportBakeComplexStep_lbl, FBXExportBakeComplexStep_spb)
+
+                FBXExportConvertUnitString_lbl = QtWidgets.QLabel()
+                FBXExportConvertUnitString_lbl.setText("Convert Units")
+                FBXExportConvertUnitString_combo = QtWidgets.QComboBox()
+                FBXExportConvertUnitString_combo.addItems(["mm", "dm", "cm", "m", "km", "In", "ft", "yd", "mi"])
+                FBXExportConvertUnitString_combo.setObjectName("FBXExportConvertUnitString")
+                fbx_export_formlayout.addRow(FBXExportConvertUnitString_lbl)
+
+                FBXExportQuaternion_lbl = QtWidgets.QLabel()
+                FBXExportQuaternion_lbl.setText("Treat Quaternion: ")
+                FBXExportQuaternion_combo = QtWidgets.QComboBox()
+                FBXExportQuaternion_combo.addItems(["quaternion", "euler", "resample"])
+                FBXExportQuaternion_combo.setObjectName("FBXExportQuaternion")
+                fbx_export_formlayout.addRow(FBXExportQuaternion_lbl, FBXExportQuaternion_combo)
+
+                FBXExportFileVersion_lbl = QtWidgets.QLabel()
+                FBXExportFileVersion_lbl.setText("FBX Verison: ")
+                FBXExportFileVersion_le = QtWidgets.QLineEdit()
+                FBXExportFileVersion_le.setMaximumWidth(150)
+                FBXExportFileVersion_le.setText("FBX201400")
+                FBXExportFileVersion_le.setObjectName("FBXExportFileVersion")
+                fbx_export_formlayout.addRow(FBXExportFileVersion_lbl, FBXExportFileVersion_le)
+
+                FBXExportScaleFactor_lbl = QtWidgets.QLabel()
+                FBXExportScaleFactor_lbl.setText("Scale Factor: ")
+                FBXExportScaleFactor_spb = QtWidgets.QDoubleSpinBox()
+                FBXExportScaleFactor_spb.setValue(1.0)
+                FBXExportScaleFactor_spb.setObjectName("FBXExportScaleFactor")
+                fbx_export_formlayout.addRow(FBXExportScaleFactor_lbl, FBXExportScaleFactor_spb)
+
+                FBXExportApplyConstantKeyReducer_chb = QtWidgets.QCheckBox()
+                FBXExportApplyConstantKeyReducer_chb.setText("Apply Constant Key Reducer")
+                FBXExportApplyConstantKeyReducer_chb.setObjectName("FBXExportApplyConstantKeyReducer")
+                fbx_export_formlayout.addRow(FBXExportApplyConstantKeyReducer_chb)
+
+                FBXExportShapes_chb = QtWidgets.QCheckBox()
+                FBXExportShapes_chb.setText("Shapes")
+                FBXExportShapes_chb.setObjectName("FBXExportShapes")
+                fbx_export_formlayout.addRow(FBXExportShapes_chb)
+
+                FBXExportUseSceneName_chb = QtWidgets.QCheckBox()
+                FBXExportUseSceneName_chb.setText("Use Scene Name")
+                FBXExportUseSceneName_chb.setObjectName("FBXExportUseSceneName")
+                fbx_export_formlayout.addRow(FBXExportUseSceneName_chb)
+
+                FBXExportSkeletonDefinitions_chb = QtWidgets.QCheckBox()
+                FBXExportSkeletonDefinitions_chb.setText("Skeleton Definitions")
+                FBXExportSkeletonDefinitions_chb.setObjectName("FBXExportSkeletonDefinitions")
+                fbx_export_formlayout.addRow(FBXExportSkeletonDefinitions_chb)
+
+                FBXExportInstances_chb = QtWidgets.QCheckBox()
+                FBXExportInstances_chb.setText("Instances")
+                FBXExportInstances_chb.setObjectName("FBXExportInstances")
+                fbx_export_formlayout.addRow(FBXExportInstances_chb)
+
+                FBXExportCameras_chb = QtWidgets.QCheckBox()
+                FBXExportCameras_chb.setText("Cameras")
+                FBXExportCameras_chb.setObjectName("FBXExportCameras")
+                fbx_export_formlayout.addRow(FBXExportCameras_chb)
+
+                FBXExportTangents_chb = QtWidgets.QCheckBox()
+                FBXExportTangents_chb.setText("Tangents")
+                FBXExportTangents_chb.setObjectName("FBXExportTangents")
+                fbx_export_formlayout.addRow(FBXExportTangents_chb)
+
+                FBXExportInAscii_chb = QtWidgets.QCheckBox()
+                FBXExportInAscii_chb.setText("Ascii")
+                FBXExportInAscii_chb.setObjectName("FBXExportInAscii")
+                fbx_export_formlayout.addRow(FBXExportInAscii_chb)
+
+                FBXExportLights_chb = QtWidgets.QCheckBox()
+                FBXExportLights_chb.setText("Lights")
+                FBXExportLights_chb.setObjectName("FBXExportLights")
+                fbx_export_formlayout.addRow(FBXExportLights_chb)
+
+                FBXExportReferencedAssetsContent_chb = QtWidgets.QCheckBox()
+                FBXExportReferencedAssetsContent_chb.setText("Referenced Assets")
+                FBXExportReferencedAssetsContent_chb.setObjectName("FBXExportReferencedAssetsContent")
+                fbx_export_formlayout.addRow(FBXExportReferencedAssetsContent_chb)
+
+                FBXExportConstraints_chb = QtWidgets.QCheckBox()
+                FBXExportConstraints_chb.setText("Constraints")
+                FBXExportConstraints_chb.setObjectName("FBXExportConstraints")
+                fbx_export_formlayout.addRow(FBXExportConstraints_chb)
+
+                FBXExportSmoothMesh_chb = QtWidgets.QCheckBox()
+                FBXExportSmoothMesh_chb.setText("Smooth Mesh")
+                FBXExportSmoothMesh_chb.setObjectName("FBXExportSmoothMesh")
+                fbx_export_formlayout.addRow(FBXExportSmoothMesh_chb)
+
+                FBXExportHardEdges_chb = QtWidgets.QCheckBox()
+                FBXExportHardEdges_chb.setText("Hard Edges")
+                FBXExportHardEdges_chb.setObjectName("FBXExportHardEdges")
+                fbx_export_formlayout.addRow(FBXExportHardEdges_chb)
+
+                FBXExportInputConnections_chb = QtWidgets.QCheckBox()
+                FBXExportInputConnections_chb.setText("Input Connections")
+                FBXExportInputConnections_chb.setObjectName("FBXExportInputConnections")
+                fbx_export_formlayout.addRow(FBXExportInputConnections_chb)
+
+                FBXExportEmbeddedTextures_chb = QtWidgets.QCheckBox()
+                FBXExportEmbeddedTextures_chb.setText("Embed Textures")
+                FBXExportEmbeddedTextures_chb.setObjectName("FBXExportEmbeddedTextures")
+                fbx_export_formlayout.addRow(FBXExportEmbeddedTextures_chb)
+
+                FBXExportBakeComplexAnimation_chb = QtWidgets.QCheckBox()
+                FBXExportBakeComplexAnimation_chb.setText("Bake Animation")
+                FBXExportBakeComplexAnimation_chb.setObjectName("FBXExportBakeComplexAnimation")
+                fbx_export_formlayout.addRow(FBXExportBakeComplexAnimation_chb)
+
+                FBXExportCacheFile_chb = QtWidgets.QCheckBox()
+                FBXExportCacheFile_chb.setText("Cache File")
+                FBXExportCacheFile_chb.setObjectName("FBXExportCacheFile")
+                fbx_export_formlayout.addRow(FBXExportCacheFile_chb)
+
+                FBXExportSmoothingGroups_chb = QtWidgets.QCheckBox()
+                FBXExportSmoothingGroups_chb.setText("Smoothing Groups")
+                FBXExportSmoothingGroups_chb.setObjectName("FBXExportSmoothingGroups")
+                fbx_export_formlayout.addRow(FBXExportSmoothingGroups_chb)
+
+                FBXExportBakeResampleAnimation_chb = QtWidgets.QCheckBox()
+                FBXExportBakeResampleAnimation_chb.setText("Resample Animation")
+                FBXExportBakeResampleAnimation_chb.setObjectName("FBXExportBakeResampleAnimation")
+                fbx_export_formlayout.addRow(FBXExportBakeResampleAnimation_chb)
+
+                FBXExportTriangulate_chb = QtWidgets.QCheckBox()
+                FBXExportTriangulate_chb.setText("Triangulate")
+                FBXExportTriangulate_chb.setObjectName("FBXExportTriangulate")
+                fbx_export_formlayout.addRow(FBXExportTriangulate_chb)
+
+                FBXExportSkins_chb = QtWidgets.QCheckBox()
+                FBXExportSkins_chb.setText("Skins")
+                FBXExportSkins_chb.setObjectName("FBXExportSkins")
+                fbx_export_formlayout.addRow(FBXExportSkins_chb)
+
+                spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
+                                                   QtWidgets.QSizePolicy.Expanding)
+                fbx_export_layout.addItem(spacerItem)
+
+            ## MAYA ALEMBIC
+            ## ------------
+            def _maya_alembic():
+                alembic_horizontal_layout = QtWidgets.QHBoxLayout(alembicTab)
+                alembic_import_layout = QtWidgets.QVBoxLayout()
+                alembic_seperator = QtWidgets.QLabel()
+                alembic_seperator.setStyleSheet("background-color: rgb(255,141,28,60);")
+                alembic_seperator.setMaximumWidth(2)
+                alembic_export_layout = QtWidgets.QVBoxLayout()
+
+                alembic_horizontal_layout.addLayout(alembic_import_layout)
+                alembic_horizontal_layout.addWidget(alembic_seperator)
+                alembic_horizontal_layout.addLayout(alembic_export_layout)
+
+                ## MAYA ALEMBIC IMPORT WIDGETS
+                alembic_import_label = QtWidgets.QLabel()
+                alembic_import_label.setText("Alembic Import Settings")
+                alembic_import_label.setFont(self.headerBFont)
+                alembic_import_layout.addWidget(alembic_import_label)
+
+                alembic_import_formlayout = QtWidgets.QFormLayout()
+                alembic_import_layout.addLayout(alembic_import_formlayout)
+
+                fitTimeRange_chb = QtWidgets.QCheckBox()
+                fitTimeRange_chb.setText("Fit Time Range")
+                fitTimeRange_chb.setObjectName("fitTimeRange")
+                alembic_import_formlayout.addRow(fitTimeRange_chb)
+
+                setToStartFrame_chb = QtWidgets.QCheckBox()
+                setToStartFrame_chb.setText("Set To Start Frame")
+                setToStartFrame_chb.setObjectName("setToStartFrame")
+                alembic_import_formlayout.addRow(setToStartFrame_chb)
+
+                spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
+                                                   QtWidgets.QSizePolicy.Expanding)
+                alembic_import_layout.addItem(spacerItem)
+
+                ## MAYA ALEMBIC EXPORT WIDGETS
+                alembic_export_label = QtWidgets.QLabel()
+                alembic_export_label.setText("Alembic Export Settings")
+                alembic_export_label.setFont(self.headerBFont)
+                alembic_export_layout.addWidget(alembic_export_label)
+
+                alembic_export_formlayout = QtWidgets.QFormLayout()
+                alembic_export_layout.addLayout(alembic_export_formlayout)
+
+                step_lbl = QtWidgets.QLabel()
+                step_lbl.setText("Step")
+                step_spb = QtWidgets.QDoubleSpinBox()
+                step_spb.setObjectName("step")
+                alembic_export_formlayout.addRow(step_lbl, step_spb)
+
+                dataFormat_lbl = QtWidgets.QLabel()
+                dataFormat_lbl.setText("Data Format")
+                dataFormat_combo = QtWidgets.QComboBox()
+                dataFormat_combo.addItems(["Ogawa", "HDF5"])
+                dataFormat_combo.setObjectName("dataFormat")
+                alembic_export_formlayout.addRow(dataFormat_lbl, dataFormat_combo)
+
+                writeFaceSets_chb = QtWidgets.QCheckBox()
+                writeFaceSets_chb.setText("Face Sets")
+                writeFaceSets_chb.setObjectName("writeFaceSets")
+                alembic_export_formlayout.addRow(writeFaceSets_chb)
+
+                writeUVSets_chb = QtWidgets.QCheckBox()
+                writeUVSets_chb.setText("Uv Sets")
+                writeUVSets_chb.setObjectName("writeUVSets")
+                alembic_export_formlayout.addRow(writeUVSets_chb)
+
+                noNormals_chb = QtWidgets.QCheckBox()
+                noNormals_chb.setText("No Normals")
+                noNormals_chb.setObjectName("noNormals")
+                alembic_export_formlayout.addRow(noNormals_chb)
+
+                autoSubd_chb = QtWidgets.QCheckBox()
+                autoSubd_chb.setText("Auto Subdivide")
+                autoSubd_chb.setObjectName("autoSubd")
+                alembic_export_formlayout.addRow(autoSubd_chb)
+
+                stripNamespaces_chb = QtWidgets.QCheckBox()
+                stripNamespaces_chb.setText("Strip Namespaces")
+                stripNamespaces_chb.setObjectName("stripNamespaces")
+                alembic_export_formlayout.addRow(stripNamespaces_chb)
+
+                wholeFrameGeo_chb = QtWidgets.QCheckBox()
+                wholeFrameGeo_chb.setText("Whole Frame Geo")
+                wholeFrameGeo_chb.setObjectName("wholeFrameGeo")
+                alembic_export_formlayout.addRow(wholeFrameGeo_chb)
+
+                renderableOnly_chb = QtWidgets.QCheckBox()
+                renderableOnly_chb.setText("Renderable Only")
+                renderableOnly_chb.setObjectName("renderableOnly")
+                alembic_export_formlayout.addRow(renderableOnly_chb)
+
+                worldSpace_chb = QtWidgets.QCheckBox()
+                worldSpace_chb.setText("Worldspace")
+                worldSpace_chb.setObjectName("worldSpace")
+                alembic_export_formlayout.addRow(worldSpace_chb)
+
+                writeVisibility_chb = QtWidgets.QCheckBox()
+                writeVisibility_chb.setText("Visibility")
+                writeVisibility_chb.setObjectName("writeVisibility")
+                alembic_export_formlayout.addRow(writeVisibility_chb)
+
+                eulerFilter_chb = QtWidgets.QCheckBox()
+                eulerFilter_chb.setText("Euler Filter")
+                eulerFilter_chb.setObjectName("eulerFilter")
+                alembic_export_formlayout.addRow(eulerFilter_chb)
+
+                writeColorSets_chb = QtWidgets.QCheckBox()
+                writeColorSets_chb.setText("Color Sets")
+                writeColorSets_chb.setObjectName("writeColorSets")
+                alembic_export_formlayout.addRow(writeColorSets_chb)
+
+                uvWrite_chb = QtWidgets.QCheckBox()
+                uvWrite_chb.setText("UV")
+                uvWrite_chb.setObjectName("uvWrite")
+                alembic_export_formlayout.addRow(uvWrite_chb)
+
+                spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
+                                                   QtWidgets.QSizePolicy.Expanding)
+                alembic_export_layout.addItem(spacerItem)
+
+            _maya_obj()
+            _maya_fbx()
+            _maya_alembic()
+
+        if sw == "3dsmax" or sw == "":
+            pass
+
+        if sw == "houdini" or sw == "":
+            pass
+
+        h1_s1_layout.addWidget(softwaresTabWidget)
+        importExport_Layout.addLayout(h1_s1_layout)
+
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        importExport_Layout.addItem(spacerItem)
+        self.contentsMaster_layout.addWidget(self.importExportOptions_vis)
 
     def _sharedSettingsContent(self):
         sharedSettings_Layout = QtWidgets.QVBoxLayout(self.sharedSettings_vis)
@@ -3671,130 +4305,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         userControl_Dialog.show()
 
-    # def addRemoveUserUI(self):
-    #     # This method is NOT Software Specific
-    #     passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query",
-    #                                            "Enter Admin Password:", QtWidgets.QLineEdit.Password)
-    #
-    #     if ok:
-    #         if self.manager.checkPassword(passw):
-    #             pass
-    #         else:
-    #             self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
-    #             return
-    #     else:
-    #         return
-    #
-    #
-    #     users_Dialog = QtWidgets.QDialog(parent=self)
-    #     users_Dialog.setModal(True)
-    #     users_Dialog.setObjectName(("users_Dialog"))
-    #     users_Dialog.resize(380, 483)
-    #     users_Dialog.setMinimumSize(QtCore.QSize(342, 177))
-    #     users_Dialog.setMaximumSize(QtCore.QSize(342, 177))
-    #     users_Dialog.setWindowTitle(("Add/Remove Users"))
-    #     users_Dialog.setFocus()
-    #
-    #     addnewuser_groupBox = QtWidgets.QGroupBox(users_Dialog)
-    #     addnewuser_groupBox.setGeometry(QtCore.QRect(10, 10, 321, 91))
-    #     addnewuser_groupBox.setTitle(("Add New User"))
-    #     addnewuser_groupBox.setObjectName(("addnewuser_groupBox"))
-    #
-    #     fullname_label = QtWidgets.QLabel(addnewuser_groupBox)
-    #     fullname_label.setGeometry(QtCore.QRect(0, 30, 81, 21))
-    #     fullname_label.setLayoutDirection(QtCore.Qt.LeftToRight)
-    #     fullname_label.setText(("Full Name:"))
-    #     fullname_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-    #     fullname_label.setObjectName(("fullname_label"))
-    #
-    #     self.fullname_lineEdit = QtWidgets.QLineEdit(addnewuser_groupBox)
-    #     self.fullname_lineEdit.setGeometry(QtCore.QRect(90, 30, 151, 20))
-    #     self.fullname_lineEdit.setPlaceholderText(("e.g \"John Doe\""))
-    #     self.fullname_lineEdit.setObjectName(("fullname_lineEdit"))
-    #
-    #     initials_label = QtWidgets.QLabel(addnewuser_groupBox)
-    #     initials_label.setGeometry(QtCore.QRect(0, 60, 81, 21))
-    #     initials_label.setLayoutDirection(QtCore.Qt.LeftToRight)
-    #     initials_label.setText(("Initials:"))
-    #     initials_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-    #     initials_label.setObjectName(("initials_label"))
-    #
-    #     self.initials_lineEdit = QtWidgets.QLineEdit(addnewuser_groupBox)
-    #     self.initials_lineEdit.setGeometry(QtCore.QRect(90, 60, 151, 20))
-    #     self.initials_lineEdit.setText((""))
-    #     self.initials_lineEdit.setPlaceholderText(("e.g \"jd\" (must be unique)"))
-    #     self.initials_lineEdit.setObjectName(("initials_lineEdit"))
-    #
-    #     addnewuser_pushButton = QtWidgets.QPushButton(addnewuser_groupBox)
-    #     addnewuser_pushButton.setGeometry(QtCore.QRect(250, 30, 61, 51))
-    #     addnewuser_pushButton.setText(("Add"))
-    #     addnewuser_pushButton.setObjectName(("addnewuser_pushButton"))
-    #
-    #     deleteuser_groupBox = QtWidgets.QGroupBox(users_Dialog)
-    #     deleteuser_groupBox.setGeometry(QtCore.QRect(10, 110, 321, 51))
-    #     deleteuser_groupBox.setTitle(("Delete User"))
-    #     deleteuser_groupBox.setObjectName(("deleteuser_groupBox"))
-    #
-    #     self.selectuser_comboBox = QtWidgets.QComboBox(deleteuser_groupBox)
-    #     self.selectuser_comboBox.setGeometry(QtCore.QRect(10, 20, 231, 22))
-    #     self.selectuser_comboBox.setObjectName(("selectuser_comboBox"))
-    #
-    #     # userListSorted = sorted(self.manager._usersDict.keys())
-    #     userListSorted = self.manager.getUsers()
-    #     for num in range(len(userListSorted)):
-    #         self.selectuser_comboBox.addItem((userListSorted[num]))
-    #         self.selectuser_comboBox.setItemText(num, (userListSorted[num]))
-    #
-    #     deleteuser_pushButton = QtWidgets.QPushButton(deleteuser_groupBox)
-    #     deleteuser_pushButton.setGeometry(QtCore.QRect(250, 20, 61, 21))
-    #     deleteuser_pushButton.setText(("Delete"))
-    #     deleteuser_pushButton.setObjectName(("deleteuser_pushButton"))
-    #
-    #
-    #     def onAddUser():
-    #         ret, msg = self.manager.addUser(str(self.fullname_lineEdit.text()), str(self.initials_lineEdit.text()))
-    #         if ret == -1:
-    #             self.infoPop(textTitle="Cannot Add User", textHeader=msg)
-    #             return
-    #         self.manager.currentUser = self.fullname_lineEdit.text()
-    #         self._initUsers()
-    #         # userListSorted = sorted(self.manager._usersDict.keys())
-    #         userListSorted = self.manager.getUsers()
-    #         self.selectuser_comboBox.clear()
-    #         for num in range(len(userListSorted)):
-    #             self.selectuser_comboBox.addItem((userListSorted[num]))
-    #             self.selectuser_comboBox.setItemText(num, (userListSorted[num]))
-    #         self.statusBar().showMessage("Status | User Added => %s" % self.fullname_lineEdit.text())
-    #         self.fullname_lineEdit.setText("")
-    #         self.initials_lineEdit.setText("")
-    #
-    #         pass
-    #
-    #     def onRemoveUser():
-    #         self.manager.removeUser(str(self.selectuser_comboBox.currentText()))
-    #         # self.manager.currentUser = self.manager._usersDict.keys()[0]
-    #         self.manager.currentUser = self.manager.getUsers()[0]
-    #         self._initUsers()
-    #         # userListSorted = sorted(self.manager._usersDict.keys())
-    #         userListSorted = self.manager.getUsers()
-    #         self.selectuser_comboBox.clear()
-    #         for num in range(len(userListSorted)):
-    #             self.selectuser_comboBox.addItem((userListSorted[num]))
-    #             self.selectuser_comboBox.setItemText(num, (userListSorted[num]))
-    #         pass
-    #
-    #     addnewuser_pushButton.clicked.connect(onAddUser)
-    #     deleteuser_pushButton.clicked.connect(onRemoveUser)
-    #
-    #     self.fullname_lineEdit.textChanged.connect(
-    #         lambda: self._checkValidity(self.fullname_lineEdit.text(), addnewuser_pushButton,
-    #                                     self.fullname_lineEdit, allowSpaces=True))
-    #     self.initials_lineEdit.textChanged.connect(
-    #         lambda: self._checkValidity(self.initials_lineEdit.text(), addnewuser_pushButton,
-    #                                     self.initials_lineEdit))
-    #
-    #     users_Dialog.show()
-
     def addRemoveCategoryUI(self):
         # This method IS Software Specific
         manager = self._getManager()
@@ -4096,8 +4606,8 @@ class MainUI(QtWidgets.QMainWindow):
         #
         # tikIcon_label = QtWidgets.QLabel()
         # tikIcon_label.setFixedSize(115, 30)
-        # testBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
-        # tikIcon_label.setPixmap(testBitmap)
+        # saveBaseHeaderBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
+        # tikIcon_label.setPixmap(saveBaseHeaderBitmap)
         # tikIcon_label.setScaledContents(True)
         # headerLayout.addWidget(tikIcon_label)
         #
@@ -4128,8 +4638,9 @@ class MainUI(QtWidgets.QMainWindow):
         except AttributeError: pass
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
-        testBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmBaseScene.png"))
-        tikIcon_label.setPixmap(testBitmap)
+        # saveBaseHeaderBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmBaseScene.png"))
+        saveBaseHeaderBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmBaseScene.png")
+        tikIcon_label.setPixmap(saveBaseHeaderBitmap)
 
         headerLayout.addWidget(tikIcon_label)
 
@@ -4342,7 +4853,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         saveBaseScene_Dialog.show()
 
-
     def saveAsVersionDialog(self):
         # This method IS Software Specific
         saveV_Dialog = QtWidgets.QDialog(parent=self)
@@ -4375,8 +4885,9 @@ class MainUI(QtWidgets.QMainWindow):
         except AttributeError: pass
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
-        testBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmVersion.png"))
-        tikIcon_label.setPixmap(testBitmap)
+        # saveVersionHeaderBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmVersion.png"))
+        saveVersionHeaderBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmVersion.png")
+        tikIcon_label.setPixmap(saveVersionHeaderBitmap)
 
         headerLayout.addWidget(tikIcon_label)
 
@@ -4627,7 +5138,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.reference_radioButton.setChecked(not self.manager.currentMode)
         self.category_tabWidget.setCurrentIndex(self.manager.currentTabIndex)
 
-
         if not newborn:
             swName = self.manager.swName
             self.manager.init_paths(swName)
@@ -4786,7 +5296,6 @@ class MainUI(QtWidgets.QMainWindow):
         # This method is NOT Software Specific
         self.initMainUI()
 
-
     def onSubProjectChange(self):
         # This method IS Software Specific
         manager = self._getManager()
@@ -4843,7 +5352,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.version_comboBox.blockSignals(False)
 
-
     def onVersionChange(self):
         # This method IS Software Specific
         manager = self._getManager()
@@ -4881,7 +5389,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         # self.version_comboBox.blockSignals(False)
         self._vEnableDisable()
-
 
     def populateBaseScenes(self, deepCheck=False):
         # This method IS Software Specific
@@ -5013,7 +5520,6 @@ class MainUI(QtWidgets.QMainWindow):
             self.populateBaseScenes()
             self.statusBar().showMessage("Status | Scene Deleted => %s" % name)
 
-
     def onDeleteReference(self):
         # This method IS Software Specific.
 
@@ -5059,7 +5565,6 @@ class MainUI(QtWidgets.QMainWindow):
     def _getManager(self):
         """Returns current manager"""
         return self.manager
-
 
     def _initSubProjects(self):
         # This method IS Software Specific.
@@ -5126,8 +5631,6 @@ class MainUI(QtWidgets.QMainWindow):
             self.baseScene_label.setText("Current Scene is not a Base Scene")
             # self.baseScene_label.setStyleSheet("background-color: rgb(40,40,40); color: yellow")
             self.baseScene_label.setStyleSheet("color: yellow")
-
-
 
     def _checkValidity(self, text, button, lineEdit, allowSpaces=False, directory=False):
         if text == "":
@@ -5204,9 +5707,6 @@ class MainUI(QtWidgets.QMainWindow):
             webbrowser.open_new(downloadPath)
         elif ret == QtWidgets.QMessageBox.Help:
             webbrowser.open_new(whatsNewPath)
-
-
-
 
     def infoPop(self, textTitle="info", textHeader="", textInfo="", type="I"):
         self.msg = QtWidgets.QMessageBox(parent=self)
