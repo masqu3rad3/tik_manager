@@ -3102,6 +3102,12 @@ class MainUI(QtWidgets.QMainWindow):
         self.contentsMaster_layout.addWidget(self.categories_vis)
 
     def _importExportContent(self):
+        convertDict = {"true": True,
+                       "True": True,
+                       "false": False,
+                       "False": False,
+                       "0": False,
+                       "1": True}
         manager = self._getManager()
         # sw = manager.swName.lower()
         sw = BoilerDict["Environment"].lower()
@@ -3179,7 +3185,8 @@ class MainUI(QtWidgets.QMainWindow):
                 LegacyVertexOrdering_chb = QtWidgets.QCheckBox()
                 LegacyVertexOrdering_chb.setText("Legacy Vertex Ordering")
                 LegacyVertexOrdering_chb.setObjectName("LegacyVertexOrdering")
-                LegacyVertexOrdering_chb.setChecked(bool(int(importSettings["objImportMaya"]["LegacyVertexOrdering"].replace("lo=", ""))))
+                # LegacyVertexOrdering_chb.setChecked(bool(int(importSettings["objImportMaya"]["LegacyVertexOrdering"].replace("lo=", ""))))
+                LegacyVertexOrdering_chb.setChecked(convertDict[(importSettings["objImportMaya"]["LegacyVertexOrdering"].replace("lo=", ""))])
                 obj_import_formlayout.addRow(LegacyVertexOrdering_chb)
                 LegacyVertexOrdering_chb.stateChanged.connect(
                     lambda state: updateImportDictionary("objImportMaya", "LegacyVertexOrdering", "lo=%s" %int(bool(state))))
@@ -3187,7 +3194,8 @@ class MainUI(QtWidgets.QMainWindow):
                 MultipleObjects_chb = QtWidgets.QCheckBox()
                 MultipleObjects_chb.setText("Multiple Objects")
                 MultipleObjects_chb.setObjectName("MultipleObjects")
-                MultipleObjects_chb.setChecked(bool(int(importSettings["objImportMaya"]["MultipleObjects"].replace("mo=", ""))))
+                # MultipleObjects_chb.setChecked(bool(int(importSettings["objImportMaya"]["MultipleObjects"].replace("mo=", ""))))
+                MultipleObjects_chb.setChecked(convertDict[(importSettings["objImportMaya"]["MultipleObjects"].replace("mo=", ""))])
                 obj_import_formlayout.addRow(MultipleObjects_chb)
                 # MultipleObjects_chb.stateChanged.connect(lambda state=MultipleObjects_chb.isChecked():
                 #                                               updateImportDictionary("objImportMaya", "MultipleObjects", "lo=%s" %int(bool(state))))
@@ -3211,7 +3219,7 @@ class MainUI(QtWidgets.QMainWindow):
                 normals_chb.setText("Normals")
                 normals_chb.setObjectName("normals")
                 obj_export_formlayout.addRow(normals_chb)
-                normals_chb.setChecked(bool(int(exportSettings["objExportMaya"]["normals"])))
+                normals_chb.setChecked(convertDict[exportSettings["objExportMaya"]["normals"]])
                 normals_chb.stateChanged.connect(
                     lambda state: updateExportDictionary("objExportMaya", "normals", "%s" %int(bool(state))))
 
@@ -3219,7 +3227,7 @@ class MainUI(QtWidgets.QMainWindow):
                 materials_chb.setText("Materials")
                 materials_chb.setObjectName("materials")
                 obj_export_formlayout.addRow(materials_chb)
-                materials_chb.setChecked(bool(int(exportSettings["objExportMaya"]["materials"])))
+                materials_chb.setChecked(convertDict[exportSettings["objExportMaya"]["materials"]])
                 materials_chb.stateChanged.connect(
                     lambda state: updateExportDictionary("objExportMaya", "materials", "%s" %int(bool(state))))
 
@@ -3227,7 +3235,7 @@ class MainUI(QtWidgets.QMainWindow):
                 ptgroups_chb.setText("Point Groups")
                 ptgroups_chb.setObjectName("ptgroups")
                 obj_export_formlayout.addRow(ptgroups_chb)
-                ptgroups_chb.setChecked(bool(int(exportSettings["objExportMaya"]["ptgroups"])))
+                ptgroups_chb.setChecked(convertDict[exportSettings["objExportMaya"]["ptgroups"]])
                 ptgroups_chb.stateChanged.connect(
                     lambda state: updateExportDictionary("objExportMaya", "ptgroups", "%s" % int(bool(state))))
 
@@ -3235,7 +3243,7 @@ class MainUI(QtWidgets.QMainWindow):
                 groups_chb.setText("Groups")
                 groups_chb.setObjectName("groups")
                 obj_export_formlayout.addRow(groups_chb)
-                groups_chb.setChecked(bool(int(exportSettings["objExportMaya"]["groups"])))
+                groups_chb.setChecked(convertDict[exportSettings["objExportMaya"]["groups"]])
                 groups_chb.stateChanged.connect(
                     lambda state: updateExportDictionary("objExportMaya", "groups", "%s" % int(bool(state))))
 
@@ -3243,7 +3251,7 @@ class MainUI(QtWidgets.QMainWindow):
                 smoothing_chb.setText("Smoothing")
                 smoothing_chb.setObjectName("smoothing")
                 obj_export_formlayout.addRow(smoothing_chb)
-                smoothing_chb.setChecked(bool(int(exportSettings["objExportMaya"]["smoothing"])))
+                smoothing_chb.setChecked(convertDict[exportSettings["objExportMaya"]["smoothing"]])
                 smoothing_chb.stateChanged.connect(
                     lambda state: updateExportDictionary("objExportMaya", "smoothing", "%s" % int(bool(state))))
 
@@ -3299,12 +3307,12 @@ class MainUI(QtWidgets.QMainWindow):
 
                 FBXImportScaleFactor_lbl = QtWidgets.QLabel()
                 FBXImportScaleFactor_lbl.setText("Scale Factor")
-                FBXImportScaleFactor_spn = QtWidgets.QDoubleSpinBox()
-                FBXImportScaleFactor_spn.setObjectName("FBXImportScaleFactor")
-                fbx_import_formlayout.addRow(FBXImportScaleFactor_lbl, FBXImportScaleFactor_spn)
-                FBXImportScaleFactor_spn.setValue(float(importSettings["fbxImportMaya"]["FBXImportScaleFactor"]))
-                FBXImportScaleFactor_spn.valueChanged.connect(
-                    lambda: updateImportDictionary("fbxImportMaya", "FBXImportScaleFactor", str(FBXImportScaleFactor_spn.value()))
+                FBXImportScaleFactor_spb = QtWidgets.QDoubleSpinBox()
+                FBXImportScaleFactor_spb.setObjectName("FBXImportScaleFactor")
+                fbx_import_formlayout.addRow(FBXImportScaleFactor_lbl, FBXImportScaleFactor_spb)
+                FBXImportScaleFactor_spb.setValue(float(importSettings["fbxImportMaya"]["FBXImportScaleFactor"]))
+                FBXImportScaleFactor_spb.valueChanged.connect(
+                    lambda: updateImportDictionary("fbxImportMaya", "FBXImportScaleFactor", str(FBXImportScaleFactor_spb.value()))
                 )
 
                 FBXImportQuaternion_lbl = QtWidgets.QLabel()
@@ -3313,103 +3321,169 @@ class MainUI(QtWidgets.QMainWindow):
                 FBXImportQuaternion_combo.addItems(["quaternion", "euler", "resample"])
                 FBXImportQuaternion_combo.setObjectName("FBXImportQuaternion")
                 fbx_import_formlayout.addRow(FBXImportQuaternion_lbl, FBXImportQuaternion_combo)
+                ffindex = FBXImportQuaternion_combo.findText(importSettings["fbxImportMaya"]["FBXImportQuaternion"].replace("-v ", ""),
+                                                         QtCore.Qt.MatchFixedString)
+                FBXImportQuaternion_combo.setCurrentIndex(ffindex)
+                FBXImportQuaternion_combo.currentIndexChanged.connect(
+                    lambda: updateImportDictionary("fbxImportMaya", "FBXImportQuaternion", "-v %s" %FBXImportQuaternion_combo.currentText()))
+
 
                 FBXImportResamplingRateSource_lbl = QtWidgets.QLabel()
                 FBXImportResamplingRateSource_lbl.setText("Resampling Rate Source: ")
                 FBXImportResamplingRateSource_combo = QtWidgets.QComboBox()
-                FBXImportResamplingRateSource_combo.addItems(["Maya", "FBX"])
+                FBXImportResamplingRateSource_combo.addItems(["Scene", "File"])
                 FBXImportResamplingRateSource_combo.setObjectName("FBXImportResamplingRateSource")
                 fbx_import_formlayout.addRow(FBXImportResamplingRateSource_lbl, FBXImportResamplingRateSource_combo)
+                ffindex = FBXImportResamplingRateSource_combo.findText(importSettings["fbxImportMaya"]["FBXImportResamplingRateSource"].replace("-v ", ""),
+                                                         QtCore.Qt.MatchFixedString)
+                FBXImportResamplingRateSource_combo.setCurrentIndex(ffindex)
+                FBXImportResamplingRateSource_combo.currentIndexChanged.connect(
+                    lambda: updateImportDictionary("fbxImportMaya", "FBXImportResamplingRateSource", "-v %s" %FBXImportResamplingRateSource_combo.currentText()))
+
 
                 FBXImportMergeBackNullPivots_chb = QtWidgets.QCheckBox()
                 FBXImportMergeBackNullPivots_chb.setText("Merge Back Null Pivots")
                 FBXImportMergeBackNullPivots_chb.setObjectName("FBXImportMergeBackNullPivots")
                 fbx_import_formlayout.addRow(FBXImportMergeBackNullPivots_chb)
+                FBXImportMergeBackNullPivots_chb.setChecked(convertDict[importSettings["fbxImportMaya"]["FBXImportMergeBackNullPivots"].replace("-v ", "")])
+                FBXImportMergeBackNullPivots_chb.stateChanged.connect(
+                    lambda: updateImportDictionary("fbxImportMaya", "FBXImportMergeBackNullPivots", "-v %s" %str(FBXImportMergeBackNullPivots_chb.isChecked()).lower()))
 
                 FBXImportSetLockedAttribute_chb = QtWidgets.QCheckBox()
                 FBXImportSetLockedAttribute_chb.setText("Set Locked Attribute")
                 FBXImportSetLockedAttribute_chb.setObjectName("FBXImportSetLockedAttribute")
                 fbx_import_formlayout.addRow(FBXImportSetLockedAttribute_chb)
+                FBXImportSetLockedAttribute_chb.setChecked(convertDict[importSettings["fbxImportMaya"]["FBXImportSetLockedAttribute"].replace("-v ", "")])
+                FBXImportSetLockedAttribute_chb.stateChanged.connect(
+                    lambda: updateImportDictionary("fbxImportMaya", "FBXImportSetLockedAttribute", "-v %s" %str(FBXImportSetLockedAttribute_chb.isChecked()).lower()))
 
                 FBXImportUnlockNormals_chb = QtWidgets.QCheckBox()
                 FBXImportUnlockNormals_chb.setText("Unlock Normals")
                 FBXImportUnlockNormals_chb.setObjectName("FBXImportUnlockNormals")
                 fbx_import_formlayout.addRow(FBXImportUnlockNormals_chb)
+                FBXImportUnlockNormals_chb.setChecked(convertDict[importSettings["fbxImportMaya"]["FBXImportUnlockNormals"].replace("-v ", "")])
+                FBXImportUnlockNormals_chb.stateChanged.connect(
+                    lambda: updateImportDictionary("fbxImportMaya", "FBXImportUnlockNormals", "-v %s" %str(FBXImportUnlockNormals_chb.isChecked()).lower()))
 
                 FBXImportProtectDrivenKeys_chb = QtWidgets.QCheckBox()
                 FBXImportProtectDrivenKeys_chb.setText("Protect Driven Keys")
                 FBXImportProtectDrivenKeys_chb.setObjectName("FBXImportProtectDrivenKeys")
                 fbx_import_formlayout.addRow(FBXImportProtectDrivenKeys_chb)
+                FBXImportProtectDrivenKeys_chb.setChecked(convertDict[importSettings["fbxImportMaya"]["FBXImportProtectDrivenKeys"].replace("-v ", "")])
+                FBXImportProtectDrivenKeys_chb.stateChanged.connect(
+                    lambda: updateImportDictionary("fbxImportMaya", "FBXImportProtectDrivenKeys", "-v %s" %str(FBXImportProtectDrivenKeys_chb.isChecked()).lower()))
 
                 FBXImportShapes_chb = QtWidgets.QCheckBox()
                 FBXImportShapes_chb.setText("Shapes")
                 FBXImportShapes_chb.setObjectName("FBXImportShapes")
                 fbx_import_formlayout.addRow(FBXImportShapes_chb)
+                FBXImportShapes_chb.setChecked(convertDict[importSettings["fbxImportMaya"]["FBXImportShapes"].replace("-v ", "")])
+                FBXImportShapes_chb.stateChanged.connect(
+                    lambda: updateImportDictionary("fbxImportMaya", "FBXImportShapes", "-v %s" %str(FBXImportShapes_chb.isChecked()).lower()))
 
                 FBXImportCameras_chb = QtWidgets.QCheckBox()
                 FBXImportCameras_chb.setText("Cameras")
                 FBXImportCameras_chb.setObjectName("FBXImportCameras")
                 fbx_import_formlayout.addRow(FBXImportCameras_chb)
+                FBXImportCameras_chb.setChecked(convertDict[importSettings["fbxImportMaya"]["FBXImportCameras"].replace("-v ", "")])
+                FBXImportCameras_chb.stateChanged.connect(
+                    lambda: updateImportDictionary("fbxImportMaya", "FBXImportCameras", "-v %s" %str(FBXImportCameras_chb.isChecked()).lower()))
 
                 FBXImportSetMayaFrameRate_chb = QtWidgets.QCheckBox()
                 FBXImportSetMayaFrameRate_chb.setText("Set Maya Frame Rate")
                 FBXImportSetMayaFrameRate_chb.setObjectName("FBXImportSetMayaFrameRate")
                 fbx_import_formlayout.addRow(FBXImportSetMayaFrameRate_chb)
+                FBXImportSetMayaFrameRate_chb.setChecked(convertDict[importSettings["fbxImportMaya"]["FBXImportSetMayaFrameRate"].replace("-v ", "")])
+                FBXImportSetMayaFrameRate_chb.stateChanged.connect(
+                    lambda: updateImportDictionary("fbxImportMaya", "FBXImportSetMayaFrameRate", "-v %s" %str(FBXImportSetMayaFrameRate_chb.isChecked()).lower()))
 
                 FBXImportGenerateLog_chb = QtWidgets.QCheckBox()
                 FBXImportGenerateLog_chb.setText("Generate Log")
                 FBXImportGenerateLog_chb.setObjectName("FBXImportGenerateLog")
                 fbx_import_formlayout.addRow(FBXImportGenerateLog_chb)
+                FBXImportGenerateLog_chb.setChecked(convertDict[importSettings["fbxImportMaya"]["FBXImportGenerateLog"].replace("-v ", "")])
+                FBXImportGenerateLog_chb.stateChanged.connect(
+                    lambda: updateImportDictionary("fbxImportMaya", "FBXImportGenerateLog", "-v %s" %str(FBXImportGenerateLog_chb.isChecked()).lower()))
 
                 FBXImportConstraints_chb = QtWidgets.QCheckBox()
                 FBXImportConstraints_chb.setText("Constraints")
                 FBXImportConstraints_chb.setObjectName("FBXImportConstraints")
                 fbx_import_formlayout.addRow(FBXImportConstraints_chb)
+                FBXImportConstraints_chb.setChecked(convertDict[importSettings["fbxImportMaya"]["FBXImportConstraints"].replace("-v ", "")])
+                FBXImportConstraints_chb.stateChanged.connect(
+                    lambda: updateImportDictionary("fbxImportMaya", "FBXImportConstraints", "-v %s" %str(FBXImportConstraints_chb.isChecked()).lower()))
 
                 FBXImportLights_chb = QtWidgets.QCheckBox()
                 FBXImportLights_chb.setText("Lights")
                 FBXImportLights_chb.setObjectName("FBXImportLights")
                 fbx_import_formlayout.addRow(FBXImportLights_chb)
+                FBXImportLights_chb.setChecked(convertDict[importSettings["fbxImportMaya"]["FBXImportLights"].replace("-v ", "")])
+                FBXImportLights_chb.stateChanged.connect(
+                    lambda: updateImportDictionary("fbxImportMaya", "FBXImportLights", "-v %s" %str(FBXImportLights_chb.isChecked()).lower()))
 
                 FBXImportConvertDeformingNullsToJoint_chb = QtWidgets.QCheckBox()
                 FBXImportConvertDeformingNullsToJoint_chb.setText("Convert Nulls to Joints")
                 FBXImportConvertDeformingNullsToJoint_chb.setObjectName("FBXImportConvertDeformingNullsToJoint")
                 fbx_import_formlayout.addRow(FBXImportConvertDeformingNullsToJoint_chb)
+                FBXImportConvertDeformingNullsToJoint_chb.setChecked(convertDict[importSettings["fbxImportMaya"]["FBXImportConvertDeformingNullsToJoint"].replace("-v ", "")])
+                FBXImportConvertDeformingNullsToJoint_chb.stateChanged.connect(
+                    lambda: updateImportDictionary("fbxImportMaya", "FBXImportConvertDeformingNullsToJoint", "-v %s" %str(FBXImportConvertDeformingNullsToJoint_chb.isChecked()).lower()))
 
                 FBXImportFillTimeline_chb = QtWidgets.QCheckBox()
                 FBXImportFillTimeline_chb.setText("Fill Timeline")
                 FBXImportFillTimeline_chb.setObjectName("FBXImportFillTimeline")
                 fbx_import_formlayout.addRow(FBXImportFillTimeline_chb)
+                FBXImportFillTimeline_chb.setChecked(convertDict[importSettings["fbxImportMaya"]["FBXImportFillTimeline"].replace("-v ", "")])
+                FBXImportFillTimeline_chb.stateChanged.connect(
+                    lambda: updateImportDictionary("fbxImportMaya", "FBXImportFillTimeline", "-v %s" %str(FBXImportFillTimeline_chb.isChecked()).lower()))
 
                 FBXImportMergeAnimationLayers_chb = QtWidgets.QCheckBox()
                 FBXImportMergeAnimationLayers_chb.setText("Merge Animation Layers")
                 FBXImportMergeAnimationLayers_chb.setObjectName("FBXImportMergeAnimationLayers")
                 fbx_import_formlayout.addRow(FBXImportMergeAnimationLayers_chb)
+                FBXImportMergeAnimationLayers_chb.setChecked(convertDict[importSettings["fbxImportMaya"]["FBXImportMergeAnimationLayers"].replace("-v ", "")])
+                FBXImportMergeAnimationLayers_chb.stateChanged.connect(
+                    lambda: updateImportDictionary("fbxImportMaya", "FBXImportMergeAnimationLayers", "-v %s" %str(FBXImportMergeAnimationLayers_chb.isChecked()).lower()))
 
                 FBXImportHardEdges_chb = QtWidgets.QCheckBox()
                 FBXImportHardEdges_chb.setText("Hard Edges")
                 FBXImportHardEdges_chb.setObjectName("FBXImportHardEdges")
                 fbx_import_formlayout.addRow(FBXImportHardEdges_chb)
+                FBXImportHardEdges_chb.setChecked(convertDict[importSettings["fbxImportMaya"]["FBXImportHardEdges"].replace("-v ", "")])
+                FBXImportHardEdges_chb.stateChanged.connect(
+                    lambda: updateImportDictionary("fbxImportMaya", "FBXImportHardEdges", "-v %s" %str(FBXImportHardEdges_chb.isChecked()).lower()))
 
                 FBXImportAxisConversionEnable_chb = QtWidgets.QCheckBox()
                 FBXImportAxisConversionEnable_chb.setText("Axis Conversion Enable")
                 FBXImportAxisConversionEnable_chb.setObjectName("FBXImportAxisConversionEnable")
                 fbx_import_formlayout.addRow(FBXImportAxisConversionEnable_chb)
+                FBXImportAxisConversionEnable_chb.setChecked(convertDict[importSettings["fbxImportMaya"]["FBXImportAxisConversionEnable"].replace("-v ", "")])
+                FBXImportAxisConversionEnable_chb.stateChanged.connect(
+                    lambda: updateImportDictionary("fbxImportMaya", "FBXImportAxisConversionEnable", "-v %s" %str(FBXImportAxisConversionEnable_chb.isChecked()).lower()))
 
                 FBXImportCacheFile_chb = QtWidgets.QCheckBox()
                 FBXImportCacheFile_chb.setText("Cache File")
                 FBXImportCacheFile_chb.setObjectName("FBXImportCacheFile")
                 fbx_import_formlayout.addRow(FBXImportCacheFile_chb)
+                FBXImportCacheFile_chb.setChecked(convertDict[importSettings["fbxImportMaya"]["FBXImportCacheFile"].replace("-v ", "")])
+                FBXImportCacheFile_chb.stateChanged.connect(
+                    lambda: updateImportDictionary("fbxImportMaya", "FBXImportCacheFile", "-v %s" %str(FBXImportCacheFile_chb.isChecked()).lower()))
 
                 FBXImportSkins_chb = QtWidgets.QCheckBox()
                 FBXImportSkins_chb.setText("Skins")
                 FBXImportSkins_chb.setObjectName("FBXImportSkins")
                 fbx_import_formlayout.addRow(FBXImportSkins_chb)
+                FBXImportSkins_chb.setChecked(convertDict[importSettings["fbxImportMaya"]["FBXImportSkins"].replace("-v ", "")])
+                FBXImportSkins_chb.stateChanged.connect(
+                    lambda: updateImportDictionary("fbxImportMaya", "FBXImportSkins", "-v %s" %str(FBXImportSkins_chb.isChecked()).lower()))
 
                 FBXImportConvertUnitString_chb = QtWidgets.QCheckBox()
                 FBXImportConvertUnitString_chb.setText("Convert Unit String")
                 FBXImportConvertUnitString_chb.setObjectName("FBXImportConvertUnitString")
                 fbx_import_formlayout.addRow(FBXImportConvertUnitString_chb)
+                FBXImportConvertUnitString_chb.setChecked(convertDict[importSettings["fbxImportMaya"]["FBXImportConvertUnitString"].replace("-v ", "")])
+                FBXImportConvertUnitString_chb.stateChanged.connect(
+                    lambda: updateImportDictionary("fbxImportMaya", "FBXImportConvertUnitString", "-v %s" %str(FBXImportConvertUnitString_chb.isChecked()).lower()))
 
                 spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
                                                    QtWidgets.QSizePolicy.Expanding)
@@ -3430,6 +3504,11 @@ class MainUI(QtWidgets.QMainWindow):
                 FBXExportUpAxis_combo.addItems(["y", "z"])
                 FBXExportUpAxis_combo.setObjectName("FBXExportUpAxis")
                 fbx_export_formlayout.addRow(FBXExportUpAxis_lbl, FBXExportUpAxis_combo)
+                ffindex = FBXExportUpAxis_combo.findText(exportSettings["fbxExportMaya"]["FBXExportUpAxis"], QtCore.Qt.MatchFixedString)
+                FBXExportUpAxis_combo.setCurrentIndex(ffindex)
+                FBXExportUpAxis_combo.currentIndexChanged.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportUpAxis", unicode(FBXExportUpAxis_combo.currentText().encode("utf-8")))
+                )
 
                 FBXExportAxisConversionMethod_lbl = QtWidgets.QLabel()
                 FBXExportAxisConversionMethod_lbl.setText("Axis Conversion Method: ")
@@ -3437,6 +3516,11 @@ class MainUI(QtWidgets.QMainWindow):
                 FBXExportAxisConversionMethod_combo.addItems(["none", "convertAnimation", "addFbxRoot"])
                 FBXExportAxisConversionMethod_combo.setObjectName("FBXExportAxisConversionMethod")
                 fbx_export_formlayout.addRow(FBXExportAxisConversionMethod_lbl, FBXExportAxisConversionMethod_combo)
+                ffindex = FBXExportAxisConversionMethod_combo.findText(exportSettings["fbxExportMaya"]["FBXExportAxisConversionMethod"], QtCore.Qt.MatchFixedString)
+                FBXExportAxisConversionMethod_combo.setCurrentIndex(ffindex)
+                FBXExportAxisConversionMethod_combo.currentIndexChanged.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportAxisConversionMethod", unicode(FBXExportAxisConversionMethod_combo.currentText().encode("utf-8")))
+                )
 
                 FBXExportBakeComplexStep_lbl = QtWidgets.QLabel()
                 FBXExportBakeComplexStep_lbl.setText("Bake Step: ")
@@ -3444,13 +3528,22 @@ class MainUI(QtWidgets.QMainWindow):
                 FBXExportBakeComplexStep_spb.setValue(1)
                 FBXExportBakeComplexStep_spb.setObjectName("FBXExportBakeComplexStep")
                 fbx_export_formlayout.addRow(FBXExportBakeComplexStep_lbl, FBXExportBakeComplexStep_spb)
+                FBXExportBakeComplexStep_spb.setValue(int(exportSettings["fbxExportMaya"]["FBXExportBakeComplexStep"].replace("-v ", "")))
+                FBXExportBakeComplexStep_spb.valueChanged.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportBakeComplexStep", "-v %s" %unicode(FBXExportBakeComplexStep_spb.value().encode("utf-8")))
+                )
 
                 FBXExportConvertUnitString_lbl = QtWidgets.QLabel()
                 FBXExportConvertUnitString_lbl.setText("Convert Units")
                 FBXExportConvertUnitString_combo = QtWidgets.QComboBox()
                 FBXExportConvertUnitString_combo.addItems(["mm", "dm", "cm", "m", "km", "In", "ft", "yd", "mi"])
                 FBXExportConvertUnitString_combo.setObjectName("FBXExportConvertUnitString")
-                fbx_export_formlayout.addRow(FBXExportConvertUnitString_lbl)
+                fbx_export_formlayout.addRow(FBXExportConvertUnitString_lbl, FBXExportConvertUnitString_combo)
+                ffindex = FBXExportConvertUnitString_combo.findText(exportSettings["fbxExportMaya"]["FBXExportConvertUnitString"], QtCore.Qt.MatchFixedString)
+                FBXExportConvertUnitString_combo.setCurrentIndex(ffindex)
+                FBXExportConvertUnitString_combo.currentIndexChanged.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportConvertUnitString", unicode(FBXExportConvertUnitString_combo.currentText().encode("utf-8")))
+                )
 
                 FBXExportQuaternion_lbl = QtWidgets.QLabel()
                 FBXExportQuaternion_lbl.setText("Treat Quaternion: ")
@@ -3458,14 +3551,22 @@ class MainUI(QtWidgets.QMainWindow):
                 FBXExportQuaternion_combo.addItems(["quaternion", "euler", "resample"])
                 FBXExportQuaternion_combo.setObjectName("FBXExportQuaternion")
                 fbx_export_formlayout.addRow(FBXExportQuaternion_lbl, FBXExportQuaternion_combo)
+                ffindex = FBXExportQuaternion_combo.findText(exportSettings["fbxExportMaya"]["FBXExportQuaternion"].replace("-v ", ""), QtCore.Qt.MatchFixedString)
+                FBXExportQuaternion_combo.setCurrentIndex(ffindex)
+                FBXExportQuaternion_combo.currentIndexChanged.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportQuaternion", "-v %s" %unicode(FBXExportQuaternion_combo.currentText().encode("utf-8")))
+                )
 
                 FBXExportFileVersion_lbl = QtWidgets.QLabel()
-                FBXExportFileVersion_lbl.setText("FBX Verison: ")
+                FBXExportFileVersion_lbl.setText("FBX Version: ")
                 FBXExportFileVersion_le = QtWidgets.QLineEdit()
                 FBXExportFileVersion_le.setMaximumWidth(150)
-                FBXExportFileVersion_le.setText("FBX201400")
                 FBXExportFileVersion_le.setObjectName("FBXExportFileVersion")
                 fbx_export_formlayout.addRow(FBXExportFileVersion_lbl, FBXExportFileVersion_le)
+                FBXExportFileVersion_le.setText(exportSettings["fbxExportMaya"]["FBXExportFileVersion"].replace("-v ", ""))
+                FBXExportFileVersion_le.editingFinished.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportFileVersion", "-v %s" %unicode(FBXExportFileVersion_le.text()).encode("utf-8"))
+                )
 
                 FBXExportScaleFactor_lbl = QtWidgets.QLabel()
                 FBXExportScaleFactor_lbl.setText("Scale Factor: ")
@@ -3473,111 +3574,180 @@ class MainUI(QtWidgets.QMainWindow):
                 FBXExportScaleFactor_spb.setValue(1.0)
                 FBXExportScaleFactor_spb.setObjectName("FBXExportScaleFactor")
                 fbx_export_formlayout.addRow(FBXExportScaleFactor_lbl, FBXExportScaleFactor_spb)
+                FBXExportScaleFactor_spb.setValue(float(exportSettings["fbxExportMaya"]["FBXExportScaleFactor"]))
+                FBXExportScaleFactor_spb.valueChanged.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportScaleFactor", str(FBXExportScaleFactor_spb.value()))
+                )
 
                 FBXExportApplyConstantKeyReducer_chb = QtWidgets.QCheckBox()
                 FBXExportApplyConstantKeyReducer_chb.setText("Apply Constant Key Reducer")
                 FBXExportApplyConstantKeyReducer_chb.setObjectName("FBXExportApplyConstantKeyReducer")
                 fbx_export_formlayout.addRow(FBXExportApplyConstantKeyReducer_chb)
+                FBXExportApplyConstantKeyReducer_chb.setChecked(convertDict[exportSettings["fbxExportMaya"]["FBXExportApplyConstantKeyReducer"].replace("-v ", "")])
+                FBXExportApplyConstantKeyReducer_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportApplyConstantKeyReducer", "-v %s" %str(FBXExportApplyConstantKeyReducer_chb.isChecked()).lower())
+                )
 
                 FBXExportShapes_chb = QtWidgets.QCheckBox()
                 FBXExportShapes_chb.setText("Shapes")
                 FBXExportShapes_chb.setObjectName("FBXExportShapes")
                 fbx_export_formlayout.addRow(FBXExportShapes_chb)
+                FBXExportShapes_chb.setChecked(convertDict[exportSettings["fbxExportMaya"]["FBXExportShapes"].replace("-v ", "")])
+                FBXExportShapes_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportShapes", "-v %s" %str(FBXExportShapes_chb.isChecked()).lower()))
+
 
                 FBXExportUseSceneName_chb = QtWidgets.QCheckBox()
                 FBXExportUseSceneName_chb.setText("Use Scene Name")
                 FBXExportUseSceneName_chb.setObjectName("FBXExportUseSceneName")
                 fbx_export_formlayout.addRow(FBXExportUseSceneName_chb)
+                FBXExportUseSceneName_chb.setChecked(convertDict[exportSettings["fbxExportMaya"]["FBXExportUseSceneName"].replace("-v ", "")])
+                FBXExportUseSceneName_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportUseSceneName", "-v %s" %str(FBXExportUseSceneName_chb.isChecked()).lower()))
 
                 FBXExportSkeletonDefinitions_chb = QtWidgets.QCheckBox()
                 FBXExportSkeletonDefinitions_chb.setText("Skeleton Definitions")
                 FBXExportSkeletonDefinitions_chb.setObjectName("FBXExportSkeletonDefinitions")
                 fbx_export_formlayout.addRow(FBXExportSkeletonDefinitions_chb)
+                FBXExportSkeletonDefinitions_chb.setChecked(convertDict[exportSettings["fbxExportMaya"]["FBXExportSkeletonDefinitions"].replace("-v ", "")])
+                FBXExportSkeletonDefinitions_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportSkeletonDefinitions", "-v %s" %str(FBXExportSkeletonDefinitions_chb.isChecked()).lower()))
 
                 FBXExportInstances_chb = QtWidgets.QCheckBox()
                 FBXExportInstances_chb.setText("Instances")
                 FBXExportInstances_chb.setObjectName("FBXExportInstances")
                 fbx_export_formlayout.addRow(FBXExportInstances_chb)
+                FBXExportInstances_chb.setChecked(convertDict[exportSettings["fbxExportMaya"]["FBXExportInstances"].replace("-v ", "")])
+                FBXExportInstances_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportSkeletonDefinitions", "-v %s" %str(FBXExportInstances_chb.isChecked()).lower()))
 
                 FBXExportCameras_chb = QtWidgets.QCheckBox()
                 FBXExportCameras_chb.setText("Cameras")
                 FBXExportCameras_chb.setObjectName("FBXExportCameras")
                 fbx_export_formlayout.addRow(FBXExportCameras_chb)
+                FBXExportCameras_chb.setChecked(convertDict[exportSettings["fbxExportMaya"]["FBXExportCameras"].replace("-v ", "")])
+                FBXExportCameras_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportCameras", "-v %s" %str(FBXExportCameras_chb.isChecked()).lower()))
 
                 FBXExportTangents_chb = QtWidgets.QCheckBox()
                 FBXExportTangents_chb.setText("Tangents")
                 FBXExportTangents_chb.setObjectName("FBXExportTangents")
                 fbx_export_formlayout.addRow(FBXExportTangents_chb)
+                FBXExportTangents_chb.setChecked(convertDict[exportSettings["fbxExportMaya"]["FBXExportTangents"].replace("-v ", "")])
+                FBXExportTangents_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportTangents", "-v %s" %str(FBXExportTangents_chb.isChecked()).lower()))
 
                 FBXExportInAscii_chb = QtWidgets.QCheckBox()
                 FBXExportInAscii_chb.setText("Ascii")
                 FBXExportInAscii_chb.setObjectName("FBXExportInAscii")
                 fbx_export_formlayout.addRow(FBXExportInAscii_chb)
+                FBXExportInAscii_chb.setChecked(convertDict[exportSettings["fbxExportMaya"]["FBXExportInAscii"].replace("-v ", "")])
+                FBXExportInAscii_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportInAscii", "-v %s" %str(FBXExportInAscii_chb.isChecked()).lower()))
 
                 FBXExportLights_chb = QtWidgets.QCheckBox()
                 FBXExportLights_chb.setText("Lights")
                 FBXExportLights_chb.setObjectName("FBXExportLights")
                 fbx_export_formlayout.addRow(FBXExportLights_chb)
+                FBXExportLights_chb.setChecked(convertDict[exportSettings["fbxExportMaya"]["FBXExportLights"].replace("-v ", "")])
+                FBXExportLights_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportLights", "-v %s" %str(FBXExportLights_chb.isChecked()).lower()))
 
                 FBXExportReferencedAssetsContent_chb = QtWidgets.QCheckBox()
                 FBXExportReferencedAssetsContent_chb.setText("Referenced Assets")
                 FBXExportReferencedAssetsContent_chb.setObjectName("FBXExportReferencedAssetsContent")
                 fbx_export_formlayout.addRow(FBXExportReferencedAssetsContent_chb)
+                FBXExportReferencedAssetsContent_chb.setChecked(convertDict[exportSettings["fbxExportMaya"]["FBXExportReferencedAssetsContent"].replace("-v ", "")])
+                FBXExportReferencedAssetsContent_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportReferencedAssetsContent", "-v %s" %str(FBXExportReferencedAssetsContent_chb.isChecked()).lower()))
 
                 FBXExportConstraints_chb = QtWidgets.QCheckBox()
                 FBXExportConstraints_chb.setText("Constraints")
                 FBXExportConstraints_chb.setObjectName("FBXExportConstraints")
                 fbx_export_formlayout.addRow(FBXExportConstraints_chb)
+                FBXExportConstraints_chb.setChecked(convertDict[exportSettings["fbxExportMaya"]["FBXExportConstraints"].replace("-v ", "")])
+                FBXExportConstraints_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportConstraints", "-v %s" %str(FBXExportConstraints_chb.isChecked()).lower()))
 
                 FBXExportSmoothMesh_chb = QtWidgets.QCheckBox()
                 FBXExportSmoothMesh_chb.setText("Smooth Mesh")
                 FBXExportSmoothMesh_chb.setObjectName("FBXExportSmoothMesh")
                 fbx_export_formlayout.addRow(FBXExportSmoothMesh_chb)
+                FBXExportSmoothMesh_chb.setChecked(convertDict[exportSettings["fbxExportMaya"]["FBXExportSmoothMesh"].replace("-v ", "")])
+                FBXExportSmoothMesh_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportSmoothMesh", "-v %s" %str(FBXExportSmoothMesh_chb.isChecked()).lower()))
 
                 FBXExportHardEdges_chb = QtWidgets.QCheckBox()
                 FBXExportHardEdges_chb.setText("Hard Edges")
                 FBXExportHardEdges_chb.setObjectName("FBXExportHardEdges")
                 fbx_export_formlayout.addRow(FBXExportHardEdges_chb)
+                FBXExportHardEdges_chb.setChecked(convertDict[exportSettings["fbxExportMaya"]["FBXExportHardEdges"].replace("-v ", "")])
+                FBXExportHardEdges_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportHardEdges", "-v %s" %str(FBXExportHardEdges_chb.isChecked()).lower()))
 
                 FBXExportInputConnections_chb = QtWidgets.QCheckBox()
                 FBXExportInputConnections_chb.setText("Input Connections")
                 FBXExportInputConnections_chb.setObjectName("FBXExportInputConnections")
                 fbx_export_formlayout.addRow(FBXExportInputConnections_chb)
+                FBXExportInputConnections_chb.setChecked(convertDict[exportSettings["fbxExportMaya"]["FBXExportInputConnections"].replace("-v ", "")])
+                FBXExportInputConnections_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportInputConnections", "-v %s" %str(FBXExportInputConnections_chb.isChecked()).lower()))
 
                 FBXExportEmbeddedTextures_chb = QtWidgets.QCheckBox()
                 FBXExportEmbeddedTextures_chb.setText("Embed Textures")
                 FBXExportEmbeddedTextures_chb.setObjectName("FBXExportEmbeddedTextures")
                 fbx_export_formlayout.addRow(FBXExportEmbeddedTextures_chb)
+                FBXExportEmbeddedTextures_chb.setChecked(convertDict[exportSettings["fbxExportMaya"]["FBXExportEmbeddedTextures"].replace("-v ", "")])
+                FBXExportEmbeddedTextures_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportEmbeddedTextures", "-v %s" %str(FBXExportEmbeddedTextures_chb.isChecked()).lower()))
 
                 FBXExportBakeComplexAnimation_chb = QtWidgets.QCheckBox()
                 FBXExportBakeComplexAnimation_chb.setText("Bake Animation")
                 FBXExportBakeComplexAnimation_chb.setObjectName("FBXExportBakeComplexAnimation")
                 fbx_export_formlayout.addRow(FBXExportBakeComplexAnimation_chb)
+                FBXExportBakeComplexAnimation_chb.setChecked(convertDict[exportSettings["fbxExportMaya"]["FBXExportBakeComplexAnimation"].replace("-v ", "")])
+                FBXExportBakeComplexAnimation_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportBakeComplexAnimation", "-v %s" %str(FBXExportBakeComplexAnimation_chb.isChecked()).lower()))
 
                 FBXExportCacheFile_chb = QtWidgets.QCheckBox()
                 FBXExportCacheFile_chb.setText("Cache File")
                 FBXExportCacheFile_chb.setObjectName("FBXExportCacheFile")
                 fbx_export_formlayout.addRow(FBXExportCacheFile_chb)
+                FBXExportCacheFile_chb.setChecked(convertDict[exportSettings["fbxExportMaya"]["FBXExportCacheFile"].replace("-v ", "")])
+                FBXExportCacheFile_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportCacheFile", "-v %s" %str(FBXExportCacheFile_chb.isChecked()).lower()))
 
                 FBXExportSmoothingGroups_chb = QtWidgets.QCheckBox()
                 FBXExportSmoothingGroups_chb.setText("Smoothing Groups")
                 FBXExportSmoothingGroups_chb.setObjectName("FBXExportSmoothingGroups")
                 fbx_export_formlayout.addRow(FBXExportSmoothingGroups_chb)
+                FBXExportSmoothingGroups_chb.setChecked(convertDict[exportSettings["fbxExportMaya"]["FBXExportSmoothingGroups"].replace("-v ", "")])
+                FBXExportSmoothingGroups_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportSmoothingGroups", "-v %s" %str(FBXExportSmoothingGroups_chb.isChecked()).lower()))
 
                 FBXExportBakeResampleAnimation_chb = QtWidgets.QCheckBox()
                 FBXExportBakeResampleAnimation_chb.setText("Resample Animation")
                 FBXExportBakeResampleAnimation_chb.setObjectName("FBXExportBakeResampleAnimation")
                 fbx_export_formlayout.addRow(FBXExportBakeResampleAnimation_chb)
+                FBXExportBakeResampleAnimation_chb.setChecked(convertDict[exportSettings["fbxExportMaya"]["FBXExportBakeResampleAnimation"].replace("-v ", "")])
+                FBXExportBakeResampleAnimation_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportBakeResampleAnimation", "-v %s" %str(FBXExportBakeResampleAnimation_chb.isChecked()).lower()))
 
                 FBXExportTriangulate_chb = QtWidgets.QCheckBox()
                 FBXExportTriangulate_chb.setText("Triangulate")
                 FBXExportTriangulate_chb.setObjectName("FBXExportTriangulate")
                 fbx_export_formlayout.addRow(FBXExportTriangulate_chb)
+                FBXExportTriangulate_chb.setChecked(convertDict[exportSettings["fbxExportMaya"]["FBXExportTriangulate"].replace("-v ", "")])
+                FBXExportTriangulate_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportTriangulate", "-v %s" %str(FBXExportTriangulate_chb.isChecked()).lower()))
 
                 FBXExportSkins_chb = QtWidgets.QCheckBox()
                 FBXExportSkins_chb.setText("Skins")
                 FBXExportSkins_chb.setObjectName("FBXExportSkins")
                 fbx_export_formlayout.addRow(FBXExportSkins_chb)
+                FBXExportSkins_chb.setChecked(convertDict[exportSettings["fbxExportMaya"]["FBXExportSkins"].replace("-v ", "")])
+                FBXExportSkins_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("fbxExportMaya", "FBXExportSkins", "-v %s" %str(FBXExportSkins_chb.isChecked()).lower()))
 
                 spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
                                                    QtWidgets.QSizePolicy.Expanding)
@@ -3610,11 +3780,17 @@ class MainUI(QtWidgets.QMainWindow):
                 fitTimeRange_chb.setText("Fit Time Range")
                 fitTimeRange_chb.setObjectName("fitTimeRange")
                 alembic_import_formlayout.addRow(fitTimeRange_chb)
+                fitTimeRange_chb.setChecked(importSettings["alembicImportMaya"]["fitTimeRange"])
+                fitTimeRange_chb.stateChanged.connect(
+                    lambda: updateImportDictionary("alembicImportMaya", "fitTimeRange", fitTimeRange_chb.isChecked()))
 
                 setToStartFrame_chb = QtWidgets.QCheckBox()
                 setToStartFrame_chb.setText("Set To Start Frame")
                 setToStartFrame_chb.setObjectName("setToStartFrame")
                 alembic_import_formlayout.addRow(setToStartFrame_chb)
+                setToStartFrame_chb.setChecked(importSettings["alembicImportMaya"]["setToStartFrame"])
+                setToStartFrame_chb.stateChanged.connect(
+                    lambda: updateImportDictionary("alembicImportMaya", "setToStartFrame", setToStartFrame_chb.isChecked()))
 
                 spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
                                                    QtWidgets.QSizePolicy.Expanding)
@@ -3634,6 +3810,10 @@ class MainUI(QtWidgets.QMainWindow):
                 step_spb = QtWidgets.QDoubleSpinBox()
                 step_spb.setObjectName("step")
                 alembic_export_formlayout.addRow(step_lbl, step_spb)
+                step_spb.setValue(exportSettings["alembicExportMaya"]["step"])
+                step_spb.valueChanged.connect(
+                    lambda: updateExportDictionary("alembicExportMaya", "step", step_spb.value())
+                )
 
                 dataFormat_lbl = QtWidgets.QLabel()
                 dataFormat_lbl.setText("Data Format")
@@ -3641,66 +3821,121 @@ class MainUI(QtWidgets.QMainWindow):
                 dataFormat_combo.addItems(["Ogawa", "HDF5"])
                 dataFormat_combo.setObjectName("dataFormat")
                 alembic_export_formlayout.addRow(dataFormat_lbl, dataFormat_combo)
+                ffindex = dataFormat_combo.findText(exportSettings["alembicExportMaya"]["dataFormat"], QtCore.Qt.MatchFixedString)
+                dataFormat_combo.setCurrentIndex(ffindex)
+                dataFormat_combo.currentIndexChanged.connect(
+                    lambda: updateExportDictionary("alembicExportMaya", "dataFormat", unicode(dataFormat_combo.currentText().encode("utf-8")))
+                )
 
                 writeFaceSets_chb = QtWidgets.QCheckBox()
                 writeFaceSets_chb.setText("Face Sets")
                 writeFaceSets_chb.setObjectName("writeFaceSets")
                 alembic_export_formlayout.addRow(writeFaceSets_chb)
+                writeFaceSets_chb.setChecked(exportSettings["alembicExportMaya"]["writeFaceSets"])
+                writeFaceSets_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("alembicExportMaya", "writeFaceSets", writeFaceSets_chb.isChecked())
+                )
 
                 writeUVSets_chb = QtWidgets.QCheckBox()
                 writeUVSets_chb.setText("Uv Sets")
                 writeUVSets_chb.setObjectName("writeUVSets")
                 alembic_export_formlayout.addRow(writeUVSets_chb)
+                writeUVSets_chb.setChecked(exportSettings["alembicExportMaya"]["writeUVSets"])
+                writeUVSets_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("alembicExportMaya", "writeUVSets", writeUVSets_chb.isChecked())
+                )
 
                 noNormals_chb = QtWidgets.QCheckBox()
                 noNormals_chb.setText("No Normals")
                 noNormals_chb.setObjectName("noNormals")
                 alembic_export_formlayout.addRow(noNormals_chb)
+                noNormals_chb.setChecked(exportSettings["alembicExportMaya"]["noNormals"])
+                noNormals_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("alembicExportMaya", "noNormals", noNormals_chb.isChecked())
+                )
 
                 autoSubd_chb = QtWidgets.QCheckBox()
                 autoSubd_chb.setText("Auto Subdivide")
                 autoSubd_chb.setObjectName("autoSubd")
                 alembic_export_formlayout.addRow(autoSubd_chb)
+                autoSubd_chb.setChecked(exportSettings["alembicExportMaya"]["autoSubd"])
+                autoSubd_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("alembicExportMaya", "autoSubd", autoSubd_chb.isChecked())
+                )
 
                 stripNamespaces_chb = QtWidgets.QCheckBox()
                 stripNamespaces_chb.setText("Strip Namespaces")
                 stripNamespaces_chb.setObjectName("stripNamespaces")
                 alembic_export_formlayout.addRow(stripNamespaces_chb)
+                stripNamespaces_chb.setChecked(exportSettings["alembicExportMaya"]["stripNamespaces"])
+                stripNamespaces_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("alembicExportMaya", "stripNamespaces", stripNamespaces_chb.isChecked())
+                )
+
 
                 wholeFrameGeo_chb = QtWidgets.QCheckBox()
                 wholeFrameGeo_chb.setText("Whole Frame Geo")
                 wholeFrameGeo_chb.setObjectName("wholeFrameGeo")
                 alembic_export_formlayout.addRow(wholeFrameGeo_chb)
+                wholeFrameGeo_chb.setChecked(exportSettings["alembicExportMaya"]["wholeFrameGeo"])
+                wholeFrameGeo_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("alembicExportMaya", "wholeFrameGeo", wholeFrameGeo_chb.isChecked())
+                )
 
                 renderableOnly_chb = QtWidgets.QCheckBox()
                 renderableOnly_chb.setText("Renderable Only")
                 renderableOnly_chb.setObjectName("renderableOnly")
                 alembic_export_formlayout.addRow(renderableOnly_chb)
+                renderableOnly_chb.setChecked(exportSettings["alembicExportMaya"]["renderableOnly"])
+                renderableOnly_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("alembicExportMaya", "renderableOnly", renderableOnly_chb.isChecked())
+                )
 
                 worldSpace_chb = QtWidgets.QCheckBox()
                 worldSpace_chb.setText("Worldspace")
                 worldSpace_chb.setObjectName("worldSpace")
                 alembic_export_formlayout.addRow(worldSpace_chb)
+                worldSpace_chb.setChecked(exportSettings["alembicExportMaya"]["worldSpace"])
+                worldSpace_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("alembicExportMaya", "worldSpace", worldSpace_chb.isChecked())
+                )
 
                 writeVisibility_chb = QtWidgets.QCheckBox()
                 writeVisibility_chb.setText("Visibility")
                 writeVisibility_chb.setObjectName("writeVisibility")
                 alembic_export_formlayout.addRow(writeVisibility_chb)
+                writeVisibility_chb.setChecked(exportSettings["alembicExportMaya"]["writeVisibility"])
+                writeVisibility_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("alembicExportMaya", "writeVisibility", writeVisibility_chb.isChecked())
+                )
+
 
                 eulerFilter_chb = QtWidgets.QCheckBox()
                 eulerFilter_chb.setText("Euler Filter")
                 eulerFilter_chb.setObjectName("eulerFilter")
                 alembic_export_formlayout.addRow(eulerFilter_chb)
+                eulerFilter_chb.setChecked(exportSettings["alembicExportMaya"]["eulerFilter"])
+                eulerFilter_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("alembicExportMaya", "eulerFilter", eulerFilter_chb.isChecked())
+                )
 
                 writeColorSets_chb = QtWidgets.QCheckBox()
                 writeColorSets_chb.setText("Color Sets")
                 writeColorSets_chb.setObjectName("writeColorSets")
                 alembic_export_formlayout.addRow(writeColorSets_chb)
+                writeColorSets_chb.setChecked(exportSettings["alembicExportMaya"]["writeColorSets"])
+                writeColorSets_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("alembicExportMaya", "writeColorSets", writeColorSets_chb.isChecked())
+                )
 
                 uvWrite_chb = QtWidgets.QCheckBox()
                 uvWrite_chb.setText("UV")
                 uvWrite_chb.setObjectName("uvWrite")
                 alembic_export_formlayout.addRow(uvWrite_chb)
+                uvWrite_chb.setChecked(exportSettings["alembicExportMaya"]["uvWrite"])
+                uvWrite_chb.stateChanged.connect(
+                    lambda: updateExportDictionary("alembicExportMaya", "uvWrite", uvWrite_chb.isChecked())
+                )
 
                 spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
                                                    QtWidgets.QSizePolicy.Expanding)
