@@ -233,7 +233,14 @@ class PsManager(RootManager, PsCoreFunctions):
     def getSceneFile(self):
         # """This method must be overridden to return the full scene path ('' for unsaved) of current scene"""
         logger.debug("Func: getSceneFile")
-        self._getSceneFile()
+        return self._getSceneFile()
+        # try:
+        #     activeDocument = self.psApp.Application.ActiveDocument
+        #     docName = activeDocument.name
+        #     docPath = activeDocument.path
+        #     return os.path.join(docPath, docName)
+        # except:
+        #     return "Untitled"
 
     def getFormatOptions(self):
         """returns the format options according to the bit depth of active document"""

@@ -772,7 +772,7 @@ class MainUI(baseUI):
         self.extraMenus()
         self.modify()
         self.initMainUI(newborn=True)
-        self.settingsUI()
+        # self.settingsUI()
 
     def extraMenus(self):
         """Adds extra menu and widgets to the base UI"""
