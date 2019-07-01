@@ -253,7 +253,8 @@
         "motionBlur": false,
         "samples": 2,
         "shutter1": 0,
-        "shutter2": 1
+        "shutter2": 1,
+        "format": "default"
     }
   },
   "transferImportSettings": {
@@ -310,7 +311,7 @@
         "PointCache": true,
         "Resampling": 25,
         "ScaleConversion": true,
-        "ScaleFactor": 1,
+        "ScaleFactor": 1.0,
         "Shape": true,
         "Skin": true,
         "SmoothingGroups": false
