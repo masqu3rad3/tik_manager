@@ -21,6 +21,15 @@
     "ConvertMP4": true,
     "CrfValue": 23
   },
+  "defaultTikConvention": {
+        "validItems": {
+          "date": "",
+          "baseName": "",
+          "categoryName": "",
+          "userInitials": ""
+        },
+    "fileName": "<baseName>_<categoryName>_<userInitials>"
+  },
   "defaultProjectSettings": {
     "Resolution": [
     1920, 1080

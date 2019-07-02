@@ -2181,6 +2181,10 @@ class MainUI(QtWidgets.QMainWindow):
         ## PASSWORDS
         self._passwordsContent()
 
+        ## NAMING CONVENTIONS
+        currentConventions = manager.loadNameConventions()
+        self._namingConventions()
+
         self.settingsButtonBox = QtWidgets.QDialogButtonBox(settings_Dialog)
         self.settingsButtonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Apply|QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
         self.settingsApply_btn = self.settingsButtonBox.button(QtWidgets.QDialogButtonBox.Apply)
@@ -4303,6 +4307,75 @@ class MainUI(QtWidgets.QMainWindow):
 
         ## SIGNALS
         changePass_btn.clicked.connect(changePass)
+
+    def _namingConventions(self):
+        # manager = self._getManager()
+        # userList = self.allSettingsDict.get("users")
+
+        namingConv_Layout = QtWidgets.QVBoxLayout(self.namingConventions_vis)
+        namingConv_Layout.setSpacing(0)
+
+        h1_horizontalLayout = QtWidgets.QHBoxLayout()
+        h1_label = QtWidgets.QLabel()
+        h1_label.setText("Naming Conventions")
+        h1_label.setFont(self.headerAFont)
+        h1_horizontalLayout.addWidget(h1_label)
+        namingConv_Layout.addLayout(h1_horizontalLayout)
+
+        h1_s1_layout = QtWidgets.QVBoxLayout()
+        h1_s1_layout.setContentsMargins(-1, 15, -1, -1)
+        h1_s1_layout.setSpacing(8)
+        # h1_s1_layout.setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
+
+        ################################################
+        infoLabel = QtWidgets.QLabel()
+        infoLabel.setText("Valid tokens are <date>, <baseName>, <categoryName>, <userInitials>")
+
+        fileNameConv_le = QtWidgets.QLineEdit()
+        h1_s1_layout.addWidget(infoLabel)
+        h1_s1_layout.addWidget(fileNameConv_le)
+
+        # formLayout = QtWidgets.QFormLayout()
+        # formLayout.setSpacing(8)
+        # oldPass_label = QtWidgets.QLabel()
+        # oldPass_label.setText("Old Password: ")
+        # oldPass_lineEdit = QtWidgets.QLineEdit()
+        # # oldPass_lineEdit.setMaximumWidth(200)
+        # oldPass_lineEdit.setEchoMode(QtWidgets.QLineEdit.Password)
+        # formLayout.addRow(oldPass_label, oldPass_lineEdit)
+        #
+        # newPass_label = QtWidgets.QLabel()
+        # newPass_label.setText("New Password: ")
+        # newPass_lineEdit = QtWidgets.QLineEdit()
+        # # newPass_lineEdit.setMaximumWidth(200)
+        # newPass_lineEdit.setEchoMode(QtWidgets.QLineEdit.Password)
+        # formLayout.addRow(newPass_label, newPass_lineEdit)
+        #
+        # newPassAgain_label = QtWidgets.QLabel()
+        # newPassAgain_label.setText("New Password Again: ")
+        # newPassAgain_lineEdit = QtWidgets.QLineEdit()
+        # # newPassAgain_lineEdit.setMaximumWidth(200)
+        # newPassAgain_lineEdit.setEchoMode(QtWidgets.QLineEdit.Password)
+        # formLayout.addRow(newPassAgain_label, newPassAgain_lineEdit)
+
+
+        ################################################
+
+        h1_s1_layout.addLayout(formLayout)
+
+        changePass_btn = QtWidgets.QPushButton()
+        changePass_btn.setText("Change Password")
+        h1_s1_layout.addWidget(changePass_btn)
+
+        namingConv_Layout.addLayout(h1_s1_layout)
+
+
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        namingConv_Layout.addItem(spacerItem)
+        self.contentsMaster_layout.addWidget(self.namingConventions_vis)
+
+
+        ## SIGNALS
 
     def _createFormWidgets(self, loopList, settingsDict, formattingType, formlayout, dictUpdateMethod):
         """Creates widgets for the given form layout"""

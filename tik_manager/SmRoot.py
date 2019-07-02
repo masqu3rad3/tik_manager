@@ -1962,6 +1962,7 @@ Elapsed Time:{6}
             nameConventions = self._loadJson(self._pathsDict["tikConventions"])
             return nameConventions
         else:
+            nameConventions = self._sceneManagerDefaults["defaultCategories"][swName]
             ## return and dump default name extensions:
             defaultNameConventions = {
                 "validItems": {
