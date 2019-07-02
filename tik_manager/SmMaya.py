@@ -650,14 +650,14 @@ class MayaManager(RootManager, MayaCoreFunctions):
             return -1, msg
         return jsonInfo
 
-    def createPreview(self, convert=True, *args, **kwargs):
+    def createPreview(self, *args, **kwargs):
         """Creates a Playblast preview from currently open scene"""
         logger.debug("Func: createPreview")
 
         pbSettings = self.loadPBSettings()
 
         # if the file will be converted, force it to uncompressed avi
-        if convert:
+        if pbSettings["ConvertMP4"]:
             # TODO // Make it compatible with LINUX and MAC
             validFormats = [u'avi']
             validCodecs = [u'none']
@@ -817,7 +817,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
                        compression=pbSettings["Codec"],
                        sound=activeSound,
                        uts=True,
-                       v=not convert
+                       v=not pbSettings["ConvertMP4"]
                        )
         ## remove window when pb is donw
         cmds.deleteUI(tempWindow)
@@ -853,8 +853,8 @@ class MayaManager(RootManager, MayaCoreFunctions):
         except TypeError: # in case nothing selected
             pass
 
-        if convert:
-            convertedFile = self._convertPreview(playBlastFile, overwrite=True, deleteAfter=True)
+        if pbSettings["ConvertMP4"]:
+            convertedFile = self._convertPreview(playBlastFile, overwrite=True, deleteAfter=True, crf=pbSettings["CrfValue"])
             relPlayBlastFile = os.path.relpath(convertedFile, start=openSceneInfo["projectPath"])
             os.startfile(convertedFile)
         else:

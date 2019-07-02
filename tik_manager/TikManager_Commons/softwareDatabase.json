@@ -9,7 +9,7 @@
     "searchWord": "Maya",
     "databaseDir": "mayaDB",
     "scenesDir": "scenes",
-    "pbSettingsFile": "pbSettings.json",
+    "pbSettingsFile": "pbSettings_maya.json",
     "categoriesFile": "categoriesMaya.json",
     "userSettingsDir": "TikManager\\Maya"
   },

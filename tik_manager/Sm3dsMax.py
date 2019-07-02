@@ -710,7 +710,6 @@ class MaxManager(RootManager, MaxCoreFunctions):
 
         # get view info
         viewportType = rt.viewport.getType()
-        print "CVP", viewportType
         if str(viewportType) == "view_camera":
             currentCam = str(rt.getActiveCamera().name)
         else:
@@ -721,7 +720,6 @@ class MaxManager(RootManager, MaxCoreFunctions):
 
         # versionName = rt.getFilenameFile(rt.maxFileName) #
         versionName = rt.maxFilePath + rt.maxFileName # abs path of the filename with extension
-        print "versionName", versionName
         relVersionName = os.path.relpath(versionName, start=openSceneInfo["projectPath"]) # relative path of filename with ext
 
         if not os.path.isdir(os.path.normpath(openSceneInfo["previewPath"])):
@@ -796,9 +794,7 @@ class MaxManager(RootManager, MaxCoreFunctions):
 
         # destination = os.path.join(rt.maxFilePath, previewname)
 
-        print "sourceClip is: %s" % sourceClip
 
-        print "test: %s" %os.path.isfile(sourceClip)
 
         if os.path.isfile(sourceClip):
             try:
@@ -824,9 +820,14 @@ class MaxManager(RootManager, MaxCoreFunctions):
 
         shutil.copy(sourceClip, playBlastFile)
 
+        if pbSettings["ConvertMP4"]:
+            convertedFile = self._convertPreview(playBlastFile, overwrite=True, deleteAfter=True, crf=pbSettings["CrfValue"])
+            relPlayBlastFile = os.path.relpath(convertedFile, start=openSceneInfo["projectPath"])
+            # os.startfile(convertedFile)
+        else:
+            relPlayBlastFile = os.path.relpath(playBlastFile, start=openSceneInfo["projectPath"])
+
         ## find this version in the json data
-        print "relVersionName", relVersionName
-        print "jInfo", jsonInfo
 
         for version in jsonInfo["Versions"]:
             if relVersionName == version["RelativePath"]:

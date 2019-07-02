@@ -47,7 +47,7 @@ import re
 import socket
 
 import urllib
-
+import pyseq
 import _version
 
 __author__ = "Arda Kutlu"
@@ -133,10 +133,11 @@ class RootManager(object):
 
         self._pathsDict["categoriesFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], _softwarePathsDict["categoriesFile"]))
 
-        self._pathsDict["previewsDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "Playblasts", _softwarePathsDict["niceName"])) # dont change
+        self._pathsDict["previewsRoot"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "Playblasts")) # dont change
+        self._pathsDict["previewsDir"] = os.path.normpath(os.path.join(self._pathsDict["previewsRoot"], _softwarePathsDict["niceName"])) # dont change
         # self._folderCheck(self._pathsDict["previewsDir"])
 
-        self._pathsDict["pbSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["previewsDir"], _softwarePathsDict["pbSettingsFile"]))
+        self._pathsDict["pbSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["previewsRoot"], _softwarePathsDict["pbSettingsFile"]))
 
         self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerUsers.json"))
 
@@ -313,7 +314,7 @@ class RootManager(object):
 
         # self.currentPlatform = platform.system()
         self._categories = self.loadCategories()
-        self._usersDict = self._loadUsers()
+        self._usersDict = self.loadUsers()
         self._currentsDict = self.loadUserPrefs()
         self._subProjectsList = self.loadSubprojects()
 
@@ -856,26 +857,15 @@ class RootManager(object):
             self._exception(340, msg)
             return
 
-        # create Directory structure:
-        os.mkdir(os.path.join(resolvedPath, "_COMP"))
-        # os.makedirs(os.path.join(resolvedPath, "maxScenes", "Animation"))
-        # os.makedirs(os.path.join(resolvedPath, "maxScenes", "Model"))
-        # os.makedirs(os.path.join(resolvedPath, "maxScenes", "Render"))
-        # os.mkdir(os.path.join(resolvedPath, "_SCULPT"))
-        # os.mkdir(os.path.join(resolvedPath, "_REALFLOW"))
-        # os.mkdir(os.path.join(resolvedPath, "_HOUDINI"))
+        # create Bare Minimum structure:
         os.mkdir(os.path.join(resolvedPath, "_REF"))
-        # os.mkdir(os.path.join(resolvedPath, "_TRACK"))
         os.makedirs(os.path.join(resolvedPath, "_TRANSFER", "FBX"))
         os.makedirs(os.path.join(resolvedPath, "_TRANSFER", "ALEMBIC"))
         os.makedirs(os.path.join(resolvedPath, "_TRANSFER", "OBJ"))
         os.makedirs(os.path.join(resolvedPath, "_TRANSFER", "MA"))
-        # os.mkdir(os.path.join(resolvedPath, "assets"))
         os.mkdir(os.path.join(resolvedPath, "cache"))
-        # os.mkdir(os.path.join(resolvedPath, "clips"))
         os.mkdir(os.path.join(resolvedPath, "data"))
         os.makedirs(os.path.join(resolvedPath, "images", "_CompRenders"))
-        # os.mkdir(os.path.join(resolvedPath, "movies"))
         os.mkdir(os.path.join(resolvedPath, "particles"))
         os.mkdir(os.path.join(resolvedPath, "Playblasts"))
         os.makedirs(os.path.join(resolvedPath, "renderData", "depth"))
@@ -889,6 +879,7 @@ class RootManager(object):
         os.makedirs(os.path.join(resolvedPath, "sourceimages", "_FOOTAGE"))
         os.makedirs(os.path.join(resolvedPath, "sourceimages", "_HDR"))
         os.makedirs(os.path.join(resolvedPath, "smDatabase"))
+
 
         # Create project settings file
         if not settingsData:
@@ -1339,7 +1330,7 @@ Elapsed Time:{6}
         logger.debug("Func: addUser")
 
         # old Name
-        currentDB = self._loadUsers()
+        currentDB = self.loadUsers()
         # currentDB, dbFile = self.initUsers()
         initialsList = currentDB.values()
         if initials in initialsList:
@@ -1358,7 +1349,7 @@ Elapsed Time:{6}
         logger.debug("Func: removeUser")
 
         # old Name removeUser
-        currentDB = self._loadUsers()
+        currentDB = self.loadUsers()
         del currentDB[fullName]
         self._dumpJson(currentDB, self._pathsDict["usersFile"])
         self._usersDict = currentDB
@@ -1883,9 +1874,9 @@ Elapsed Time:{6}
             msg = "Cannot save current settings"
             return -1, msg
 
-    def _loadUsers(self):
+    def loadUsers(self):
         """Load Users from file"""
-        logger.debug("Func: _loadUsers")
+        logger.debug("Func: loadUsers")
 
         # old Name
         if not os.path.isfile(self._pathsDict["usersFile"]):
@@ -2213,8 +2204,10 @@ Elapsed Time:{6}
             vMsg = "Tik Manager is up to date"
             return vMsg, None, None
 
-    def _convertPreview(self, sourceFile, overwrite=True, deleteAfter=False):
+    def _convertPreview(self, sourceFile, overwrite=True, deleteAfter=False, crf=None):
         # abort if system is not supported or converter exe is missing
+        compatibleVideos = [".avi", ".mov", ".mp4", ".flv", ".webm", ".mkv", ".mp4"]
+        compatibleImages = [".tga", ".jpg", ".exr", ".png", ".pic"]
         if self.currentPlatform is not "Windows":
             self._info("Currently only Windows operating system is supported for mp4 conversion")
             return
@@ -2227,8 +2220,14 @@ Elapsed Time:{6}
         # get the conversion lut
         presetLUT = self.loadConversionLUT()
 
+        # if the compression value passed, override the LUT dictionary with that value
+        if crf:
+            presetLUT["compression"] = "-crf %s" %crf
+
         # set output file
         base, ext = os.path.splitext(sourceFile)
+
+
         outputFile = "%s.mp4" %(base)
 
         # deal with the existing output
@@ -2239,27 +2238,93 @@ Elapsed Time:{6}
                 self._info("Target path already exists. Aborting")
                 return False
 
-        iFlag = '-i "%s"' %sourceFile
+        if ext in compatibleVideos:
+            flagStart = ["%s" %ffmpeg, "-i", sourceFile]
 
-        command = '""{0}" {1} {2} {3} {4} {5} -ignore_unknown {6} "{7}"'.format(
-            ffmpeg,
-            iFlag,
-            presetLUT["videoCodec"],
-            presetLUT["compression"],
-            presetLUT["audioCodec"],
-            presetLUT["resolution"],
-            presetLUT["foolproof"],
-            outputFile
-        )
+            # iFlag = '-i "%s"' %sourceFile
+        elif ext in compatibleImages:
+            filename, startFrame, sourceSequence = self._formatImageSeq(sourceFile)
+            # iFlag = '-start_number %s -i "%s"' %(startFrame, filename)
+            flagStart = ["%s" %ffmpeg, '-start_number', str(startFrame), '-i', filename]
+            presetLUT["audioCodec"] = ""
 
-        os.system(command)
+        fullFlagList = flagStart + \
+                       presetLUT["videoCodec"].split() + \
+                       presetLUT["compression"].split() + \
+                       presetLUT["audioCodec"].split() + \
+                       presetLUT["resolution"].split() + \
+                       presetLUT["foolproof"].split() + \
+                       [str(outputFile)]
+
+        # command = '""{0}" {1} {2} {3} {4} {5} -ignore_unknown {6} "{7}"'.format(
+        #     ffmpeg,
+        #     iFlag,
+        #     presetLUT["videoCodec"],
+        #     presetLUT["compression"],
+        #     presetLUT["audioCodec"],
+        #     presetLUT["resolution"],
+        #     presetLUT["foolproof"],
+        #     outputFile
+        # )
+
+        # subprocess.check_call(["%s" %ffmpeg,
+        #                        "-i",
+        #                        sourceFile,
+        #                        "-c:v",
+        #                        "libx264",
+        #                        "-profile:v",
+        #                        "baseline",
+        #                        "-level",
+        #                        "3.0",
+        #                        "-pix_fmt",
+        #                        "yuv420p",
+        #                        "-crf",
+        #                        "23",
+        #                        "-c:a",
+        #                        "aac",
+        #                        "-ignore_unknown",
+        #                        "-vf",
+        #                        "scale=ceil(iw/2)*2:ceil(ih/2)*2",
+        #                        str(outputFile)],
+        #                       shell=True)
+        subprocess.check_call(fullFlagList, shell=True)
+        # print command
+        # os.system(command)
         if deleteAfter:
-            os.remove(sourceFile)
+            if ext in compatibleImages:
+                rootPath = os.path.split(os.path.normpath(sourceFile))[0]
+                for x in sourceSequence:
+                    imageP = os.path.join(rootPath, str(x))
+                    os.remove(imageP)
+            else:
+                os.remove(sourceFile)
         return outputFile
 
 
+    def _formatImageSeq(self, filePath):
+        """
+        Checks the path if it belongs to a sequence and formats it ready to be passes to FFMPEG
+        :param filePath: a single member of a sequence
+        :return: (String) Formatted path, (int) Starting frame
+        """
 
+        sourceDir, sourceFile = os.path.split(filePath)
 
+        seqList = pyseq.get_sequences(sourceDir)
+        theSeq = self._findItem(sourceFile, seqList)
+        if not theSeq:
+            msg = "Cannot get the sequence list."
+            raise Exception(msg)
+
+        formattedName = "{0}{1}{2}".format(theSeq.head(), theSeq._get_padding(), theSeq.tail())
+        formattedPath = os.path.normpath(os.path.join(sourceDir, formattedName))
+        return formattedPath, theSeq.start(), theSeq
+
+    def _findItem(self, itemPath, seqlist):
+        """finds out which sequence the given file belongs to among the given sequence list"""
+        for x in seqlist:
+            if x.contains(itemPath):
+                return x
 
     def _question(self, msg, *args, **kwargs):
         """Yes/No question terminal"""

@@ -1052,18 +1052,18 @@ def get_sequences(source):
         items = sorted(source, key=lambda x: str(x))
     except UnicodeEncodeError:
         pass
-    # items = sorted(glob(os.path.join(source, '*.jpg')))
-    # if isinstance(source, list):
-    #     items = sorted(source, key=lambda x: str(x))
-    #
-    # elif isinstance(source, basestring):
-    #     if os.path.isdir(source):
-    #         items = sorted(glob(os.path.join(source, '*.jpg')))
-    #     else:
-    #         items = sorted(glob(source))
-    #
-    # else:
-    #     raise TypeError('Unsupported format for source argument')
+
+    if isinstance(source, list):
+        items = sorted(source, key=lambda x: str(x))
+
+    elif isinstance(source, basestring):
+        if os.path.isdir(source):
+            items = sorted(glob(os.path.join(source, '*')))
+        else:
+            items = sorted(glob(source))
+
+    else:
+        raise TypeError('Unsupported format for source argument')
 
     log.debug('Found %s files' % len(items))
 

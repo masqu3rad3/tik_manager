@@ -18,7 +18,8 @@
     "DisplayTextures": true,
     "WireOnShaded": false,
     "UseDefaultMaterial": false,
-    "ConvertMP4": true
+    "ConvertMP4": true,
+    "CrfValue": 23
   },
   "defaultProjectSettings": {
     "Resolution": [
@@ -77,7 +78,7 @@
     "compression": "-crf 23",
     "foolproof": "-vf scale=ceil(iw/2)*2:ceil(ih/2)*2",
     "speed": "-preset ultrafast",
-    "resolution": "-s 1280x720",
+    "resolution": "",
     "audioCodec": "-c:a aac"
   },
   "defaultUsers": {

@@ -322,6 +322,7 @@ class HoudiniCoreFunctions(object):
         return norm_p_path
 
     def _setProject(self, path):
+        print "HERE"
         self._setEnvVariable('JOB', path)
 
     def _getVersion(self):
@@ -412,20 +413,20 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
         # return norm_s_path
         return self._getSceneFile()
 
-    def setProject(self, path):
-        """Sets the project"""
-
-        logger.debug("Func: setProject")
-
-        projectsDict = self.loadProjects()
-        if not projectsDict:
-            projectsDict = {"HoudiniProject": path}
-        else:
-            projectsDict["HoudiniProject"] = path
-        self.saveProjects(projectsDict)
-        self.projectDir = path
-        # self._setEnvVariable('JOB', path)
-        self._setProject(path)
+    # def setProject(self, path):
+    #     """Sets the project"""
+    #
+    #     logger.debug("Func: setProject")
+    #
+    #     projectsDict = self.loadProjects()
+    #     if not projectsDict:
+    #         projectsDict = {"HoudiniProject": path}
+    #     else:
+    #         projectsDict["HoudiniProject"] = path
+    #     self.saveProjects(projectsDict)
+    #     self.projectDir = path
+    #     # self._setEnvVariable('JOB', path)
+    #     self._setProject(path)
 
     def saveBaseScene(self, categoryName, baseName, subProjectIndex=0, makeReference=False, versionNotes="", sceneFormat="hip", *args, **kwargs):
         """
@@ -690,7 +691,7 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
         playBlastDir = os.path.join(openSceneInfo["previewPath"], openSceneInfo["version"])
         self._folderCheck(playBlastDir)
         playBlastFile = os.path.join(playBlastDir, "{0}_{1}_PB_$F4.{2}".format(self.niceName(versionName), currentCam, extension))
-        relPlayBlastFile = os.path.relpath(playBlastFile, start=openSceneInfo["projectPath"])
+        # relPlayBlastFile = os.path.relpath(playBlastFile, start=openSceneInfo["projectPath"])
         #
         if os.path.isfile(playBlastFile):
             try:
@@ -701,133 +702,22 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
                 return
 
         flip_options.output(playBlastFile)
-        #
-        # ## CREATE A CUSTOM PANEL WITH DESIRED SETTINGS
-        #
-        # tempWindow = cmds.window(title="SM_Playblast",
-        #                        widthHeight=(pbSettings["Resolution"][0] * 1.1, pbSettings["Resolution"][1] * 1.1),
-        #                        tlc=(0, 0))
-        # # panel = pm.getPanel(wf=True)
-        #
-        # cmds.paneLayout()
-        #
-        # pbPanel = cmds.modelPanel(camera=currentCam)
-        # cmds.showWindow(tempWindow)
-        # cmds.setFocus(pbPanel)
-        #
-        # cmds.modelEditor(pbPanel, e=1,
-        #                allObjects=not pbSettings["PolygonOnly"],
-        #                da="smoothShaded",
-        #                displayTextures=pbSettings["DisplayTextures"],
-        #                wireframeOnShaded=pbSettings["WireOnShaded"],
-        #                grid=pbSettings["ShowGrid"],
-        #                useDefaultMaterial=pbSettings["UseDefaultMaterial"],
-        #                polymeshes=True,
-        #                imagePlane=True,
-        #                hud=True
-        #                )
-        #
-        # cmds.camera(currentCam, e=True, overscan=True, displayFilmGate=False, displayResolution=False)
-        #
-        # ## get previous HUD States and turn them all off
-        # hudPreStates = {}
-        # HUDS = cmds.headsUpDisplay(lh=True)
-        # for hud in HUDS:
-        #     hudPreStates[hud] = cmds.headsUpDisplay(hud, q=True, vis=True)
-        #     cmds.headsUpDisplay(hud, e=True, vis=False)
-        #
-        # ## clear the custom HUDS
-        # customHuds = ['SMFrame', 'SMScene', 'SMCategory', 'SMFPS', 'SMCameraName', 'SMFrange']
-        # for hud in customHuds:
-        #     if cmds.headsUpDisplay(hud, ex=True):
-        #         cmds.headsUpDisplay(hud, rem=True)
-        #
-        # if pbSettings["ShowFrameNumber"]:
-        #     freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-        #     cmds.headsUpDisplay('SMFrame', s=5, b=freeBl, label="Frame", preset="currentFrame", dfs="large",
-        #                       lfs="large")
-        # if pbSettings["ShowSceneName"]:
-        #     freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-        #     cmds.headsUpDisplay('SMScene', s=5, b=freeBl, label="Scene: %s" % (self.niceName(versionName)),
-        #                       lfs="large")
-        # if pbSettings["ShowCategory"]:
-        #     freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-        #     cmds.headsUpDisplay('SMCategory', s=5, b=freeBl, label="Category: %s" % (jsonInfo["Category"]),
-        #                       lfs="large")
-        # if pbSettings["ShowFPS"]:
-        #     freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-        #     cmds.headsUpDisplay('SMFPS', s=5, b=freeBl, label="Time Unit: %s" % (cmds.currentUnit(q=True, time=True)),
-        #                       lfs="large")
-        #
-        # # v1.1 SPECIFIC
-        # try:
-        #     if pbSettings["ShowFrameRange"]:
-        #         freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-        #         cmds.headsUpDisplay('SMFrange', s=5, b=freeBl,
-        #                           label="Frame Range: {} - {}".format(int(cmds.playbackOptions(q=True, minTime=True)),
-        #                                                               int(cmds.playbackOptions(q=True,
-        #                                                                                      maxTime=True))),
-        #                           lfs="large")
-        # except KeyError:
-        #     pass
-        #
-        # freeBl = cmds.headsUpDisplay(nfb=2)
-        # cmds.headsUpDisplay('SMCameraName', s=2, b=freeBl, ba='center', dw=50, pre='cameraNames')
-        #
-        # ## Get the active sound
-        #
-        # aPlayBackSliderPython = mel.eval('$tmpVar=$gPlayBackSlider')
-        # activeSound = cmds.timeControl(aPlayBackSliderPython, q=True, sound=True)
-        #
-        # ## Check here: http://download.autodesk.com/us/maya/2011help/pymel/generated/functions/pymel.core.windows/pymel.core.windows.headsUpDisplay.html
-        # # print "playBlastFile", playBlastFile
-        # normPB = os.path.normpath(playBlastFile)
-        # # print "normPath", normPB
+
         ranges = self._getTimelineRanges()
         flip_options.frameRange((ranges[1], ranges[2]))
-        flip_options.outputToMPlay(True)
+        flip_options.outputToMPlay(not pbSettings["ConvertMP4"])
         flip_options.useResolution(True)
         flip_options.resolution((pbSettings["Resolution"][0], pbSettings["Resolution"][1]))
         scene_view.flipbook(viewport, flip_options)
 
+        if pbSettings["ConvertMP4"]:
+            nonVarPBfile = playBlastFile.replace("_$F4", "_0001")
+            convertedFile = self._convertPreview(nonVarPBfile, overwrite=True, deleteAfter=True, crf=pbSettings["CrfValue"])
+            relPlayBlastFile = os.path.relpath(convertedFile, start=openSceneInfo["projectPath"])
+            os.startfile(convertedFile)
+        else:
+            relPlayBlastFile = os.path.relpath(playBlastFile, start=openSceneInfo["projectPath"])
 
-        # cmds.playblast(format=pbSettings["Format"],
-        #              filename=playBlastFile,
-        #              widthHeight=pbSettings["Resolution"],
-        #              percent=pbSettings["Percent"],
-        #              quality=pbSettings["Quality"],
-        #              compression=pbSettings["Codec"],
-        #              sound=activeSound,
-        #              uts=True)
-        # ## remove window when pb is donw
-        # cmds.deleteUI(tempWindow)
-        #
-        # # Get back to the original frame range if the codec is Quick Time
-        # if pbSettings["Format"] == 'qt':
-        #     cmds.playbackOptions(maxTime=maxTime)
-        #     cmds.playbackOptions(animationEndTime=endTime)
-        #
-        # ## remove the custom HUdS
-        # if pbSettings["ShowFrameNumber"]:
-        #     cmds.headsUpDisplay('SMFrame', rem=True)
-        # if pbSettings["ShowSceneName"]:
-        #     cmds.headsUpDisplay('SMScene', rem=True)
-        # if pbSettings["ShowCategory"]:
-        #     cmds.headsUpDisplay('SMCategory', rem=True)
-        # if pbSettings["ShowFPS"]:
-        #     cmds.headsUpDisplay('SMFPS', rem=True)
-        # try:
-        #     if pbSettings["ShowFrameRange"]:
-        #         cmds.headsUpDisplay('SMFrange', rem=True)
-        # except KeyError:
-        #     pass
-        #
-        #     cmds.headsUpDisplay('SMCameraName', rem=True)
-        #
-        # ## get back the previous state of HUDS
-        # for hud in hudPreStates.keys():
-        #     cmds.headsUpDisplay(hud, e=True, vis=hudPreStates[hud])
-        # pm.select(selection)
 
         ## find this version in the json data
         for version in jsonInfo["Versions"]:
@@ -848,7 +738,15 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
         # absPath = os.path.join(self.projectDir, self._currentPreviewsDict[self._currentPreviewCamera])
         absPath = os.path.join(self.projectDir, self._currentPreviewsDict[camera])
         # absPath.replace("_$F4", "_0001")
+
+
+
+
         if self.currentPlatform == "Windows":
+            ext = os.path.splitext(absPath)[1]
+            if ext == ".mp4":
+                os.startfile(absPath)
+                return
             try:
                 subprocess.check_call(["mplay", absPath], shell=True)
                 # subprocess.check_call(["mplay", "-viewer", absPath], shell=True)

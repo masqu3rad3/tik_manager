@@ -180,6 +180,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.setStyleSheet(fh.read())
 
         # super(MainUI, self).closeEvent(event)
+        self.superUser = False
 
     def buildUI(self):
         self.setObjectName(self.windowName)
@@ -575,7 +576,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         loadReferenceScene_fm = QtWidgets.QAction("&Load/Reference Scene", self)
 
-        add_remove_users_fm = QtWidgets.QAction("&Add/Remove Users", self)
+        # add_remove_users_fm = QtWidgets.QAction("&Add/Remove Users", self)
 
         # add_remove_categories_fm = QtWidgets.QAction("&Add/Remove Categories", self)
 
@@ -585,7 +586,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         # projectSettings_fm = QtWidgets.QAction("&Project Settings", self)
 
-        changeAdminPass_fm = QtWidgets.QAction("&Change Admin Password", self)
+        # changeAdminPass_fm = QtWidgets.QAction("&Change Admin Password", self)
 
         self.changeCommonFolder =  QtWidgets.QAction("&Change Common Database", self)
         # self.changeCommonFolder.setVisible(False)
@@ -611,11 +612,11 @@ class MainUI(QtWidgets.QMainWindow):
 
         #settings
         self.fileMenu.addAction(settings_fm)
-        self.fileMenu.addAction(add_remove_users_fm)
+        # self.fileMenu.addAction(add_remove_users_fm)
         # self.fileMenu.addAction(add_remove_categories_fm)
         # self.fileMenu.addAction(pb_settings_fm)
         # self.fileMenu.addAction(projectSettings_fm)
-        self.fileMenu.addAction(changeAdminPass_fm)
+        # self.fileMenu.addAction(changeAdminPass_fm)
         self.fileMenu.addAction(self.changeCommonFolder)
 
         self.fileMenu.addSeparator()
@@ -724,14 +725,14 @@ class MainUI(QtWidgets.QMainWindow):
         createProject_fm.triggered.connect(self.createProjectUI)
 
         settings_fm.triggered.connect(self.settingsUI)
-        add_remove_users_fm.triggered.connect(self.addRemoveUserUI)
+        # add_remove_users_fm.triggered.connect(self.addRemoveUserUI)
         # pb_settings_fm.triggered.connect(self.onPbSettings)
 
         # add_remove_categories_fm.triggered.connect(self.addRemoveCategoryUI)
 
         # projectSettings_fm.triggered.connect(self.projectSettingsUI)
 
-        changeAdminPass_fm.triggered.connect(self.changePasswordUI)
+        # changeAdminPass_fm.triggered.connect(self.changePasswordUI)
 
 
 
@@ -2028,16 +2029,6 @@ class MainUI(QtWidgets.QMainWindow):
 
 
         # Visibility Widgets for EACH page
-        # self.userSettings_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
-        # self.projectSettings_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
-        # self.previewSettings_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
-        # self.categories_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
-        # self.importExportOptions_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
-        # self.sharedSettings_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
-        # self.users_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
-        # self.passwords_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
-        # self.namingConventions_vis = QtWidgets.QWidget(self.scrollAreaWidgetContents_2)
-
         self.userSettings_vis = QtWidgets.QWidget()
         self.projectSettings_vis = QtWidgets.QWidget()
         self.previewSettings_vis = QtWidgets.QWidget()
@@ -2048,7 +2039,25 @@ class MainUI(QtWidgets.QMainWindow):
         self.passwords_vis = QtWidgets.QWidget()
         self.namingConventions_vis = QtWidgets.QWidget()
 
+
         def pageUpdate():
+            if self.settingsMenu_treeWidget.currentItem().text(0) != "User Settings" and not self.superUser:
+                passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query",
+                                                           "This Section requires Admin Password:", QtWidgets.QLineEdit.Password)
+
+                if ok:
+                    if self.manager.checkPassword(passw):
+                        self.superUser = True
+                        pass
+                    else:
+                        self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
+                        self.settingsMenu_treeWidget.setCurrentItem(self.userSettings_item)
+                        return
+                else:
+                    self.settingsMenu_treeWidget.setCurrentItem(self.userSettings_item)
+
+                    return
+
             allPages = {"User Settings": self.userSettings_vis,
                         "Project Settings": self.projectSettings_vis,
                         "Preview Settings": self.previewSettings_vis,
@@ -2060,12 +2069,9 @@ class MainUI(QtWidgets.QMainWindow):
                         "Naming Conventions": self.namingConventions_vis}
             for item in allPages.items():
                 isVisible = False if item[0] == self.settingsMenu_treeWidget.currentItem().text(0) else True
-                # print item[0], item[1], isVisible
                 item[1].setHidden(isVisible)
-                # self.userSettings_vis.setHidden(True)
 
         self.softwareDB = manager.loadSoftwareDatabase()
-
 
 
         ## USER SETTINGS
@@ -2085,11 +2091,11 @@ class MainUI(QtWidgets.QMainWindow):
         self.previewMasterLayout = QtWidgets.QVBoxLayout(self.previewSettings_vis)
         sw = BoilerDict["Environment"].lower()
         #temp
-        # sw=""
+        # sw="standalone"
 
         if sw == "maya" or sw == "standalone":
-            settingsFilePath = os.path.join(manager._pathsDict["previewsDir"], self.softwareDB["Maya"]["pbSettingsFile"])
-            currentMayaSettings = manager.loadPBSettings(filePath=settingsFilePath)
+            settingsFilePathMaya = os.path.join(manager._pathsDict["previewsRoot"], self.softwareDB["Maya"]["pbSettingsFile"])
+            currentMayaSettings = manager.loadPBSettings(filePath=settingsFilePathMaya)
             # backward compatibility:
             try:
                 currentMayaSettings["ConvertMP4"]
@@ -2099,12 +2105,12 @@ class MainUI(QtWidgets.QMainWindow):
                 currentMayaSettings["CrfValue"] = 23
 
             # update the settings dictionary
-            self.allSettingsDict.add("preview_maya", currentMayaSettings, settingsFilePath)
+            self.allSettingsDict.add("preview_maya", currentMayaSettings, settingsFilePathMaya)
 
             self._previewSettingsContent_maya()
         if sw == "3dsmax" or sw == "standalone":
-            settingsFilePath = os.path.join(manager._pathsDict["previewsDir"], self.softwareDB["3dsMax"]["pbSettingsFile"])
-            currentMaxSettings = manager.loadPBSettings(filePath=settingsFilePath)
+            settingsFilePathMax = os.path.join(manager._pathsDict["previewsRoot"], self.softwareDB["3dsMax"]["pbSettingsFile"])
+            currentMaxSettings = manager.loadPBSettings(filePath=settingsFilePathMax)
             # backward compatibility:
             try:
                 currentMaxSettings["ConvertMP4"]
@@ -2114,9 +2120,24 @@ class MainUI(QtWidgets.QMainWindow):
                 currentMaxSettings["CrfValue"] = 23
 
             # update the settings dictionary
-            self.allSettingsDict.add("preview_max", currentMaxSettings, settingsFilePath)
+            self.allSettingsDict.add("preview_max", currentMaxSettings, settingsFilePathMax)
 
             self._previewSettingsContent_max()
+        if sw == "houdini" or sw == "standalone":
+            settingsFilePathHou = os.path.join(manager._pathsDict["previewsRoot"], self.softwareDB["Houdini"]["pbSettingsFile"])
+            currentHoudiniSettings = manager.loadPBSettings(filePath=settingsFilePathHou)
+            # backward compatibility:
+            try:
+                currentHoudiniSettings["ConvertMP4"]
+                currentHoudiniSettings["CrfValue"]
+            except KeyError:
+                currentHoudiniSettings["ConvertMP4"] = True
+                currentHoudiniSettings["CrfValue"] = 23
+
+            # update the settings dictionary
+            self.allSettingsDict.add("preview_houdini", currentHoudiniSettings, settingsFilePathHou)
+
+            self._previewSettingsContent_houdini()
 
         self.contentsMaster_layout.addWidget(self.previewSettings_vis)
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
@@ -2152,16 +2173,19 @@ class MainUI(QtWidgets.QMainWindow):
 
         self._sharedSettingsContent()
 
+        ## USERS
+        currentUsers = manager.loadUsers()
+        self.allSettingsDict.add("users", currentUsers, manager._pathsDict["usersFile"])
+        self._usersContent()
 
-
+        ## PASSWORDS
+        self._passwordsContent()
 
         self.settingsButtonBox = QtWidgets.QDialogButtonBox(settings_Dialog)
         self.settingsButtonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Apply|QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
         self.settingsApply_btn = self.settingsButtonBox.button(QtWidgets.QDialogButtonBox.Apply)
         verticalLayout.addWidget(self.settingsButtonBox)
         verticalLayout_2.addLayout(verticalLayout)
-
-
 
         settings_Dialog.setTabOrder(self.settingsButtonBox, self.settingsMenu_treeWidget)
         # self.settingsButtonBox.button(QtWidgets.QDialogButtonBox.Apply).setEnabled(False)
@@ -2171,6 +2195,7 @@ class MainUI(QtWidgets.QMainWindow):
             for x in self.allSettingsDict.apply():
                 manager._dumpJson(x["data"], x["filepath"])
             self.settingsApply_btn.setEnabled(False)
+            self._initUsers()
 
         # # SIGNALS
         # # -------
@@ -2368,8 +2393,6 @@ class MainUI(QtWidgets.QMainWindow):
         localFavorites_radiobutton.clicked.connect(updateDictionary)
         # commonDir_lineEdit.textChanged.connect(updateDictionary)
         commonDir_lineEdit.editingFinished.connect(updateDictionary)
-
-
 
     def _projectSettingsContent(self):
         manager = self._getManager()
@@ -2580,7 +2603,7 @@ class MainUI(QtWidgets.QMainWindow):
                 self.convertMP4_Maya_chb.setChecked(True)
 
         crf_Maya_label = QtWidgets.QLabel()
-        crf_Maya_label.setText("CRF Value (0-51)")
+        crf_Maya_label.setText("Compression (0-51)")
 
         self.crf_Maya_spinBox = QtWidgets.QSpinBox()
         self.crf_Maya_spinBox.setMinimumWidth(50)
@@ -2872,7 +2895,7 @@ class MainUI(QtWidgets.QMainWindow):
                 self.convertMP4_Max_chb.setChecked(True)
 
         crf_Max_label = QtWidgets.QLabel()
-        crf_Max_label.setText("CRF Value (0-51)")
+        crf_Max_label.setText("Compression (0-51)")
 
         self.crf_Max_spinBox = QtWidgets.QSpinBox()
         self.crf_Max_spinBox.setMinimumWidth(50)
@@ -3002,6 +3025,116 @@ class MainUI(QtWidgets.QMainWindow):
         # self.previewMasterLayout.addItem(spacerItem)
 
         # self.contentsMaster_layout.addWidget(self.previewSettings_vis)
+
+    def _previewSettingsContent_houdini(self):
+        manager = self._getManager()
+        # settings = self.allSettingsDict["preview_max"]["oldSettings"]
+        settings = self.allSettingsDict.get("preview_houdini")
+
+        previewSettings_HOU_Layout = QtWidgets.QVBoxLayout()
+        previewSettings_HOU_Layout.setSpacing(0)
+
+
+        def updateDictionary():
+            settings["ConvertMP4"] = self.convertMP4_Max_chb.isChecked()
+            settings["CrfValue"] = self.crf_Max_spinBox.value()
+            settings["Resolution"] = [self.resX_Max_spinBox.value(), self.resY_Max_spinBox.value()]
+
+            self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
+            # self._isSettingsChanged()
+
+        ## HEADER
+        h1_horizontalLayout = QtWidgets.QHBoxLayout()
+        # h1_horizontalLayout.setContentsMargins(-1, -1, -1, 10)
+        h1_label = QtWidgets.QLabel(self.previewSettings_vis)
+        h1_label.setText("Houdini Flipbook Settings")
+        h1_label.setFont(self.headerAFont)
+        h1_horizontalLayout.addWidget(h1_label)
+        previewSettings_HOU_Layout.addLayout(h1_horizontalLayout)
+
+        ## VIDEO PROPERTIES
+        h1_s1_horizontalLayout = QtWidgets.QHBoxLayout()
+        h1_s1_horizontalLayout.setContentsMargins(-1, 15, -1, -1)
+        h1_s1_label = QtWidgets.QLabel()
+        h1_s1_label.setText("Video Properties  ")
+        h1_s1_label.setFont(self.headerBFont)
+        h1_s1_horizontalLayout.addWidget(h1_s1_label)
+
+        h1_s1_line = QtWidgets.QLabel()
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(1)
+        h1_s1_line.setSizePolicy(sizePolicy)
+        h1_s1_line.setStyleSheet("background-color: gray;")
+        h1_s1_horizontalLayout.addWidget(h1_s1_line)
+        try: h1_s1_line.setMargin(0)
+        except AttributeError: pass
+        h1_s1_line.setIndent(0)
+        h1_s1_line.setMaximumHeight(1)
+        previewSettings_HOU_Layout.addLayout(h1_s1_horizontalLayout)
+
+        h1_s2_horizontalLayout = QtWidgets.QHBoxLayout()
+        h1_s2_horizontalLayout.setContentsMargins(20, 10, -1, -1)
+        h1_s2_horizontalLayout.setSpacing(6)
+
+        videoProperties_formLayout = QtWidgets.QFormLayout()
+        # videoProperties_formLayout.setContentsMargins(10, -1, -1, -1)
+        h1_s2_horizontalLayout.addLayout(videoProperties_formLayout)
+
+        self.convertMP4_Max_chb = QtWidgets.QCheckBox()
+        self.convertMP4_Max_chb.setText("Convert To MP4")
+        self.convertMP4_Max_chb.setMinimumSize(QtCore.QSize(100, 0))
+        self.convertMP4_Max_chb.setLayoutDirection(QtCore.Qt.LeftToRight)
+        # videoProperties_formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.convertMP4_Max_chb)
+        videoProperties_formLayout.addRow(self.convertMP4_Max_chb)
+        if manager.currentPlatform is not "Windows":
+            self.convertMP4_Max_chb.setChecked(False)
+            self.convertMP4_Max_chb.setEnabled(False)
+        else:
+            try:
+                self.convertMP4_Max_chb.setChecked(settings["ConvertMP4"])
+            except KeyError:
+                self.convertMP4_Max_chb.setChecked(True)
+
+        crf_Max_label = QtWidgets.QLabel()
+        crf_Max_label.setText("Compression (0-51)")
+
+        self.crf_Max_spinBox = QtWidgets.QSpinBox()
+        self.crf_Max_spinBox.setMinimumWidth(50)
+        self.crf_Max_spinBox.setMinimum(0)
+        self.crf_Max_spinBox.setMaximum(51)
+        self.crf_Max_spinBox.setValue(settings["CrfValue"])
+        videoProperties_formLayout.addRow(crf_Max_label, self.crf_Max_spinBox)
+
+        resolution_label = QtWidgets.QLabel()
+        resolution_label.setText("Resolution: ")
+        resolution_horizontalLayout = QtWidgets.QHBoxLayout()
+        self.resX_Max_spinBox = QtWidgets.QSpinBox()
+        self.resX_Max_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        self.resX_Max_spinBox.setMinimum(1)
+        self.resX_Max_spinBox.setMaximum(99999)
+        self.resX_Max_spinBox.setValue(settings["Resolution"][0])
+        resolution_horizontalLayout.addWidget(self.resX_Max_spinBox)
+        self.resY_Max_spinBox = QtWidgets.QSpinBox()
+        self.resY_Max_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        self.resY_Max_spinBox.setMinimum(1)
+        self.resY_Max_spinBox.setMaximum(99999)
+        self.resY_Max_spinBox.setValue(settings["Resolution"][1])
+        resolution_horizontalLayout.addWidget(self.resY_Max_spinBox)
+        videoProperties_formLayout.addRow(resolution_label, resolution_horizontalLayout)
+
+        previewSettings_HOU_Layout.addLayout(h1_s2_horizontalLayout)
+
+        self.previewMasterLayout.addLayout(previewSettings_HOU_Layout)
+
+        ## SIGNALS
+        ## -------
+
+        self.convertMP4_Max_chb.stateChanged.connect(updateDictionary)
+        self.convertMP4_Max_chb.stateChanged.connect(lambda: self.crf_Max_spinBox.setEnabled(self.convertMP4_Max_chb.isChecked()))
+
+        self.crf_Max_spinBox.valueChanged.connect(updateDictionary)
+        self.resX_Max_spinBox.valueChanged.connect(updateDictionary)
+        self.resY_Max_spinBox.valueChanged.connect(updateDictionary)
 
     def _categoriesContent(self):
         manager = self._getManager()
@@ -3135,12 +3268,12 @@ class MainUI(QtWidgets.QMainWindow):
         self.contentsMaster_layout.addWidget(self.categories_vis)
 
     def _importExportContent(self):
-        convertDict = {"true": True,
-                       "True": True,
-                       "false": False,
-                       "False": False,
-                       "0": False,
-                       "1": True}
+        # convertDict = {"true": True,
+        #                "True": True,
+        #                "false": False,
+        #                "False": False,
+        #                "0": False,
+        #                "1": True}
         manager = self._getManager()
         # sw = manager.swName.lower()
         sw = BoilerDict["Environment"].lower()
@@ -3150,8 +3283,6 @@ class MainUI(QtWidgets.QMainWindow):
         def updateImportDictionary(sw, key, value):
             importSettings[sw][key]=value
             self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
-            # print sw, key, importSettings[sw][key]
-            pass
 
         def updateExportDictionary(sw, key, value):
             exportSettings[sw][key] = value
@@ -3939,6 +4070,240 @@ class MainUI(QtWidgets.QMainWindow):
         passwords_cmdButton.clicked.connect(lambda: self.settingsMenu_treeWidget.setCurrentItem(self.passwords_item))
         namingConventions_cmdButton.clicked.connect(lambda: self.settingsMenu_treeWidget.setCurrentItem(self.namingConventions_item))
 
+    def _usersContent(self):
+        manager = self._getManager()
+        userList = self.allSettingsDict.get("users")
+
+        users_Layout = QtWidgets.QVBoxLayout(self.users_vis)
+        users_Layout.setSpacing(0)
+
+        h1_horizontalLayout = QtWidgets.QHBoxLayout()
+        h1_label = QtWidgets.QLabel()
+        h1_label.setText("Add/Remove Users")
+        h1_label.setFont(self.headerAFont)
+        h1_horizontalLayout.addWidget(h1_label)
+        users_Layout.addLayout(h1_horizontalLayout)
+
+        h1_s1_layout = QtWidgets.QVBoxLayout()
+        h1_s1_layout.setContentsMargins(-1, 15, -1, -1)
+
+        ################################################
+
+        users_hLayout = QtWidgets.QHBoxLayout()
+        users_hLayout.setSpacing(10)
+
+        users_treeWidget = QtWidgets.QTreeWidget()
+        users_treeWidget.setRootIsDecorated(False)
+        header = users_treeWidget.header()
+        if FORCE_QT4:
+            header.setResizeMode(QtWidgets.QHeaderView.Stretch)
+        else:
+            header.setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+
+
+        users_treeWidget.setSortingEnabled(True)
+        headerItem = QtWidgets.QTreeWidgetItem(["Full Name", "Initials"])
+
+        users_treeWidget.setHeaderItem(headerItem)
+        users_treeWidget.sortItems(1, QtCore.Qt.AscendingOrder)  # 1 is Date Column, 0 is Ascending order
+        users_hLayout.addWidget(users_treeWidget)
+
+        users_treeWidget.setColumnWidth(1000,10)
+
+
+        # users_listWidget = QtWidgets.QListWidget()
+        # users_hLayout.addWidget(users_listWidget)
+
+        users_vLayout = QtWidgets.QVBoxLayout()
+        users_vLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
+
+        add_pushButton = QtWidgets.QPushButton()
+        add_pushButton.setText(("Add..."))
+        users_vLayout.addWidget(add_pushButton)
+
+        remove_pushButton = QtWidgets.QPushButton()
+        remove_pushButton.setText(("Remove"))
+        users_vLayout.addWidget(remove_pushButton)
+
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        users_vLayout.addItem(spacerItem)
+
+        users_hLayout.addLayout(users_vLayout)
+
+        ################################################
+
+        h1_s1_layout.addLayout(users_hLayout)
+        users_Layout.addLayout(h1_s1_layout)
+
+        def updateUsers():
+            users_treeWidget.clear()
+            for item in userList.items():
+                name = item[0]
+                initial = item[1]
+                QtWidgets.QTreeWidgetItem(users_treeWidget, [name, initial])
+
+        def addNewUserUI():
+            addUser_Dialog = QtWidgets.QDialog(parent=self)
+            addUser_Dialog.resize(260, 114)
+            addUser_Dialog.setMaximumSize(QtCore.QSize(16777215, 150))
+            addUser_Dialog.setFocusPolicy(QtCore.Qt.ClickFocus)
+            addUser_Dialog.setWindowTitle(("Add New User"))
+
+            verticalLayout = QtWidgets.QVBoxLayout(addUser_Dialog)
+
+            addNewUser_label = QtWidgets.QLabel(addUser_Dialog)
+            addNewUser_label.setText("Add New User:")
+            verticalLayout.addWidget(addNewUser_label)
+
+            formLayout = QtWidgets.QFormLayout()
+            formLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
+            formLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
+            formLayout.setRowWrapPolicy(QtWidgets.QFormLayout.DontWrapRows)
+            formLayout.setLabelAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+            formLayout.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+
+            fullname_label = QtWidgets.QLabel(addUser_Dialog)
+            fullname_label.setFocusPolicy(QtCore.Qt.StrongFocus)
+            fullname_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+            fullname_label.setText("Full Name:")
+            formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, fullname_label)
+
+            fullname_lineEdit = QtWidgets.QLineEdit(addUser_Dialog)
+            # fullname_lineEdit.setFocusPolicy(QtCore.Qt.TabFocus)
+            fullname_lineEdit.setPlaceholderText("e.g \'Jon Snow\'")
+            formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, fullname_lineEdit)
+
+            initials_label = QtWidgets.QLabel(addUser_Dialog)
+            initials_label.setText("Initials:")
+            formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, initials_label)
+
+            initials_lineEdit = QtWidgets.QLineEdit(addUser_Dialog)
+            # initials_lineEdit.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+            initials_lineEdit.setPlaceholderText("e.g \'js\' (must be unique)")
+            formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, initials_lineEdit)
+            verticalLayout.addLayout(formLayout)
+
+            buttonBox = QtWidgets.QDialogButtonBox(addUser_Dialog)
+            buttonBox.setOrientation(QtCore.Qt.Horizontal)
+            buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
+            verticalLayout.addWidget(buttonBox)
+            addUser_Dialog.show()
+
+
+            # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+            # sizePolicy.setHorizontalStretch(0)
+            # sizePolicy.setVerticalStretch(0)
+            buttonBox.setMaximumSize(QtCore.QSize(16777215, 30))
+            buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setMinimumSize(QtCore.QSize(100, 30))
+            buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
+
+            def onAddUser():
+                userList[str(fullname_lineEdit.text())] = str(initials_lineEdit.text())
+                updateUsers()
+                self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
+                addUser_Dialog.close()
+
+            buttonBox.accepted.connect(onAddUser)
+            buttonBox.rejected.connect(addUser_Dialog.reject)
+
+        def onRemoveUser():
+            getSelected = users_treeWidget.selectedItems()
+            if not getSelected:
+                return
+            for item in getSelected:
+                del userList[item.text(0)]
+            updateUsers()
+            self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
+
+        updateUsers()
+
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        users_Layout.addItem(spacerItem)
+        self.contentsMaster_layout.addWidget(self.users_vis)
+
+        ## SIGNALS
+
+        add_pushButton.clicked.connect(addNewUserUI)
+        remove_pushButton.clicked.connect(onRemoveUser)
+
+    def _passwordsContent(self):
+        # manager = self._getManager()
+        # userList = self.allSettingsDict.get("users")
+
+        passwords_Layout = QtWidgets.QVBoxLayout(self.passwords_vis)
+        passwords_Layout.setSpacing(0)
+
+        h1_horizontalLayout = QtWidgets.QHBoxLayout()
+        h1_label = QtWidgets.QLabel()
+        h1_label.setText("Change Admin Password")
+        h1_label.setFont(self.headerAFont)
+        h1_horizontalLayout.addWidget(h1_label)
+        passwords_Layout.addLayout(h1_horizontalLayout)
+
+        h1_s1_layout = QtWidgets.QVBoxLayout()
+        h1_s1_layout.setContentsMargins(-1, 15, -1, -1)
+        h1_s1_layout.setSpacing(8)
+        # h1_s1_layout.setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
+
+        ################################################
+
+        formLayout = QtWidgets.QFormLayout()
+        formLayout.setSpacing(8)
+        oldPass_label = QtWidgets.QLabel()
+        oldPass_label.setText("Old Password: ")
+        oldPass_lineEdit = QtWidgets.QLineEdit()
+        # oldPass_lineEdit.setMaximumWidth(200)
+        oldPass_lineEdit.setEchoMode(QtWidgets.QLineEdit.Password)
+        formLayout.addRow(oldPass_label, oldPass_lineEdit)
+
+        newPass_label = QtWidgets.QLabel()
+        newPass_label.setText("New Password: ")
+        newPass_lineEdit = QtWidgets.QLineEdit()
+        # newPass_lineEdit.setMaximumWidth(200)
+        newPass_lineEdit.setEchoMode(QtWidgets.QLineEdit.Password)
+        formLayout.addRow(newPass_label, newPass_lineEdit)
+
+        newPassAgain_label = QtWidgets.QLabel()
+        newPassAgain_label.setText("New Password Again: ")
+        newPassAgain_lineEdit = QtWidgets.QLineEdit()
+        # newPassAgain_lineEdit.setMaximumWidth(200)
+        newPassAgain_lineEdit.setEchoMode(QtWidgets.QLineEdit.Password)
+        formLayout.addRow(newPassAgain_label, newPassAgain_lineEdit)
+
+
+        ################################################
+
+        h1_s1_layout.addLayout(formLayout)
+
+        changePass_btn = QtWidgets.QPushButton()
+        changePass_btn.setText("Change Password")
+        h1_s1_layout.addWidget(changePass_btn)
+
+        passwords_Layout.addLayout(h1_s1_layout)
+
+
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        passwords_Layout.addItem(spacerItem)
+        self.contentsMaster_layout.addWidget(self.passwords_vis)
+
+        def changePass():
+
+            if not self.manager.checkPassword(oldPass_lineEdit.text()):
+                self.infoPop(textTitle="Incorrect Password", textHeader="Invalid Old Password", type="C")
+            if newPass_lineEdit.text() == "" or newPassAgain_lineEdit.text() == "":
+                self.infoPop(textTitle="Error", textHeader="Admin Password cannot be blank", type="C")
+            if newPass_lineEdit.text() != newPassAgain_lineEdit.text():
+                self.infoPop(textTitle="Error", textHeader="New passwords are not matching", type="C")
+            if self.manager.changePassword(oldPass_lineEdit.text(), newPass_lineEdit.text()):
+                self.infoPop(textTitle="Success", textHeader="Success!\nPassword Changed", type="I")
+            oldPass_lineEdit.setText("")
+            newPass_lineEdit.setText("")
+            newPassAgain_lineEdit.setText("")
+            return
+
+        ## SIGNALS
+        changePass_btn.clicked.connect(changePass)
+
     def _createFormWidgets(self, loopList, settingsDict, formattingType, formlayout, dictUpdateMethod):
         """Creates widgets for the given form layout"""
         convertDict = {"true": True,
@@ -4495,156 +4860,156 @@ class MainUI(QtWidgets.QMainWindow):
     #
     #     self.pbSettings_dialog.show()
 
-    def addRemoveUserUI(self):
-        # This method is NOT Software Specific
-        passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query",
-                                               "Enter Admin Password:", QtWidgets.QLineEdit.Password)
-
-        if ok:
-            if self.manager.checkPassword(passw):
-                pass
-            else:
-                self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
-                return
-        else:
-            return
-
-        userControl_Dialog = QtWidgets.QDialog(parent=self)
-        userControl_Dialog.setObjectName(("userControl_Dialog"))
-        userControl_Dialog.resize(349, 285)
-        userControl_Dialog.setWindowTitle(("Add/Remove Users"))
-
-        verticalLayout_2 = QtWidgets.QVBoxLayout(userControl_Dialog)
-
-        users_label = QtWidgets.QLabel(userControl_Dialog)
-        users_label.setText("Users:")
-        verticalLayout_2.addWidget(users_label)
-
-        horizontalLayout = QtWidgets.QHBoxLayout()
-
-        users_listWidget = QtWidgets.QListWidget(userControl_Dialog)
-        horizontalLayout.addWidget(users_listWidget)
-
-        verticalLayout = QtWidgets.QVBoxLayout()
-        verticalLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
-
-        add_pushButton = QtWidgets.QPushButton(userControl_Dialog)
-        add_pushButton.setText(("Add..."))
-        verticalLayout.addWidget(add_pushButton)
-
-        remove_pushButton = QtWidgets.QPushButton(userControl_Dialog)
-        remove_pushButton.setText(("Remove"))
-        verticalLayout.addWidget(remove_pushButton)
-
-        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        verticalLayout.addItem(spacerItem)
-
-        horizontalLayout.addLayout(verticalLayout)
-        verticalLayout_2.addLayout(horizontalLayout)
-
-        buttonBox = QtWidgets.QDialogButtonBox(userControl_Dialog)
-        CloseButton = buttonBox.addButton("Close", QtWidgets.QDialogButtonBox.RejectRole)
-        CloseButton.setMinimumSize(QtCore.QSize(100, 30))
-
-        verticalLayout_2.addWidget(buttonBox)
-
-        # list the users
-        def updateUsers():
-            user_list_sorted = self.manager.getUsers()
-            users_listWidget.clear()
-            users_listWidget.addItems(user_list_sorted)
-
-        def onRemoveUser():
-            row = users_listWidget.currentRow()
-            if row == -1:
-                return
-            self.manager.removeUser(str(users_listWidget.currentItem().text()))
-            self.manager.currentUser = self.manager.getUsers()[0]
-            self._initUsers()
-            updateUsers()
-
-        def addNewUserUI():
-            addUser_Dialog = QtWidgets.QDialog(parent=self)
-            addUser_Dialog.resize(260, 114)
-            addUser_Dialog.setMaximumSize(QtCore.QSize(16777215, 150))
-            addUser_Dialog.setFocusPolicy(QtCore.Qt.ClickFocus)
-            addUser_Dialog.setWindowTitle(("Add New User"))
-
-            verticalLayout = QtWidgets.QVBoxLayout(addUser_Dialog)
-
-            addNewUser_label = QtWidgets.QLabel(addUser_Dialog)
-            addNewUser_label.setText("Add New User:")
-            verticalLayout.addWidget(addNewUser_label)
-
-            formLayout = QtWidgets.QFormLayout()
-            formLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
-            formLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
-            formLayout.setRowWrapPolicy(QtWidgets.QFormLayout.DontWrapRows)
-            formLayout.setLabelAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-            formLayout.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
-
-            fullname_label = QtWidgets.QLabel(addUser_Dialog)
-            fullname_label.setFocusPolicy(QtCore.Qt.StrongFocus)
-            fullname_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-            fullname_label.setText("Full Name:")
-            formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, fullname_label)
-
-            fullname_lineEdit = QtWidgets.QLineEdit(addUser_Dialog)
-            # fullname_lineEdit.setFocusPolicy(QtCore.Qt.TabFocus)
-            fullname_lineEdit.setPlaceholderText("e.g \'Jon Snow\'")
-            formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, fullname_lineEdit)
-
-            initials_label = QtWidgets.QLabel(addUser_Dialog)
-            initials_label.setText("Initials:")
-            formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, initials_label)
-
-            initials_lineEdit = QtWidgets.QLineEdit(addUser_Dialog)
-            # initials_lineEdit.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
-            initials_lineEdit.setPlaceholderText("e.g \'js\' (must be unique)")
-            formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, initials_lineEdit)
-            verticalLayout.addLayout(formLayout)
-
-            buttonBox = QtWidgets.QDialogButtonBox(addUser_Dialog)
-            buttonBox.setOrientation(QtCore.Qt.Horizontal)
-            buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
-            verticalLayout.addWidget(buttonBox)
-            addUser_Dialog.show()
-
-
-            # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
-            # sizePolicy.setHorizontalStretch(0)
-            # sizePolicy.setVerticalStretch(0)
-            buttonBox.setMaximumSize(QtCore.QSize(16777215, 30))
-            buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setMinimumSize(QtCore.QSize(100, 30))
-            buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
-
-            def onAddUser():
-                ret, msg = self.manager.addUser(str(fullname_lineEdit.text()), str(initials_lineEdit.text()))
-                if ret == -1:
-                    self.infoPop(textTitle="Cannot Add User", textHeader=msg)
-                    return
-                self.manager.currentUser = fullname_lineEdit.text()
-                self._initUsers()
-                updateUsers()
-                addUser_Dialog.close()
-
-            buttonBox.accepted.connect(onAddUser)
-            buttonBox.rejected.connect(addUser_Dialog.reject)
-
-
-
-
-        updateUsers()
-
-        add_pushButton.clicked.connect(addNewUserUI)
-        remove_pushButton.clicked.connect(onRemoveUser)
-
-        buttonBox.rejected.connect(userControl_Dialog.reject)
-
-        # buttonBox.accepted.connect(onAccepted)
-        # buttonBox.rejected.connect(projectSettings_Dialog.reject)
-
-        userControl_Dialog.show()
+    # def addRemoveUserUI(self):
+    #     # This method is NOT Software Specific
+    #     passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query",
+    #                                            "Enter Admin Password:", QtWidgets.QLineEdit.Password)
+    #
+    #     if ok:
+    #         if self.manager.checkPassword(passw):
+    #             pass
+    #         else:
+    #             self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
+    #             return
+    #     else:
+    #         return
+    #
+    #     userControl_Dialog = QtWidgets.QDialog(parent=self)
+    #     userControl_Dialog.setObjectName(("userControl_Dialog"))
+    #     userControl_Dialog.resize(349, 285)
+    #     userControl_Dialog.setWindowTitle(("Add/Remove Users"))
+    #
+    #     verticalLayout_2 = QtWidgets.QVBoxLayout(userControl_Dialog)
+    #
+    #     users_label = QtWidgets.QLabel(userControl_Dialog)
+    #     users_label.setText("Users:")
+    #     verticalLayout_2.addWidget(users_label)
+    #
+    #     horizontalLayout = QtWidgets.QHBoxLayout()
+    #
+    #     users_listWidget = QtWidgets.QListWidget(userControl_Dialog)
+    #     horizontalLayout.addWidget(users_listWidget)
+    #
+    #     verticalLayout = QtWidgets.QVBoxLayout()
+    #     verticalLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
+    #
+    #     add_pushButton = QtWidgets.QPushButton(userControl_Dialog)
+    #     add_pushButton.setText(("Add..."))
+    #     verticalLayout.addWidget(add_pushButton)
+    #
+    #     remove_pushButton = QtWidgets.QPushButton(userControl_Dialog)
+    #     remove_pushButton.setText(("Remove"))
+    #     verticalLayout.addWidget(remove_pushButton)
+    #
+    #     spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+    #     verticalLayout.addItem(spacerItem)
+    #
+    #     horizontalLayout.addLayout(verticalLayout)
+    #     verticalLayout_2.addLayout(horizontalLayout)
+    #
+    #     buttonBox = QtWidgets.QDialogButtonBox(userControl_Dialog)
+    #     CloseButton = buttonBox.addButton("Close", QtWidgets.QDialogButtonBox.RejectRole)
+    #     CloseButton.setMinimumSize(QtCore.QSize(100, 30))
+    #
+    #     verticalLayout_2.addWidget(buttonBox)
+    #
+    #     # list the users
+    #     def updateUsers():
+    #         user_list_sorted = self.manager.getUsers()
+    #         users_listWidget.clear()
+    #         users_listWidget.addItems(user_list_sorted)
+    #
+    #     def onRemoveUser():
+    #         row = users_listWidget.currentRow()
+    #         if row == -1:
+    #             return
+    #         self.manager.removeUser(str(users_listWidget.currentItem().text()))
+    #         self.manager.currentUser = self.manager.getUsers()[0]
+    #         self._initUsers()
+    #         updateUsers()
+    #
+    #     def addNewUserUI():
+    #         addUser_Dialog = QtWidgets.QDialog(parent=self)
+    #         addUser_Dialog.resize(260, 114)
+    #         addUser_Dialog.setMaximumSize(QtCore.QSize(16777215, 150))
+    #         addUser_Dialog.setFocusPolicy(QtCore.Qt.ClickFocus)
+    #         addUser_Dialog.setWindowTitle(("Add New User"))
+    #
+    #         verticalLayout = QtWidgets.QVBoxLayout(addUser_Dialog)
+    #
+    #         addNewUser_label = QtWidgets.QLabel(addUser_Dialog)
+    #         addNewUser_label.setText("Add New User:")
+    #         verticalLayout.addWidget(addNewUser_label)
+    #
+    #         formLayout = QtWidgets.QFormLayout()
+    #         formLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
+    #         formLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
+    #         formLayout.setRowWrapPolicy(QtWidgets.QFormLayout.DontWrapRows)
+    #         formLayout.setLabelAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+    #         formLayout.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+    #
+    #         fullname_label = QtWidgets.QLabel(addUser_Dialog)
+    #         fullname_label.setFocusPolicy(QtCore.Qt.StrongFocus)
+    #         fullname_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+    #         fullname_label.setText("Full Name:")
+    #         formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, fullname_label)
+    #
+    #         fullname_lineEdit = QtWidgets.QLineEdit(addUser_Dialog)
+    #         # fullname_lineEdit.setFocusPolicy(QtCore.Qt.TabFocus)
+    #         fullname_lineEdit.setPlaceholderText("e.g \'Jon Snow\'")
+    #         formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, fullname_lineEdit)
+    #
+    #         initials_label = QtWidgets.QLabel(addUser_Dialog)
+    #         initials_label.setText("Initials:")
+    #         formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, initials_label)
+    #
+    #         initials_lineEdit = QtWidgets.QLineEdit(addUser_Dialog)
+    #         # initials_lineEdit.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+    #         initials_lineEdit.setPlaceholderText("e.g \'js\' (must be unique)")
+    #         formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, initials_lineEdit)
+    #         verticalLayout.addLayout(formLayout)
+    #
+    #         buttonBox = QtWidgets.QDialogButtonBox(addUser_Dialog)
+    #         buttonBox.setOrientation(QtCore.Qt.Horizontal)
+    #         buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
+    #         verticalLayout.addWidget(buttonBox)
+    #         addUser_Dialog.show()
+    #
+    #
+    #         # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+    #         # sizePolicy.setHorizontalStretch(0)
+    #         # sizePolicy.setVerticalStretch(0)
+    #         buttonBox.setMaximumSize(QtCore.QSize(16777215, 30))
+    #         buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setMinimumSize(QtCore.QSize(100, 30))
+    #         buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
+    #
+    #         def onAddUser():
+    #             ret, msg = self.manager.addUser(str(fullname_lineEdit.text()), str(initials_lineEdit.text()))
+    #             if ret == -1:
+    #                 self.infoPop(textTitle="Cannot Add User", textHeader=msg)
+    #                 return
+    #             self.manager.currentUser = fullname_lineEdit.text()
+    #             self._initUsers()
+    #             updateUsers()
+    #             addUser_Dialog.close()
+    #
+    #         buttonBox.accepted.connect(onAddUser)
+    #         buttonBox.rejected.connect(addUser_Dialog.reject)
+    #
+    #
+    #
+    #
+    #     updateUsers()
+    #
+    #     add_pushButton.clicked.connect(addNewUserUI)
+    #     remove_pushButton.clicked.connect(onRemoveUser)
+    #
+    #     buttonBox.rejected.connect(userControl_Dialog.reject)
+    #
+    #     # buttonBox.accepted.connect(onAccepted)
+    #     # buttonBox.rejected.connect(projectSettings_Dialog.reject)
+    #
+    #     userControl_Dialog.show()
 
     # def addRemoveCategoryUI(self):
     #     # This method IS Software Specific
@@ -4850,87 +5215,87 @@ class MainUI(QtWidgets.QMainWindow):
     #
     #     projectSettings_Dialog.show()
 
-    def changePasswordUI(self):
-        # This method is NOT Software Specific
-        changePassword_Dialog = QtWidgets.QDialog(parent=self)
-        changePassword_Dialog.setObjectName("projectSettings_Dialog")
-        changePassword_Dialog.resize(270, 120)
-        changePassword_Dialog.setMinimumSize(QtCore.QSize(270, 120))
-        changePassword_Dialog.setMaximumSize(QtCore.QSize(270, 120))
-        changePassword_Dialog.setWindowTitle("Project Settings")
-
-        gridLayout = QtWidgets.QGridLayout(changePassword_Dialog)
-        gridLayout.setObjectName(("gridLayout"))
-
-        buttonBox = QtWidgets.QDialogButtonBox(changePassword_Dialog)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        buttonBox.setMaximumSize(QtCore.QSize(16777215, 30))
-        buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Save)
-        buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
-        buttonBox.button(QtWidgets.QDialogButtonBox.Save).setMinimumSize(QtCore.QSize(100, 30))
-        buttonBox.setObjectName("buttonBox")
-
-        gridLayout.addWidget(buttonBox, 1, 0, 1, 1)
-
-        formLayout = QtWidgets.QFormLayout()
-        formLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
-        formLayout.setLabelAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        formLayout.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
-        formLayout.setObjectName("formLayout")
-
-        oldPass_label = QtWidgets.QLabel(changePassword_Dialog)
-        oldPass_label.setText("Old Password:")
-        formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, oldPass_label)
-
-        oldPass_lineEdit = QtWidgets.QLineEdit(changePassword_Dialog)
-        oldPass_lineEdit.setEchoMode(QtWidgets.QLineEdit.Password)
-        formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, oldPass_lineEdit)
-
-
-        newPass_label = QtWidgets.QLabel(changePassword_Dialog)
-        newPass_label.setText("New Password:")
-        newPass_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, newPass_label)
-
-        newPass_lineEdit = QtWidgets.QLineEdit(changePassword_Dialog)
-        newPass_lineEdit.setEchoMode(QtWidgets.QLineEdit.Password)
-        formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, newPass_lineEdit)
-
-        newPassAgain_label = QtWidgets.QLabel(changePassword_Dialog)
-        newPassAgain_label.setText("New Password Again:")
-        newPassAgain_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, newPassAgain_label)
-
-        newPassAgain_lineEdit = QtWidgets.QLineEdit(changePassword_Dialog)
-        newPassAgain_lineEdit.setEchoMode(QtWidgets.QLineEdit.Password)
-        formLayout.setWidget(2, QtWidgets.QFormLayout.FieldRole, newPassAgain_lineEdit)
-
-        gridLayout.addLayout(formLayout, 0, 0, 1, 1)
-        # SIGNALS
-        # -------
-        def onAccepted():
-
-            if not self.manager.checkPassword(oldPass_lineEdit.text()):
-                self.infoPop(textTitle="Incorrect Password", textHeader="Invalid Old Password", type="C")
-                return
-            if newPass_lineEdit.text() == "" or newPassAgain_lineEdit.text() == "":
-                self.infoPop(textTitle="Error", textHeader="Admin Password cannot be blank", type="C")
-                return
-            if newPass_lineEdit.text() != newPassAgain_lineEdit.text():
-                self.infoPop(textTitle="Error", textHeader="New passwords are not matching", type="C")
-                return
-
-            if self.manager.changePassword(oldPass_lineEdit.text(), newPass_lineEdit.text()):
-                self.infoPop(textTitle="Success", textHeader="Password Changed", type="I")
-                changePassword_Dialog.close()
-
-        buttonBox.accepted.connect(onAccepted)
-        buttonBox.rejected.connect(changePassword_Dialog.reject)
-
-        changePassword_Dialog.show()
+    # def changePasswordUI(self):
+    #     # This method is NOT Software Specific
+    #     changePassword_Dialog = QtWidgets.QDialog(parent=self)
+    #     changePassword_Dialog.setObjectName("projectSettings_Dialog")
+    #     changePassword_Dialog.resize(270, 120)
+    #     changePassword_Dialog.setMinimumSize(QtCore.QSize(270, 120))
+    #     changePassword_Dialog.setMaximumSize(QtCore.QSize(270, 120))
+    #     changePassword_Dialog.setWindowTitle("Project Settings")
+    #
+    #     gridLayout = QtWidgets.QGridLayout(changePassword_Dialog)
+    #     gridLayout.setObjectName(("gridLayout"))
+    #
+    #     buttonBox = QtWidgets.QDialogButtonBox(changePassword_Dialog)
+    #     sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+    #     sizePolicy.setHorizontalStretch(0)
+    #     sizePolicy.setVerticalStretch(0)
+    #     buttonBox.setMaximumSize(QtCore.QSize(16777215, 30))
+    #     buttonBox.setOrientation(QtCore.Qt.Horizontal)
+    #     buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Save)
+    #     buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
+    #     buttonBox.button(QtWidgets.QDialogButtonBox.Save).setMinimumSize(QtCore.QSize(100, 30))
+    #     buttonBox.setObjectName("buttonBox")
+    #
+    #     gridLayout.addWidget(buttonBox, 1, 0, 1, 1)
+    #
+    #     formLayout = QtWidgets.QFormLayout()
+    #     formLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
+    #     formLayout.setLabelAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+    #     formLayout.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+    #     formLayout.setObjectName("formLayout")
+    #
+    #     oldPass_label = QtWidgets.QLabel(changePassword_Dialog)
+    #     oldPass_label.setText("Old Password:")
+    #     formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, oldPass_label)
+    #
+    #     oldPass_lineEdit = QtWidgets.QLineEdit(changePassword_Dialog)
+    #     oldPass_lineEdit.setEchoMode(QtWidgets.QLineEdit.Password)
+    #     formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, oldPass_lineEdit)
+    #
+    #
+    #     newPass_label = QtWidgets.QLabel(changePassword_Dialog)
+    #     newPass_label.setText("New Password:")
+    #     newPass_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+    #     formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, newPass_label)
+    #
+    #     newPass_lineEdit = QtWidgets.QLineEdit(changePassword_Dialog)
+    #     newPass_lineEdit.setEchoMode(QtWidgets.QLineEdit.Password)
+    #     formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, newPass_lineEdit)
+    #
+    #     newPassAgain_label = QtWidgets.QLabel(changePassword_Dialog)
+    #     newPassAgain_label.setText("New Password Again:")
+    #     newPassAgain_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+    #     formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, newPassAgain_label)
+    #
+    #     newPassAgain_lineEdit = QtWidgets.QLineEdit(changePassword_Dialog)
+    #     newPassAgain_lineEdit.setEchoMode(QtWidgets.QLineEdit.Password)
+    #     formLayout.setWidget(2, QtWidgets.QFormLayout.FieldRole, newPassAgain_lineEdit)
+    #
+    #     gridLayout.addLayout(formLayout, 0, 0, 1, 1)
+    #     # SIGNALS
+    #     # -------
+    #     def onAccepted():
+    #
+    #         if not self.manager.checkPassword(oldPass_lineEdit.text()):
+    #             self.infoPop(textTitle="Incorrect Password", textHeader="Invalid Old Password", type="C")
+    #             return
+    #         if newPass_lineEdit.text() == "" or newPassAgain_lineEdit.text() == "":
+    #             self.infoPop(textTitle="Error", textHeader="Admin Password cannot be blank", type="C")
+    #             return
+    #         if newPass_lineEdit.text() != newPassAgain_lineEdit.text():
+    #             self.infoPop(textTitle="Error", textHeader="New passwords are not matching", type="C")
+    #             return
+    #
+    #         if self.manager.changePassword(oldPass_lineEdit.text(), newPass_lineEdit.text()):
+    #             self.infoPop(textTitle="Success", textHeader="Password Changed", type="I")
+    #             changePassword_Dialog.close()
+    #
+    #     buttonBox.accepted.connect(onAccepted)
+    #     buttonBox.rejected.connect(changePassword_Dialog.reject)
+    #
+    #     changePassword_Dialog.show()
 
     def saveBaseSceneDialog(self):
         # This method IS Software Specific
