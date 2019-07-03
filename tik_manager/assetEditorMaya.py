@@ -615,12 +615,12 @@ class AssetEditorMaya(MayaCoreFunctions):
         assetData = self._getData(assetName)
         absSourcePath = os.path.join(self.directory, assetName, assetData["sourcePath"])
         isSceneModified = cmds.file(q=True, modified=True)
-
-        state = cmds.confirmDialog(title='Scene Modified', message="Save Changes to", button=['Yes', 'No'])
-        if state == "Yes":
-            cmds.file(save=True)
-        elif state == "No":
-            pass
+        if isSceneModified:
+            state = cmds.confirmDialog(title='Scene Modified', message="Save Changes to", button=['Yes', 'No'])
+            if state == "Yes":
+                cmds.file(save=True)
+            elif state == "No":
+                pass
 
         if os.path.isfile(absSourcePath):
             cmds.file(absSourcePath, o=True, force=True)

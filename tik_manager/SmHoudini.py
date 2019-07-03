@@ -334,6 +334,9 @@ class HoudiniCoreFunctions(object):
     def _getSelection(self):
         return hou.selectedItems()
 
+    def _isSceneModified(self):
+        return hou.hipFile.hasUnsavedChanges()
+
     def _setEnvVariable(self, var, value):
         """sets environment var
         :param str var: The name of the var
@@ -907,7 +910,7 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
 
     def isSceneModified(self):
         """Checks the currently open scene saved or not"""
-        return hou.hipFile.hasUnsavedChanges()
+        return self._isSceneModified()
 
 
     def saveSimple(self):

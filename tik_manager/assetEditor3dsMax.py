@@ -216,10 +216,12 @@ class AssetEditor3dsMax(MaxCoreFunctions):
         oHeight = 1600
 
         rt.viewport.SetRenderLevel(rt.Name("smoothhighlights"))
+        rt.redrawViews()
         grabShaded = rt.gw.getViewportDib()
         rt.viewport.SetRenderLevel(rt.Name("wireframe"))
+        rt.redrawViews()
         grabWire = rt.gw.getViewportDib()
-
+        # rt.redrawViews()
 
         ratio = float(grabShaded.width) / float(grabShaded.height)
 
@@ -555,24 +557,20 @@ class AssetEditor3dsMax(MaxCoreFunctions):
     def loadAsset(self, assetName):
         assetData = self._getData(assetName)
         absSourcePath = os.path.join(self.directory, assetName, assetData["sourcePath"])
-        isSceneModified = cmds.file(q=True, modified=True)
 
-        state = cmds.confirmDialog(title='Scene Modified', message="Save Changes to", button=['Yes', 'No'])
-        if state == "Yes":
-            cmds.file(save=True)
-        elif state == "No":
-            pass
+        if _isSceneModified():
+            state = _question("Save Changes to")
+            if state:
+                self._save()
+            else:
+                pass
 
         if os.path.isfile(absSourcePath):
-            cmds.file(absSourcePath, o=True, force=True)
+            self._load(absSourcePath, force=True)
 
     def uniqueList(self, fList):
         keys = {}
         for e in fList:
             keys[e] = 1
         return keys.keys()
-
-
-
-
 

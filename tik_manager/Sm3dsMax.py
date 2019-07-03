@@ -94,13 +94,8 @@ class MaxCoreFunctions(object):
         if prompt:
             fManager.Merge(filePath)
         else:
-            cammand = 'mergeMAXFile "%s"' %filePath
-            print "caommand", cammand
-            rt.execute(cammand)
-
-    # def _import(self, filePath, mergeAll=False, *args, **kwargs):
-    #     fManager.Merge(filePath, mergeAll=mergeAll)
-
+            command = 'mergeMAXFile "%s"' %filePath
+            rt.execute(command)
 
     def _importObj(self, filePath, importSettings, *args, **kwargs):
         if rt.pluginManager.loadclass(rt.ObjExp):
@@ -382,6 +377,9 @@ class MaxCoreFunctions(object):
             return [x.name for x in sel]
         else:
             return sel
+
+    def _isSceneModified(self):
+        return fManager.IsSaveRequired()
 
 class MaxManager(RootManager, MaxCoreFunctions):
     def __init__(self):
@@ -1033,7 +1031,7 @@ class MaxManager(RootManager, MaxCoreFunctions):
 
     def isSceneModified(self):
         """Checks the currently open scene saved or not"""
-        return fManager.IsSaveRequired()
+        return self._isSceneModified()
 
     def saveSimple(self):
         """Save the currently open file"""

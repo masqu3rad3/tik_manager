@@ -338,6 +338,10 @@ class MayaCoreFunctions(object):
     def _getSelection(self):
         return cmds.ls(sl=True)
 
+    def _isSceneModified(self):
+        return cmds.file(q=True, modified=True)
+
+
 class MayaManager(RootManager, MayaCoreFunctions):
     def __init__(self):
         super(MayaManager, self).__init__()
@@ -1070,7 +1074,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
     def isSceneModified(self):
         """Checks the currently open scene saved or not"""
         logger.debug("Func: isSceneModified")
-        return cmds.file(q=True, modified=True)
+        return self._isSceneModified()
 
     def saveSimple(self):
         """Save the currently open file"""
