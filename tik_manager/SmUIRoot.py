@@ -38,6 +38,7 @@
 import os
 import _version
 from copy import deepcopy
+import re
 
 # Below is the standard dictionary for Scene Manager Standalone
 BoilerDict = {"Environment":"Standalone",
@@ -2183,11 +2184,16 @@ class MainUI(QtWidgets.QMainWindow):
 
         ## NAMING CONVENTIONS
         currentConventions = manager.loadNameConventions()
+        self.allSettingsDict.add("nameConventions", currentConventions, manager._pathsDict["tikConventions"])
         self._namingConventions()
 
         self.settingsButtonBox = QtWidgets.QDialogButtonBox(settings_Dialog)
         self.settingsButtonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Apply|QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.settingsOk_btn = self.settingsButtonBox.button(QtWidgets.QDialogButtonBox.Ok)
+        self.settingsOk_btn.setFocusPolicy(QtCore.Qt.NoFocus)
+
         self.settingsApply_btn = self.settingsButtonBox.button(QtWidgets.QDialogButtonBox.Apply)
+        self.settingsApply_btn.setFocusPolicy(QtCore.Qt.NoFocus)
         verticalLayout.addWidget(self.settingsButtonBox)
         verticalLayout_2.addLayout(verticalLayout)
 
@@ -2199,7 +2205,10 @@ class MainUI(QtWidgets.QMainWindow):
             for x in self.allSettingsDict.apply():
                 manager._dumpJson(x["data"], x["filepath"])
             self.settingsApply_btn.setEnabled(False)
-            self._initUsers()
+            self.initMainUI()
+            # self.manager.init_paths()
+            # self.manager.init_database()
+            # self._initUsers()
 
         # # SIGNALS
         # # -------
@@ -2221,7 +2230,7 @@ class MainUI(QtWidgets.QMainWindow):
         userSettings_Layout = QtWidgets.QVBoxLayout(self.userSettings_vis)
         userSettings_Layout.setSpacing(6)
         userSettings = self.allSettingsDict.get("userSettings")
-        sharedSettingsDir = self.allSettingsDict.get("sharedSettingsDir")
+        # sharedSettingsDir = self.allSettingsDict.get("sharedSettingsDir")
 
 
         def updateDictionary():
@@ -2243,6 +2252,7 @@ class MainUI(QtWidgets.QMainWindow):
         userSettings_formLayout.setSpacing(6)
         userSettings_formLayout.setHorizontalSpacing(15)
         userSettings_formLayout.setVerticalSpacing(15)
+        userSettings_formLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldsStayAtSizeHint)
 
         userSettings_Layout.addLayout(userSettings_formLayout)
 
@@ -2283,10 +2293,12 @@ class MainUI(QtWidgets.QMainWindow):
 
         commonDir_lineEdit = QtWidgets.QLineEdit()
         commonDir_lineEdit.setText(manager.getSharedSettingsDir())
+        commonDir_lineEdit.setMinimumWidth(250)
         commonDir_layout.addWidget(commonDir_lineEdit)
 
         setCommon_button = QtWidgets.QPushButton()
         setCommon_button.setText("...")
+        setCommon_button.setStyleSheet("min-width: 20px;")
         commonDir_layout.addWidget(setCommon_button)
         userSettings_formLayout.setLayout(2, QtWidgets.QFormLayout.FieldRole, commonDir_layout)
 
@@ -2309,8 +2321,9 @@ class MainUI(QtWidgets.QMainWindow):
 
         def resetColors():
             try:
-                userSettings["colorCoding"] = manager._sceneManagerDefaults["defaultColorCoding"]
-                self.allSettingsDict.set("userSettings", userSettings)
+                defaults = deepcopy(manager._sceneManagerDefaults["defaultColorCoding"])
+                for key in userSettings["colorCoding"].keys():
+                    userSettings["colorCoding"][key] = defaults[key]
             except KeyError:
                 self.infoPop(textTitle="Cannot get default database",
                              textHeader="Default Color Coding Database cannot be found")
@@ -2320,12 +2333,11 @@ class MainUI(QtWidgets.QMainWindow):
                 color = item[1]
                 # try:
                 pushbutton = self.findChild(QtWidgets.QPushButton, "cc_%s" % niceName)
-                pushbutton.setStyleSheet("background-color:%s" % color)
+                print niceName, color
+                pushbutton.setStyleSheet("background-color:%s; min-width: 80px;" % color)
                 # except AttributeError:
                 #     pass
             self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
-
-            # self._isSettingsChanged()
 
         def browseCommonDatabase():
             dlg = QtWidgets.QFileDialog()
@@ -2353,8 +2365,8 @@ class MainUI(QtWidgets.QMainWindow):
                 cclabel.setText("      %s:  " % item[0])
             ccpushbutton = QtWidgets.QPushButton()
             ccpushbutton.setObjectName("cc_%s" % item[0])
-            ccpushbutton.setStyleSheet("background-color:%s" % item[1])
-            ccpushbutton.setMinimumSize(100, 20)
+            ccpushbutton.setStyleSheet("background-color:%s; min-width: 80px;" % item[1])
+            ccpushbutton.setMinimumSize(80, 20)
 
             colorCoding_formlayout.addRow(cclabel, ccpushbutton)
             ccpushbutton.clicked.connect(lambda ignore, button=ccpushbutton, item=item[0]: colorSet(button, item))
@@ -2378,7 +2390,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         ccReset_button = QtWidgets.QPushButton()
         ccReset_button.setText("Reset Colors")
-        ccReset_button.setFixedSize(100, 20)
+        ccReset_button.setMinimumSize(80, 30)
+        # ccReset_button.setFixedSize(150, 30)
         colorCoding_formlayout.setWidget((len(userSettings["colorCoding"].items())) + 1, QtWidgets.QFormLayout.FieldRole, ccReset_button)
         # colorCoding_formlayout.setWidget((len(niceNameList)) + 1, QtWidgets.QFormLayout.FieldRole, ccReset_button)
 
@@ -4310,7 +4323,9 @@ class MainUI(QtWidgets.QMainWindow):
 
     def _namingConventions(self):
         # manager = self._getManager()
-        # userList = self.allSettingsDict.get("users")
+        settings = self.allSettingsDict.get("nameConventions")
+
+        validFileNameTokens = ["<date>", "<baseName>", "<categoryName>", "<userInitials>"]
 
         namingConv_Layout = QtWidgets.QVBoxLayout(self.namingConventions_vis)
         namingConv_Layout.setSpacing(0)
@@ -4319,6 +4334,7 @@ class MainUI(QtWidgets.QMainWindow):
         h1_label = QtWidgets.QLabel()
         h1_label.setText("Naming Conventions")
         h1_label.setFont(self.headerAFont)
+        h1_label.setFocusPolicy(QtCore.Qt.StrongFocus)
         h1_horizontalLayout.addWidget(h1_label)
         namingConv_Layout.addLayout(h1_horizontalLayout)
 
@@ -4328,54 +4344,97 @@ class MainUI(QtWidgets.QMainWindow):
         # h1_s1_layout.setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
 
         ################################################
-        infoLabel = QtWidgets.QLabel()
-        infoLabel.setText("Valid tokens are <date>, <baseName>, <categoryName>, <userInitials>")
+        formLayout = QtWidgets.QFormLayout()
+        formLayout.setSpacing(8)
 
+        fileNameConv_lbl = QtWidgets.QLabel()
+        fileNameConv_lbl.setText("Scene Name Convention: ")
         fileNameConv_le = QtWidgets.QLineEdit()
-        h1_s1_layout.addWidget(infoLabel)
-        h1_s1_layout.addWidget(fileNameConv_le)
+        fileNameConv_le.setText(settings["fileName"])
 
-        # formLayout = QtWidgets.QFormLayout()
-        # formLayout.setSpacing(8)
-        # oldPass_label = QtWidgets.QLabel()
-        # oldPass_label.setText("Old Password: ")
-        # oldPass_lineEdit = QtWidgets.QLineEdit()
-        # # oldPass_lineEdit.setMaximumWidth(200)
-        # oldPass_lineEdit.setEchoMode(QtWidgets.QLineEdit.Password)
-        # formLayout.addRow(oldPass_label, oldPass_lineEdit)
-        #
-        # newPass_label = QtWidgets.QLabel()
-        # newPass_label.setText("New Password: ")
-        # newPass_lineEdit = QtWidgets.QLineEdit()
-        # # newPass_lineEdit.setMaximumWidth(200)
-        # newPass_lineEdit.setEchoMode(QtWidgets.QLineEdit.Password)
-        # formLayout.addRow(newPass_label, newPass_lineEdit)
-        #
-        # newPassAgain_label = QtWidgets.QLabel()
-        # newPassAgain_label.setText("New Password Again: ")
-        # newPassAgain_lineEdit = QtWidgets.QLineEdit()
-        # # newPassAgain_lineEdit.setMaximumWidth(200)
-        # newPassAgain_lineEdit.setEchoMode(QtWidgets.QLineEdit.Password)
-        # formLayout.addRow(newPassAgain_label, newPassAgain_lineEdit)
+        formLayout.addRow(fileNameConv_lbl, fileNameConv_le)
 
+        infoLabel = QtWidgets.QLabel()
+        infoLabel.setText("Valid tokens are %s" %(",".join(validFileNameTokens)))
+        infoLabel.setWordWrap(True)
+        formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, infoLabel)
 
-        ################################################
+        templateFolder_lbl = QtWidgets.QLabel()
+        templateFolder_lbl.setText("Template Folder: ")
+        templateFolder_hLayout = QtWidgets.QHBoxLayout()
+        templateFolder_le = QtWidgets.QLineEdit()
+        templateFolder_le.setPlaceholderText("Define Template Folder")
+        templateFolder_le.setText(settings["templateFolder"])
+        templateFolderBrowse_pb = QtWidgets.QPushButton()
+        templateFolderBrowse_pb.setText("...")
+        templateFolder_hLayout.addWidget(templateFolder_le)
+        templateFolder_hLayout.addWidget(templateFolderBrowse_pb)
+        formLayout.addRow(templateFolder_lbl, templateFolder_hLayout)
+        infoLabel = QtWidgets.QLabel()
+        infoLabel.setText("While creating a new project, all contents of the template folder will be copied into the project folder")
+        infoLabel.setWordWrap(True)
+        formLayout.setWidget(3, QtWidgets.QFormLayout.FieldRole, infoLabel)
+
 
         h1_s1_layout.addLayout(formLayout)
 
-        changePass_btn = QtWidgets.QPushButton()
-        changePass_btn.setText("Change Password")
-        h1_s1_layout.addWidget(changePass_btn)
-
         namingConv_Layout.addLayout(h1_s1_layout)
 
+        def browseTemplateFolder():
+            dlg = QtWidgets.QFileDialog()
+            dlg.setFileMode(QtWidgets.QFileDialog.Directory)
+
+            if dlg.exec_():
+                # selectedroot = os.path.normpath(unicode(dlg.selectedFiles()[0]))
+                selectedroot = os.path.normpath(unicode(dlg.selectedFiles()[0])).encode("utf-8")
+                folderSize_inMB = get_size(selectedroot)/(1024*1024)
+                if folderSize_inMB > settings["warningSizeLimit"]:
+                    msg = "Selected Folder size is %s\n\nFrom now on this data will be copied EACH new project created with Tik Manager.\n\n Do you want to continue?" %folderSize_inMB
+                    q = self.queryPop(type="yesNo", textTitle="Large Folder Size", textHeader=msg)
+                    if q == "no":
+                        return
+
+                settings["templateFolder"] = selectedroot
+                self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
+                templateFolder_le.setText(selectedroot)
+            return
+
+        def updateTemplateFolder(folder):
+            if not os.path.isdir(folder):
+                msg = "Entered path is invalid. Resetting to default"
+                self.infoPop(textTitle="Invalid Path", textHeader=msg)
+                templateFolder_le.setText(settings["templateFolder"])
+
+        def updateFileName():
+            template = unicode(fileNameConv_le.text()).encode("utf-8")
+            items = re.findall(r'<(.*?)\>', template)
+            for x in items:
+                if ("<%s>" %x) not in validFileNameTokens:
+                    msg = "%s token is invalid\nValid tokens are: %s" %(x, ",".join(validFileNameTokens))
+                    self.infoPop(textTitle="Invalid Token", textHeader=msg)
+                    fileNameConv_le.setText(settings["fileName"])
+                    return
+            settings["fileName"] = template
+            self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
+
+        def get_size(start_path='.'):
+            total_size = 0
+            for dirpath, dirnames, filenames in os.walk(start_path):
+                for f in filenames:
+                    fp = os.path.join(dirpath, f)
+                    # skip if it is symbolic link
+                    if not os.path.islink(fp):
+                        total_size += os.path.getsize(fp)
+            return total_size
 
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         namingConv_Layout.addItem(spacerItem)
         self.contentsMaster_layout.addWidget(self.namingConventions_vis)
 
-
         ## SIGNALS
+        templateFolderBrowse_pb.clicked.connect(browseTemplateFolder)
+        fileNameConv_le.editingFinished.connect(updateFileName)
+
 
     def _createFormWidgets(self, loopList, settingsDict, formattingType, formlayout, dictUpdateMethod):
         """Creates widgets for the given form layout"""

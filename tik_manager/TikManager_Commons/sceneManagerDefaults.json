@@ -22,12 +22,7 @@
     "CrfValue": 23
   },
   "defaultTikConvention": {
-        "validItems": {
-          "date": "",
-          "baseName": "",
-          "categoryName": "",
-          "userInitials": ""
-        },
+    "templateFolder": "",
     "fileName": "<baseName>_<categoryName>_<userInitials>"
   },
   "defaultProjectSettings": {

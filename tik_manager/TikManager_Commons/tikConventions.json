@@ -1,9 +1,5 @@
 {
-    "validItems": {
-        "date": "", 
-        "baseName": "", 
-        "categoryName": "", 
-        "userInitials": ""
-    }, 
+    "templateFolder": "C:\\Users\\User\\Documents\\maya\\scripts\\dev\\tik_manager\\tik_manager\\TikManager_Commons\\templateFolder", 
+    "warningSizeLimit": 200, 
     "fileName": "<baseName>_<categoryName>_<userInitials>"
 }

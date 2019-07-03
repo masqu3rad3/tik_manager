@@ -217,7 +217,7 @@ class AssetEditor3dsMax(MaxCoreFunctions):
 
         rt.viewport.SetRenderLevel(rt.Name("smoothhighlights"))
         grabShaded = rt.gw.getViewportDib()
-        rt.viewport.SetRenderLevel(rt.Name("smoothhighlights"))
+        rt.viewport.SetRenderLevel(rt.Name("wireframe"))
         grabWire = rt.gw.getViewportDib()
 
 
@@ -248,8 +248,8 @@ class AssetEditor3dsMax(MaxCoreFunctions):
         rt.pasteBitmap(resizeFrameShaded, ssFrame, rt.point2(0, 0), rt.point2(xOffset, yOffset))
         rt.pasteBitmap(resizeFrameWire, wfFrame, rt.point2(0, 0), rt.point2(xOffset, yOffset))
 
-        # rt.display(ssFrame)
-        # rt.display(wfFrame)
+        rt.display(ssFrame)
+        rt.display(wfFrame)
 
         thumbFrame = rt.bitmap(200, 200, color=rt.color(0, 0, 0))
         rt.copy(ssFrame, thumbFrame)
@@ -309,7 +309,6 @@ class AssetEditor3dsMax(MaxCoreFunctions):
 
         rt.execute("max modify mode")
 
-        print "AS", validShapes
         for i in validShapes:
             objName = i.name
             UVpath = os.path.join(UVdir, '%s_uv.jpg' % objName)

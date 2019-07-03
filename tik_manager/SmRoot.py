@@ -862,7 +862,6 @@ class RootManager(object):
         os.makedirs(os.path.join(resolvedPath, "_TRANSFER", "FBX"))
         os.makedirs(os.path.join(resolvedPath, "_TRANSFER", "ALEMBIC"))
         os.makedirs(os.path.join(resolvedPath, "_TRANSFER", "OBJ"))
-        os.makedirs(os.path.join(resolvedPath, "_TRANSFER", "MA"))
         os.mkdir(os.path.join(resolvedPath, "cache"))
         os.mkdir(os.path.join(resolvedPath, "data"))
         os.makedirs(os.path.join(resolvedPath, "images", "_CompRenders"))
@@ -959,6 +958,14 @@ class RootManager(object):
         file.write('workspace -fr "shaders" "renderData/shaders";\n')
         file.write('workspace -fr "UG_DCE" "";\n')
         file.close()
+
+        # Copy the template project contents (if any)
+        currentConventions = self.loadNameConventions()
+        if currentConventions["templateFolder"]:
+            if not os.path.isdir(currentConventions["templateFolder"]):
+                self._info("Cannot find template folder => %s\n\nThe folder specified at shared settings cannot be found." %currentConventions["templateFolder"])
+            else:
+                self._copytree(currentConventions["templateFolder"], resolvedPath, symlinks=False, ignore=None)
 
         return resolvedPath
 
@@ -1962,17 +1969,17 @@ Elapsed Time:{6}
             nameConventions = self._loadJson(self._pathsDict["tikConventions"])
             return nameConventions
         else:
-            nameConventions = self._sceneManagerDefaults["defaultCategories"][swName]
+            defaultNameConventions = self._sceneManagerDefaults["defaultTikConvention"]
             ## return and dump default name extensions:
-            defaultNameConventions = {
-                "validItems": {
-                    "baseName": "",
-                    "categoryName": "",
-                    "userInitials": "",
-                    "date": ""
-                },
-                "fileName": "<baseName>_<categoryName>_<userInitials>"
-            }
+            # defaultNameConventions = {
+            #     "validItems": {
+            #         "baseName": "",
+            #         "categoryName": "",
+            #         "userInitials": "",
+            #         "date": ""
+            #     },
+            #     "fileName": "<baseName>_<categoryName>_<userInitials>"
+            # }
             self._dumpJson(defaultNameConventions, self._pathsDict["tikConventions"])
             return defaultNameConventions
 
@@ -2161,8 +2168,8 @@ Elapsed Time:{6}
                 return -2
             return conversionLUT
 
-    def saveConverionLUT(self, conversionLUT):
-        logger.debug("Func: saveConverionLUT")
+    def saveConversionLUT(self, conversionLUT):
+        logger.debug("Func: saveConversionLUT")
         self._dumpJson(conversionLUT, self._pathsDict["conversionLUTFile"])
         return
 
@@ -2354,6 +2361,47 @@ Elapsed Time:{6}
             return normInputDir
         else:
             return False
+
+    def _copytree(self, src, dst, symlinks=False, ignore=None):
+        names = os.listdir(src)
+        if ignore is not None:
+            ignored_names = ignore(src, names)
+        else:
+            ignored_names = set()
+
+        if not os.path.isdir(dst):  # This one line does the trick
+            os.makedirs(dst)
+        errors = []
+        for name in names:
+            if name in ignored_names:
+                continue
+            srcname = os.path.join(src, name)
+            dstname = os.path.join(dst, name)
+            try:
+                if symlinks and os.path.islink(srcname):
+                    linkto = os.readlink(srcname)
+                    os.symlink(linkto, dstname)
+                elif os.path.isdir(srcname):
+                    self._copytree(srcname, dstname, symlinks, ignore)
+                else:
+                    # Will raise a SpecialFileError for unsupported file types
+                    shutil.copy2(srcname, dstname)
+            # catch the Error from the recursive copytree so that we can
+            # continue with other files
+            except shutil.Error, err:
+                errors.extend(err.args[0])
+            except EnvironmentError, why:
+                errors.append((srcname, dstname, str(why)))
+        try:
+            shutil.copystat(src, dst)
+        except OSError, why:
+            if WindowsError is not None and isinstance(why, WindowsError):
+                # Copying file access times may fail on Windows
+                pass
+            else:
+                errors.extend((src, dst, str(why)))
+        if errors:
+            raise shutil.Error, errors
 
 
 
