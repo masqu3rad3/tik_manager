@@ -38,26 +38,26 @@ class AssetEditor(object):
         super(AssetEditor, self).__init__()
         pass
 
-    def mergeAsset(self, assetName):
-        logger.warning("merging Asset is not defined")
-
-    def importAsset(self, assetName):
-        logger.warning("importing Asset is not defined")
-
-    def importObj(self, assetName):
-        logger.warning("importing obj is not defined")
-
-    def importAbc(self, assetName):
-        logger.warning("importing alembic is not defined")
-
-    def importFbx(self, assetName):
-        logger.warning("importing fbx is not defined")
-
-    def loadAsset(self, assetName):
-        logger.warning("loading Asset is not defined")
-
-    def saveAsset(self, *args, **kwargs):
-        logger.warning("saving Asset is not defined")
+    # def mergeAsset(self, assetName):
+    #     logger.warning("merging Asset is not defined")
+    #
+    # def importAsset(self, assetName):
+    #     logger.warning("importing Asset is not defined")
+    #
+    # def importObj(self, assetName):
+    #     logger.warning("importing obj is not defined")
+    #
+    # def importAbc(self, assetName):
+    #     logger.warning("importing alembic is not defined")
+    #
+    # def importFbx(self, assetName):
+    #     logger.warning("importing fbx is not defined")
+    #
+    # def loadAsset(self, assetName):
+    #     logger.warning("loading Asset is not defined")
+    #
+    # def saveAsset(self, *args, **kwargs):
+    #     logger.warning("saving Asset is not defined")
 
 # ---------------
 # GET ENVIRONMENT
@@ -67,6 +67,7 @@ import _version
 BoilerDict = {"Environment": "Standalone",
               "MainWindow": None,
               "WindowTitle": "Asset Library Standalone v%s" % _version.__version__,
+              "SceneFormats":None
               }
 
 FORCE_QT4 = False
@@ -96,6 +97,7 @@ try:
 
     BoilerDict["Environment"] = "Maya"
     BoilerDict["WindowTitle"] = "Asset Library Maya v%s" % _version.__version__
+    BoilerDict["SceneFormats"] = ["mb", "ma"]
     if Qt.__binding__ == "PySide":
         from shiboken import wrapInstance
     elif Qt.__binding__.startswith('PyQt'):
@@ -112,6 +114,7 @@ try:
     from assetEditor3dsMax import AssetEditor3dsMax as AssetEditor
     BoilerDict["Environment"] = "3dsMax"
     BoilerDict["WindowTitle"] = "Asset Library 3ds Max v%s" % _version.__version__
+    BoilerDict["SceneFormats"] = ["max"]
 except ImportError:
     pass
 
@@ -121,6 +124,7 @@ try:
     from Qt import QtWidgets, QtCore, QtGui
     BoilerDict["Environment"] = "Houdini"
     BoilerDict["WindowTitle"] = "Asset Library Houdini v%s" % _version.__version__
+    BoilerDict["SceneFormats"] = ["hip", "hiplc"]
 except ImportError:
     pass
 
@@ -235,23 +239,25 @@ class AssetLibrary(AssetEditor, RootManager):
 
         self.assetsList=[]
         self._pathsDict={}
-        self.init_paths()
+        self.swName = self.getSwName()
+        self.init_paths(self.swName)
         self.init_database()
 
-    def init_paths(self):
-        self._pathsDict["localSettingsDir"] = os.path.normpath(os.path.join(self.getUserDir(), "TikManager"))
-        self._pathsDict["commonFolderDir"] = os.path.abspath(os.path.join(self._pathsDict["localSettingsDir"]))
-        self._pathsDict["commonFolderFile"] = os.path.normpath(os.path.join(self._pathsDict["commonFolderDir"], "smCommonFolder.json"))
-
-        self._pathsDict["sharedSettingsDir"] = self._getCommonFolder()
-        if self._pathsDict["sharedSettingsDir"] == -1:
-            self._exception(201, "Cannot Continue Without Common Database")
-            return -1
-
-        self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerDefaults.json"))
-
-        self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "alExportSettings.json"))
-        self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "alImportSettings.json"))
+    # def init_paths(self):
+    #     self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDir(), "TikManager"))
+    #     self._pathsDict["commonFolderDir"] = os.path.abspath(os.path.join(self._pathsDict["userSettingsDir"]))
+    #     self._pathsDict["commonFolderFile"] = os.path.normpath(os.path.join(self._pathsDict["commonFolderDir"], "smCommonFolder.json"))
+    #
+    #     self._pathsDict["sharedSettingsDir"] = self._getCommonFolder()
+    #     if self._pathsDict["sharedSettingsDir"] == -1:
+    #         self._exception(201, "Cannot Continue Without Common Database")
+    #         return -1
+    #
+    #     self._pathsDict["projectDir"] = self.getProjectDir()
+    #     self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerDefaults.json"))
+    #
+    #     self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "alExportSettings.json"))
+    #     self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "alImportSettings.json"))
 
     def init_database(self):
         self._sceneManagerDefaults = self.loadManagerDefaults()
@@ -363,6 +369,46 @@ class AssetLibrary(AssetEditor, RootManager):
         # first collect all the json files from second level subfolders
         subDirs = next(os.walk(self.directory))[1]
         self.assetsList = [d for d in subDirs if os.path.isfile(os.path.join(self.directory, d, "%s.json" %d))]
+
+    def loadAsset(self, assetName):
+        assetData = self._getData(assetName)
+        absSourcePath = os.path.join(self.directory, assetName, assetData["sourcePath"])
+
+        if os.path.isfile(absSourcePath):
+            self._load(absSourcePath, force=True)
+
+    def mergeAsset(self, assetName):
+        self._mergeAsset(assetName)
+
+    def importAsset(self, assetName):
+        assetData = self._getData(assetName)
+        if not self._checkVersionMatch(assetData["version"]):
+            return
+        absSourcePath = os.path.join(self.directory, assetName, assetData["sourcePath"])
+
+        self._import(absSourcePath)
+        # cmds.file(absSourcePath, i=True)
+
+    def importObj(self, assetName):
+        assetData = self._getData(assetName)
+        absObjPath = os.path.join(self.directory, assetName, assetData["objPath"])
+        if os.path.isfile(absObjPath):
+            self._importObj(absObjPath, self.importSettings)
+
+    def importAbc(self, assetName):
+        assetData = self._getData(assetName)
+        absAbcPath = os.path.join(self.directory, assetName, assetData["abcPath"])
+        if os.path.isfile(absAbcPath):
+            self._importAlembic(absAbcPath, self.importSettings)
+
+    def importFbx(self, assetName):
+        assetData = self._getData(assetName)
+        absFbxPath = os.path.join(self.directory, assetName, assetData["fbxPath"])
+        if os.path.isfile(absFbxPath):
+            self._importFbx(absFbxPath, self.importSettings)
+
+    def saveScene(self):
+        self._save()
 
     def getThumbnail(self, assetName):
         thumbPath = os.path.join(self.directory, assetName, "%s_thumb.jpg" %assetName)
@@ -796,6 +842,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.msg.button(QtWidgets.QMessageBox.Ok).setFixedHeight(30)
         self.msg.button(QtWidgets.QMessageBox.Ok).setFixedWidth(100)
         self.msg.show()
+
 
     def _loadJson(self, file):
         """Loads the given json file"""
@@ -1297,17 +1344,34 @@ class LibraryTab(QtWidgets.QWidget):
 
         self.formLayout.setWidget(6, QtWidgets.QFormLayout.LabelRole, self.format_label)
         self.format_horizontalLayout = QtWidgets.QHBoxLayout()
+
+        # If there are multiple formats create radio buttons for each
         #####################
         format_radioButton_grp = QtWidgets.QButtonGroup(self.format_horizontalLayout)
-        self.ma_radioButton= QtWidgets.QRadioButton("ma", parent=self)
-        self.mb_radioButton= QtWidgets.QRadioButton("mb", parent=self)
+        radioButtonList = []
+        for format in BoilerDict["SceneFormats"]:
+            radioButton = QtWidgets.QRadioButton()
+            radioButton.setText(format)
+            radioButton.setMinimumSize(50, 10)
+            format_radioButton_grp.addButton(radioButton)
+            self.format_horizontalLayout.addWidget(radioButton)
+            radioButtonList.append(radioButton)
 
-        format_radioButton_grp.addButton(self.ma_radioButton)
-        format_radioButton_grp.addButton(self.mb_radioButton)
-        self.ma_radioButton.setChecked(True)
+        radioButtonList[0].setChecked(True)
+        # hide radiobutton if only one format exists
+        if len(radioButtonList) == 1:
+            radioButtonList[0].setVisible(False)
+            self.format_label.setVisible(False)
 
-        self.format_horizontalLayout.addWidget(self.ma_radioButton)
-        self.format_horizontalLayout.addWidget(self.mb_radioButton)
+        # self.ma_radioButton= QtWidgets.QRadioButton("ma", parent=self)
+        # self.mb_radioButton= QtWidgets.QRadioButton("mb", parent=self)
+        #
+        # format_radioButton_grp.addButton(self.ma_radioButton)
+        # format_radioButton_grp.addButton(self.mb_radioButton)
+        # self.ma_radioButton.setChecked(True)
+        #
+        # self.format_horizontalLayout.addWidget(self.ma_radioButton)
+        # self.format_horizontalLayout.addWidget(self.mb_radioButton)
         #################
 
         self.formLayout.setLayout(6, QtWidgets.QFormLayout.FieldRole, self.format_horizontalLayout)
@@ -1323,17 +1387,41 @@ class LibraryTab(QtWidgets.QWidget):
 
         self.verticalLayout.addWidget(self.saveAsset_buttonBox)
 
+        def onCreateNewAsset():
+
+            assetName = self.assetName_lineEdit.text()
+            exportUV = self.exportUv_checkBox.isChecked()
+            exportOBJ = self.exportObj_checkBox.isChecked()
+            exportFBX = self.exportFbx_checkBox.isChecked()
+            exportABC = self.exportABC_checkBox.isChecked()
+            selectionOnly = self.selection_radioButton.isChecked()
+
+            for button in radioButtonList:
+                if button.isChecked():
+                    sceneFormat = button.text()
+                    break
+
+            self.library.saveAsset(assetName=assetName,
+                                   exportUV=exportUV,
+                                   exportOBJ=exportOBJ,
+                                   exportFBX=exportFBX,
+                                   exportABC=exportABC,
+                                   selectionOnly=selectionOnly,
+                                   sceneFormat=sceneFormat)
+
+            self.populate()
+
         # SIGNAL CONNECTIONS
         # ------------------
 
         self.saveAsset_buttonBox.accepted.connect(saveAsset_Dialog.accept)
         self.saveAsset_buttonBox.rejected.connect(saveAsset_Dialog.reject)
 
-        if not BoilerDict["Environment"]=="Maya":
-            self.ma_radioButton.setHidden(True)
-            self.mb_radioButton.setHidden(True)
+        # if not BoilerDict["Environment"]=="Maya":
+        #     self.ma_radioButton.setHidden(True)
+        #     self.mb_radioButton.setHidden(True)
 
-        self.create_pushButton.clicked.connect(self.onCreateNewAsset)
+        self.create_pushButton.clicked.connect(onCreateNewAsset)
         self.assetName_lineEdit.textChanged.connect(
             lambda: self._checkValidity(self.assetName_lineEdit.text(), self.create_pushButton,
                                         self.assetName_lineEdit))
@@ -1497,24 +1585,7 @@ class LibraryTab(QtWidgets.QWidget):
             self.assets_listWidget.setGridSize(QtCore.QSize(20,20))
             self.assets_listWidget.addItems(self.filterList(self.library.assetsList, filterWord))
 
-    def onCreateNewAsset(self):
-        assetName = self.assetName_lineEdit.text()
-        exportUV = self.exportUv_checkBox.isChecked()
-        exportOBJ = self.exportObj_checkBox.isChecked()
-        exportFBX = self.exportFbx_checkBox.isChecked()
-        exportABC = self.exportABC_checkBox.isChecked()
-        selectionOnly = self.selection_radioButton.isChecked()
-        mbFormat = self.mb_radioButton.isChecked()
 
-        self.library.saveAsset(assetName=assetName,
-                               exportUV=exportUV,
-                               exportOBJ=exportOBJ,
-                               exportFBX=exportFBX,
-                               exportABC=exportABC,
-                               selectionOnly=selectionOnly,
-                               mbFormat=mbFormat)
-
-        self.populate()
 
 
     def onMergeAsset(self):
@@ -1565,8 +1636,28 @@ class LibraryTab(QtWidgets.QWidget):
 
     def onLoadAsset(self):
         assetName = self._getCurrentAssetName()
-        if assetName:
-            self.library.loadAsset(assetName)
+        if not assetName:
+            return
+
+
+        if self.library._isSceneModified():
+            q = QtWidgets.QMessageBox(parent=self)
+            q.setIcon(QtWidgets.QMessageBox.Question)
+            q.setText("Scene is modified")
+            q.setInformativeText("Save Changes To")
+            # q.setWindowTitle(textTitle)
+            q.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+            # q.button(QtWidgets.QMessageBox.Yes).setFixedHeight(30)
+            # q.button(QtWidgets.QMessageBox.Yes).setFixedWidth(100)
+            # q.button(QtWidgets.QMessageBox.No).setFixedHeight(30)
+            # q.button(QtWidgets.QMessageBox.No).setFixedWidth(100)
+            ret = q.exec_()
+            if ret == QtWidgets.QMessageBox.Yes:
+                self.library.saveScene()
+            elif ret == QtWidgets.QMessageBox.No:
+                pass
+
+        self.library.loadAsset(assetName)
 
     def _clearDisplayInfo(self):
 

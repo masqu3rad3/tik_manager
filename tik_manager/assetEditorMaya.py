@@ -47,7 +47,10 @@ class AssetEditorMaya(MayaCoreFunctions):
         self.directory=""
 
 
-    def saveAsset(self, assetName, exportUV=True, exportOBJ=True, exportFBX=True, exportABC=True, selectionOnly=True, mbFormat=False, notes="N/A", **info):
+    def getSwName(self):
+        return "Maya"
+
+    def saveAsset(self, assetName, exportUV=True, exportOBJ=True, exportFBX=True, exportABC=True, selectionOnly=True, sceneFormat="mb", notes="N/A", **info):
         """
         Saves the selected object(s) as an asset into the predefined library
         """
@@ -66,20 +69,17 @@ class AssetEditorMaya(MayaCoreFunctions):
             elif state == "Cancel":
                 return
 
-        if mbFormat:
+        if sceneFormat == "mb":
             ext = u'.mb'
             saveFormat = "mayaBinary"
         else:
             ext = u'.ma'
             saveFormat = "mayaAscii"
 
-        originalPath = cmds.file(q=True, sn=True)
+        originalPath = self._getSceneFile()
 
         dump, origExt = os.path.splitext(originalPath)
 
-        # print origExt, ext, len(cmds.ls(type="unknown"))
-        # print cmds.ls(type="unknown")
-        # if len(cmds.ls(type="unknown")) > 0 and ext != origExt:
         if len(cmds.ls(type="unknown")) > 0 and ext != origExt:
             msg = "There are unknown nodes in the scene. Cannot proceed with %s extension.\n\nDo you want to continue with %s?" %(ext, origExt)
             state = cmds.confirmDialog(title='Cannot Continue', message=msg, button=['Ok', 'Cancel'])
@@ -95,10 +95,7 @@ class AssetEditorMaya(MayaCoreFunctions):
             elif state == "Cancel":
                 return
 
-
-
         assetDirectory = os.path.join(self.directory, assetName)
-        # tempAssetPath = os.path.join(assetDirectory, "temp.%s" %ext)
 
         assetAbsPath = os.path.join(assetDirectory, "%s%s" %(assetName, ext))
 
@@ -108,25 +105,11 @@ class AssetEditorMaya(MayaCoreFunctions):
             if len(selection) == 0:
                 cmds.confirmDialog(title="Selection Error", message="No Transform object selected", button=['Ok'])
                 return
-            # cmds.file(tempAssetPath, type=saveFormat, exportSelected=True)
-
-
-
         else:
             selection = cmds.ls()
-            # cmds.file(rename=tempAssetPath)
-            # cmds.file(save=True, type=saveFormat)
-        #
-        #
+
         if not os.path.exists(assetDirectory):
             os.mkdir(assetDirectory)
-
-        # # SAVE THE TEMP FILE FIRST (Disaster Prevention)
-        # # ----------------------------------------------
-        # cmds.file(rename=tempAssetPath)
-        # temporaryFile = cmds.file(save=True, type=saveFormat)
-
-
 
         # GET TEXTURES
         # ------------
@@ -443,7 +426,7 @@ class AssetEditorMaya(MayaCoreFunctions):
         else:
             return True
 
-    def mergeAsset(self, assetName):
+    def _mergeAsset(self, assetName):
         assetData = self._getData(assetName)
         if not self._checkVersionMatch(assetData["version"]):
             print "versionMatching"
@@ -477,34 +460,34 @@ class AssetEditorMaya(MayaCoreFunctions):
                     copyfile(path, newPath)
                     cmds.setAttr("%s.fileTextureName" %file, newPath, type="string")
 
-    def importAsset(self, assetName):
-        assetData = self._getData(assetName)
-        if not self._checkVersionMatch(assetData["version"]):
-            return
-        absSourcePath = os.path.join(self.directory, assetName, assetData["sourcePath"])
-
-        cmds.file(absSourcePath, i=True)
-
-    def importObj(self, assetName):
-        assetData = self._getData(assetName)
-        absObjPath = os.path.join(self.directory, assetName, assetData["objPath"])
-        if os.path.isfile(absObjPath):
-            # cmds.file(absObjPath, i=True)
-            self._importObj(absObjPath, self.importSettings)
-
-    def importAbc(self, assetName):
-        assetData = self._getData(assetName)
-        absAbcPath = os.path.join(self.directory, assetName, assetData["abcPath"])
-        if os.path.isfile(absAbcPath):
-            # cmds.AbcImport(absAbcPath)
-            self._importAlembic(absAbcPath, self.importSettings)
-
-    def importFbx(self, assetName):
-        assetData = self._getData(assetName)
-        absFbxPath = os.path.join(self.directory, assetName, assetData["fbxPath"])
-        if os.path.isfile(absFbxPath):
-            # cmds.file(absFbxPath, i=True)
-            self._importFbx(absFbxPath, self.importSettings)
+    # def importAsset(self, assetName):
+    #     assetData = self._getData(assetName)
+    #     if not self._checkVersionMatch(assetData["version"]):
+    #         return
+    #     absSourcePath = os.path.join(self.directory, assetName, assetData["sourcePath"])
+    #
+    #     cmds.file(absSourcePath, i=True)
+    #
+    # def importObj(self, assetName):
+    #     assetData = self._getData(assetName)
+    #     absObjPath = os.path.join(self.directory, assetName, assetData["objPath"])
+    #     if os.path.isfile(absObjPath):
+    #         # cmds.file(absObjPath, i=True)
+    #         self._importObj(absObjPath, self.importSettings)
+    #
+    # def importAbc(self, assetName):
+    #     assetData = self._getData(assetName)
+    #     absAbcPath = os.path.join(self.directory, assetName, assetData["abcPath"])
+    #     if os.path.isfile(absAbcPath):
+    #         # cmds.AbcImport(absAbcPath)
+    #         self._importAlembic(absAbcPath, self.importSettings)
+    #
+    # def importFbx(self, assetName):
+    #     assetData = self._getData(assetName)
+    #     absFbxPath = os.path.join(self.directory, assetName, assetData["fbxPath"])
+    #     if os.path.isfile(absFbxPath):
+    #         # cmds.file(absFbxPath, i=True)
+    #         self._importFbx(absFbxPath, self.importSettings)
 
     # def exportObj(self, exportPath, exportSettings, exportSelected=True):
     #     if not cmds.pluginInfo('objExport', l=True, q=True):
@@ -611,19 +594,19 @@ class AssetEditorMaya(MayaCoreFunctions):
     #         return False
 
 
-    def loadAsset(self, assetName):
-        assetData = self._getData(assetName)
-        absSourcePath = os.path.join(self.directory, assetName, assetData["sourcePath"])
-        isSceneModified = cmds.file(q=True, modified=True)
-        if isSceneModified:
-            state = cmds.confirmDialog(title='Scene Modified', message="Save Changes to", button=['Yes', 'No'])
-            if state == "Yes":
-                cmds.file(save=True)
-            elif state == "No":
-                pass
-
-        if os.path.isfile(absSourcePath):
-            cmds.file(absSourcePath, o=True, force=True)
+    # def loadAsset(self, assetName):
+    #     assetData = self._getData(assetName)
+    #     absSourcePath = os.path.join(self.directory, assetName, assetData["sourcePath"])
+    #     isSceneModified = cmds.file(q=True, modified=True)
+    #     if isSceneModified:
+    #         state = cmds.confirmDialog(title='Scene Modified', message="Save Changes to", button=['Yes', 'No'])
+    #         if state == "Yes":
+    #             cmds.file(save=True)
+    #         elif state == "No":
+    #             pass
+    #
+    #     if os.path.isfile(absSourcePath):
+    #         cmds.file(absSourcePath, o=True, force=True)
 
     def uniqueList(self, fList):
         keys = {}

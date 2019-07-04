@@ -46,8 +46,10 @@ class AssetEditor3dsMax(MaxCoreFunctions):
         super(AssetEditor3dsMax, self).__init__()
         self.directory=""
 
+    def getSwName(self):
+        return "3dsMax"
 
-    def saveAsset(self, assetName, exportUV=True, exportOBJ=True, exportFBX=True, exportABC=True, selectionOnly=True, mbFormat=False, notes="N/A", **info):
+    def saveAsset(self, assetName, exportUV=True, exportOBJ=True, exportFBX=True, exportABC=True, selectionOnly=True, sceneFormat="max", notes="N/A", **info):
         """
         Saves the selected object(s) as an asset into the predefined library
         """
@@ -65,17 +67,29 @@ class AssetEditor3dsMax(MaxCoreFunctions):
             else:
                 return
 
-        s_path = fManager.GetFileNameAndPath()
-        originalPath = os.path.normpath(s_path)
+
+        originalSelection = self._getSelection(asMaxArray=True)
+        originalPath = self._getSceneFile()
 
         dump, origExt = os.path.splitext(originalPath)
 
         assetDirectory = os.path.join(self.directory, assetName)
 
-        assetAbsPath = os.path.join(assetDirectory, "%s%s" %(assetName, u'.max'))
+        assetAbsPath = os.path.join(assetDirectory, "%s%s" %(assetName, u'.%s'%sceneFormat))
 
 
-        originalSelection = rt.execute("selection as array")
+        if selectionOnly:
+            selection = self._getSelection(asMaxArray=True)
+            if len(selection) == 0:
+                msg = "No object selected"
+                rt.messageBox(msg, title='Info')
+                return
+        else:
+            rt.select(rt.objects)
+            selection = self._getSelection(asMaxArray=True)
+
+
+        # originalSelection = self._getSelection(asMaxArray=True)
 
 
         if not os.path.exists(assetDirectory):
@@ -83,7 +97,9 @@ class AssetEditor3dsMax(MaxCoreFunctions):
 
         # GET TEXTURES
         # ------------
+
         if selectionOnly:
+
             possibleFileHolders = rt.execute("selection as Array")
             filteredBitmaps = self._getFileNodes(possibleFileHolders)
 
@@ -104,17 +120,14 @@ class AssetEditor3dsMax(MaxCoreFunctions):
 
         # CREATE UV SNAPSHOTS
         # ----------------
-        rt.select(originalSelection)
+        rt.select(selection)
+
         if exportUV:
             self._uvSnaps(assetName)
 
         # SAVE SOURCE
         # -----------
-        if selectionOnly:
-            fManager.SaveSelected(assetAbsPath)
-        else:
-            fManager.SaveSceneAsVersion(assetAbsPath)
-
+        fManager.SaveSelected(assetAbsPath)
 
         # EXPORT OBJ
         # ----------
@@ -159,14 +172,10 @@ class AssetEditor3dsMax(MaxCoreFunctions):
         # NUMERIC DATA
         # ------------
 
-        if selectionOnly:
-            countLoop = originalSelection
-
-        else:
-            countLoop = rt.execute("geometry as array")
-
-        polyCount = sum(rt.getPolygonCount(x)[0] for x in countLoop)
-        tiangleCount = sum(rt.getPolygonCount(x)[1] for x in countLoop)
+        polyCount = sum(rt.getPolygonCount(x)[0] for x in selection)
+        # polyCount = sum(rt.getPolygonCount(x)[0] for x in countLoop)
+        tiangleCount = sum(rt.getPolygonCount(x)[1] for x in selection)
+        # tiangleCount = sum(rt.getPolygonCount(x)[1] for x in countLoop)
 
         versionInfo = rt.maxversion()
         vInfo = [versionInfo[0], versionInfo[1], versionInfo[2]]
@@ -190,12 +199,12 @@ class AssetEditor3dsMax(MaxCoreFunctions):
         dataDict['origin'] = originalPath
         dataDict['notes'] = notes
 
-        print dataDict
         self._setData(assetName, dataDict)
 
         rt.clearSelection()
         self._returnOriginal(textureDatabase)
         # self.scanAssets() # scanning issued at populate function on ui class
+        rt.select(originalSelection)
         rt.messageBox("Asset Created Successfully", title='Info')
 
     def _createThumbnail(self, assetName, selectionOnly=True, viewFit=True):
@@ -205,11 +214,13 @@ class AssetEditor3dsMax(MaxCoreFunctions):
         SSpath = os.path.join(self.directory, assetName, "%s_s.jpg" % assetName)
         WFpath = os.path.join(self.directory, assetName, "%s_w.jpg" % assetName)
 
-        selection = rt.execute("selection as array")
-        rt.clearSelection()
-
         if selectionOnly:
             rt.IsolateSelection.EnterIsolateSelectionMode()
+            rt.redrawViews()
+
+        # selection = rt.execute("selection as array")
+        selection = self._getSelection(asMaxArray=True)
+        rt.clearSelection()
 
         originalState = rt.viewport.GetRenderLevel()
         oWidth = 1600
@@ -250,8 +261,8 @@ class AssetEditor3dsMax(MaxCoreFunctions):
         rt.pasteBitmap(resizeFrameShaded, ssFrame, rt.point2(0, 0), rt.point2(xOffset, yOffset))
         rt.pasteBitmap(resizeFrameWire, wfFrame, rt.point2(0, 0), rt.point2(xOffset, yOffset))
 
-        rt.display(ssFrame)
-        rt.display(wfFrame)
+        # rt.display(ssFrame)
+        # rt.display(wfFrame)
 
         thumbFrame = rt.bitmap(200, 200, color=rt.color(0, 0, 0))
         rt.copy(ssFrame, thumbFrame)
@@ -274,6 +285,7 @@ class AssetEditor3dsMax(MaxCoreFunctions):
         rt.viewport.SetRenderLevel(originalState)
 
         rt.IsolateSelection.ExitIsolateSelectionMode()
+        rt.redrawViews()
 
         return thumbPath, SSpath, WFpath
 
@@ -329,8 +341,8 @@ class AssetEditor3dsMax(MaxCoreFunctions):
             defUnwrapMod.renderuv_visibleedges = True
             defUnwrapMod.renderuv_invisibleedges = False
             defUnwrapMod.renderuv_seamedges = False
-            print "ssEamKgB", UVpath
             defUnwrapMod.renderUV(UVpath)
+            rt.deleteModifier(i, defUnwrapMod)
 
         rt.select(originalSelection)
 
@@ -377,21 +389,23 @@ class AssetEditor3dsMax(MaxCoreFunctions):
         else:
             return True
 
-    def mergeAsset(self, assetName):
+    def _mergeAsset(self, assetName):
         assetData = self._getData(assetName)
         if not self._checkVersionMatch(assetData["version"]):
-            print "versionMatching"
             return
+        print "anan1"
         absSourcePath = os.path.join(self.directory, assetName, assetData["sourcePath"])
 
         textureList = assetData['textureFiles']
+        print "anan2"
         self._import(absSourcePath, prompt=False)
 
         ## if there are not textures files to handle, do not waste time
         if len(textureList) == 0:
             return
-
-        currentProjectPath = self._getProject()
+        print "anan3"
+        # currentProjectPath = self._getProject()
+        currentProjectPath = self.projectDir
         sourceImagesPath = os.path.join(currentProjectPath, "sourceimages")
         if not os.path.isdir(os.path.normpath(sourceImagesPath)):
             os.makedirs(os.path.normpath(sourceImagesPath))
@@ -411,42 +425,42 @@ class AssetEditor3dsMax(MaxCoreFunctions):
                     copyfile(path, newPath)
                     file.fileName = newPath
 
-    def importAsset(self, assetName):
-        assetData = self._getData(assetName)
-        if not self._checkVersionMatch(assetData["version"]):
-            return
-        absSourcePath = os.path.join(self.directory, assetName, assetData["sourcePath"])
+    # def importAsset(self, assetName):
+    #     assetData = self._getData(assetName)
+    #     if not self._checkVersionMatch(assetData["version"]):
+    #         return
+    #     absSourcePath = os.path.join(self.directory, assetName, assetData["sourcePath"])
+    #
+    #     self._import(absSourcePath, prompt=False)
 
-        self._import(absSourcePath, prompt=False)
-
-    def importObj(self, assetName):
-
-        # import Settings
-        #     iniPath_importSettings = objImp.getIniName()
-        #     setINISetting iniPath_importSettings "General" "ResetScene" "0"
-        #
-        #     setINISetting iniPath_importSettings "Objects" "SingleMesh" "1"
-        #     setINISetting iniPath_importSettings "Objects" "Retriangulate" "0"
-        #     setINISetting iniPath_importSettings "Objects" "AsEditablePoly" "1"--get it back as a poly
-        #     setINISetting iniPath_importSettings "Geometry" "SmoothingGroups" "0"
-        #     setINISetting iniPath_importSettings "Geometry" "TextureCoords" "1"
-
-        assetData = self._getData(assetName)
-        absObjPath = os.path.join(self.directory, assetName, assetData["objPath"])
-        if os.path.isfile(absObjPath):
-            cmds.file(absObjPath, i=True)
-
-    def importAbc(self, assetName):
-        assetData = self._getData(assetName)
-        absAbcPath = os.path.join(self.directory, assetName, assetData["abcPath"])
-        if os.path.isfile(absAbcPath):
-            cmds.AbcImport(absAbcPath)
-
-    def importFbx(self, assetName):
-        assetData = self._getData(assetName)
-        absFbxPath = os.path.join(self.directory, assetName, assetData["fbxPath"])
-        if os.path.isfile(absFbxPath):
-            cmds.file(absFbxPath, i=True)
+    # def importObj(self, assetName):
+    #
+    #     # import Settings
+    #     #     iniPath_importSettings = objImp.getIniName()
+    #     #     setINISetting iniPath_importSettings "General" "ResetScene" "0"
+    #     #
+    #     #     setINISetting iniPath_importSettings "Objects" "SingleMesh" "1"
+    #     #     setINISetting iniPath_importSettings "Objects" "Retriangulate" "0"
+    #     #     setINISetting iniPath_importSettings "Objects" "AsEditablePoly" "1"--get it back as a poly
+    #     #     setINISetting iniPath_importSettings "Geometry" "SmoothingGroups" "0"
+    #     #     setINISetting iniPath_importSettings "Geometry" "TextureCoords" "1"
+    #
+    #     assetData = self._getData(assetName)
+    #     absObjPath = os.path.join(self.directory, assetName, assetData["objPath"])
+    #     if os.path.isfile(absObjPath):
+    #         cmds.file(absObjPath, i=True)
+    #
+    # def importAbc(self, assetName):
+    #     assetData = self._getData(assetName)
+    #     absAbcPath = os.path.join(self.directory, assetName, assetData["abcPath"])
+    #     if os.path.isfile(absAbcPath):
+    #         cmds.AbcImport(absAbcPath)
+    #
+    # def importFbx(self, assetName):
+    #     assetData = self._getData(assetName)
+    #     absFbxPath = os.path.join(self.directory, assetName, assetData["fbxPath"])
+    #     if os.path.isfile(absFbxPath):
+    #         cmds.file(absFbxPath, i=True)
 
     # def exportObj(self, exportPath, exportSettings, exportSelected=True):
     #     if rt.pluginManager.loadclass(rt.ObjExp):
@@ -554,19 +568,19 @@ class AssetEditor3dsMax(MaxCoreFunctions):
 
 
 
-    def loadAsset(self, assetName):
-        assetData = self._getData(assetName)
-        absSourcePath = os.path.join(self.directory, assetName, assetData["sourcePath"])
-
-        if _isSceneModified():
-            state = _question("Save Changes to")
-            if state:
-                self._save()
-            else:
-                pass
-
-        if os.path.isfile(absSourcePath):
-            self._load(absSourcePath, force=True)
+    # def loadAsset(self, assetName):
+    #     assetData = self._getData(assetName)
+    #     absSourcePath = os.path.join(self.directory, assetName, assetData["sourcePath"])
+    #
+    #     if isSceneModified():
+    #         state = _question("Save Changes to")
+    #         if state:
+    #             self._save()
+    #         else:
+    #             pass
+    #
+    #     if os.path.isfile(absSourcePath):
+    #         self._load(absSourcePath, force=True)
 
     def uniqueList(self, fList):
         keys = {}

@@ -80,7 +80,7 @@ class MaxCoreFunctions(object):
     def _save(self, *args, **kwargs):
         fManager.Save()
 
-    def _saveAs(self, filePath, format=None, *args, **kwargs):
+    def _saveAs(self, filePath, *args, **kwargs):
         fManager.Save(filePath)
 
     def _load(self, filePath, force=True, *args, **kwargs):
@@ -94,7 +94,7 @@ class MaxCoreFunctions(object):
         if prompt:
             fManager.Merge(filePath)
         else:
-            command = 'mergeMAXFile "%s"' %filePath
+            command = 'mergeMAXFile "%s"' %filePath.replace(os.sep, "/")
             rt.execute(command)
 
     def _importObj(self, filePath, importSettings, *args, **kwargs):

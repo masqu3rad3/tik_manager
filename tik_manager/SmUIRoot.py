@@ -1775,7 +1775,6 @@ class MainUI(QtWidgets.QMainWindow):
                     if len(sel) > 1:
                         name = "{0}/{0}_{1}_{2}sel".format(sceneInfo["shotName"], sceneInfo["version"], len(sel))
                     elif len(sel) == 1:
-                        print "hoyt", sel
                         name = "{0}/{0}_{1}_{2}".format(sceneInfo["shotName"], sceneInfo["version"], sel[0])
                     else:
                         customName_lineEdit.setStyleSheet("color: red;")

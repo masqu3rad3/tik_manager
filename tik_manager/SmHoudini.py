@@ -99,19 +99,28 @@ class HoudiniCoreFunctions(object):
         houdiniImp_obj = importSettings["objImportHoudini"]
         niceName = os.path.splitext(os.path.basename(filePath))[0]
 
-        relPath = "$JOB\\%s" % (os.path.relpath(filePath, self._getProject()))
+        # print "fpath", filePath
+        # print "pPath", self._getProject()
+        # print "anan", self.projectDir
+        try: relPath = "$JOB\\%s" % (os.path.relpath(filePath, self.projectDir))
+        except ValueError: relPath = filePath #if its on another drive, use absolute path
 
         node = hou.node('obj')
         objNode = node.createNode('geo', node_name=niceName)
+        try: objNode.allSubChildren()[0].destroy()
+        except IndexError: pass
         objNode.moveToGoodPosition()
-        fileNode = objNode.allSubChildren()[0]
+        fileNode = objNode.createNode('file')
+        # fileNode = objNode.allSubChildren()[0]
         fileNode.parm('file').set(relPath)
 
     def _importAlembic(self, filePath, importSettings, *args, **kwargs):
         houdiniImp_abc = importSettings["alembicImportHoudini"]
         niceName = os.path.splitext(os.path.basename(filePath))[0]
 
-        relPath = "$JOB\\%s" % (os.path.relpath(filePath, self._getProject()))
+        # relPath = "$JOB\\%s" % (os.path.relpath(filePath, self._getProject()))
+        try: relPath = "$JOB\\%s" % (os.path.relpath(filePath, self.projectDir))
+        except ValueError: relPath = filePath #if its on another drive, use absolute path
 
         node = hou.node('obj')
         alembicNode = node.createNode('alembicarchive', node_name=niceName)
@@ -126,12 +135,19 @@ class HoudiniCoreFunctions(object):
         houdiniImp_fbx = importSettings["fbxImportHoudini"]
         niceName = os.path.splitext(os.path.basename(filePath))[0]
 
-        relPath = "$JOB\\%s" % (os.path.relpath(filePath, self._getProject()))
+        # relPath = "$JOB\\%s" % (os.path.relpath(filePath, self._getProject()))
+        # try: relPath = "$JOB\\%s" % (os.path.relpath(filePath, self.projectDir))
+        # except ValueError: relPath = filePath #if its on another drive, use absolute path
         # NOTE:
         # FLAG => "override_scene_frame_range" causes a crash in Houdini 16.5
         # FLAG => "create_sibling_bones" causes a crash in Houdini 16.5
+        #
+        # print "DEBUG", filePath.replace("\\", "/")
+        # print "DEBUG2", os.path.normpath(filePath)
+        # # ret = hou.hipFile.importFBX(filePath)
+        # return
 
-        ret = hou.hipFile.importFBX(relPath,
+        ret = hou.hipFile.importFBX(filePath.replace(os.sep,'/'),
                               suppress_save_prompt=True,
                               merge_into_scene=True,
                               import_cameras=houdiniImp_fbx["import_cameras"],
@@ -178,7 +194,8 @@ class HoudiniCoreFunctions(object):
             return
 
         geoNode = rootNode.createNode('geo', node_name="tmpExport")
-        geoNode.allSubChildren()[0].destroy()
+        try: geoNode.allSubChildren()[0].destroy()
+        except IndexError: pass
         mergeNode = geoNode.createNode('object_merge')
 
         numObj = len(exportList)
@@ -213,7 +230,8 @@ class HoudiniCoreFunctions(object):
             return
 
         geoNode = rootNode.createNode('geo', node_name="tmpExport")
-        geoNode.allSubChildren()[0].destroy()
+        try: geoNode.allSubChildren()[0].destroy()
+        except IndexError: pass
         mergeNode = geoNode.createNode('object_merge')
 
         numObj = len(exportList)
@@ -267,7 +285,8 @@ class HoudiniCoreFunctions(object):
             return
 
         geoNode = rootNode.createNode('geo', node_name="tmpExport")
-        geoNode.allSubChildren()[0].destroy()
+        try: geoNode.allSubChildren()[0].destroy()
+        except IndexError: pass
         mergeNode = geoNode.createNode('object_merge')
 
         numObj = len(exportList)
@@ -322,7 +341,6 @@ class HoudiniCoreFunctions(object):
         return norm_p_path
 
     def _setProject(self, path):
-        print "HERE"
         self._setEnvVariable('JOB', path)
 
     def _getVersion(self):
@@ -362,6 +380,9 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
         self.swName = "Houdini"
         self.init_paths(self.swName)
         self.init_database()
+        if self.currentPlatform == "Windows":
+            self._setEnvVariable("HOUDINI_ACCESS_METHOD", "1")
+        self.setProject(self.projectDir)
 
 
     # def getSoftwarePaths(self):
@@ -416,20 +437,18 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
         # return norm_s_path
         return self._getSceneFile()
 
-    # def setProject(self, path):
-    #     """Sets the project"""
-    #
-    #     logger.debug("Func: setProject")
-    #
-    #     projectsDict = self.loadProjects()
-    #     if not projectsDict:
-    #         projectsDict = {"HoudiniProject": path}
-    #     else:
-    #         projectsDict["HoudiniProject"] = path
-    #     self.saveProjects(projectsDict)
-    #     self.projectDir = path
-    #     # self._setEnvVariable('JOB', path)
-    #     self._setProject(path)
+    def setProject(self, path):
+        """Sets the project"""
+        logger.debug("Func: setProject")
+        projectsDict = self.loadProjects()
+        if not projectsDict:
+            projectsDict = {self.swName: path}
+        else:
+            projectsDict[self.swName] = path
+        self.saveProjects(projectsDict)
+        self.projectDir = path
+        # self._setEnvVariable('JOB', path)
+        self._setProject(path)
 
     def saveBaseScene(self, categoryName, baseName, subProjectIndex=0, makeReference=False, versionNotes="", sceneFormat="hip", *args, **kwargs):
         """
