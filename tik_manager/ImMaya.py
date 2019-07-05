@@ -113,7 +113,8 @@ class ImageManager(RootManager):
     def __init__(self):
         super(ImageManager, self).__init__()
 
-        self.init_paths("Maya")
+        self.swName = "Maya"
+        self.init_paths(self.swName)
         self.init_database()
 
         self.sceneInfo = self.getOpenSceneInfo()
@@ -128,6 +129,7 @@ class ImageManager(RootManager):
         #     self.deadlineFlag = False
         # else:
         #     self.deadlineFlag = True
+
 
         self.folderTemplate = "{4}/{0}/{1}/{3}/{2}/"
         self.nameTemplate = "{0}_{1}_{2}_{3}_"
@@ -232,110 +234,127 @@ class ImageManager(RootManager):
         logger.debug("Renderer:%s" %self.currentRenderer)
 
         if self.currentRenderer == "arnold":
-            # set the image format to 'exr'
-            # arnoldDriver = pm.PyNode('defaultArnoldDriver')
-            # arnoldDriver.ai_translator.set("exr")
-            cmds.setAttr('defaultArnoldDriver.ai_translator', 'exr', type='string')
+            if cmds.objExists('defaultArnoldDriver'):
+                # set the image format to 'exr'
+                # arnoldDriver = pm.PyNode('defaultArnoldDriver')
+                # arnoldDriver.ai_translator.set("exr")
+                cmds.setAttr('defaultArnoldDriver.ai_translator', 'exr', type='string')
 
-            # set the compression to 'zips'
-            # pm.setAttr("%s.exrCompression" % arnoldDriver, 2)
-            cmds.setAttr("defaultArnoldDriver.exrCompression" , 2)
-            # Frame/Animation ext and Frame Padding
-            # pm.setAttr("defaultRenderGlobals.outFormatControl", 0)
-            # pm.setAttr("defaultRenderGlobals.animation", 1)
-            # pm.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
-            # pm.setAttr("defaultRenderGlobals.extensionPadding", 4)
-            cmds.setAttr("defaultRenderGlobals.outFormatControl", 0)
-            cmds.setAttr("defaultRenderGlobals.animation", 1)
-            cmds.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
-            cmds.setAttr("defaultRenderGlobals.extensionPadding", 4)
-            # set File Name Prefix
-            self.resolvedName = self.resolvePath(self.currentRenderer)
-            # pm.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName)
-            cmds.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName, type='string')
-            return
+                # set the compression to 'zips'
+                # pm.setAttr("%s.exrCompression" % arnoldDriver, 2)
+                cmds.setAttr("defaultArnoldDriver.exrCompression" , 2)
+                # Frame/Animation ext and Frame Padding
+                # pm.setAttr("defaultRenderGlobals.outFormatControl", 0)
+                # pm.setAttr("defaultRenderGlobals.animation", 1)
+                # pm.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
+                # pm.setAttr("defaultRenderGlobals.extensionPadding", 4)
+                cmds.setAttr("defaultRenderGlobals.outFormatControl", 0)
+                cmds.setAttr("defaultRenderGlobals.animation", 1)
+                cmds.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
+                cmds.setAttr("defaultRenderGlobals.extensionPadding", 4)
+                # set File Name Prefix
+                self.resolvedName = self.resolvePath(self.currentRenderer)
+                # pm.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName)
+                cmds.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName, type='string')
+                return
+            else:
+                logger.warning("Cannot Find arnold settings file. Switch between render engines and try again")
+                self.resolvedName = ("defaultArnoldDriver missing. Switch between render engines and try again")
 
         elif self.currentRenderer == "vray":
-            # set the image format to 'exr'
-            # vraySettings = pm.PyNode("vraySettings")
-            # pm.setAttr("%s.imageFormatStr" % vraySettings, 'exr')
-            cmds.setAttr('vraySettings.imageFormatStr', 'exr', type='string')
-            # set the compression to 'zips'
-            # pm.setAttr("%s.imgOpt_exr_compression" % vraySettings, 3)
-            cmds.setAttr("vraySettings.imgOpt_exr_compression", 3)
-            # Frame/Animation ext and Frame Padding
-            # pm.setAttr("%s.animType" % vraySettings, 1)
-            # pm.setAttr(vraySettings.fileNamePadding, 4)
-            cmds.setAttr("vraySettings.animType", 1)
-            cmds.setAttr("vraySettings.fileNamePadding", 4)
-            # set File Name Prefix
-            self.resolvedName = self.resolvePath(self.currentRenderer)
-            # pm.setAttr("%s.fileNamePrefix" %vraySettings, self.resolvedName)
-            cmds.setAttr("vraySettings.fileNamePrefix", self.resolvedName, type='string')
-            return
+            if cmds.objExists('vraySettings'):
+                #                 # set the image format to 'exr'
+                # vraySettings = pm.PyNode("vraySettings")
+                # pm.setAttr("%s.imageFormatStr" % vraySettings, 'exr')
+                cmds.setAttr('vraySettings.imageFormatStr', 'exr', type='string')
+                # set the compression to 'zips'
+                # pm.setAttr("%s.imgOpt_exr_compression" % vraySettings, 3)
+                cmds.setAttr("vraySettings.imgOpt_exr_compression", 3)
+                # Frame/Animation ext and Frame Padding
+                # pm.setAttr("%s.animType" % vraySettings, 1)
+                # pm.setAttr(vraySettings.fileNamePadding, 4)
+                cmds.setAttr("vraySettings.animType", 1)
+                cmds.setAttr("vraySettings.fileNamePadding", 4)
+                # set File Name Prefix
+                self.resolvedName = self.resolvePath(self.currentRenderer)
+                # pm.setAttr("%s.fileNamePrefix" %vraySettings, self.resolvedName)
+                cmds.setAttr("vraySettings.fileNamePrefix", self.resolvedName, type='string')
+                return
+            else:
+                logger.warning("Cannot Find vray settings file. Switch between render engines and try again")
+                self.resolvedName = ("vraySettings missing. Switch between render engines and try again")
 
         elif self.currentRenderer == "mentalRay":
-            # # set the image format to 'exr'
-            # pm.setAttr("defaultRenderGlobals.imageFormat", 51)
-            # pm.setAttr("defaultRenderGlobals.imfPluginKey", "exr")
-            # pm.setAttr("defaultRenderGlobals.imageCompression", 0)
-            # # set the compression to 'zips'
-            # pm.setAttr("mentalrayGlobals.imageCompression", 5)
-            # # Frame/Animation ext and Frame Padding
-            # pm.setAttr("defaultRenderGlobals.outFormatControl", 0)
-            # pm.setAttr("defaultRenderGlobals.animation", 1)
-            # pm.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
-            # pm.setAttr("defaultRenderGlobals.extensionPadding", 4)
-            # # set File Name Prefix
-            # self.resolvedName = self.resolvePath()
-            # pm.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName)
+            if cmds.objExists('defaultRenderGlobals'):
+                # # set the image format to 'exr'
+                # pm.setAttr("defaultRenderGlobals.imageFormat", 51)
+                # pm.setAttr("defaultRenderGlobals.imfPluginKey", "exr")
+                # pm.setAttr("defaultRenderGlobals.imageCompression", 0)
+                # # set the compression to 'zips'
+                # pm.setAttr("mentalrayGlobals.imageCompression", 5)
+                # # Frame/Animation ext and Frame Padding
+                # pm.setAttr("defaultRenderGlobals.outFormatControl", 0)
+                # pm.setAttr("defaultRenderGlobals.animation", 1)
+                # pm.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
+                # pm.setAttr("defaultRenderGlobals.extensionPadding", 4)
+                # # set File Name Prefix
+                # self.resolvedName = self.resolvePath()
+                # pm.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName)
 
-            # set the image format to 'exr'
-            cmds.setAttr("defaultRenderGlobals.imageFormat", 51)
-            cmds.setAttr("defaultRenderGlobals.imfPluginKey", "exr")
-            cmds.setAttr("defaultRenderGlobals.imageCompression", 0)
-            # set the compression to 'zips'
-            cmds.setAttr("mentalrayGlobals.imageCompression", 5)
-            # Frame/Animation ext and Frame Padding
-            cmds.setAttr("defaultRenderGlobals.outFormatControl", 0)
-            cmds.setAttr("defaultRenderGlobals.animation", 1)
-            cmds.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
-            cmds.setAttr("defaultRenderGlobals.extensionPadding", 4)
-            # set File Name Prefix
-            self.resolvedName = self.resolvePath()
-            cmds.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName, type='string')
+                # set the image format to 'exr'
+                cmds.setAttr("defaultRenderGlobals.imageFormat", 51)
+                cmds.setAttr("defaultRenderGlobals.imfPluginKey", "exr")
+                cmds.setAttr("defaultRenderGlobals.imageCompression", 0)
+                # set the compression to 'zips'
+                cmds.setAttr("mentalrayGlobals.imageCompression", 5)
+                # Frame/Animation ext and Frame Padding
+                cmds.setAttr("defaultRenderGlobals.outFormatControl", 0)
+                cmds.setAttr("defaultRenderGlobals.animation", 1)
+                cmds.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
+                cmds.setAttr("defaultRenderGlobals.extensionPadding", 4)
+                # set File Name Prefix
+                self.resolvedName = self.resolvePath()
+                cmds.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName, type='string')
+                return
+            else:
+                logger.warning("Cannot Find defaultRenderGlobals file. Switch between render engines and try again")
+                self.resolvedName = ("defaultRenderGlobals missing. Switch between render engines and try again")
 
-            return
+
 
         elif self.currentRenderer == "redshift":
-            # # set the image format to 'exr'
-            # pm.setAttr("redshiftOptions.imageFormat", 1)
-            # # set the compression to 'zips'
-            # pm.setAttr("redshiftOptions.exrCompression", 3)
-            # pm.setAttr("redshiftOptions.exrIsTiled", 0)
-            # # Frame/Animation ext and Frame Padding
-            # pm.setAttr("defaultRenderGlobals.outFormatControl", 0)
-            # pm.setAttr("defaultRenderGlobals.animation", 1)
-            # pm.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
-            # pm.setAttr("defaultRenderGlobals.extensionPadding", 4)
-            # # set File Name Prefix
-            # self.resolvedName = self.resolvePath()
-            # pm.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName)
+            if cmds.objExists('redshiftOptions'):
+                # # set the image format to 'exr'
+                # pm.setAttr("redshiftOptions.imageFormat", 1)
+                # # set the compression to 'zips'
+                # pm.setAttr("redshiftOptions.exrCompression", 3)
+                # pm.setAttr("redshiftOptions.exrIsTiled", 0)
+                # # Frame/Animation ext and Frame Padding
+                # pm.setAttr("defaultRenderGlobals.outFormatControl", 0)
+                # pm.setAttr("defaultRenderGlobals.animation", 1)
+                # pm.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
+                # pm.setAttr("defaultRenderGlobals.extensionPadding", 4)
+                # # set File Name Prefix
+                # self.resolvedName = self.resolvePath()
+                # pm.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName)
 
-            # set the image format to 'exr'
-            cmds.setAttr("redshiftOptions.imageFormat", 1)
-            # set the compression to 'zips'
-            cmds.setAttr("redshiftOptions.exrCompression", 3)
-            cmds.setAttr("redshiftOptions.exrIsTiled", 0)
-            # Frame/Animation ext and Frame Padding
-            cmds.setAttr("defaultRenderGlobals.outFormatControl", 0)
-            cmds.setAttr("defaultRenderGlobals.animation", 1)
-            cmds.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
-            cmds.setAttr("defaultRenderGlobals.extensionPadding", 4)
-            # set File Name Prefix
-            self.resolvedName = self.resolvePath()
-            cmds.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName, type='string')
-            return
+                # set the image format to 'exr'
+                cmds.setAttr("redshiftOptions.imageFormat", 1)
+                # set the compression to 'zips'
+                cmds.setAttr("redshiftOptions.exrCompression", 3)
+                cmds.setAttr("redshiftOptions.exrIsTiled", 0)
+                # Frame/Animation ext and Frame Padding
+                cmds.setAttr("defaultRenderGlobals.outFormatControl", 0)
+                cmds.setAttr("defaultRenderGlobals.animation", 1)
+                cmds.setAttr("defaultRenderGlobals.putFrameBeforeExt", 1)
+                cmds.setAttr("defaultRenderGlobals.extensionPadding", 4)
+                # set File Name Prefix
+                self.resolvedName = self.resolvePath()
+                cmds.setAttr("defaultRenderGlobals.imageFilePrefix", self.resolvedName, type='string')
+                return
+            else:
+                logger.warning("Cannot Find redshiftOptions file. Switch between render engines and try again")
+                self.resolvedName = ("redshiftOptions missing. Switch between render engines and try again")
 
         else:
             logger.warning("Render Engine is not supported. Skipping Engine specific settings")
@@ -789,7 +808,8 @@ class MainUI(QtWidgets.QMainWindow):
         tikIcon_label.setMargin(margin)
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
-        testBitmap = QtGui.QPixmap(os.path.join(self.imanager.getIconsDir(), "tmImageManager.png"))
+        # testBitmap = QtGui.QPixmap(os.path.join(self.imanager.getIconsDir(), "tmImageManager.png"))
+        testBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmImageManager.png")
         tikIcon_label.setPixmap(testBitmap)
 
         headerLayout.addWidget(tikIcon_label)

@@ -117,6 +117,7 @@ class NukeCoreFunctions(object):
         super(NukeCoreFunctions, self).__init__()
 
     def _save(self, *args, **kwargs):
+        logger.warning("_save function is not implemented for SmNuke")
         pass
         # not needed
 
@@ -127,6 +128,7 @@ class NukeCoreFunctions(object):
         nuke.scriptOpen(filePath)
 
     def _reference(self, filePath):
+        logger.warning("_reference function is not implemented for SmNuke")
         pass
 
     def _import(self, filePath, *args, **kwargs):
@@ -134,23 +136,29 @@ class NukeCoreFunctions(object):
 
     def _importObj(self, filePath, importSettings, *args, **kwargs):
         # TODO: May prove useful to implement this as well
+        logger.warning("_importObj function is not implemented for SmNuke")
         pass
 
     def _importAlembic(self, filePath, importSettings, *args, **kwargs):
         # TODO: May prove useful to implement this as well
+        logger.warning("_importAlembic function is not implemented for SmNuke")
         pass
 
     def _importFbx(self, filePath, importSettings, *args, **kwargs):
         # TODO: May prove useful to implement this as well
+        logger.warning("_importFbx function is not implemented for SmNuke")
         pass
 
     def _exportObj(self, filePath, exportSettings, exportSelected=True):
+        logger.warning("_exportObj function is not implemented for SmNuke")
         pass
 
     def _exportAlembic(self, filePath, exportSettings, exportSelected=True, timeRange=[0,10]):
+        logger.warning("_exportAlembic function is not implemented for SmNuke")
         pass
 
     def _exportFbx(self, filePath, exportSettings, exportSelected=True, timeRange=[0,10]):
+        logger.warning("_exportFbx function is not implemented for SmNuke")
         pass
 
     def _getSceneFile(self):
@@ -171,6 +179,9 @@ class NukeCoreFunctions(object):
 
     def _getSelection(self):
         return nuke.selectedNodes()
+
+    def _isSceneModified(self):
+        return nuke.modified()
 
 class NukeManager(RootManager, NukeCoreFunctions):
     def __init__(self):
@@ -549,6 +560,7 @@ class NukeManager(RootManager, NukeCoreFunctions):
     def isSceneModified(self):
         """Checks the currently open scene saved or not"""
         logger.debug("Func: isSceneModified")
+        self._isSceneModified()
         return nuke.modified()
 
 
@@ -649,5 +661,6 @@ class MainUI(baseUI):
         # idk why this became necessary for nuke..
         self.category_tabWidget.setMaximumSize(QtCore.QSize(16777215, 30))
 
-        self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "iconNuke.png"))
+        # self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "iconNuke.png"))
+        self.mIconPixmap = QtGui.QPixmap(":/icons/CSS/rc/iconNuke.png")
         self.managerIcon_label.setPixmap(self.mIconPixmap)

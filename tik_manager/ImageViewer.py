@@ -131,8 +131,7 @@ from shutil import copyfile
 
 import logging
 
-import iconsSource as icons
-# from tik_manager.CSS import darkorange
+
 
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Image Viewer"
@@ -217,7 +216,7 @@ class MainUI(QtWidgets.QMainWindow):
     def __init__(self, projectPath=None, relativePath=None, recursive=False):
         for entry in QtWidgets.QApplication.allWidgets():
             try:
-                if entry.objectName() == BoilerDict["Environment"]:
+                if entry.objectName() == BoilerDict["WindowTitle"]:
                     entry.close()
             except AttributeError:
                 pass
@@ -318,11 +317,13 @@ class MainUI(QtWidgets.QMainWindow):
         except AttributeError: pass
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
-        iconsDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "CSS", "rc")
+        # iconsDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "CSS", "rc")
         if FORCE_QT4:
-            headerBitmap = QtWidgets.QPixmap(os.path.join(iconsDir, "tmImageViewer.png"))
+            # headerBitmap = QtWidgets.QPixmap(os.path.join(iconsDir, "tmImageViewer.png"))
+            headerBitmap = QtWidgets.QPixmap(":/icons/CSS/rc/tmImageViewer.png")
         else:
-            headerBitmap = QtGui.QPixmap(os.path.join(iconsDir, "tmImageViewer.png"))
+            # headerBitmap = QtGui.QPixmap(os.path.join(iconsDir, "tmImageViewer.png"))
+            headerBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmImageViewer.png")
         tikIcon_label.setPixmap(headerBitmap)
 
         headerLayout.addWidget(tikIcon_label)
@@ -367,7 +368,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.rootFolder_lineEdit = DropLineEdit(self.centralwidget)
         self.rootFolder_lineEdit.setText((self.rootPath))
-        self.rootFolder_lineEdit.setReadOnly(True)
+        self.rootFolder_lineEdit.setReadOnly(False)
         self.rootFolder_lineEdit.setPlaceholderText((""))
         self.gridLayout.addWidget(self.rootFolder_lineEdit, 0, 1, 1, 1)
 
@@ -378,14 +379,14 @@ class MainUI(QtWidgets.QMainWindow):
         self.raidFolder_label = QtWidgets.QLabel(self.centralwidget)
         self.raidFolder_label.setFrameShape(QtWidgets.QFrame.Box)
         self.raidFolder_label.setLineWidth(1)
-        self.raidFolder_label.setText(("Raid Folder:"))
+        self.raidFolder_label.setText(("Remote Location:"))
         self.raidFolder_label.setTextFormat(QtCore.Qt.AutoText)
         self.raidFolder_label.setScaledContents(False)
         self.gridLayout.addWidget(self.raidFolder_label, 1, 0, 1, 1)
 
         self.raidFolder_lineEdit = DropLineEdit(self.centralwidget)
         self.raidFolder_lineEdit.setText(self.tLocation)
-        self.raidFolder_lineEdit.setReadOnly(True)
+        self.raidFolder_lineEdit.setReadOnly(False)
         self.raidFolder_lineEdit.setPlaceholderText((""))
         self.gridLayout.addWidget(self.raidFolder_lineEdit, 1, 1, 1, 1)
 
@@ -393,6 +394,16 @@ class MainUI(QtWidgets.QMainWindow):
         self.browseRaid_pushButton.setText(("Browse"))
         self.gridLayout.addWidget(self.browseRaid_pushButton, 1, 2, 1, 1)
 
+        self.transferTo = QtWidgets.QPushButton()
+        self.transferTo.setText("Transfer Files")
+        if self.tLocation == "N/A":
+            self.transferTo.setEnabled(False)
+        else:
+            self.transferTo.setEnabled(True)
+        self.gridLayout.addWidget(self.transferTo, 1, 3, 1, 1)
+
+
+##
         self.chkboxLayout = QtWidgets.QHBoxLayout()
         self.chkboxLayout.setAlignment(QtCore.Qt.AlignRight)
 
@@ -416,7 +427,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.chkboxLayout.addWidget(self.selectAll_pushbutton)
         self.chkboxLayout.addWidget(self.selectNone_pushbutton)
         self.chkboxLayout.addItem(spacerItem)
-
+##
         self.gridLayout.addLayout(self.chkboxLayout, 2, 0, 1, 4)
 
         # Splitter LEFT side:
@@ -497,6 +508,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.sequences_treeWidget.doubleClicked.connect(self.onRunItem)
         self.browseRaid_pushButton.clicked.connect(self.onBrowseRaid)
 
+        self.rootFolder_lineEdit.editingFinished.connect(self.onEditRoot)
+        self.raidFolder_lineEdit.editingFinished.connect(self.onEditRaid)
+
         # -----------------
         # RIGHT CLICK MENUS
         # -----------------
@@ -548,6 +562,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.nameFilterApply_pushButton.clicked.connect(self.populate)
         self.nameFilter_lineEdit.returnPressed.connect(self.populate)
 
+        self.transferTo.clicked.connect(self.onTransferFiles)
+
         # SHORTCUTS
         # ---------
 
@@ -592,15 +608,17 @@ class MainUI(QtWidgets.QMainWindow):
         tLocationFile = os.path.normpath(os.path.join(self.databaseDir, "tLocation.json"))
         if os.path.isfile(tLocationFile):
             tLocation = self._loadJson(tLocationFile)
+            # self.transferTo.setEnabled(True)
         else:
             tLocation = "N/A"
+            # self.transferTo.setEnabled(False)
             self._dumpJson(tLocation, tLocationFile)
         return tLocation
 
     def setRaidPath(self, dir):
         """Updates the Remote Location Folder database"""
         tLocationFile = os.path.normpath(os.path.join(self.databaseDir, "tLocation.json"))
-        self.tLocation = str(dir)
+        self.tLocation = unicode(dir).encode("utf-8")
         self._dumpJson(self.tLocation, tLocationFile)
         self.raidFolder_lineEdit.setText(self.tLocation)
 
@@ -623,6 +641,31 @@ class MainUI(QtWidgets.QMainWindow):
         """Method to pop the menu at the position of the mouse cursor"""
         self.popMenuLabels.exec_(self.centralwidget.mapToGlobal(point))
 
+    def onEditRoot(self):
+        candidatePath = unicode(self.rootFolder_lineEdit.text()).encode("utf-8")
+        if os.path.isdir(candidatePath):
+            self.setRootPath(candidatePath)
+        else:
+            self.rootFolder_lineEdit.setText(self.rootPath)
+            self.infoPop(textTitle="Invalid Path", textHeader="Entered path is invalid")
+
+
+    def onEditRaid(self):
+        candidatePath = unicode(self.raidFolder_lineEdit.text()).encode("utf-8")
+        if candidatePath == "" or candidatePath == "N/A":
+            self.setRaidPath("N/A")
+            self.transferTo.setEnabled(False)
+            return
+        if os.path.isdir(candidatePath):
+            self.setRaidPath(candidatePath)
+            self.transferTo.setEnabled(True)
+
+            return
+        else:
+            self.raidFolder_lineEdit.setText(self.tLocation)
+            self.infoPop(textTitle="Invalid Path", textHeader="Entered path is invalid")
+            return
+
     def onBrowse(self):
         """Opens a directory select menu to define it as the root path"""
         dir = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory", self.rootPath))
@@ -636,17 +679,20 @@ class MainUI(QtWidgets.QMainWindow):
         path = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory", self.tLocation))
         if path:
             self.setRaidPath(path)
+            self.transferTo.setEnabled(True)
             return
 
     def onTransferFiles(self):
         """Transfer sequences to the remote location"""
         if self.tLocation == "N/A":
-            raise Exception([341], "Raid Location not defined")
+            self.infoPop(textTitle="Cannot Continue", textHeader="Remote Location is not defined")
+            # raise Exception([341], "Raid Location not defined")
             return
 
         selectedItemNames = [x.text(0) for x in self.sequences_treeWidget.selectedItems()]
         if len(selectedItemNames) == 0:
-            raise Exception([101], "No sequence selected")
+            self.infoPop(textTitle="Cannot Continue", textHeader="No sequence selected")
+            # raise Exception([101], "No sequence selected")
             return
 
         logPath = os.path.join(self.databaseDir, "transferLogs")
@@ -808,6 +854,22 @@ class MainUI(QtWidgets.QMainWindow):
         # Order preserving
         seen = set()
         return [x for x in seq if x not in seen and not seen.add(x)]
+
+
+    def infoPop(self, textTitle="info", textHeader="", textInfo="", type="I"):
+        self.msg = QtWidgets.QMessageBox(parent=self)
+        if type == "I":
+            self.msg.setIcon(QtWidgets.QMessageBox.Information)
+        if type == "C":
+            self.msg.setIcon(QtWidgets.QMessageBox.Critical)
+
+        self.msg.setText(textHeader)
+        self.msg.setInformativeText(textInfo)
+        self.msg.setWindowTitle(textTitle)
+        self.msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        self.msg.button(QtWidgets.QMessageBox.Ok).setFixedHeight(30)
+        self.msg.button(QtWidgets.QMessageBox.Ok).setFixedWidth(100)
+        self.msg.show()
 
 
 class DropLineEdit(QtWidgets.QLineEdit):

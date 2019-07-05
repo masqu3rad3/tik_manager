@@ -830,7 +830,7 @@ class ProjectMaterials(RootManager):
         self._pathsDict["usersFile"] = os.path.normpath(
             os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerUsers.json"))
 
-        self._pathsDict["iconsDir"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "CSS", "rc")
+        # self._pathsDict["iconsDir"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "CSS", "rc")
 
 
         # project material specific
@@ -1137,9 +1137,11 @@ class MainUI(QtWidgets.QMainWindow):
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
         if FORCE_QT4:
-            headerBitmap = QtWidgets.QPixmap(os.path.join(self.promat.getIconsDir(), "tmProjectMaterials.png"))
+            # headerBitmap = QtWidgets.QPixmap(os.path.join(self.promat.getIconsDir(), "tmProjectMaterials.png"))
+            headerBitmap = QtWidgets.QPixmap(":/icons/CSS/rc/tmProjectMaterials.png")
         else:
-            headerBitmap = QtGui.QPixmap(os.path.join(self.promat.getIconsDir(), "tmProjectMaterials.png"))
+            # headerBitmap = QtGui.QPixmap(os.path.join(self.promat.getIconsDir(), "tmProjectMaterials.png"))
+            headerBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmProjectMaterials.png")
         tikIcon_label.setPixmap(headerBitmap)
 
         headerLayout.addWidget(tikIcon_label)
@@ -1817,7 +1819,7 @@ if __name__ == '__main__':
     os.environ["FORCE_QT4"] = "1"
     app = QtWidgets.QApplication(sys.argv)
     selfLoc = os.path.dirname(os.path.abspath(__file__))
-    stylesheetFile = os.path.join(selfLoc, "CSS", "darkorange.stylesheet")
+    stylesheetFile = os.path.join(selfLoc, "CSS", "tikManager.qss")
 
     with open(stylesheetFile, "r") as fh:
         app.setStyleSheet(fh.read())

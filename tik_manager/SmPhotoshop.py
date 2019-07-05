@@ -79,6 +79,7 @@ class PsCoreFunctions(object):
         # self.psApp = Dispatch('Photoshop.Application')
 
     def _save(self, *args, **kwargs):
+        logger.warning("_save function is not implemented for SmPhotoshop")
         pass
         # not needed
 
@@ -118,27 +119,35 @@ class PsCoreFunctions(object):
         self.psApp.Open(filePath)
 
     def _reference(self, filePath):
+        logger.warning("_reference function is not implemented for SmPhotoshop")
         pass
 
     def _import(self, filePath, *args, **kwargs):
+        logger.warning("_import function is not implemented for SmPhotoshop")
         pass
 
     def _importObj(self, filePath, importSettings, *args, **kwargs):
+        logger.warning("_importObj function is not implemented for SmPhotoshop")
         pass
 
     def _importAlembic(self, filePath, importSettings, *args, **kwargs):
+        logger.warning("_importAlembic function is not implemented for SmPhotoshop")
         pass
 
     def _importFbx(self, filePath, importSettings, *args, **kwargs):
+        logger.warning("_importFbx function is not implemented for SmPhotoshop")
         pass
 
     def _exportObj(self, filePath, exportSettings, exportSelected=True):
+        logger.warning("_exportObj function is not implemented for SmPhotoshop")
         pass
 
     def _exportAlembic(self, filePath, exportSettings, exportSelected=True, timeRange=[0,10]):
+        logger.warning("_exportAlembic function is not implemented for SmPhotoshop")
         pass
 
     def _exportFbx(self, filePath, exportSettings, exportSelected=True, timeRange=[0,10]):
+        logger.warning("_exportFbx function is not implemented for SmPhotoshop")
         pass
 
     def _getSceneFile(self):
@@ -151,18 +160,27 @@ class PsCoreFunctions(object):
             return "Untitled"
 
     def _getProject(self):
+        """returns the project folder DEFINED BY THE HOST SOFTWARE, not the Tik Manager Project"""
         homeDir = os.path.expanduser("~")
         norm_p_path = os.path.normpath(homeDir)
         return norm_p_path
 
     def _getVersion(self):
+        logger.warning("_getVersion function is not implemented for SmPhotoshop")
         pass
 
     def _getCurrentFrame(self):
+        logger.warning("_getCurrentFrame function is not implemented for SmPhotoshop")
         pass
 
     def _getSelection(self):
+        logger.warning("_getSelection function is not implemented for SmPhotoshop")
         pass
+
+    def _isSceneModified(self):
+        return False
+
+
 
 class PsManager(RootManager, PsCoreFunctions):
     def __init__(self):
@@ -520,13 +538,13 @@ class PsManager(RootManager, PsCoreFunctions):
         if not sceneName:
             msg = "Current document is not a Base Scene File.\n\nSave it as a Base Scene first."
             self._exception(360, msg)
-            return -1, msg
+            return False
 
         sceneInfo = self.getOpenSceneInfo()
         if not sceneInfo:
             msg = "Current document is not a Base Scene File.\n\nSave it as a Base Scene first."
             self._exception(360, msg)
-            return -1, msg
+            return False
 
         # TEMPLATE
         # --------
@@ -568,7 +586,7 @@ class PsManager(RootManager, PsCoreFunctions):
             msg = "Choose Yes to overwrite file and continue"
             title = "Are you Sure?"
             if not self._question(header=header, msg=msg, title=title):
-                return
+                return False
             else:
                 pass
 
@@ -748,7 +766,7 @@ class PsManager(RootManager, PsCoreFunctions):
     def isSceneModified(self):
         """Checks the currently open scene saved or not"""
         logger.debug("Func: isSceneModified")
-        return False
+        return self._isSceneModified()
 
     # def loadCategories(self, filePath=None):
     #     """OVERRIDEN FUNCTION for specific category default of Photoshop"""
@@ -874,7 +892,8 @@ class MainUI(baseUI):
         self.export_pushButton.setText("Export Texture")
         self.export_pushButton.clicked.connect(self.exportSourceUI)
 
-        self.mIconPixmap = QtWidgets.QPixmap(os.path.join(self.manager.getIconsDir(), "iconPS.png"))
+        # self.mIconPixmap = QtWidgets.QPixmap(os.path.join(self.manager.getIconsDir(), "iconPS.png"))
+        self.mIconPixmap = QtWidgets.QPixmap(":/icons/CSS/rc/iconPS.png")
         self.managerIcon_label.setPixmap(self.mIconPixmap)
         #
         # self.baseScene_label.setVisible(False)
@@ -1031,6 +1050,7 @@ class MainUI(baseUI):
             self.msgDialog.setLayout(layoutMain)
 
             infoHeader = QtWidgets.QLabel(status)
+            isEnabled = False if status=="Failure" else True
 
             infoHeader.setStyleSheet(""
                                      "border: 18px solid black;"
@@ -1044,9 +1064,11 @@ class MainUI(baseUI):
             layoutMain.addLayout(layoutH)
 
             openFile = QtWidgets.QPushButton("Open File")
+            openFile.setEnabled(isEnabled)
             layoutH.addWidget(openFile)
             openFile.clicked.connect(lambda x: self.manager.showInExplorer(destPath))
             showInExplorer = QtWidgets.QPushButton("Show in Explorer")
+            showInExplorer.setEnabled(isEnabled)
             layoutH.addWidget(showInExplorer)
             okButton = QtWidgets.QPushButton("OK")
             layoutH.addWidget(okButton)

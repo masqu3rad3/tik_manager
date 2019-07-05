@@ -38,6 +38,12 @@ class AssetEditor(object):
         super(AssetEditor, self).__init__()
         pass
 
+    def getSwName(self):
+        return ""
+
+    def _getProject(self):
+        return self.projectDir
+
     # def mergeAsset(self, assetName):
     #     logger.warning("merging Asset is not defined")
     #
@@ -243,6 +249,67 @@ class AssetLibrary(AssetEditor, RootManager):
         self.init_paths(self.swName)
         self.init_database()
 
+        # print self.getProjectDir()
+
+    def init_paths(self, nicename):
+        """Initializes all the necessary paths"""
+        logger.debug("Func: init_paths")
+        # all paths in here must be absolute paths
+        # _softwarePathsDict = self.getSoftwarePaths()
+
+        self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDir(), "TikManager"))
+        self._folderCheck(os.path.join(self._pathsDict["userSettingsDir"], nicename))
+        self._pathsDict["userSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "userSettings.json"))
+
+        self._pathsDict["localBookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], nicename, "smBookmarks.json"))
+        self._pathsDict["bookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smBookmarks.json"))
+        self._pathsDict["currentsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], nicename, "smCurrents.json"))
+        self._pathsDict["projectsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smProjects.json"))
+
+        self._pathsDict["commonFolderFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smCommonFolder.json"))
+
+        self._pathsDict["sharedSettingsDir"] = self._getCommonFolder()
+        if self._pathsDict["sharedSettingsDir"] == -1:
+            self._exception(201, "Cannot Continue Without Common Database")
+            return -1
+        # _softwarePathsDict = self.getSoftwarePaths()
+
+        # self._pathsDict["projectDir"] = self.getProjectDir()
+        # self._pathsDict["sceneFile"] = ""
+        #
+        # self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
+        #
+        # # self._pathsDict["databaseDir"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], _softwarePathsDict["databaseDir"]))
+        #
+        # # self._pathsDict["scenesDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], _softwarePathsDict["scenesDir"]))
+        # self._pathsDict["transferDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "_TRANSFER"))
+        #
+        # self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
+        # self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "subPdata.json"))
+        # self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "exportSettings.json"))
+        # self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "importSettings.json"))
+        #
+        # # self._pathsDict["categoriesFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], _softwarePathsDict["categoriesFile"]))
+        #
+        # self._pathsDict["previewsRoot"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "Playblasts")) # dont change
+        # # self._pathsDict["previewsDir"] = os.path.normpath(os.path.join(self._pathsDict["previewsRoot"], _softwarePathsDict["niceName"])) # dont change
+
+        # self._pathsDict["pbSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["previewsRoot"], _softwarePathsDict["pbSettingsFile"]))
+
+        self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerUsers.json"))
+        self._pathsDict["alImportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "alImportSettings.json"))
+        self._pathsDict["alExportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "alExportSettings.json"))
+        self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "softwareDatabase.json"))
+        self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerDefaults.json"))
+        self._pathsDict["tikConventions"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "tikConventions.json"))
+        self._pathsDict["adminPass"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "adminPass.psw"))
+        # self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "exportSettings.json"))
+        # self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "importSettings.json"))
+        # self._pathsDict["iconsDir"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "CSS", "rc")
+        ## FFMPEG conversion paths
+        # self._pathsDict["conversionLUTFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "conversionLUT.json"))
+
+
     # def init_paths(self):
     #     self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDir(), "TikManager"))
     #     self._pathsDict["commonFolderDir"] = os.path.abspath(os.path.join(self._pathsDict["userSettingsDir"]))
@@ -261,98 +328,9 @@ class AssetLibrary(AssetEditor, RootManager):
 
     def init_database(self):
         self._sceneManagerDefaults = self.loadManagerDefaults()
-        self.exportSettings = self.loadExportSettings()
-        self.importSettings = self.loadImportSettings()
+        self.exportSettings = self.loadAlExportSettings()
+        self.importSettings = self.loadAlImportSettings()
 
-    # def loadExportSettings(self):
-    #     """Load Export Setting options from file in Common Folder"""
-    #
-    #     if os.path.isfile(self._pathsDict["exportSettingsFile"]):
-    #         exportSettings = self._loadJson(self._pathsDict["exportSettingsFile"])
-    #         if exportSettings == -2:
-    #             return -2
-    #     else:
-    #         exportSettings = {
-    #             "objExport": {
-    #                 "FlipZyAxis": "0",
-    #                 "Shapes": "0",
-    #                 "ExportHiddenObjects": "0",
-    #                 "FaceType": "2",
-    #                 "TextureCoords": "1",
-    #                 "Normals": "1",
-    #                 "SmoothingGroups": "1",
-    #                 "ObjScale": "1.0",
-    #                 "RelativeIndex": "0",
-    #                 "Target": "0",
-    #                 "Precision": "4",
-    #                 "optVertex": "0",
-    #                 "optNormals": "0",
-    #                 "optTextureCoords": "0",
-    #             },
-    #             "fbxExport": {
-    #                 "Animation": True,
-    #                 "ASCII": False,
-    #                 "AxisConversionMethod": "Fbx_Root",
-    #                 "BakeAnimation": True,
-    #                 "BakeFrameStart": 0,
-    #                 "BakeFrameEnd": 100,
-    #                 "BakeFrameStep": 1,
-    #                 "BakeResampleAnimation": False,
-    #                 "CAT2HIK": False,
-    #                 "ColladaTriangulate": False,
-    #                 "ColladaSingleMatrix": True,
-    #                 # "ColladaFrameRate": float(rt.framerate),
-    #                 "Convert2Tiff": False,
-    #                 "ConvertUnit": "in",
-    #                 "EmbedTextures": True,
-    #                 "FileVersion": "FBX201400",
-    #                 "FilterKeyReducer": False,
-    #                 "GeomAsBone": True,
-    #                 "GenerateLog": False,
-    #                 "Lights": True,
-    #                 "NormalsPerPoly": True,
-    #                 "PointCache": False,
-    #                 "Preserveinstances": False,
-    #                 "Removesinglekeys": False,
-    #                 # "Resampling": float(rt.framerate),
-    #                 "ScaleFactor": 1.0,
-    #                 "SelectionSetExport": False,
-    #                 "Shape": True,
-    #                 "Skin": True,
-    #                 "ShowWarnings": False,
-    #                 "SmoothingGroups": True,
-    #                 "SmoothMeshExport": True,
-    #                 "TangentSpaceExport": False,
-    #                 "Triangulate": False,
-    #                 "UpAxis": "Y",
-    #                 "UseSceneName": False
-    #             },
-    #             "alembicExport": {
-    #                 "CoordinateSystem": "YUp",
-    #                 "ArchiveType": "Ogawa",
-    #                 "ParticleAsMesh": True,
-    #                 "AnimTimeRange": "CurrentFrame",
-    #                 "StartFrame": 1,
-    #                 "EndFrame": 10,
-    #                 "SamplesPerFrame": 1,
-    #                 "ShapeSuffix": False,
-    #                 "Hidden": False,
-    #                 "UVs": True,
-    #                 "Normals": True,
-    #                 "VertexColors": True,
-    #                 "ExtraChannels": True,
-    #                 "Velocity": True,
-    #                 "MaterialIDs": True,
-    #                 "Visibility": True,
-    #                 "LayerName": True,
-    #                 "MaterialName": True,
-    #                 "ObjectID": True,
-    #                 "CustomAttributes": True
-    #             }
-    #         }
-    #         # categoriesData = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
-    #         self._dumpJson(exportSettings, self._pathsDict["exportSettingsFile"])
-    #     return exportSettings
 
     def scanAssets(self):
         """
@@ -616,29 +594,31 @@ class MainUI(QtWidgets.QMainWindow):
         except AttributeError: pass
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
-        iconsDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "CSS", "rc")
-
+        # iconsDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "CSS", "rc")
         if FORCE_QT4:
-            headerBitmap = QtWidgets.QPixmap(os.path.join(iconsDir, "tmAssetLibrary.png"))
+            # headerBitmap = QtWidgets.QPixmap(os.path.join(iconsDir, "tmAssetLibrary.png"))
+            headerBitmap = QtWidgets.QPixmap(":/icons/CSS/rc/tmAssetLibrary.png")
         else:
-            headerBitmap = QtGui.QPixmap(os.path.join(iconsDir, "tmAssetLibrary.png"))
+            # headerBitmap = QtGui.QPixmap(os.path.join(iconsDir, "tmAssetLibrary.png"))
+            headerBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmAssetLibrary.png")
         tikIcon_label.setPixmap(headerBitmap)
 
         headerLayout.addWidget(tikIcon_label)
 
-        resolvedPath_label = QtWidgets.QLabel()
-        resolvedPath_label.setObjectName("header")
+        self.resolvedPath_label = QtWidgets.QLabel()
+        self.resolvedPath_label.setObjectName("header")
         # resolvedPath_label.setMargin(margin)
-        try: resolvedPath_label.setMargin(margin)
+        try: self.resolvedPath_label.setMargin(margin)
         except AttributeError: pass
-        resolvedPath_label.setIndent(2)
+        self.resolvedPath_label.setIndent(2)
         if FORCE_QT4:
-            resolvedPath_label.setFont(QtWidgets.QFont("Times", 7, QtWidgets.QFont.Bold))
+            self.resolvedPath_label.setFont(QtWidgets.QFont("Times", 7, QtWidgets.QFont.Bold))
         else:
-            resolvedPath_label.setFont(QtGui.QFont("Times", 7, QtGui.QFont.Bold))
-        resolvedPath_label.setWordWrap(True)
+            self.resolvedPath_label.setFont(QtGui.QFont("Times", 7, QtGui.QFont.Bold))
+            self.resolvedPath_label.setWordWrap(True)
+            self.resolvedPath_label.setText("TESTINGENSTRASSE")
 
-        headerLayout.addWidget(resolvedPath_label)
+        # headerLayout.addWidget(self.resolvedPath_label)
 
 
 

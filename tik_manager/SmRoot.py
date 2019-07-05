@@ -682,8 +682,8 @@ class RootManager(object):
     def getLocalSettingsDir(self):
         return self._pathsDict["localSettingsDir"]
 
-    def getIconsDir(self):
-        return self._pathsDict["iconsDir"]
+    # def getIconsDir(self):
+    #     return self._pathsDict["iconsDir"]
 
     def getSharedSettingsDir(self):
         """Returns the general settings Directory where common settings are"""
@@ -2089,6 +2089,40 @@ Elapsed Time:{6}
         logger.debug("Func: savePBSettings")
         self._userSettings = userSettings
         self._dumpJson(userSettings, self._pathsDict["userSettingsFile"])
+        return
+
+    def loadAlImportSettings(self):
+        """Load Asset Library Import Setting options from file in Common Folder"""
+        if os.path.isfile(self._pathsDict["alImportSettingsFile"]):
+            alImportSettings = self._loadJson(self._pathsDict["alImportSettingsFile"])
+            if alImportSettings == -2:
+                return -2
+        else:
+            # self._sceneManagerDefaults = self.loadManagerDefaults()
+            alImportSettings = self._sceneManagerDefaults["transferImportSettings"]
+            self.saveExportSettings(alImportSettings)
+        return alImportSettings
+
+    def saveAlImportSettings(self, alImportSettings):
+        """Dumps the data to the database"""
+        self._dumpJson(alImportSettings, self._pathsDict["alImportSettingsFile"])
+        return
+
+    def loadAlExportSettings(self):
+        """Load Asset Library Export Setting options from file in Common Folder"""
+        if os.path.isfile(self._pathsDict["alExportSettingsFile"]):
+            alExportSettings = self._loadJson(self._pathsDict["alExportSettingsFile"])
+            if alExportSettings == -2:
+                return -2
+        else:
+            # self._sceneManagerDefaults = self.loadManagerDefaults()
+            alExportSettings = self._sceneManagerDefaults["transferExportSettings"]
+            self.saveExportSettings(alExportSettings)
+        return alExportSettings
+
+    def saveAlExportSettings(self, alExportSettings):
+        """Dumps the data to the database"""
+        self._dumpJson(alExportSettings, self._pathsDict["alExportSettingsFile"])
         return
 
     def loadExportSettings(self):

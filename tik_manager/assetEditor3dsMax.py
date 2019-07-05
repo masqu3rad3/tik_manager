@@ -205,7 +205,7 @@ class AssetEditor3dsMax(MaxCoreFunctions):
         self._returnOriginal(textureDatabase)
         # self.scanAssets() # scanning issued at populate function on ui class
         rt.select(originalSelection)
-        rt.messageBox("Asset Created Successfully", title='Info')
+        rt.messageBox("Asset Created Successfully", title='Info', beep=False)
 
     def _createThumbnail(self, assetName, selectionOnly=True, viewFit=True):
         # ssResolution = 1000

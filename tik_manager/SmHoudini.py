@@ -1074,7 +1074,8 @@ class MainUI(baseUI):
         # idk why this became necessary for houdini..
         self.category_tabWidget.setMaximumSize(QtCore.QSize(16777215, 30))
 
-        self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "iconHoudini.png"))
+        # self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "iconHoudini.png"))
+        self.mIconPixmap = QtGui.QPixmap(":/icons/CSS/rc/iconHoudini.png")
         self.managerIcon_label.setPixmap(self.mIconPixmap)
 
 

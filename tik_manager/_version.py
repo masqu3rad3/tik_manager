@@ -1,1 +1,1 @@
-__version__ = "3.0 WORK IN PROGRESS"
+__version__ = "3.0.0"

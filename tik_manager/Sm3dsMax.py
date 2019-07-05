@@ -362,6 +362,7 @@ class MaxCoreFunctions(object):
         return norm_s_path
 
     def _getProject(self):
+        """returns the project folder DEFINED BY THE HOST SOFTWARE, not the Tik Manager Project"""
         norm_p_path = os.path.normpath(pManager.GetProjectFolderDir())
         return norm_p_path
 
@@ -1113,7 +1114,8 @@ class MainUI(baseUI):
         self.scenes_rcItem_0.setText('Merge Scene')
 
     def modify(self):
-        self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "iconMax.png"))
+        # self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "iconMax.png"))
+        self.mIconPixmap = QtGui.QPixmap(":/icons/CSS/rc/iconMax.png")
         self.managerIcon_label.setPixmap(self.mIconPixmap)
 
     def onModeChange(self):
