@@ -41,8 +41,8 @@ class AssetEditor(object):
     def getSwName(self):
         return ""
 
-    def _getProject(self):
-        return self.projectDir
+    # def _getProject(self):
+    #     return self.projectDir
 
     # def mergeAsset(self, assetName):
     #     logger.warning("merging Asset is not defined")
@@ -272,29 +272,30 @@ class AssetLibrary(AssetEditor, RootManager):
         if self._pathsDict["sharedSettingsDir"] == -1:
             self._exception(201, "Cannot Continue Without Common Database")
             return -1
-        # _softwarePathsDict = self.getSoftwarePaths()
+        if self.swName:
+            _softwarePathsDict = self.getSoftwarePaths()
 
-        # self._pathsDict["projectDir"] = self.getProjectDir()
-        # self._pathsDict["sceneFile"] = ""
-        #
-        # self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
-        #
-        # # self._pathsDict["databaseDir"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], _softwarePathsDict["databaseDir"]))
-        #
-        # # self._pathsDict["scenesDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], _softwarePathsDict["scenesDir"]))
-        # self._pathsDict["transferDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "_TRANSFER"))
-        #
-        # self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
-        # self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "subPdata.json"))
-        # self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "exportSettings.json"))
-        # self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "importSettings.json"))
-        #
-        # # self._pathsDict["categoriesFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], _softwarePathsDict["categoriesFile"]))
-        #
-        # self._pathsDict["previewsRoot"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "Playblasts")) # dont change
-        # # self._pathsDict["previewsDir"] = os.path.normpath(os.path.join(self._pathsDict["previewsRoot"], _softwarePathsDict["niceName"])) # dont change
+            self._pathsDict["projectDir"] = self.getProjectDir()
+            self._pathsDict["sceneFile"] = ""
 
-        # self._pathsDict["pbSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["previewsRoot"], _softwarePathsDict["pbSettingsFile"]))
+            self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
+
+            # self._pathsDict["databaseDir"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], _softwarePathsDict["databaseDir"]))
+
+            # self._pathsDict["scenesDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], _softwarePathsDict["scenesDir"]))
+            self._pathsDict["transferDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "_TRANSFER"))
+
+            self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
+            self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "subPdata.json"))
+            self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "exportSettings.json"))
+            self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "importSettings.json"))
+
+            # self._pathsDict["categoriesFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], _softwarePathsDict["categoriesFile"]))
+
+            self._pathsDict["previewsRoot"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "Playblasts")) # dont change
+            # self._pathsDict["previewsDir"] = os.path.normpath(os.path.join(self._pathsDict["previewsRoot"], _softwarePathsDict["niceName"])) # dont change
+
+            # self._pathsDict["pbSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["previewsRoot"], _softwarePathsDict["pbSettingsFile"]))
 
         self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerUsers.json"))
         self._pathsDict["alImportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "alImportSettings.json"))
@@ -303,28 +304,12 @@ class AssetLibrary(AssetEditor, RootManager):
         self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerDefaults.json"))
         self._pathsDict["tikConventions"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "tikConventions.json"))
         self._pathsDict["adminPass"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "adminPass.psw"))
-        # self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "exportSettings.json"))
-        # self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "importSettings.json"))
-        # self._pathsDict["iconsDir"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "CSS", "rc")
-        ## FFMPEG conversion paths
-        # self._pathsDict["conversionLUTFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "conversionLUT.json"))
+            # self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "exportSettings.json"))
+            # self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "importSettings.json"))
+            # self._pathsDict["iconsDir"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "CSS", "rc")
+            ## FFMPEG conversion paths
+            # self._pathsDict["conversionLUTFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "conversionLUT.json"))
 
-
-    # def init_paths(self):
-    #     self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDir(), "TikManager"))
-    #     self._pathsDict["commonFolderDir"] = os.path.abspath(os.path.join(self._pathsDict["userSettingsDir"]))
-    #     self._pathsDict["commonFolderFile"] = os.path.normpath(os.path.join(self._pathsDict["commonFolderDir"], "smCommonFolder.json"))
-    #
-    #     self._pathsDict["sharedSettingsDir"] = self._getCommonFolder()
-    #     if self._pathsDict["sharedSettingsDir"] == -1:
-    #         self._exception(201, "Cannot Continue Without Common Database")
-    #         return -1
-    #
-    #     self._pathsDict["projectDir"] = self.getProjectDir()
-    #     self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerDefaults.json"))
-    #
-    #     self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "alExportSettings.json"))
-    #     self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "alImportSettings.json"))
 
     def init_database(self):
         self._sceneManagerDefaults = self.loadManagerDefaults()
@@ -857,7 +842,12 @@ class LibraryTab(QtWidgets.QWidget):
         self.wireframeMode = -1 # 1 is for screenshot -1 for wireframe
 
         self.library = AssetLibrary(directory)
+        if self.library.swName:
+            self.currentProject = ""
+        else:
+            self.currentProject = self.library.projectDir
         self.buildTabUI()
+        # print self.library.getProjectDir()
 
         if viewOnly:
             self.viewOnlyMode()

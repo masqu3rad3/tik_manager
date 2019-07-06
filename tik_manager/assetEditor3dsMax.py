@@ -393,17 +393,14 @@ class AssetEditor3dsMax(MaxCoreFunctions):
         assetData = self._getData(assetName)
         if not self._checkVersionMatch(assetData["version"]):
             return
-        print "anan1"
         absSourcePath = os.path.join(self.directory, assetName, assetData["sourcePath"])
 
         textureList = assetData['textureFiles']
-        print "anan2"
         self._import(absSourcePath, prompt=False)
 
         ## if there are not textures files to handle, do not waste time
         if len(textureList) == 0:
             return
-        print "anan3"
         # currentProjectPath = self._getProject()
         currentProjectPath = self.projectDir
         sourceImagesPath = os.path.join(currentProjectPath, "sourceimages")

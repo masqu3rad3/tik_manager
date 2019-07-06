@@ -1875,6 +1875,8 @@ class MainUI(QtWidgets.QMainWindow):
         # self.allSettingsDict={}
         self.allSettingsDict=Settings()
 
+        self.minSPBSize = (70, 25)
+
         settings_Dialog = QtWidgets.QDialog(parent=self)
         settings_Dialog.setWindowTitle(("Settings"))
         settings_Dialog.resize(960, 630)
@@ -2431,11 +2433,17 @@ class MainUI(QtWidgets.QMainWindow):
         projectSettings_Layout.addLayout(h1_horizontalLayout)
 
         projectSettings_formLayout = QtWidgets.QFormLayout()
-        projectSettings_formLayout.setSpacing(2)
-        projectSettings_formLayout.setVerticalSpacing(5)
+        # projectSettings_formLayout.setSpacing(2)
+        # projectSettings_formLayout.setVerticalSpacing(5)
+
         # projectSettings_formLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
         # projectSettings_formLayout.setLabelAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         # projectSettings_formLayout.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+        projectSettings_formLayout.setSpacing(6)
+        projectSettings_formLayout.setHorizontalSpacing(15)
+        projectSettings_formLayout.setVerticalSpacing(5)
+        projectSettings_formLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldsStayAtSizeHint)
+
         projectSettings_formLayout.setContentsMargins(-1, 15, -1, -1)
 
         currentProject_lbl = QtWidgets.QLabel()
@@ -2445,6 +2453,7 @@ class MainUI(QtWidgets.QMainWindow):
         currentProject_le = QtWidgets.QLineEdit()
         currentProject_le.setText(manager.getProjectDir())
         currentProject_le.setReadOnly(True)
+        currentProject_le.setMinimumWidth(500)
         project_hLayout.addWidget(currentProject_le)
         # setProject_pb = QtWidgets.QPushButton()
         # setProject_pb.setText("SET")
@@ -2453,24 +2462,28 @@ class MainUI(QtWidgets.QMainWindow):
 
         resolution_label = QtWidgets.QLabel(self.projectSettings_vis)
         resolution_label.setText("Resolution: ")
+        resolution_label.setMinimumSize(70, 25)
         resolution_label.setObjectName("resolution_label")
 
-        horizontalLayout = QtWidgets.QHBoxLayout()
-        horizontalLayout.setObjectName("horizontalLayout")
+        resolution_hLay = QtWidgets.QHBoxLayout()
+        resolution_hLay.setSpacing(5)
+        resolution_hLay.setObjectName("horizontalLayout")
 
         resolutionX_spinBox = QtWidgets.QSpinBox(self.projectSettings_vis)
         resolutionX_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-        horizontalLayout.addWidget(resolutionX_spinBox)
+        resolutionX_spinBox.setMinimumSize(self.minSPBSize[0], self.minSPBSize[1])
+        resolution_hLay.addWidget(resolutionX_spinBox)
         resolutionX_spinBox.setRange(1, 99999)
         resolutionX_spinBox.setValue(settings["Resolution"][0])
 
         resolutionY_spinBox = QtWidgets.QSpinBox(self.projectSettings_vis)
         resolutionY_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-        horizontalLayout.addWidget(resolutionY_spinBox)
+        resolutionY_spinBox.setMinimumSize(self.minSPBSize[0], self.minSPBSize[1])
+        resolution_hLay.addWidget(resolutionY_spinBox)
         resolutionY_spinBox.setRange(1, 99999)
         resolutionY_spinBox.setValue(settings["Resolution"][1])
 
-        projectSettings_formLayout.addRow(resolution_label, horizontalLayout)
+        projectSettings_formLayout.addRow(resolution_label, resolution_hLay)
 
         fps_label = QtWidgets.QLabel(self.projectSettings_vis)
         fps_label.setText("FPS: ")
@@ -2601,6 +2614,10 @@ class MainUI(QtWidgets.QMainWindow):
         h1_s2_horizontalLayout.setSpacing(6)
 
         videoProperties_formLayout = QtWidgets.QFormLayout()
+        videoProperties_formLayout.setSpacing(6)
+        videoProperties_formLayout.setHorizontalSpacing(15)
+        videoProperties_formLayout.setVerticalSpacing(10)
+        videoProperties_formLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldsStayAtSizeHint)
         h1_s2_horizontalLayout.addLayout(videoProperties_formLayout)
 
         self.convertMP4_Maya_chb = QtWidgets.QCheckBox()
@@ -2622,7 +2639,7 @@ class MainUI(QtWidgets.QMainWindow):
         crf_Maya_label.setText("Compression (0-51)")
 
         self.crf_Maya_spinBox = QtWidgets.QSpinBox()
-        self.crf_Maya_spinBox.setMinimumWidth(50)
+        self.crf_Maya_spinBox.setMinimumSize(self.minSPBSize[0], self.minSPBSize[1])
         self.crf_Maya_spinBox.setMinimum(0)
         self.crf_Maya_spinBox.setMaximum(51)
         self.crf_Maya_spinBox.setValue(settings["CrfValue"])
@@ -2661,7 +2678,7 @@ class MainUI(QtWidgets.QMainWindow):
         quality_label = QtWidgets.QLabel()
         quality_label.setText("Quality: ")
         self.quality_Maya_spinBox = QtWidgets.QSpinBox()
-        self.quality_Maya_spinBox.setMinimumWidth(50)
+        self.quality_Maya_spinBox.setMinimumSize(self.minSPBSize[0], self.minSPBSize[1])
         self.quality_Maya_spinBox.setMinimum(1)
         self.quality_Maya_spinBox.setMaximum(100)
         self.quality_Maya_spinBox.setValue(settings["Quality"])
@@ -2670,13 +2687,16 @@ class MainUI(QtWidgets.QMainWindow):
         resolution_label = QtWidgets.QLabel()
         resolution_label.setText("Resolution: ")
         resolution_horizontalLayout = QtWidgets.QHBoxLayout()
+        resolution_horizontalLayout.setSpacing(5)
         self.resX_Maya_spinBox = QtWidgets.QSpinBox()
+        self.resX_Maya_spinBox.setMinimumSize(self.minSPBSize[0], self.minSPBSize[1])
         self.resX_Maya_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
         self.resX_Maya_spinBox.setMinimum(1)
         self.resX_Maya_spinBox.setMaximum(99999)
         self.resX_Maya_spinBox.setValue(settings["Resolution"][0])
         resolution_horizontalLayout.addWidget(self.resX_Maya_spinBox)
         self.resY_Maya_spinBox = QtWidgets.QSpinBox()
+        self.resY_Maya_spinBox.setMinimumSize(self.minSPBSize[0], self.minSPBSize[1])
         self.resY_Maya_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
         self.resY_Maya_spinBox.setMinimum(1)
         self.resY_Maya_spinBox.setMaximum(99999)
@@ -2892,7 +2912,10 @@ class MainUI(QtWidgets.QMainWindow):
         h1_s2_horizontalLayout.setSpacing(6)
 
         videoProperties_formLayout = QtWidgets.QFormLayout()
-        # videoProperties_formLayout.setContentsMargins(10, -1, -1, -1)
+        videoProperties_formLayout.setSpacing(6)
+        videoProperties_formLayout.setHorizontalSpacing(15)
+        videoProperties_formLayout.setVerticalSpacing(10)
+        videoProperties_formLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldsStayAtSizeHint)
         h1_s2_horizontalLayout.addLayout(videoProperties_formLayout)
 
         self.convertMP4_Max_chb = QtWidgets.QCheckBox()
@@ -2914,7 +2937,7 @@ class MainUI(QtWidgets.QMainWindow):
         crf_Max_label.setText("Compression (0-51)")
 
         self.crf_Max_spinBox = QtWidgets.QSpinBox()
-        self.crf_Max_spinBox.setMinimumWidth(50)
+        self.crf_Max_spinBox.setMinimumSize(self.minSPBSize[0], self.minSPBSize[1])
         self.crf_Max_spinBox.setMinimum(0)
         self.crf_Max_spinBox.setMaximum(51)
         self.crf_Max_spinBox.setValue(settings["CrfValue"])
@@ -2925,12 +2948,14 @@ class MainUI(QtWidgets.QMainWindow):
         resolution_horizontalLayout = QtWidgets.QHBoxLayout()
         self.resX_Max_spinBox = QtWidgets.QSpinBox()
         self.resX_Max_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        self.resX_Max_spinBox.setMinimumSize(self.minSPBSize[0], self.minSPBSize[1])
         self.resX_Max_spinBox.setMinimum(1)
         self.resX_Max_spinBox.setMaximum(99999)
         self.resX_Max_spinBox.setValue(settings["Resolution"][0])
         resolution_horizontalLayout.addWidget(self.resX_Max_spinBox)
         self.resY_Max_spinBox = QtWidgets.QSpinBox()
         self.resY_Max_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        self.resY_Max_spinBox.setMinimumSize(self.minSPBSize[0], self.minSPBSize[1])
         self.resY_Max_spinBox.setMinimum(1)
         self.resY_Max_spinBox.setMaximum(99999)
         self.resY_Max_spinBox.setValue(settings["Resolution"][1])
@@ -3044,7 +3069,7 @@ class MainUI(QtWidgets.QMainWindow):
 
     def _previewSettingsContent_houdini(self):
         manager = self._getManager()
-        # settings = self.allSettingsDict["preview_max"]["oldSettings"]
+        # settings = self.allSettingsDict["preview_houdini"]["oldSettings"]
         settings = self.allSettingsDict.get("preview_houdini")
 
         previewSettings_HOU_Layout = QtWidgets.QVBoxLayout()
@@ -3052,9 +3077,9 @@ class MainUI(QtWidgets.QMainWindow):
 
 
         def updateDictionary():
-            settings["ConvertMP4"] = self.convertMP4_Max_chb.isChecked()
-            settings["CrfValue"] = self.crf_Max_spinBox.value()
-            settings["Resolution"] = [self.resX_Max_spinBox.value(), self.resY_Max_spinBox.value()]
+            settings["ConvertMP4"] = self.convertMP4_Houdini_chb.isChecked()
+            settings["CrfValue"] = self.crf_Houdini_spinBox.value()
+            settings["Resolution"] = [self.resX_Houdini_spinBox.value(), self.resY_Houdini_spinBox.value()]
 
             self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
             # self._isSettingsChanged()
@@ -3093,49 +3118,54 @@ class MainUI(QtWidgets.QMainWindow):
         h1_s2_horizontalLayout.setSpacing(6)
 
         videoProperties_formLayout = QtWidgets.QFormLayout()
-        # videoProperties_formLayout.setContentsMargins(10, -1, -1, -1)
+        videoProperties_formLayout.setSpacing(6)
+        videoProperties_formLayout.setHorizontalSpacing(15)
+        videoProperties_formLayout.setVerticalSpacing(10)
+        videoProperties_formLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldsStayAtSizeHint)
         h1_s2_horizontalLayout.addLayout(videoProperties_formLayout)
 
-        self.convertMP4_Max_chb = QtWidgets.QCheckBox()
-        self.convertMP4_Max_chb.setText("Convert To MP4")
-        self.convertMP4_Max_chb.setMinimumSize(QtCore.QSize(100, 0))
-        self.convertMP4_Max_chb.setLayoutDirection(QtCore.Qt.LeftToRight)
-        # videoProperties_formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.convertMP4_Max_chb)
-        videoProperties_formLayout.addRow(self.convertMP4_Max_chb)
+        self.convertMP4_Houdini_chb = QtWidgets.QCheckBox()
+        self.convertMP4_Houdini_chb.setText("Convert To MP4")
+        self.convertMP4_Houdini_chb.setMinimumSize(QtCore.QSize(100, 0))
+        self.convertMP4_Houdini_chb.setLayoutDirection(QtCore.Qt.LeftToRight)
+        # videoProperties_formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.convertMP4_Houdini_chb)
+        videoProperties_formLayout.addRow(self.convertMP4_Houdini_chb)
         if manager.currentPlatform is not "Windows":
-            self.convertMP4_Max_chb.setChecked(False)
-            self.convertMP4_Max_chb.setEnabled(False)
+            self.convertMP4_Houdini_chb.setChecked(False)
+            self.convertMP4_Houdini_chb.setEnabled(False)
         else:
             try:
-                self.convertMP4_Max_chb.setChecked(settings["ConvertMP4"])
+                self.convertMP4_Houdini_chb.setChecked(settings["ConvertMP4"])
             except KeyError:
-                self.convertMP4_Max_chb.setChecked(True)
+                self.convertMP4_Houdini_chb.setChecked(True)
 
-        crf_Max_label = QtWidgets.QLabel()
-        crf_Max_label.setText("Compression (0-51)")
+        crf_Houdini_label = QtWidgets.QLabel()
+        crf_Houdini_label.setText("Compression (0-51)")
 
-        self.crf_Max_spinBox = QtWidgets.QSpinBox()
-        self.crf_Max_spinBox.setMinimumWidth(50)
-        self.crf_Max_spinBox.setMinimum(0)
-        self.crf_Max_spinBox.setMaximum(51)
-        self.crf_Max_spinBox.setValue(settings["CrfValue"])
-        videoProperties_formLayout.addRow(crf_Max_label, self.crf_Max_spinBox)
+        self.crf_Houdini_spinBox = QtWidgets.QSpinBox()
+        self.crf_Houdini_spinBox.setMinimumSize(self.minSPBSize[0], self.minSPBSize[1])
+        self.crf_Houdini_spinBox.setMinimum(0)
+        self.crf_Houdini_spinBox.setMaximum(51)
+        self.crf_Houdini_spinBox.setValue(settings["CrfValue"])
+        videoProperties_formLayout.addRow(crf_Houdini_label, self.crf_Houdini_spinBox)
 
         resolution_label = QtWidgets.QLabel()
         resolution_label.setText("Resolution: ")
         resolution_horizontalLayout = QtWidgets.QHBoxLayout()
-        self.resX_Max_spinBox = QtWidgets.QSpinBox()
-        self.resX_Max_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-        self.resX_Max_spinBox.setMinimum(1)
-        self.resX_Max_spinBox.setMaximum(99999)
-        self.resX_Max_spinBox.setValue(settings["Resolution"][0])
-        resolution_horizontalLayout.addWidget(self.resX_Max_spinBox)
-        self.resY_Max_spinBox = QtWidgets.QSpinBox()
-        self.resY_Max_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-        self.resY_Max_spinBox.setMinimum(1)
-        self.resY_Max_spinBox.setMaximum(99999)
-        self.resY_Max_spinBox.setValue(settings["Resolution"][1])
-        resolution_horizontalLayout.addWidget(self.resY_Max_spinBox)
+        self.resX_Houdini_spinBox = QtWidgets.QSpinBox()
+        self.resX_Houdini_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        self.resX_Houdini_spinBox.setMinimumSize(self.minSPBSize[0], self.minSPBSize[1])
+        self.resX_Houdini_spinBox.setMinimum(1)
+        self.resX_Houdini_spinBox.setMaximum(99999)
+        self.resX_Houdini_spinBox.setValue(settings["Resolution"][0])
+        resolution_horizontalLayout.addWidget(self.resX_Houdini_spinBox)
+        self.resY_Houdini_spinBox = QtWidgets.QSpinBox()
+        self.resY_Houdini_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        self.resY_Houdini_spinBox.setMinimumSize(self.minSPBSize[0], self.minSPBSize[1])
+        self.resY_Houdini_spinBox.setMinimum(1)
+        self.resY_Houdini_spinBox.setMaximum(99999)
+        self.resY_Houdini_spinBox.setValue(settings["Resolution"][1])
+        resolution_horizontalLayout.addWidget(self.resY_Houdini_spinBox)
         videoProperties_formLayout.addRow(resolution_label, resolution_horizontalLayout)
 
         previewSettings_HOU_Layout.addLayout(h1_s2_horizontalLayout)
@@ -3145,12 +3175,12 @@ class MainUI(QtWidgets.QMainWindow):
         ## SIGNALS
         ## -------
 
-        self.convertMP4_Max_chb.stateChanged.connect(updateDictionary)
-        self.convertMP4_Max_chb.stateChanged.connect(lambda: self.crf_Max_spinBox.setEnabled(self.convertMP4_Max_chb.isChecked()))
+        self.convertMP4_Houdini_chb.stateChanged.connect(updateDictionary)
+        self.convertMP4_Houdini_chb.stateChanged.connect(lambda: self.crf_Houdini_spinBox.setEnabled(self.convertMP4_Houdini_chb.isChecked()))
 
-        self.crf_Max_spinBox.valueChanged.connect(updateDictionary)
-        self.resX_Max_spinBox.valueChanged.connect(updateDictionary)
-        self.resY_Max_spinBox.valueChanged.connect(updateDictionary)
+        self.crf_Houdini_spinBox.valueChanged.connect(updateDictionary)
+        self.resX_Houdini_spinBox.valueChanged.connect(updateDictionary)
+        self.resY_Houdini_spinBox.valueChanged.connect(updateDictionary)
 
     def _categoriesContent(self):
         manager = self._getManager()
@@ -3364,6 +3394,10 @@ class MainUI(QtWidgets.QMainWindow):
                 obj_import_layout.addWidget(obj_import_label)
 
                 obj_import_formlayout = QtWidgets.QFormLayout()
+                obj_import_formlayout.setSpacing(6)
+                obj_import_formlayout.setHorizontalSpacing(15)
+                obj_import_formlayout.setVerticalSpacing(10)
+                obj_import_formlayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldsStayAtSizeHint)
                 obj_import_layout.addLayout(obj_import_formlayout)
                 
                 mayaObjImpCreateDict = [
@@ -3385,6 +3419,10 @@ class MainUI(QtWidgets.QMainWindow):
                 obj_export_layout.addWidget(obj_export_label)
 
                 obj_export_formlayout = QtWidgets.QFormLayout()
+                obj_export_formlayout.setSpacing(6)
+                obj_export_formlayout.setHorizontalSpacing(15)
+                obj_export_formlayout.setVerticalSpacing(10)
+                obj_export_formlayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldsStayAtSizeHint)
                 obj_export_layout.addLayout(obj_export_formlayout)
 
                 mayaObjExpCreateDict = [
@@ -3423,6 +3461,10 @@ class MainUI(QtWidgets.QMainWindow):
                 fbx_import_layout.addWidget(fbx_import_label)
 
                 fbx_import_formlayout = QtWidgets.QFormLayout()
+                fbx_import_formlayout.setSpacing(6)
+                fbx_import_formlayout.setHorizontalSpacing(15)
+                fbx_import_formlayout.setVerticalSpacing(10)
+                fbx_import_formlayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldsStayAtSizeHint)
                 fbx_import_layout.addLayout(fbx_import_formlayout)
 
                 mayaFbxImpCreateDict = [
@@ -3464,6 +3506,10 @@ class MainUI(QtWidgets.QMainWindow):
                 fbx_export_layout.addWidget(fbx_export_label)
 
                 fbx_export_formlayout = QtWidgets.QFormLayout()
+                fbx_export_formlayout.setSpacing(6)
+                fbx_export_formlayout.setHorizontalSpacing(15)
+                fbx_export_formlayout.setVerticalSpacing(10)
+                fbx_export_formlayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldsStayAtSizeHint)
                 fbx_export_layout.addLayout(fbx_export_formlayout)
 
                 mayaFbxExpCreateDict = [
@@ -3523,6 +3569,10 @@ class MainUI(QtWidgets.QMainWindow):
                 alembic_import_layout.addWidget(alembic_import_label)
 
                 alembic_import_formlayout = QtWidgets.QFormLayout()
+                alembic_import_formlayout.setSpacing(6)
+                alembic_import_formlayout.setHorizontalSpacing(15)
+                alembic_import_formlayout.setVerticalSpacing(10)
+                alembic_import_formlayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldsStayAtSizeHint)
                 alembic_import_layout.addLayout(alembic_import_formlayout)
 
                 mayaAlembicImpCreateDict = [
@@ -3542,6 +3592,10 @@ class MainUI(QtWidgets.QMainWindow):
                 alembic_export_layout.addWidget(alembic_export_label)
 
                 alembic_export_formlayout = QtWidgets.QFormLayout()
+                alembic_export_formlayout.setSpacing(6)
+                alembic_export_formlayout.setHorizontalSpacing(15)
+                alembic_export_formlayout.setVerticalSpacing(10)
+                alembic_export_formlayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldsStayAtSizeHint)
                 alembic_export_layout.addLayout(alembic_export_formlayout)
 
                 mayaAlembicExpCreateDict = [
@@ -3608,6 +3662,10 @@ class MainUI(QtWidgets.QMainWindow):
                 obj_import_layout.addWidget(obj_import_label)
 
                 obj_import_formlayout = QtWidgets.QFormLayout()
+                obj_import_formlayout.setSpacing(6)
+                obj_import_formlayout.setHorizontalSpacing(15)
+                obj_import_formlayout.setVerticalSpacing(10)
+                obj_import_formlayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldsStayAtSizeHint)
                 obj_import_layout.addLayout(obj_import_formlayout)
 
                 # CREATE WIDGETS
@@ -3654,6 +3712,10 @@ class MainUI(QtWidgets.QMainWindow):
                 obj_export_layout.addWidget(obj_export_label)
 
                 obj_export_formlayout = QtWidgets.QFormLayout()
+                obj_export_formlayout.setSpacing(6)
+                obj_export_formlayout.setHorizontalSpacing(15)
+                obj_export_formlayout.setVerticalSpacing(10)
+                obj_export_formlayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldsStayAtSizeHint)
                 obj_export_layout.addLayout(obj_export_formlayout)
 
                 maxObjExpCreateDict = [
@@ -3703,6 +3765,10 @@ class MainUI(QtWidgets.QMainWindow):
                 fbx_import_layout.addWidget(fbx_import_label)
 
                 fbx_import_formlayout = QtWidgets.QFormLayout()
+                fbx_import_formlayout.setSpacing(6)
+                fbx_import_formlayout.setHorizontalSpacing(15)
+                fbx_import_formlayout.setVerticalSpacing(10)
+                fbx_import_formlayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldsStayAtSizeHint)
                 fbx_import_layout.addLayout(fbx_import_formlayout)
 
                 maxFbxImpCreateDict = [
@@ -3740,6 +3806,10 @@ class MainUI(QtWidgets.QMainWindow):
                 fbx_export_layout.addWidget(fbx_export_label)
 
                 fbx_export_formlayout = QtWidgets.QFormLayout()
+                fbx_export_formlayout.setSpacing(6)
+                fbx_export_formlayout.setHorizontalSpacing(15)
+                fbx_export_formlayout.setVerticalSpacing(10)
+                fbx_export_formlayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldsStayAtSizeHint)
                 fbx_export_layout.addLayout(fbx_export_formlayout)
 
                 maxFbxExpCreateDict = [
@@ -3805,6 +3875,10 @@ class MainUI(QtWidgets.QMainWindow):
                 alembic_import_layout.addWidget(alembic_import_label)
 
                 alembic_import_formlayout = QtWidgets.QFormLayout()
+                alembic_import_formlayout.setSpacing(6)
+                alembic_import_formlayout.setHorizontalSpacing(15)
+                alembic_import_formlayout.setVerticalSpacing(10)
+                alembic_import_formlayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldsStayAtSizeHint)
                 alembic_import_layout.addLayout(alembic_import_formlayout)
 
                 maxAlembicImpCreateDict = [
@@ -3841,6 +3915,10 @@ class MainUI(QtWidgets.QMainWindow):
                 alembic_export_layout.addWidget(alembic_export_label)
 
                 alembic_export_formlayout = QtWidgets.QFormLayout()
+                alembic_export_formlayout.setSpacing(6)
+                alembic_export_formlayout.setHorizontalSpacing(15)
+                alembic_export_formlayout.setVerticalSpacing(10)
+                alembic_export_formlayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldsStayAtSizeHint)
                 alembic_export_layout.addLayout(alembic_export_formlayout)
 
                 maxAlembicExpCreateDict = [
@@ -3914,6 +3992,10 @@ class MainUI(QtWidgets.QMainWindow):
                 fbx_import_layout.addWidget(fbx_import_label)
 
                 fbx_import_formlayout = QtWidgets.QFormLayout()
+                fbx_import_formlayout.setSpacing(6)
+                fbx_import_formlayout.setHorizontalSpacing(15)
+                fbx_import_formlayout.setVerticalSpacing(10)
+                fbx_import_formlayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldsStayAtSizeHint)
                 fbx_import_layout.addLayout(fbx_import_formlayout)
 
                 houdiniFbxImpCreateDict = [
@@ -3955,6 +4037,10 @@ class MainUI(QtWidgets.QMainWindow):
                 fbx_export_layout.addWidget(fbx_export_label)
 
                 fbx_export_formlayout = QtWidgets.QFormLayout()
+                fbx_export_formlayout.setSpacing(6)
+                fbx_export_formlayout.setHorizontalSpacing(15)
+                fbx_export_formlayout.setVerticalSpacing(10)
+                fbx_export_formlayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldsStayAtSizeHint)
                 fbx_export_layout.addLayout(fbx_export_formlayout)
 
                 houdiniFbxExpCreateDict = [
@@ -3998,6 +4084,10 @@ class MainUI(QtWidgets.QMainWindow):
                 alembic_import_layout.addWidget(alembic_import_label)
 
                 alembic_import_formlayout = QtWidgets.QFormLayout()
+                alembic_import_formlayout.setSpacing(6)
+                alembic_import_formlayout.setHorizontalSpacing(15)
+                alembic_import_formlayout.setVerticalSpacing(10)
+                alembic_import_formlayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldsStayAtSizeHint)
                 alembic_import_layout.addLayout(alembic_import_formlayout)
 
                 houdiniAlembicImpCreateDict = [
@@ -4023,6 +4113,10 @@ class MainUI(QtWidgets.QMainWindow):
                 alembic_export_layout.addWidget(alembic_export_label)
 
                 alembic_export_formlayout = QtWidgets.QFormLayout()
+                alembic_export_formlayout.setSpacing(6)
+                alembic_export_formlayout.setHorizontalSpacing(15)
+                alembic_export_formlayout.setVerticalSpacing(10)
+                alembic_export_formlayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldsStayAtSizeHint)
                 alembic_export_layout.addLayout(alembic_export_formlayout)
 
                 houdiniAlembicExpCreateDict = [
@@ -4398,11 +4492,16 @@ class MainUI(QtWidgets.QMainWindow):
                 templateFolder_le.setText(selectedroot)
             return
 
-        def updateTemplateFolder(folder):
-            if not os.path.isdir(folder):
+        def updateTemplateFolder():
+            folder = unicode(templateFolder_le.text()).encode("utf-8")
+            if not os.path.isdir(folder) and folder != "":
                 msg = "Entered path is invalid. Resetting to default"
                 self.infoPop(textTitle="Invalid Path", textHeader=msg)
                 templateFolder_le.setText(settings["templateFolder"])
+            else:
+                settings["templateFolder"] = folder
+                self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
+
 
         def updateFileName():
             template = unicode(fileNameConv_le.text()).encode("utf-8")
@@ -4432,6 +4531,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         ## SIGNALS
         templateFolderBrowse_pb.clicked.connect(browseTemplateFolder)
+        templateFolder_le.editingFinished.connect(updateTemplateFolder)
         fileNameConv_le.editingFinished.connect(updateFileName)
 
 
@@ -4526,6 +4626,7 @@ class MainUI(QtWidgets.QMainWindow):
                 lbl = QtWidgets.QLabel()
                 lbl.setText(widget["NiceName"])
                 spb = QtWidgets.QDoubleSpinBox()
+                spb.setMinimumSize(self.minSPBSize[0], self.minSPBSize[1])
                 spb.setFocusPolicy(QtCore.Qt.NoFocus)
                 spb.setMinimumWidth(60)
                 spb.setObjectName(widget["DictName"])
@@ -4546,6 +4647,7 @@ class MainUI(QtWidgets.QMainWindow):
                 lbl = QtWidgets.QLabel()
                 lbl.setText(widget["NiceName"])
                 spb = QtWidgets.QSpinBox()
+                spb.setMinimumSize(self.minSPBSize[0], self.minSPBSize[1])
                 spb.setFocusPolicy(QtCore.Qt.NoFocus)
                 spb.setMinimumWidth(60)
                 spb.setObjectName(widget["DictName"])
