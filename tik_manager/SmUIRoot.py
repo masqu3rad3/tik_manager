@@ -122,7 +122,6 @@ import ImageViewer
 
 import logging
 
-
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Tik Manager UI Boilerplate"
 __credits__ = []
@@ -179,6 +178,26 @@ class MainUI(QtWidgets.QMainWindow):
 
         with open(stylesheetFile, "r") as fh:
             self.setStyleSheet(fh.read())
+
+        ## fonts:
+        if FORCE_QT4:
+            self.iconFont = QtWidgets.QFont("Segoe UI Symbol", 12, QtWidgets.QFont.Bold)
+            self.headerAFont = QtWidgets.QFont("", 14, QtWidgets.QFont.Bold)
+            self.headerBFont = QtWidgets.QFont("", 10, QtWidgets.QFont.Bold)
+            self.displayFont = QtWidgets.QFont("", 8, QtWidgets.QFont.Bold)
+        else:
+            self.iconFont = QtGui.QFont("Segoe UI Symbol", 12, QtGui.QFont.Bold)
+            self.headerAFont = QtGui.QFont("", 14, QtGui.QFont.Bold)
+            self.headerBFont = QtGui.QFont("", 10, QtGui.QFont.Bold)
+            self.displayFont = QtGui.QFont("", 8, QtGui.QFont.Bold)
+
+        # self.headerAFont.setPointSize(14)
+        # self.headerAFont.setBold(True)
+        # self.headerAFont.setWeight(75)
+        #
+        # self.headerBFont.setPointSize(10)
+        # self.headerBFont.setBold(True)
+        # self.headerBFont.setWeight(75)
 
         # super(MainUI, self).closeEvent(event)
         self.superUser = False
@@ -247,11 +266,12 @@ class MainUI(QtWidgets.QMainWindow):
         try: self.baseScene_label.setMargin(margin)
         except AttributeError: pass
         self.baseScene_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-        if FORCE_QT4:
-            self.baseScene_label.setFont(QtWidgets.QFont("Times", 10, QtWidgets.QFont.Bold))
-        else:
-            self.baseScene_label.setFont(QtGui.QFont("Times", 10, QtGui.QFont.Bold))
+        # if FORCE_QT4:
+        #     self.baseScene_label.setFont(QtWidgets.QFont("Times", 10, QtWidgets.QFont.Bold))
+        # else:
+        #     self.baseScene_label.setFont(QtGui.QFont("Times", 10, QtGui.QFont.Bold))
 
+        self.baseScene_label.setFont(self.displayFont)
         headerLayout.addWidget(self.baseScene_label)
 
         self.managerIcon_label = QtWidgets.QLabel(self.centralwidget)
@@ -286,14 +306,17 @@ class MainUI(QtWidgets.QMainWindow):
         self.saveBaseScene_pushButton.setStyleSheet("min-width: 120; min-height: 45;")
 
         # self.saveBaseScene_pushButton.setFixedWidth(250)
-        self.saveBaseScene_pushButton.setText(("Save Base Scene"))
+        self.saveBaseScene_pushButton.setFont(self.iconFont)
+        self.saveBaseScene_pushButton.setText((" Save Base Scene".decode("utf-8")))
         self.main_horizontalLayout.addWidget(self.saveBaseScene_pushButton)
 
         self.saveVersion_pushButton = QtWidgets.QPushButton(self.centralwidget)
         # self.saveVersion_pushButton.setMinimumSize(QtCore.QSize(150, 45))
         # self.saveVersion_pushButton.setMaximumSize(QtCore.QSize(150, 45))
         self.saveVersion_pushButton.setStyleSheet("min-width: 120; min-height: 45;")
-        self.saveVersion_pushButton.setText(("Save As Version"))
+        self.saveVersion_pushButton.setFont(self.iconFont)
+
+        self.saveVersion_pushButton.setText((" Save As Version".decode("utf-8")))
         self.main_horizontalLayout.addWidget(self.saveVersion_pushButton)
 
         self.export_pushButton = QtWidgets.QPushButton(self.centralwidget)
@@ -344,17 +367,16 @@ class MainUI(QtWidgets.QMainWindow):
         self.addSubProject_pushButton.setMinimumSize(QtCore.QSize(30, 30))
         self.addSubProject_pushButton.setMaximumSize(QtCore.QSize(30, 30))
         self.addSubProject_pushButton.setStyleSheet("min-width: 20;" )
-        if FORCE_QT4:
-            plusfont = QtWidgets.QFont("Seqoe UI Symbol", 22, QtWidgets.QFont.Bold)
-        else:
-            plusfont = QtGui.QFont("Seqoe UI Symbol", 22, QtGui.QFont.Bold)
+        # if FORCE_QT4:
+        #     plusfont = QtWidgets.QFont("Segoe UI Symbol", 22, QtWidgets.QFont.Bold)
+        # else:
+        #     plusfont = QtGui.QFont("Segoe UI Symbol", 22, QtGui.QFont.Bold)
 
         # self.dirFilter_lineEdit.setFont(placeholderFont)
         # self.dirFilter_lineEdit.setPlaceholderText("🔍")
-        # resolvedPath_label.setFont(QtGui.QFont("Times", 7, QtGui.QFont.Bold))
 
-        self.addSubProject_pushButton.setText("+")
-        self.addSubProject_pushButton.setFont(plusfont)
+        self.addSubProject_pushButton.setFont(self.iconFont)
+        self.addSubProject_pushButton.setText("➕".decode("utf-8"))
 
 
         self.r2_gridLayout.addWidget(self.addSubProject_pushButton, 0, 4, 1, 1)
@@ -983,14 +1005,14 @@ class MainUI(QtWidgets.QMainWindow):
     def setProjectUI(self):
 
         # This method is NOT Software Specific
-        if FORCE_QT4:
-            iconFont = QtWidgets.QFont()
-        else:
-            iconFont = QtGui.QFont()
-        # iconFont = QtGui.QFont()
-        iconFont.setPointSize(12)
-        iconFont.setBold(True)
-        iconFont.setWeight(75)
+        # if FORCE_QT4:
+        #     iconFont = QtWidgets.QFont()
+        # else:
+        #     iconFont = QtGui.QFont()
+        # # iconFont = QtGui.QFont()
+        # iconFont.setPointSize(12)
+        # iconFont.setBold(True)
+        # iconFont.setWeight(75)
 
         self.setProject_Dialog = QtWidgets.QDialog(parent=self)
         self.setProject_Dialog.resize(982, 450)
@@ -1040,23 +1062,24 @@ class MainUI(QtWidgets.QMainWindow):
         sizePolicy.setHeightForWidth(self.back_pushButton.sizePolicy().hasHeightForWidth())
         self.back_pushButton.setSizePolicy(sizePolicy)
         self.back_pushButton.setMaximumSize(QtCore.QSize(30, 16777215))
-        self.back_pushButton.setFont(iconFont)
-        self.back_pushButton.setText(("<"))
+        self.back_pushButton.setFont(self.iconFont)
+        self.back_pushButton.setText("".decode("utf-8"))
         self.back_pushButton.setShortcut((""))
 
         M1_horizontalLayout.addWidget(self.back_pushButton)
 
         self.forward_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
         self.forward_pushButton.setMaximumSize(QtCore.QSize(30, 16777215))
-        self.forward_pushButton.setFont(iconFont)
-        self.forward_pushButton.setText((">"))
+        self.forward_pushButton.setFont(self.iconFont)
+        self.forward_pushButton.setText("".decode("utf-8"))
         self.forward_pushButton.setShortcut((""))
 
         M1_horizontalLayout.addWidget(self.forward_pushButton)
 
         up_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
         up_pushButton.setMaximumSize(QtCore.QSize(30, 16777215))
-        up_pushButton.setText(("Up"))
+        up_pushButton.setFont(self.iconFont)
+        up_pushButton.setText("".decode("utf-8"))
         up_pushButton.setShortcut((""))
 
         M1_horizontalLayout.addWidget(up_pushButton)
@@ -1118,16 +1141,16 @@ class MainUI(QtWidgets.QMainWindow):
 
         remove_pushButton = QtWidgets.QPushButton(verticalLayoutWidget)
         remove_pushButton.setMaximumSize(QtCore.QSize(35, 35))
-        remove_pushButton.setFont(iconFont)
-        remove_pushButton.setText(("-"))
+        remove_pushButton.setFont(self.iconFont)
+        remove_pushButton.setText("".decode("utf-8"))
         remove_pushButton.setObjectName(("remove_pushButton"))
 
         M2_S2_horizontalLayout.addWidget(remove_pushButton)
 
         add_pushButton = QtWidgets.QPushButton(verticalLayoutWidget)
         add_pushButton.setMaximumSize(QtCore.QSize(35, 35))
-        add_pushButton.setFont(iconFont)
-        add_pushButton.setText(("+"))
+        add_pushButton.setFont(self.iconFont)
+        add_pushButton.setText("".decode("utf-8"))
         add_pushButton.setObjectName(("add_pushButton"))
 
         M2_S2_horizontalLayout.addWidget(add_pushButton)
@@ -1149,13 +1172,13 @@ class MainUI(QtWidgets.QMainWindow):
         self.dirFilter_lineEdit = QtWidgets.QLineEdit(self.setProject_Dialog)
         self.dirFilter_lineEdit.setMaximumWidth(175)
 
-        if FORCE_QT4:
-            placeholderFont = QtWidgets.QFont("Seqoe UI Symbol")
-        else:
-            placeholderFont = QtGui.QFont("Seqoe UI Symbol")
+        # if FORCE_QT4:
+        #     placeholderFont = QtWidgets.QFont("Segoe UI Symbol", 12, QtWidgets.QFont.Bold)
+        # else:
+        #     placeholderFont = QtGui.QFont("Segoe UI Symbol", 12, QtGui.QFont.Bold)
 
-        self.dirFilter_lineEdit.setFont(placeholderFont)
-        self.dirFilter_lineEdit.setPlaceholderText("🔍")
+        self.dirFilter_lineEdit.setFont(self.iconFont)
+        self.dirFilter_lineEdit.setPlaceholderText("🔍".decode("utf-8"))
 
         M3_horizontalLayout.addWidget(dirFilter_label)
         M3_horizontalLayout.addWidget(self.dirFilter_lineEdit)
@@ -1427,7 +1450,8 @@ class MainUI(QtWidgets.QMainWindow):
         except AttributeError: pass
         resolvedPath_label.setIndent(2)
         # resolvedPath_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-        resolvedPath_label.setFont(QtGui.QFont("Times", 7, QtGui.QFont.Bold))
+        # resolvedPath_label.setFont(QtGui.QFont("Times", 7, QtGui.QFont.Bold))
+        resolvedPath_label.setFont(self.displayFont)
         resolvedPath_label.setWordWrap(True)
 
         headerLayout.addWidget(resolvedPath_label)
@@ -1931,15 +1955,16 @@ class MainUI(QtWidgets.QMainWindow):
         self.settingsMenu_treeWidget.setLineWidth(1)
         self.settingsMenu_treeWidget.setRootIsDecorated(True)
         self.settingsMenu_treeWidget.setHeaderHidden(True)
-        if FORCE_QT4:
-            font = QtWidgets.QFont()
-        else:
-            font = QtGui.QFont()
-        # font = QtGui.QFont()
-        font.setPointSize(12)
+        # if FORCE_QT4:
+        #     font = QtWidgets.QFont()
+        # else:
+        #     font = QtGui.QFont()
+        # # font = QtGui.QFont()
+        # font.setPointSize(12)
         # font.setBold(False)
         # font.setWeight(75)
-        self.settingsMenu_treeWidget.setFont(font)
+        # self.settingsMenu_treeWidget.setFont(font)
+        self.settingsMenu_treeWidget.setFont(self.headerBFont)
 
 
         self.userSettings_item = QtWidgets.QTreeWidgetItem(["User Settings"])
@@ -2014,21 +2039,6 @@ class MainUI(QtWidgets.QMainWindow):
         verticalLayout.addWidget(splitter)
 
         ## CONTENTS START
-        if FORCE_QT4:
-            self.headerAFont = QtWidgets.QFont()
-            self.headerBFont = QtWidgets.QFont()
-        else:
-            self.headerAFont = QtGui.QFont()
-            self.headerBFont = QtGui.QFont()
-
-        self.headerAFont.setPointSize(14)
-        self.headerAFont.setBold(True)
-        self.headerAFont.setWeight(75)
-
-        self.headerBFont.setPointSize(10)
-        self.headerBFont.setBold(True)
-        self.headerBFont.setWeight(75)
-
 
         # Visibility Widgets for EACH page
         self.userSettings_vis = QtWidgets.QWidget()
@@ -6807,6 +6817,7 @@ class Browse(object):
         self.history = []
         self.index = 0
         self.undoCount = 10
+
     def forward(self):
         if not self.isForwardLocked():
             self.index += 1

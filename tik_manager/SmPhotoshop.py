@@ -51,6 +51,7 @@ import _version
 
 from win32com.client import Dispatch
 # import comtypes.client as ct
+import win32gui
 
 # import pprint
 import logging
@@ -197,6 +198,9 @@ class PsManager(RootManager, PsCoreFunctions):
         self.textureTypes = self._sceneManagerDefaults["exportTextureTypes"]
         # self.psApp = ct.CreateObject('Photoshop.Application')
         self.psApp = Dispatch('Photoshop.Application')
+
+        # winName = win32gui.GetWindowText(win32gui.GetForegroundWindow())
+        # print winName
 
     # def getSoftwarePaths(self):
     #     """Overriden function"""
