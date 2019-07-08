@@ -232,6 +232,7 @@ class AssetLibrary(AssetEditor, RootManager):
         if not os.path.exists(directory):
             logger.error("Cannot reach the library directory: \n" + directory)
 
+        self.currentPlatform = self.getPlatform()
         self.errorCodeDict = {200: "Corrupted File",
                          201: "Missing File",
                          202: "Read/Write Error",
@@ -395,10 +396,10 @@ class AssetLibrary(AssetEditor, RootManager):
             notes = ""
         return notes
 
-    def addNote(self, assetName, note):
-        data = self._getData(assetName)
-        data["notes"] = note
-        self._setData(assetName, data)
+    # def addNote(self, assetName, note):
+    #     data = self._getData(assetName)
+    #     data["notes"] = note
+    #     self._setData(assetName, data)
 
     def addNote(self, assetName, note):
         """Adds a note to the version at current position"""
@@ -408,9 +409,10 @@ class AssetLibrary(AssetEditor, RootManager):
         self._setData(assetName, data)
 
 
-    def showInExplorer(self, assetName):
-        path = os.path.join(self.directory, assetName)
-        os.startfile(path)
+    def showAssetInExplorer(self, assetName):
+        a_path = os.path.join(self.directory, assetName)
+        self.showInExplorer(a_path)
+        # os.startfile(path)
 
     def showScreenShot(self, assetName):
         path = self.getScreenShot(assetName)
@@ -565,7 +567,6 @@ class MainUI(QtWidgets.QMainWindow):
         # self.colorBar.setIndent(0)
         # self.colorBar.setMaximumHeight(1)
 
-
         colorWidget = QtWidgets.QWidget(self.centralwidget)
         colorWidget.setObjectName("header")
         headerLayout = QtWidgets.QHBoxLayout(colorWidget)
@@ -590,22 +591,26 @@ class MainUI(QtWidgets.QMainWindow):
 
         headerLayout.addWidget(tikIcon_label)
 
-        self.resolvedPath_label = QtWidgets.QLabel()
-        self.resolvedPath_label.setObjectName("header")
-        # resolvedPath_label.setMargin(margin)
-        try: self.resolvedPath_label.setMargin(margin)
+        self.currentProject_label = QtWidgets.QLabel()
+        self.currentProject_label.setObjectName("header")
+        try: self.currentProject_label.setMargin(margin)
         except AttributeError: pass
-        self.resolvedPath_label.setIndent(2)
+        self.currentProject_label.setIndent(2)
         if FORCE_QT4:
-            self.resolvedPath_label.setFont(QtWidgets.QFont("Times", 7, QtWidgets.QFont.Bold))
+            self.currentProject_label.setFont(QtWidgets.QFont("Segoe UI Symbol", 8, QtWidgets.QFont.Bold))
         else:
-            self.resolvedPath_label.setFont(QtGui.QFont("Times", 7, QtGui.QFont.Bold))
-            self.resolvedPath_label.setWordWrap(True)
-            self.resolvedPath_label.setText("TESTINGENSTRASSE")
+            self.currentProject_label.setFont(QtGui.QFont("Segoe UI Symbol", 8, QtGui.QFont.Bold))
+        self.currentProject_label.setWordWrap(True)
+        headerLayout.addWidget(self.currentProject_label)
 
-        # headerLayout.addWidget(self.resolvedPath_label)
+        self.managerIcon_label = QtWidgets.QLabel(self.centralwidget)
+        self.managerIcon_label.setObjectName("header")
+        try: self.managerIcon_label.setMargin(margin)
+        except AttributeError: pass
+        self.managerIcon_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        self.managerIcon_label.setScaledContents(False)
 
-
+        headerLayout.addWidget(self.managerIcon_label)
 
         # colorWidget.setStyleSheet(barColor)
         self.masterLayout.addWidget(colorWidget)
@@ -629,6 +634,7 @@ class MainUI(QtWidgets.QMainWindow):
                 self.removeLibrary(name)
                 continue
             preTab = LibraryTab(path, self.viewOnly)
+            self.currentProject_label.setText(preTab.currentProject)
             self.tabWidget.addTab(preTab, name)
             preTab.setObjectName(name)
             preTab.setLayout(preTab.layout)
@@ -774,6 +780,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         # add the tab
         preTab = LibraryTab(path, viewOnly=self.viewOnly)
+        self.currentProject_label.setText(preTab.currentProject)
         self.tabWidget.addTab(preTab, name)
         preTab.setObjectName(name)
         preTab.setLayout(preTab.layout)
@@ -842,7 +849,8 @@ class LibraryTab(QtWidgets.QWidget):
         self.wireframeMode = -1 # 1 is for screenshot -1 for wireframe
 
         self.library = AssetLibrary(directory)
-        if self.library.swName:
+
+        if not self.library.swName:
             self.currentProject = ""
         else:
             self.currentProject = self.library.projectDir
@@ -1037,6 +1045,10 @@ class LibraryTab(QtWidgets.QWidget):
         self.importOther_pushButton.setText(("Import Other"))
         rightUp_vLayout.addWidget(self.importOther_pushButton)
 
+        self.execute_pushButton = QtWidgets.QPushButton(self.frame_right)
+        self.execute_pushButton.setText("Execute")
+        rightUp_vLayout.addWidget(self.execute_pushButton)
+
         self.rightUp_gridLayout = QtWidgets.QGridLayout()
         self.rightUp_gridLayout.setContentsMargins(-1, -1, 10, 10)
 
@@ -1169,6 +1181,7 @@ class LibraryTab(QtWidgets.QWidget):
         # self.import_pushButton.clicked.connect(self.onImportAsset)
         self.mergeScene_pushButton.clicked.connect(self.onMergeAsset)
         self.importOther_pushButton.clicked.connect(self.onImportOther)
+        self.execute_pushButton.clicked.connect(self.onExecute)
         self.load_pushButton.clicked.connect(self.onLoadAsset)
         self.createNewAsset_pushButton.clicked.connect(self.createNewAssetUI)
 
@@ -1594,6 +1607,28 @@ class LibraryTab(QtWidgets.QWidget):
         #     zortMenu.exec_((QtGui.QCursor.pos()))
         zortMenu.exec_((QtGui.QCursor.pos()))
 
+    def onExecute(self):
+        assetName = self._getCurrentAssetName()
+        if not assetName:
+            return
+
+        assetData = self.library._getData(unicode(assetName).encode("utf-8"))
+        print assetData
+        otherFormats = self._getOtherFormats(assetData)
+        zortMenu = QtWidgets.QMenu()
+        for z in otherFormats:
+            tempAction = QtWidgets.QAction(z, self)
+            zortMenu.addAction(tempAction)
+            tempAction.triggered.connect(lambda item=z: self.library.executeFile(os.path.join(self.directory, unicode(assetName).encode("utf-8"))))
+        # if BoilerDict["Environment"] == "Standalone":
+        #     zortMenu.exec_((QtWidgets.QCursor.pos()))
+        # else:
+        #     zortMenu.exec_((QtGui.QCursor.pos()))
+        if BoilerDict["Environment"] == "Standalone":
+            zortMenu.exec_((QtWidgets.QCursor.pos()))
+        else:
+            zortMenu.exec_((QtGui.QCursor.pos()))
+
     def multiImport(self, assetName, format):
         # print assetName, format
         if format == "Obj":
@@ -1680,7 +1715,7 @@ class LibraryTab(QtWidgets.QWidget):
         name = str(currentItem.text())
 
         if item == 'showInExplorer':
-            self.library.showInExplorer(name)
+            self.library.showAssetInExplorer(name)
 
         elif item == 'viewModeChange':
             self.viewModeState = self.viewModeState * -1

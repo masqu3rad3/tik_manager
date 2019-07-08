@@ -848,7 +848,8 @@ class MainUI(baseUI):
         self.scenes_listWidget.clear()
         # self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.swColorDict[str(self.software_comboBox.currentText())])
         self.software_comboBox.setStyleSheet("background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:1 #404040, stop:0.11 #404040, stop:0.1 %s)" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
-        self.colorBar.setStyleSheet("background-color: %s;" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
+        # self.colorBar.setStyleSheet("background-color: %s;" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
+        self.colorBar.setStyleSheet("background-color: %s;" %self.manager.getColorCoding(niceName=""))
 
         self._vEnableDisable()
         self.category_tabWidget.blockSignals(False)
@@ -870,10 +871,12 @@ class MainUI(baseUI):
         self.software_comboBox.clear()
         for x in self.manager.swList:
             self.software_comboBox.addItem(x.swName)
+        # print self.manager.getColorCoding(niceName="standalone")
 
         # self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.swColorDict[str(self.software_comboBox.currentText())])
         self.software_comboBox.setStyleSheet("background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:1 #404040, stop:0.11 #404040, stop:0.1 %s)" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
-        self.colorBar.setStyleSheet("background-color: %s;" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
+        # self.colorBar.setStyleSheet("background-color: %s;" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
+        self.colorBar.setStyleSheet("background-color: %s;" %self.manager.getColorCoding(niceName=""))
 
         self.software_comboBox.blockSignals(False)
 
@@ -886,7 +889,8 @@ class MainUI(baseUI):
         self.populateBaseScenes()
         # self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.swColorDict[str(self.software_comboBox.currentText())])
         self.software_comboBox.setStyleSheet("background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:1 #404040, stop:0.11 #404040, stop:0.1 %s)" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
-        self.colorBar.setStyleSheet("background-color: %s;" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
+        # self.colorBar.setStyleSheet("background-color: %s;" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
+        self.colorBar.setStyleSheet("background-color: %s;" %self.manager.getColorCoding(niceName=""))
 
         # self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
         self._vEnableDisable()

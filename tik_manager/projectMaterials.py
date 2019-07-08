@@ -49,12 +49,6 @@ try:
 
     BoilerDict["Environment"] = "Maya"
     BoilerDict["WindowTitle"] = "Project Materials Maya v%s" % _version.__version__
-    if Qt.__binding__ == "PySide":
-        from shiboken import wrapInstance
-    elif Qt.__binding__.startswith('PyQt'):
-        from sip import wrapinstance as wrapInstance
-    else:
-        from shiboken2 import wrapInstance
 except ImportError:
     pass
 
@@ -158,6 +152,12 @@ ColorStyleDict = {"Storyboard": "border: 2px solid #ff7b00",
 def getMainWindow():
     """This function should be overriden"""
     if BoilerDict["Environment"] == "Maya":
+        if Qt.__binding__ == "PySide":
+            from shiboken import wrapInstance
+        elif Qt.__binding__.startswith('PyQt'):
+            from sip import wrapinstance as wrapInstance
+        else:
+            from shiboken2 import wrapInstance
         win = omui.MQtUtil_mainWindow()
         ptr = wrapInstance(long(win), QtWidgets.QMainWindow)
         return ptr
@@ -171,7 +171,10 @@ def getMainWindow():
         return hou.qt.mainWindow()
 
     elif BoilerDict["Environment"] == "Nuke":
-        # TODO // Needs a main window getter for nuke
+        app = QtWidgets.QApplication.instance()
+        for widget in app.topLevelWidgets():
+            if widget.metaObject().className() == 'Foundry::UI::DockMainWindow':
+                return widget
         return None
 
     else:

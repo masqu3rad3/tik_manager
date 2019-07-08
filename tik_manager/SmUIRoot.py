@@ -56,12 +56,12 @@ try:
     BoilerDict["Environment"] = "Maya"
     BoilerDict["WindowTitle"] = "Tik Manager Maya v%s" %_version.__version__
     BoilerDict["SceneFormats"] = ["mb", "ma"]
-    if Qt.__binding__ == "PySide":
-        from shiboken import wrapInstance
-    elif Qt.__binding__.startswith('PyQt'):
-        from sip import wrapinstance as wrapInstance
-    else:
-        from shiboken2 import wrapInstance
+    # if Qt.__binding__ == "PySide":
+    #     from shiboken import wrapInstance
+    # elif Qt.__binding__.startswith('PyQt'):
+    #     from sip import wrapinstance as wrapInstance
+    # else:
+    #     from shiboken2 import wrapInstance
 except ImportError:
     pass
 
@@ -131,12 +131,18 @@ __email__ = "ardakutlu@gmail.com"
 __status__ = "Development"
 
 logging.basicConfig()
-logger = logging.getLogger('smPhotoshop')
+logger = logging.getLogger('smUIRoot')
 logger.setLevel(logging.WARNING)
 
 def getMainWindow():
     """This function should be overriden"""
     if BoilerDict["Environment"] == "Maya":
+        if Qt.__binding__ == "PySide":
+            from shiboken import wrapInstance
+        elif Qt.__binding__.startswith('PyQt'):
+            from sip import wrapinstance as wrapInstance
+        else:
+            from shiboken2 import wrapInstance
         win = omui.MQtUtil_mainWindow()
         ptr = wrapInstance(long(win), QtWidgets.QMainWindow)
         return ptr
@@ -150,7 +156,10 @@ def getMainWindow():
         return hou.qt.mainWindow()
 
     elif BoilerDict["Environment"] == "Nuke":
-        # TODO // Needs a main window getter for nuke
+        app = QtWidgets.QApplication.instance()
+        for widget in app.topLevelWidgets():
+            if widget.metaObject().className() == 'Foundry::UI::DockMainWindow':
+                return widget
         return None
 
     else:
@@ -182,14 +191,14 @@ class MainUI(QtWidgets.QMainWindow):
         ## fonts:
         if FORCE_QT4:
             self.iconFont = QtWidgets.QFont("Segoe UI Symbol", 12, QtWidgets.QFont.Bold)
-            self.headerAFont = QtWidgets.QFont("", 14, QtWidgets.QFont.Bold)
-            self.headerBFont = QtWidgets.QFont("", 10, QtWidgets.QFont.Bold)
-            self.displayFont = QtWidgets.QFont("", 8, QtWidgets.QFont.Bold)
+            self.headerAFont = QtWidgets.QFont("Segoe UI Symbol", 14, QtWidgets.QFont.Bold)
+            self.headerBFont = QtWidgets.QFont("Segoe UI Symbol", 10, QtWidgets.QFont.Bold)
+            self.displayFont = QtWidgets.QFont("Segoe UI Symbol", 8, QtWidgets.QFont.Bold)
         else:
             self.iconFont = QtGui.QFont("Segoe UI Symbol", 12, QtGui.QFont.Bold)
-            self.headerAFont = QtGui.QFont("", 14, QtGui.QFont.Bold)
-            self.headerBFont = QtGui.QFont("", 10, QtGui.QFont.Bold)
-            self.displayFont = QtGui.QFont("", 8, QtGui.QFont.Bold)
+            self.headerAFont = QtGui.QFont("Segoe UI Symbol", 14, QtGui.QFont.Bold)
+            self.headerBFont = QtGui.QFont("Segoe UI Symbol", 10, QtGui.QFont.Bold)
+            self.displayFont = QtGui.QFont("Segoe UI Symbol", 8, QtGui.QFont.Bold)
 
         # self.headerAFont.setPointSize(14)
         # self.headerAFont.setBold(True)
@@ -323,7 +332,8 @@ class MainUI(QtWidgets.QMainWindow):
         # self.export_pushButton.setMinimumSize(QtCore.QSize(150, 45))
         # self.export_pushButton.setMaximumSize(QtCore.QSize(150, 45))
         self.export_pushButton.setStyleSheet("min-width: 120; min-height: 45;")
-        self.export_pushButton.setText(("Transfer Central"))
+        self.export_pushButton.setFont(self.iconFont)
+        self.export_pushButton.setText("Transfer Central")
         self.main_horizontalLayout.addWidget(self.export_pushButton)
         # make it invisible
         self.export_pushButton.setVisible(True)
@@ -337,6 +347,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.loadScene_pushButton.setStyleSheet("min-width: 120; min-height: 45;")
 
         self.loadScene_pushButton.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.loadScene_pushButton.setFont(self.iconFont)
         self.loadScene_pushButton.setText(("Load Scene"))
         self.main_horizontalLayout.addWidget(self.loadScene_pushButton)
         #
@@ -1854,6 +1865,39 @@ class MainUI(QtWidgets.QMainWindow):
             # print it
             if absPath:
                 self.manager.importTransfers(absPath)
+
+        def onContextMenu_transfers(point):
+            # print transfers_treeWidget.selectedItems()[0].text(0)
+            if transfers_treeWidget.selectedItems()[0].text(1): # if there is a path info on the widget item
+                popMenu_transfers.exec_(transfers_treeWidget.mapToGlobal(point))
+
+        def importRc_actions(action):
+            if action == "showInExplorer":
+                manager = self._getManager()
+                manager.showInExplorer(transfers_treeWidget.selectedItems()[0].text(1))
+            if action == "execute":
+                manager = self._getManager()
+                manager.executeFile(transfers_treeWidget.selectedItems()[0].text(1))
+        ## -----------------
+        ## RIGHT CLICK MENUS
+        ## -----------------
+        transfers_treeWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        transfers_treeWidget.customContextMenuRequested.connect(onContextMenu_transfers)
+        popMenu_transfers = QtWidgets.QMenu()
+
+        # QtWidgets.QTreeWidgetItem.
+
+        transfers_rcItem_0 = QtWidgets.QAction('Show in Explorer', self)
+        popMenu_transfers.addAction(transfers_rcItem_0)
+        transfers_rcItem_0.triggered.connect(lambda: importRc_actions("showInExplorer"))
+
+        transfers_rcItem_1 = QtWidgets.QAction('Execute', self)
+        popMenu_transfers.addAction(transfers_rcItem_1)
+        transfers_rcItem_1.triggered.connect(lambda: importRc_actions("execute"))
+
+
+
+
 
         ## ------------------
         ## SIGNAL CONNECTIONS
@@ -4368,37 +4412,49 @@ class MainUI(QtWidgets.QMainWindow):
         ################################################
 
         formLayout = QtWidgets.QFormLayout()
+        formLayout.setSpacing(6)
+        formLayout.setHorizontalSpacing(15)
+        formLayout.setVerticalSpacing(10)
+        formLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldsStayAtSizeHint)
         formLayout.setSpacing(8)
         oldPass_label = QtWidgets.QLabel()
         oldPass_label.setText("Old Password: ")
         oldPass_lineEdit = QtWidgets.QLineEdit()
-        # oldPass_lineEdit.setMaximumWidth(200)
+        oldPass_lineEdit.setMinimumWidth(200)
         oldPass_lineEdit.setEchoMode(QtWidgets.QLineEdit.Password)
         formLayout.addRow(oldPass_label, oldPass_lineEdit)
 
         newPass_label = QtWidgets.QLabel()
         newPass_label.setText("New Password: ")
         newPass_lineEdit = QtWidgets.QLineEdit()
-        # newPass_lineEdit.setMaximumWidth(200)
+        newPass_lineEdit.setMinimumWidth(200)
         newPass_lineEdit.setEchoMode(QtWidgets.QLineEdit.Password)
         formLayout.addRow(newPass_label, newPass_lineEdit)
 
         newPassAgain_label = QtWidgets.QLabel()
         newPassAgain_label.setText("New Password Again: ")
         newPassAgain_lineEdit = QtWidgets.QLineEdit()
-        # newPassAgain_lineEdit.setMaximumWidth(200)
+        newPassAgain_lineEdit.setMinimumWidth(200)
         newPassAgain_lineEdit.setEchoMode(QtWidgets.QLineEdit.Password)
         formLayout.addRow(newPassAgain_label, newPassAgain_lineEdit)
+
+        changePass_btn = QtWidgets.QPushButton()
+        changePass_btn.setText("Change Password")
+        changePass_btn.setStyleSheet("min-width: 200px;")
+        changePass_btn.setMinimumWidth(200)
+        changePass_btn.setMaximumWidth(200)
+        # formLayout.addRow(changePass_btn)
+        formLayout.setWidget(3,QtWidgets.QFormLayout.FieldRole, changePass_btn)
 
 
         ################################################
 
         h1_s1_layout.addLayout(formLayout)
-
-        changePass_btn = QtWidgets.QPushButton()
-        changePass_btn.setText("Change Password")
-        h1_s1_layout.addWidget(changePass_btn)
-
+        #
+        # changePass_btn = QtWidgets.QPushButton()
+        # changePass_btn.setText("Change Password")
+        # h1_s1_layout.addWidget(changePass_btn)
+        #
         passwords_Layout.addLayout(h1_s1_layout)
 
 

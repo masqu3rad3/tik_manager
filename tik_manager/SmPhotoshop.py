@@ -56,6 +56,8 @@ import win32gui
 # import pprint
 import logging
 
+import win32gui
+
 ## DO NOT REMOVE THIS:
 import iconsSource as icons
 ## DO NOT REMOVE THIS:
@@ -847,12 +849,12 @@ class PsManager(RootManager, PsCoreFunctions):
         inputDir = str(QtWidgets.QFileDialog.getExistingDirectory())
         return os.path.normpath(inputDir)
 
-
+import win32gui
 class MainUI(baseUI):
     """Main UI Class. Inherits SmUIRoot.py"""
     def __init__(self):
         super(MainUI, self).__init__()
-        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        # self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.manager = PsManager()
         # self.manager = self._getManager()
         # problem, msg = self.manager._checkRequirements()
@@ -861,7 +863,9 @@ class MainUI(baseUI):
         #     self.deleteLater()
 
         # self.windowName = "Tik Manager Photoshop v%s" %_version.__version__
+        # whndl = win32gui.FindWindow(None, "Photoshop.Application")
 
+        # self.setParent(whndl, int(self.winId()))
 
         self.buildUI()
         self.extraMenus()

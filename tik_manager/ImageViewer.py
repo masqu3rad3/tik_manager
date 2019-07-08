@@ -54,12 +54,6 @@ try:
     from Qt import QtWidgets, QtCore, QtGui
     BoilerDict["Environment"] = "Maya"
     BoilerDict["WindowTitle"] = "Image Viewer Maya v%s" % _version.__version__
-    if Qt.__binding__ == "PySide":
-        from shiboken import wrapInstance
-    elif Qt.__binding__.startswith('PyQt'):
-        from sip import wrapinstance as wrapInstance
-    else:
-        from shiboken2 import wrapInstance
 except ImportError:
     pass
 
@@ -169,6 +163,12 @@ def importSequence(pySeq_sequence):
 def getMainWindow():
     """This function should be overriden"""
     if BoilerDict["Environment"] == "Maya":
+        if Qt.__binding__ == "PySide":
+            from shiboken import wrapInstance
+        elif Qt.__binding__.startswith('PyQt'):
+            from sip import wrapinstance as wrapInstance
+        else:
+            from shiboken2 import wrapInstance
         win = omui.MQtUtil_mainWindow()
         ptr = wrapInstance(long(win), QtWidgets.QMainWindow)
         return ptr
@@ -182,7 +182,10 @@ def getMainWindow():
         return hou.qt.mainWindow()
 
     elif BoilerDict["Environment"] == "Nuke":
-        # TODO // Needs a main window getter for nuke
+        app = QtWidgets.QApplication.instance()
+        for widget in app.topLevelWidgets():
+            if widget.metaObject().className() == 'Foundry::UI::DockMainWindow':
+                return widget
         return None
 
     else:
@@ -295,61 +298,81 @@ class MainUI(QtWidgets.QMainWindow):
     def buildUI(self):
         """Elements of the Main UI"""
         masterLayout = QtWidgets.QVBoxLayout(self.centralwidget)
-
-
         # ----------
         # HEADER BAR
         # ----------
         margin = 5
+        self.colorBar = QtWidgets.QLabel()
+        self.colorBar.setStyleSheet("background-color: rgb(0,0,0,0);")
+        masterLayout.addWidget(self.colorBar)
+        # pyside does not have setMargin attribute
+        try: self.colorBar.setMargin(0)
+        except AttributeError: pass
+        self.colorBar.setIndent(0)
+        self.colorBar.setMaximumHeight(1)
+
         colorWidget = QtWidgets.QWidget(self.centralwidget)
-        colorWidget.setMaximumHeight(50)
         colorWidget.setObjectName("header")
         headerLayout = QtWidgets.QHBoxLayout(colorWidget)
         headerLayout.setSpacing(0)
         try: headerLayout.setMargin(0)
         except AttributeError: pass
 
+
+        colorWidget = QtWidgets.QWidget(self.centralwidget)
+        colorWidget.setMaximumHeight(60)
+        colorWidget.setObjectName("header")
+        headerLayout = QtWidgets.QHBoxLayout(colorWidget)
+        headerLayout.setSpacing(0)
+        # headerLayout.setContentsMargins(100, -1, -1, -1)
+        try: headerLayout.setMargin(0)
+        except AttributeError: pass
+
         tikIcon_label = QtWidgets.QLabel(self.centralwidget)
         tikIcon_label.setObjectName("header")
-        tikIcon_label.setMaximumWidth(125)
-
         try: tikIcon_label.setMargin(margin)
         except AttributeError: pass
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
-        # iconsDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "CSS", "rc")
         if FORCE_QT4:
-            # headerBitmap = QtWidgets.QPixmap(os.path.join(iconsDir, "tmImageViewer.png"))
-            headerBitmap = QtWidgets.QPixmap(":/icons/CSS/rc/tmImageViewer.png")
+            # headerBitmap = QtWidgets.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
+            headerBitmap = QtWidgets.QPixmap(":/icons/CSS/rc/tmMain.png")
         else:
-            # headerBitmap = QtGui.QPixmap(os.path.join(iconsDir, "tmImageViewer.png"))
-            headerBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmImageViewer.png")
+            # headerBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
+            headerBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmMain.png")
         tikIcon_label.setPixmap(headerBitmap)
 
         headerLayout.addWidget(tikIcon_label)
 
-        resolvedPath_label = QtWidgets.QLabel()
-        resolvedPath_label.setObjectName("header")
-        try: resolvedPath_label.setMargin(margin)
+        self.baseScene_label = QtWidgets.QLabel(self.centralwidget)
+        self.baseScene_label.setObjectName("header")
+        try: self.baseScene_label.setMargin(margin)
         except AttributeError: pass
-        resolvedPath_label.setIndent(2)
+        self.baseScene_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         if FORCE_QT4:
-            resolvedPath_label.setFont(QtWidgets.QFont("Times", 7, QtWidgets.QFont.Bold))
+            self.baseScene_label.setFont(QtWidgets.QFont("Times", 10, QtWidgets.QFont.Bold))
         else:
-            resolvedPath_label.setFont(QtGui.QFont("Times", 7, QtGui.QFont.Bold))
-        resolvedPath_label.setWordWrap(True)
+            self.baseScene_label.setFont(QtGui.QFont("Times", 10, QtGui.QFont.Bold))
 
-        headerLayout.addWidget(resolvedPath_label)
+        # self.baseScene_label.setFont(self.displayFont)
+        headerLayout.addWidget(self.baseScene_label)
 
+        self.managerIcon_label = QtWidgets.QLabel(self.centralwidget)
+        self.managerIcon_label.setObjectName("header")
+        try: self.managerIcon_label.setMargin(margin)
+        except AttributeError: pass
+        self.managerIcon_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        self.managerIcon_label.setScaledContents(False)
+
+        headerLayout.addWidget(self.managerIcon_label)
+
+        # colorWidget.setStyleSheet(barColor)
         masterLayout.addWidget(colorWidget)
-
-        # spacerItem = QtWidgets.QSpacerItem(500, 500, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        # masterLayout.addItem(spacerItem)
         # ----------
         # ----------
 
 
-        self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
+        self.gridLayout = QtWidgets.QGridLayout()
         self.gridLayout.setObjectName(("gridLayout"))
         masterLayout.addLayout(self.gridLayout)
 

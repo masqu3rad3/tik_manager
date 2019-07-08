@@ -71,7 +71,7 @@ class RootManager(object):
         # self.database = db.SmDatabase()
         # self.validCategories = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
 
-        self.currentPlatform = platform.system()
+        self.currentPlatform = self.getPlatform()
         self._pathsDict={}
         self.fpsList=["2", "3", "4", "5", "6", "8", "10", "12", "15", "16", "20",
                       "23.976", "24", "25", "29.97", "30", "40", "47.952", "48",
@@ -824,9 +824,9 @@ class RootManager(object):
             return None
 
     def getColorCoding(self, niceName=None):
-        if niceName:
+        if niceName or niceName == "":
             try: keyColor = self._userSettings["colorCoding"][niceName]
-            except KeyError: keyColor = "rgb (0, 0, 0, 0)"
+            except KeyError: keyColor = "rgb (0, 0, 0, 255)"
             return keyColor
         else:
             return self._userSettings["colorCoding"]
@@ -987,16 +987,37 @@ class RootManager(object):
         self.currentSubIndex = len(self._subProjectsList)-1
         return self._subProjectsList
 
-    def showInExplorer(self, path):
+    def executeFile(self, filePath):
+        """executes the file"""
+        logger.debug("Func: showInExplorer")
+
+        if not os.path.isfile(filePath):
+            logger.warning("Given path is not a file")
+            pass
+
+        if self.currentPlatform == "Windows":
+            os.startfile(filePath)
+        elif self.currentPlatform == "Darwin":
+            logger.warning("not yet implemented")
+            pass
+            # subprocess.Popen(["open", filePath])
+        else:
+            logger.warning("not yet implemented")
+            pass
+            # subprocess.Popen(["xdg-open", filePath])
+
+    def showInExplorer(self, tpath):
         """Opens the path in Windows Explorer(Windows) or Nautilus(Linux)"""
         logger.debug("Func: showInExplorer")
 
+        if os.path.isfile(tpath):
+            path = os.path.dirname(tpath)
         if self.currentPlatform == "Windows":
-            os.startfile(path)
+            os.startfile(tpath)
         elif self.currentPlatform == "Darwin":
-            subprocess.Popen(["open", path])
+            subprocess.Popen(["open", tpath])
         else:
-            subprocess.Popen(["xdg-open", path])
+            subprocess.Popen(["xdg-open", tpath])
 
         # elif self.currentPlatform == "Linux":
         #     os.system('nautilus %s' % path)
@@ -2247,6 +2268,9 @@ Elapsed Time:{6}
         else:
             vMsg = "Tik Manager is up to date"
             return vMsg, None, None
+
+    def getPlatform(self):
+        return platform.system()
 
     def _convertPreview(self, sourceFile, overwrite=True, deleteAfter=False, crf=None):
         # abort if system is not supported or converter exe is missing
