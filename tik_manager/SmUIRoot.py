@@ -2331,7 +2331,7 @@ class MainUI(QtWidgets.QMainWindow):
         localFavorites_radiobutton.setText("Software Specific")
         localFavorites_radiobutton.setChecked(not manager.isGlobalFavorites())
 
-        favorites_buttonGroup = QtWidgets.QButtonGroup()
+        favorites_buttonGroup = QtWidgets.QButtonGroup(self.userSettings_vis)
         favorites_buttonGroup.addButton(globalFavorites_radiobutton)
         favorites_buttonGroup.addButton(localFavorites_radiobutton)
         favorites_layout.addWidget(globalFavorites_radiobutton)
@@ -2348,7 +2348,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         commonDir_lineEdit = QtWidgets.QLineEdit()
         commonDir_lineEdit.setText(manager.getSharedSettingsDir())
-        commonDir_lineEdit.setMinimumWidth(250)
+        commonDir_lineEdit.setMinimumWidth(350)
         commonDir_layout.addWidget(commonDir_lineEdit)
 
         setCommon_button = QtWidgets.QPushButton()
@@ -2366,6 +2366,235 @@ class MainUI(QtWidgets.QMainWindow):
         colorCoding_formlayout.setSpacing(2)
         colorCoding_formlayout.setVerticalSpacing(5)
         userSettings_formLayout.setLayout(3, QtWidgets.QFormLayout.FieldRole, colorCoding_formlayout)
+
+        # Executable paths
+        # header lbl
+        executables_lbl = QtWidgets.QLabel()
+        executables_lbl.setFont(self.headerBFont)
+        executables_lbl.setText("Executable Paths")
+        userSettings_formLayout.addRow(executables_lbl)
+
+        # Images
+        exeImages_lbl = QtWidgets.QLabel()
+        exeImages_lbl.setText("Image viewer: ")
+
+        exeImages_vlay = QtWidgets.QVBoxLayout()
+        exeImages_vlay.setSpacing(6)
+        exeImages_hlay1 = QtWidgets.QHBoxLayout()
+        exeImages_hlay2 = QtWidgets.QHBoxLayout()
+        exeImages_vlay.addLayout(exeImages_hlay1)
+        exeImages_vlay.addLayout(exeImages_hlay2)
+
+        exeImages_def_rbtn = QtWidgets.QRadioButton()
+        exeImages_def_rbtn.setText("System Default")
+        exeImages_def_rbtn.setChecked(True)
+        exeImages_cus_rbtn = QtWidgets.QRadioButton()
+        exeImages_cus_rbtn.setText("Custom Executable")
+        exeImages_cus_rbtn.setChecked(False)
+
+        exeImages_buttonGroup = QtWidgets.QButtonGroup(self.userSettings_vis)
+        exeImages_buttonGroup.addButton(exeImages_def_rbtn)
+        exeImages_buttonGroup.addButton(exeImages_cus_rbtn)
+        exeImages_hlay1.addWidget(exeImages_def_rbtn)
+        exeImages_hlay1.addWidget(exeImages_cus_rbtn)
+        spacerItem = QtWidgets.QSpacerItem(150, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        exeImages_hlay1.addItem(spacerItem)
+
+        exeImages_le = QtWidgets.QLineEdit()
+        exeImages_le.setMinimumWidth(350)
+        exeImages_le.setPlaceholderText("Define an executable for images")
+        exeImages_hlay2.addWidget(exeImages_le)
+        exeImages_pbtn = QtWidgets.QPushButton()
+        exeImages_pbtn.setText("...")
+        exeImages_pbtn.setStyleSheet("min-width: 20px;")
+        exeImages_hlay2.addWidget(exeImages_pbtn)
+
+        userSettings_formLayout.addRow(exeImages_lbl, exeImages_vlay)
+        
+        # Image sequences
+        exeImageSeq_lbl = QtWidgets.QLabel()
+        exeImageSeq_lbl.setText("Image Sequences: ")
+
+        exeImageSeq_vlay = QtWidgets.QVBoxLayout()
+        exeImageSeq_vlay.setSpacing(6)
+        exeImageSeq_hlay1 = QtWidgets.QHBoxLayout()
+        exeImageSeq_hlay2 = QtWidgets.QHBoxLayout()
+        exeImageSeq_vlay.addLayout(exeImageSeq_hlay1)
+        exeImageSeq_vlay.addLayout(exeImageSeq_hlay2)
+
+        exeImageSeq_def_rbtn = QtWidgets.QRadioButton()
+        exeImageSeq_def_rbtn.setText("System Default")
+        exeImageSeq_def_rbtn.setChecked(True)
+        exeImageSeq_cus_rbtn = QtWidgets.QRadioButton()
+        exeImageSeq_cus_rbtn.setText("Custom Executable")
+        exeImageSeq_cus_rbtn.setChecked(False)
+
+        exeImageSeq_buttonGroup = QtWidgets.QButtonGroup(self.userSettings_vis)
+        exeImageSeq_buttonGroup.addButton(exeImageSeq_def_rbtn)
+        exeImageSeq_buttonGroup.addButton(exeImageSeq_cus_rbtn)
+        exeImageSeq_hlay1.addWidget(exeImageSeq_def_rbtn)
+        exeImageSeq_hlay1.addWidget(exeImageSeq_cus_rbtn)
+        spacerItem = QtWidgets.QSpacerItem(150, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        exeImageSeq_hlay1.addItem(spacerItem)
+
+        exeImageSeq_le = QtWidgets.QLineEdit()
+        exeImageSeq_le.setMinimumWidth(350)
+        exeImageSeq_le.setPlaceholderText("Define an executable for image sequences")
+        exeImageSeq_hlay2.addWidget(exeImageSeq_le)
+        exeImageSeq_pbtn = QtWidgets.QPushButton()
+        exeImageSeq_pbtn.setText("...")
+        exeImageSeq_pbtn.setStyleSheet("min-width: 20px;")
+        exeImageSeq_hlay2.addWidget(exeImageSeq_pbtn)
+
+        userSettings_formLayout.addRow(exeImageSeq_lbl, exeImageSeq_vlay)
+        
+        # Video Files
+        exeVideo_lbl = QtWidgets.QLabel()
+        exeVideo_lbl.setText("Video Files: ")
+
+        exeVideo_vlay = QtWidgets.QVBoxLayout()
+        exeVideo_vlay.setSpacing(6)
+        exeVideo_hlay1 = QtWidgets.QHBoxLayout()
+        exeVideo_hlay2 = QtWidgets.QHBoxLayout()
+        exeVideo_vlay.addLayout(exeVideo_hlay1)
+        exeVideo_vlay.addLayout(exeVideo_hlay2)
+
+        exeVideo_def_rbtn = QtWidgets.QRadioButton()
+        exeVideo_def_rbtn.setText("System Default")
+        exeVideo_def_rbtn.setChecked(True)
+        exeVideo_cus_rbtn = QtWidgets.QRadioButton()
+        exeVideo_cus_rbtn.setText("Custom Executable")
+        exeVideo_cus_rbtn.setChecked(False)
+
+        exeVideo_buttonGroup = QtWidgets.QButtonGroup(self.userSettings_vis)
+        exeVideo_buttonGroup.addButton(exeVideo_def_rbtn)
+        exeVideo_buttonGroup.addButton(exeVideo_cus_rbtn)
+        exeVideo_hlay1.addWidget(exeVideo_def_rbtn)
+        exeVideo_hlay1.addWidget(exeVideo_cus_rbtn)
+        spacerItem = QtWidgets.QSpacerItem(150, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        exeVideo_hlay1.addItem(spacerItem)
+
+        exeVideo_le = QtWidgets.QLineEdit()
+        exeVideo_le.setMinimumWidth(350)
+        exeVideo_le.setPlaceholderText("Define an executable for video files")
+        exeVideo_hlay2.addWidget(exeVideo_le)
+        exeVideo_pbtn = QtWidgets.QPushButton()
+        exeVideo_pbtn.setText("...")
+        exeVideo_pbtn.setStyleSheet("min-width: 20px;")
+        exeVideo_hlay2.addWidget(exeVideo_pbtn)
+
+        userSettings_formLayout.addRow(exeVideo_lbl, exeVideo_vlay)
+
+        # Obj Files
+        exeObj_lbl = QtWidgets.QLabel()
+        exeObj_lbl.setText("Obj Files: ")
+
+        exeObj_vlay = QtWidgets.QVBoxLayout()
+        exeObj_vlay.setSpacing(6)
+        exeObj_hlay1 = QtWidgets.QHBoxLayout()
+        exeObj_hlay2 = QtWidgets.QHBoxLayout()
+        exeObj_vlay.addLayout(exeObj_hlay1)
+        exeObj_vlay.addLayout(exeObj_hlay2)
+
+        exeObj_def_rbtn = QtWidgets.QRadioButton()
+        exeObj_def_rbtn.setText("System Default")
+        exeObj_def_rbtn.setChecked(True)
+        exeObj_cus_rbtn = QtWidgets.QRadioButton()
+        exeObj_cus_rbtn.setText("Custom Executable")
+        exeObj_cus_rbtn.setChecked(False)
+
+        exeObj_buttonGroup = QtWidgets.QButtonGroup(self.userSettings_vis)
+        exeObj_buttonGroup.addButton(exeObj_def_rbtn)
+        exeObj_buttonGroup.addButton(exeObj_cus_rbtn)
+        exeObj_hlay1.addWidget(exeObj_def_rbtn)
+        exeObj_hlay1.addWidget(exeObj_cus_rbtn)
+        spacerItem = QtWidgets.QSpacerItem(150, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        exeObj_hlay1.addItem(spacerItem)
+
+        exeObj_le = QtWidgets.QLineEdit()
+        exeObj_le.setMinimumWidth(350)
+        exeObj_le.setPlaceholderText("Define an executable for obj files")
+        exeObj_hlay2.addWidget(exeObj_le)
+        exeObj_pbtn = QtWidgets.QPushButton()
+        exeObj_pbtn.setText("...")
+        exeObj_pbtn.setStyleSheet("min-width: 20px;")
+        exeObj_hlay2.addWidget(exeObj_pbtn)
+
+        userSettings_formLayout.addRow(exeObj_lbl, exeObj_vlay)
+        
+        # Fbx Files
+        exeFbx_lbl = QtWidgets.QLabel()
+        exeFbx_lbl.setText("Fbx Files: ")
+
+        exeFbx_vlay = QtWidgets.QVBoxLayout()
+        exeFbx_vlay.setSpacing(6)
+        exeFbx_hlay1 = QtWidgets.QHBoxLayout()
+        exeFbx_hlay2 = QtWidgets.QHBoxLayout()
+        exeFbx_vlay.addLayout(exeFbx_hlay1)
+        exeFbx_vlay.addLayout(exeFbx_hlay2)
+
+        exeFbx_def_rbtn = QtWidgets.QRadioButton()
+        exeFbx_def_rbtn.setText("System Default")
+        exeFbx_def_rbtn.setChecked(True)
+        exeFbx_cus_rbtn = QtWidgets.QRadioButton()
+        exeFbx_cus_rbtn.setText("Custom Executable")
+        exeFbx_cus_rbtn.setChecked(False)
+
+        exeFbx_buttonGroup = QtWidgets.QButtonGroup(self.userSettings_vis)
+        exeFbx_buttonGroup.addButton(exeFbx_def_rbtn)
+        exeFbx_buttonGroup.addButton(exeFbx_cus_rbtn)
+        exeFbx_hlay1.addWidget(exeFbx_def_rbtn)
+        exeFbx_hlay1.addWidget(exeFbx_cus_rbtn)
+        spacerItem = QtWidgets.QSpacerItem(150, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        exeFbx_hlay1.addItem(spacerItem)
+
+        exeFbx_le = QtWidgets.QLineEdit()
+        exeFbx_le.setMinimumWidth(350)
+        exeFbx_le.setPlaceholderText("Define an executable for fbx files")
+        exeFbx_hlay2.addWidget(exeFbx_le)
+        exeFbx_pbtn = QtWidgets.QPushButton()
+        exeFbx_pbtn.setText("...")
+        exeFbx_pbtn.setStyleSheet("min-width: 20px;")
+        exeFbx_hlay2.addWidget(exeFbx_pbtn)
+
+        userSettings_formLayout.addRow(exeFbx_lbl, exeFbx_vlay)
+
+        # Alembic Files
+        exeAbc_lbl = QtWidgets.QLabel()
+        exeAbc_lbl.setText("Alembic Files: ")
+
+        exeAbc_vlay = QtWidgets.QVBoxLayout()
+        exeAbc_vlay.setSpacing(6)
+        exeAbc_hlay1 = QtWidgets.QHBoxLayout()
+        exeAbc_hlay2 = QtWidgets.QHBoxLayout()
+        exeAbc_vlay.addLayout(exeAbc_hlay1)
+        exeAbc_vlay.addLayout(exeAbc_hlay2)
+
+        exeAbc_def_rbtn = QtWidgets.QRadioButton()
+        exeAbc_def_rbtn.setText("System Default")
+        exeAbc_def_rbtn.setChecked(True)
+        exeAbc_cus_rbtn = QtWidgets.QRadioButton()
+        exeAbc_cus_rbtn.setText("Custom Executable")
+        exeAbc_cus_rbtn.setChecked(False)
+
+        exeAbc_buttonGroup = QtWidgets.QButtonGroup(self.userSettings_vis)
+        exeAbc_buttonGroup.addButton(exeAbc_def_rbtn)
+        exeAbc_buttonGroup.addButton(exeAbc_cus_rbtn)
+        exeAbc_hlay1.addWidget(exeAbc_def_rbtn)
+        exeAbc_hlay1.addWidget(exeAbc_cus_rbtn)
+        spacerItem = QtWidgets.QSpacerItem(150, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        exeAbc_hlay1.addItem(spacerItem)
+
+        exeAbc_le = QtWidgets.QLineEdit()
+        exeAbc_le.setMinimumWidth(350)
+        exeAbc_le.setPlaceholderText("Define an executable for abc files")
+        exeAbc_hlay2.addWidget(exeAbc_le)
+        exeAbc_pbtn = QtWidgets.QPushButton()
+        exeAbc_pbtn.setText("...")
+        exeAbc_pbtn.setStyleSheet("min-width: 20px;")
+        exeAbc_hlay2.addWidget(exeAbc_pbtn)
+
+        userSettings_formLayout.addRow(exeAbc_lbl, exeAbc_vlay)
 
         def colorSet(button, niceName):
             color = QtWidgets.QColorDialog.getColor()
