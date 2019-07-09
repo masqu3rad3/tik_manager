@@ -314,6 +314,7 @@ class AssetLibrary(AssetEditor, RootManager):
 
     def init_database(self):
         self._sceneManagerDefaults = self.loadManagerDefaults()
+        self._userSettings = self.loadUserSettings()
         self.exportSettings = self.loadAlExportSettings()
         self.importSettings = self.loadAlImportSettings()
 
@@ -1613,13 +1614,12 @@ class LibraryTab(QtWidgets.QWidget):
             return
 
         assetData = self.library._getData(unicode(assetName).encode("utf-8"))
-        print assetData
         otherFormats = self._getOtherFormats(assetData)
         zortMenu = QtWidgets.QMenu()
         for z in otherFormats:
             tempAction = QtWidgets.QAction(z, self)
             zortMenu.addAction(tempAction)
-            tempAction.triggered.connect(lambda item=z: self.library.executeFile(os.path.join(self.directory, unicode(assetName).encode("utf-8"))))
+            tempAction.triggered.connect(lambda ignore, item=z: self.multiExecute(assetData, str(item)))
         # if BoilerDict["Environment"] == "Standalone":
         #     zortMenu.exec_((QtWidgets.QCursor.pos()))
         # else:
@@ -1628,6 +1628,18 @@ class LibraryTab(QtWidgets.QWidget):
             zortMenu.exec_((QtWidgets.QCursor.pos()))
         else:
             zortMenu.exec_((QtGui.QCursor.pos()))
+
+    def multiExecute(self, assetData, format):
+        if format == "Obj":
+            fPath = os.path.join(self.directory, assetData["assetName"], assetData["objPath"])
+            print "fpath: ", fPath
+            self.library.executeFile(fPath)
+        elif format == "Fbx":
+            fPath = os.path.join(self.directory, assetData["assetName"], assetData["fbxPath"])
+            self.library.executeFile(fPath)
+        elif format == "Alembic":
+            fPath = os.path.join(self.directory, assetData["assetName"], assetData["abcPath"])
+            self.library.executeFile(fPath)
 
     def multiImport(self, assetName, format):
         # print assetName, format

@@ -820,7 +820,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
                        quality=pbSettings["Quality"],
                        compression=pbSettings["Codec"],
                        sound=activeSound,
-                       uts=True,
+                       # uts=True,
                        v=not pbSettings["ConvertMP4"]
                        )
         ## remove window when pb is donw

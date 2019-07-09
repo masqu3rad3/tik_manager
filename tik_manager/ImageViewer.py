@@ -122,6 +122,8 @@ import pyseq as seq
 import json
 import datetime
 from shutil import copyfile
+from SmRoot import RootManager
+
 
 import logging
 
@@ -212,6 +214,56 @@ def folderCheck(folder):
     if not os.path.isdir(os.path.normpath(folder)):
         os.makedirs(os.path.normpath(folder))
 
+class ImageViewer(RootManager):
+    def __init__(self, projectPath=None):
+        super(ImageViewer, self).__init__()
+
+        self.swName = "" if BoilerDict["Environment"] == "Standalone" else BoilerDict["Environment"]
+        self.init_paths(self.swName)
+        self.init_database()
+
+    def init_paths(self, nicename):
+        """Initializes all the necessary paths"""
+
+        self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDir(), "TikManager"))
+        self._folderCheck(os.path.join(self._pathsDict["userSettingsDir"], nicename))
+        self._pathsDict["userSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "userSettings.json"))
+
+        self._pathsDict["localBookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], nicename, "smBookmarks.json"))
+        self._pathsDict["bookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smBookmarks.json"))
+        self._pathsDict["currentsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], nicename, "smCurrents.json"))
+        self._pathsDict["projectsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smProjects.json"))
+
+        self._pathsDict["commonFolderFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smCommonFolder.json"))
+
+        self._pathsDict["sharedSettingsDir"] = self._getCommonFolder()
+        if self._pathsDict["sharedSettingsDir"] == -1:
+            self._exception(201, "Cannot Continue Without Common Database")
+            return -1
+        if self.swName:
+            _softwarePathsDict = self.getSoftwarePaths()
+            self._pathsDict["projectDir"] = self.getProjectDir()
+            self._pathsDict["sceneFile"] = ""
+            self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
+            self._pathsDict["transferDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "_TRANSFER"))
+            self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
+            self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "subPdata.json"))
+            self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "exportSettings.json"))
+            self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "importSettings.json"))
+            self._pathsDict["previewsRoot"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "Playblasts")) # dont change
+
+        self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerUsers.json"))
+        self._pathsDict["alImportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "alImportSettings.json"))
+        self._pathsDict["alExportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "alExportSettings.json"))
+        self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "softwareDatabase.json"))
+        self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerDefaults.json"))
+        self._pathsDict["tikConventions"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "tikConventions.json"))
+        self._pathsDict["adminPass"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "adminPass.psw"))
+
+    def init_database(self):
+        self._sceneManagerDefaults = self.loadManagerDefaults()
+        self._userSettings = self.loadUserSettings()
+
 
 class MainUI(QtWidgets.QMainWindow):
     """Main UI function"""
@@ -235,6 +287,8 @@ class MainUI(QtWidgets.QMainWindow):
             self.setStyleSheet(fh.read())
 
         # self.setStyleSheet(darkorange.getStyleSheet())
+        self.imageViewer = ImageViewer()
+        print self.imageViewer.getProjectDir()
 
         if projectPath:
             self.projectPath = str(projectPath)
@@ -630,12 +684,12 @@ class MainUI(QtWidgets.QMainWindow):
         """
         tLocationFile = os.path.normpath(os.path.join(self.databaseDir, "tLocation.json"))
         if os.path.isfile(tLocationFile):
-            tLocation = self._loadJson(tLocationFile)
+            tLocation = self.imageViewer._loadJson(tLocationFile)
             # self.transferTo.setEnabled(True)
         else:
             tLocation = "N/A"
             # self.transferTo.setEnabled(False)
-            self._dumpJson(tLocation, tLocationFile)
+            self.imageViewer._dumpJson(tLocation, tLocationFile)
         return tLocation
 
     def setRaidPath(self, dir):
@@ -824,13 +878,13 @@ class MainUI(QtWidgets.QMainWindow):
 
     def onRunItem(self):
         """Execute the sequence"""
-        # TODO // Make it compatible with Linux
         itemName = str(self.sequences_treeWidget.currentItem().text(0))
         seq = self.sequenceData[itemName]
         # row = self.sequences_treeWidget.currentRow()
         # item = self.sequenceData[row]
         firstImagePath = os.path.join(os.path.normpath(seq.dirname), seq.name)
-        os.startfile(firstImagePath)
+        self.executeFile(firstImagePath)
+        # os.startfile(firstImagePath)
 
     def stop(self):  # Connect to Stop-button clicked()
         """Stops the search progress for sequences"""
@@ -848,30 +902,30 @@ class MainUI(QtWidgets.QMainWindow):
         except StopIteration:
             self.stop()  # Iteration has finshed, kill the timer
 
-    def _loadJson(self, file):
-        """Loads the given json file"""
-        if os.path.isfile(file):
-            try:
-                with open(file, 'r') as f:
-                    data = json.load(f)
-                    return data
-            except ValueError:
-                msg = "Corrupted JSON file => %s" % file
-                # logger.error(msg)
-                return -2  # code for corrupted json file
-        else:
-            return None
+    # def _loadJson(self, file):
+    #     """Loads the given json file"""
+    #     if os.path.isfile(file):
+    #         try:
+    #             with open(file, 'r') as f:
+    #                 data = json.load(f)
+    #                 return data
+    #         except ValueError:
+    #             msg = "Corrupted JSON file => %s" % file
+    #             # logger.error(msg)
+    #             return -2  # code for corrupted json file
+    #     else:
+    #         return None
 
-    def _dumpJson(self, data, file):
-        """Saves the data to the json file"""
-        # with open(file, "w") as f:
-        #     json.dump(data, f, indent=4)
-        name, ext = os.path.splitext(file)
-        tempFile = "{0}.tmp".format(name)
-        with open(tempFile, "w") as f:
-            json.dump(data, f, indent=4)
-        copyfile(tempFile, file)
-        os.remove(tempFile)
+    # def _dumpJson(self, data, file):
+    #     """Saves the data to the json file"""
+    #     # with open(file, "w") as f:
+    #     #     json.dump(data, f, indent=4)
+    #     name, ext = os.path.splitext(file)
+    #     tempFile = "{0}.tmp".format(name)
+    #     with open(tempFile, "w") as f:
+    #         json.dump(data, f, indent=4)
+    #     copyfile(tempFile, file)
+    #     os.remove(tempFile)
 
     def uniqueList(self, seq):  # Dave Kirby
         # Order preserving

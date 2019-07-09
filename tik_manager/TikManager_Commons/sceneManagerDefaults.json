@@ -421,6 +421,14 @@
       "Nuke": "rgb(246, 100, 100, 255)",
       "Photoshop": "rgb(60, 60, 250, 255)",
       "":  "rgb(0, 0, 0, 0)"
+    },
+    "executables": {
+      "image_exec": "",
+      "imageSeq_exec": "",
+      "video_exec": "",
+      "obj_exec": "",
+      "fbx_exec": "",
+      "alembic_exec": ""
     }
   }
 }

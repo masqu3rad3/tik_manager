@@ -987,24 +987,83 @@ class RootManager(object):
         self.currentSubIndex = len(self._subProjectsList)-1
         return self._subProjectsList
 
-    def executeFile(self, filePath):
+    def executeFile(self, filePath, asSeq=True):
         """executes the file"""
         logger.debug("Func: showInExplorer")
 
         if not os.path.isfile(filePath):
             logger.warning("Given path is not a file")
+            return
             pass
 
-        if self.currentPlatform == "Windows":
-            os.startfile(filePath)
-        elif self.currentPlatform == "Darwin":
-            logger.warning("not yet implemented")
-            pass
-            # subprocess.Popen(["open", filePath])
+        # get execution user list
+        try: exeDict = self._userSettings["executables"]
+        except KeyError: exeDict = {"image_exec": "",
+                                    "imageSeq_exec": "",
+                                    "video_exec": "",
+                                    "obj_exec": "",
+                                    "fbx_exec": "",
+                                    "alembic_exec": ""}
+
+        def resolveExeFlags(rawFlag, filePath):
+            extraFlags = re.findall(r'<(.*?)\>', rawFlag)
+            exePath = rawFlag.split("<")[0]
+            if exePath.endswith(" "):
+                exePath = exePath[:-1]
+
+            if "itemPath" in extraFlags:
+                extraFlags[extraFlags.index("itemPath")] = filePath
+            else:
+                extraFlags.append(filePath)
+
+            return [exePath]+extraFlags
+
+
+        dump, ext = os.path.splitext(filePath)
+        validImageFormats = [".jpg", ".png", ".exr", ".tga", ".tif", ".tiff", ".bmp", ".iff", ".dng", ".hdr", ".hdri", ".dpx"]
+        validVideoFormats = [".avi", ".mp4", ".mov", ".mkv"]
+
+        if ext in validImageFormats and asSeq==False and exeDict["image_exec"] != "":
+            # execute image
+            flagList = resolveExeFlags(exeDict["image_exec"], filePath)
+            subprocess.call(flagList, shell=True)
+            return
+        elif ext in validImageFormats and asSeq==True and exeDict["imageSeq_exec"] != "":
+            # execute imageSeq
+            flagList = resolveExeFlags(exeDict["imageSeq_exec"], filePath)
+            subprocess.call(flagList, shell=True)
+            return
+        elif ext in validVideoFormats and exeDict["video_exec"] != "":
+            # execute video
+            flagList = resolveExeFlags(exeDict["video_exec"], filePath)
+            subprocess.call(flagList, shell=True)
+            return
+        elif ext == ".obj" and exeDict["obj_exec"] != "":
+            # execute obj
+            flagList = resolveExeFlags(exeDict["obj_exec"], filePath)
+            subprocess.call(flagList, shell=True)
+            return
+        elif ext == ".fbx" and exeDict["fbx_exec"] != "":
+            # execute fbx
+            flagList = resolveExeFlags(exeDict["fbx_exec"], filePath)
+            subprocess.call(flagList, shell=True)
+            return
+        elif ext == ".abc" and exeDict["alembic_exec"] != "":
+            # execute alembic
+            flagList = resolveExeFlags(exeDict["alembic_exec"], filePath)
+            subprocess.call(flagList, shell=True)
+            return
         else:
-            logger.warning("not yet implemented")
-            pass
-            # subprocess.Popen(["xdg-open", filePath])
+            if self.currentPlatform == "Windows":
+                os.startfile(filePath)
+            elif self.currentPlatform == "Darwin":
+                logger.warning("Linux execution not yet implemented")
+                pass
+                # subprocess.Popen(["open", filePath])
+            else:
+                logger.warning("MacOs execution not yet implemented")
+                pass
+                # subprocess.Popen(["xdg-open", filePath])
 
     def showInExplorer(self, tpath):
         """Opens the path in Windows Explorer(Windows) or Nautilus(Linux)"""
