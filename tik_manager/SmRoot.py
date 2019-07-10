@@ -212,11 +212,36 @@ class RootManager(object):
             msg = "Cannot save common folder file"
             return -1, msg
 
+    # def getProjectDir(self):
+    #     """OVERRIDEN FUNCTION"""
+    #     # get the projects file for standalone manager
+    #     projectsDict = self.loadProjects()
+    #
+    #     if not projectsDict:
+    #         currentProject = os.path.normpath(os.path.expanduser("~"))
+    #         projectsDict = {"Standalone": currentProject}
+    #         self.saveProjects(projectsDict)
+    #         return currentProject
+    #
+    #     # get the project defined in the database file
+    #     try:
+    #         dbProject = projectsDict["Standalone"]
+    #         if dbProject:  # some error can save it as None
+    #             return dbProject
+    #         else:
+    #             return os.path.normpath(os.path.expanduser("~"))
+    #     except KeyError:
+    #         currentProject = os.path.normpath(os.path.expanduser("~"))
+    #         projectsDict = {"Standalone": currentProject}
+    #         self.saveProjects(projectsDict)
+    #         return currentProject
+
     def getProjectDir(self):
 
         ## Load dictionary from database
         projectsDict = self.loadProjects()
-        currentProject = self._getProject()
+        try: currentProject = self._getProject()
+        except AttributeError: currentProject = os.path.normpath(os.path.expanduser("~"))
 
         ## If there is no database, create one with current project and return
         if not projectsDict:

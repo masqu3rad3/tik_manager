@@ -2074,7 +2074,8 @@ class MainUI(QtWidgets.QMainWindow):
         # self.scrollAreaWidgetContents_2.setGeometry(QtCore.QRect(0, 0, 656, 567))
 
         self.contentsMaster_layout = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents_2)
-        self.contentsMaster_layout.setMargin(9)
+        try: self.contentsMaster_layout.setMargin(9)
+        except AttributeError: pass
         self.contentsMaster_layout.setSpacing(9)
 
 

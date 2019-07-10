@@ -694,11 +694,15 @@ class ImageManager(RootManager):
         scriptPath = os.path.join(self.getSharedSettingsDir(), "SubmitMayaToDeadlineCustom.mel")
 
         if os.path.isfile(scriptPath):
-            scriptPath = scriptPath.replace("\\", "//") ## for compatibility with mel syntax.
+            scriptPath = scriptPath.replace(os.sep, "//") ## for compatibility with mel syntax.
             # mel.eval('source "%s//SubmitMayaToDeadlineCustom.mel";' % compatibility)
             # print os.path.normpath(scriptPath)
             cmd = ('source "{0}";'.format(scriptPath))
-            mel.eval(cmd)
+            try:
+                mel.eval(cmd)
+            except:
+                logger.warning("Second try")
+                mel.eval(cmd)
             mel.eval('SubmitJobToDeadline()')
             return None, None
         else:
@@ -800,7 +804,8 @@ class MainUI(QtWidgets.QMainWindow):
         colorWidget = QtWidgets.QWidget(self.centralwidget)
         headerLayout = QtWidgets.QHBoxLayout(colorWidget)
         headerLayout.setSpacing(0)
-        headerLayout.setMargin(0)
+        try: headerLayout.setMargin(0)
+        except AttributeError: pass
 
         tikIcon_label = QtWidgets.QLabel(self.centralwidget)
         tikIcon_label.setObjectName("header")

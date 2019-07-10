@@ -52,6 +52,7 @@ try:
     import maya.cmds as cmds
     import Qt
     from Qt import QtWidgets, QtCore, QtGui
+    from SmMaya import MayaCoreFunctions as CoreFunctions
     BoilerDict["Environment"] = "Maya"
     BoilerDict["WindowTitle"] = "Image Viewer Maya v%s" % _version.__version__
 except ImportError:
@@ -61,6 +62,7 @@ try:
     import MaxPlus
     import Qt
     from Qt import QtWidgets, QtCore, QtGui
+    from Sm3dsMax import MaxCoreFunctions as CoreFunctions
     BoilerDict["Environment"] = "3dsMax"
     BoilerDict["WindowTitle"] = "Image Viewer 3ds Max v%s" % _version.__version__
 except ImportError:
@@ -70,6 +72,7 @@ try:
     import hou
     import Qt
     from Qt import QtWidgets, QtCore, QtGui
+    from SmHoudini import HoudiniCoreFunctions as CoreFunctions
     BoilerDict["Environment"] = "Houdini"
     BoilerDict["WindowTitle"] = "Image Viewer Houdini v%s" % _version.__version__
 except ImportError:
@@ -79,6 +82,7 @@ try:
     import nuke
     import Qt
     from Qt import QtWidgets, QtCore, QtGui
+    from SmNuke import NukeCoreFunctions as CoreFunctions
     BoilerDict["Environment"] = "Nuke"
     BoilerDict["WindowTitle"] = "Image Viewer Nuke v%s" % _version.__version__
 except ImportError:
@@ -87,6 +91,7 @@ except ImportError:
 try:
     from PyQt4 import QtCore, Qt
     from PyQt4 import QtGui as QtWidgets
+    from SmStandalone import StandaloneCoreFunctions as CoreFunctions
     BoilerDict["Environment"] = "Standalone"
     BoilerDict["WindowTitle"] = "Image Viewer Standalone v%s" % _version.__version__
     FORCE_QT4 = True
@@ -142,23 +147,23 @@ __status__ = "Development"
 
 
 
-def importSequence(pySeq_sequence):
-    if BoilerDict["Environment"] == "Nuke":
-        # format the sequence for <name>.<padding>.<extension>
-        seqFormatted = "{0}{1}{2}".format(pySeq_sequence.head(), pySeq_sequence._get_padding(), pySeq_sequence.tail())
-        seqPath = os.path.join(pySeq_sequence.dirname, seqFormatted)
-
-        firstFrame = pySeq_sequence.start()
-        lastFrame = pySeq_sequence.end()
-
-        readNode = nuke.createNode('Read')
-        readNode.knob('file').fromUserText(seqPath)
-        readNode.knob('first').setValue(firstFrame)
-        readNode.knob('last').setValue(lastFrame)
-        readNode.knob('origfirst').setValue(firstFrame)
-        readNode.knob('origlast').setValue(lastFrame)
-    else:
-        pass
+# def importSequence(pySeq_sequence):
+#     if BoilerDict["Environment"] == "Nuke":
+#         # format the sequence for <name>.<padding>.<extension>
+#         seqFormatted = "{0}{1}{2}".format(pySeq_sequence.head(), pySeq_sequence._get_padding(), pySeq_sequence.tail())
+#         seqPath = os.path.join(pySeq_sequence.dirname, seqFormatted)
+#
+#         firstFrame = pySeq_sequence.start()
+#         lastFrame = pySeq_sequence.end()
+#
+#         readNode = nuke.createNode('Read')
+#         readNode.knob('file').fromUserText(seqPath)
+#         readNode.knob('first').setValue(firstFrame)
+#         readNode.knob('last').setValue(lastFrame)
+#         readNode.knob('origfirst').setValue(firstFrame)
+#         readNode.knob('origlast').setValue(lastFrame)
+#     else:
+#         pass
 
 
 
@@ -194,31 +199,32 @@ def getMainWindow():
         return None
 
 
-def getProject():
-    """Returns the project folder"""
-    if BoilerDict["Environment"] == "Maya":
-        return os.path.normpath(cmds.workspace(q=1, rd=1))
-    elif BoilerDict["Environment"] == "3dsMax":
-        return os.path.normpath(MaxPlus.PathManager.GetProjectFolderDir())
-    elif BoilerDict["Environment"] == "Houdini":
-        return os.path.normpath((hou.hscript('echo $JOB')[0])[:-1])  # [:-1] is for the extra \n
-    elif BoilerDict["Environment"] == "Nuke":
-        # TODO // Needs a project getter for nuke
-        return os.path.normpath(os.path.join(os.path.expanduser("~")))
-    else:
-        return os.path.normpath(os.path.join(os.path.expanduser("~")))
+# def getProject():
+#     """Returns the project folder"""
+#     if BoilerDict["Environment"] == "Maya":
+#         return os.path.normpath(cmds.workspace(q=1, rd=1))
+#     elif BoilerDict["Environment"] == "3dsMax":
+#         return os.path.normpath(MaxPlus.PathManager.GetProjectFolderDir())
+#     elif BoilerDict["Environment"] == "Houdini":
+#         return os.path.normpath((hou.hscript('echo $JOB')[0])[:-1])  # [:-1] is for the extra \n
+#     elif BoilerDict["Environment"] == "Nuke":
+#         # TODO // Needs a project getter for nuke
+#         return os.path.normpath(os.path.join(os.path.expanduser("~")))
+#     else:
+#         return os.path.normpath(os.path.join(os.path.expanduser("~")))
 
 
-def folderCheck(folder):
-    """Checks if the folder exists, creates it if it doesnt"""
-    if not os.path.isdir(os.path.normpath(folder)):
-        os.makedirs(os.path.normpath(folder))
+# def folderCheck(folder):
+#     """Checks if the folder exists, creates it if it doesnt"""
+#     if not os.path.isdir(os.path.normpath(folder)):
+#         os.makedirs(os.path.normpath(folder))
 
-class ImageViewer(RootManager):
+class ImageViewer(RootManager, CoreFunctions):
     def __init__(self, projectPath=None):
         super(ImageViewer, self).__init__()
 
-        self.swName = "" if BoilerDict["Environment"] == "Standalone" else BoilerDict["Environment"]
+        # self.swName = "" if BoilerDict["Environment"] == "Standalone" else BoilerDict["Environment"]
+        self.swName = BoilerDict["Environment"]
         self.init_paths(self.swName)
         self.init_database()
 
@@ -240,17 +246,17 @@ class ImageViewer(RootManager):
         if self._pathsDict["sharedSettingsDir"] == -1:
             self._exception(201, "Cannot Continue Without Common Database")
             return -1
-        if self.swName:
-            _softwarePathsDict = self.getSoftwarePaths()
-            self._pathsDict["projectDir"] = self.getProjectDir()
-            self._pathsDict["sceneFile"] = ""
-            self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
-            self._pathsDict["transferDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "_TRANSFER"))
-            self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
-            self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "subPdata.json"))
-            self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "exportSettings.json"))
-            self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "importSettings.json"))
-            self._pathsDict["previewsRoot"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "Playblasts")) # dont change
+        # if self.swName:
+        # _softwarePathsDict = self.getSoftwarePaths()
+        self._pathsDict["projectDir"] = self.getProjectDir()
+        self._pathsDict["sceneFile"] = ""
+        self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
+        self._pathsDict["transferDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "_TRANSFER"))
+        self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
+        self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "subPdata.json"))
+        self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "exportSettings.json"))
+        self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "importSettings.json"))
+        self._pathsDict["previewsRoot"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "Playblasts")) # dont change
 
         self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerUsers.json"))
         self._pathsDict["alImportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "alImportSettings.json"))
@@ -263,6 +269,25 @@ class ImageViewer(RootManager):
     def init_database(self):
         self._sceneManagerDefaults = self.loadManagerDefaults()
         self._userSettings = self.loadUserSettings()
+
+    def importSequence(self, pySeq_sequence):
+        if BoilerDict["Environment"] == "Nuke":
+            # format the sequence for <name>.<padding>.<extension>
+            seqFormatted = "{0}{1}{2}".format(pySeq_sequence.head(), pySeq_sequence._get_padding(),
+                                              pySeq_sequence.tail())
+            seqPath = os.path.join(pySeq_sequence.dirname, seqFormatted)
+
+            firstFrame = pySeq_sequence.start()
+            lastFrame = pySeq_sequence.end()
+
+            readNode = nuke.createNode('Read')
+            readNode.knob('file').fromUserText(seqPath)
+            readNode.knob('first').setValue(firstFrame)
+            readNode.knob('last').setValue(lastFrame)
+            readNode.knob('origfirst').setValue(firstFrame)
+            readNode.knob('origlast').setValue(lastFrame)
+        else:
+            pass
 
 
 class MainUI(QtWidgets.QMainWindow):
@@ -288,12 +313,12 @@ class MainUI(QtWidgets.QMainWindow):
 
         # self.setStyleSheet(darkorange.getStyleSheet())
         self.imageViewer = ImageViewer()
-        print self.imageViewer.getProjectDir()
+        self.projectPath = self.imageViewer.getProjectDir()
 
-        if projectPath:
-            self.projectPath = str(projectPath)
-        else:
-            self.projectPath = getProject()
+        # if projectPath:
+        #     self.projectPath = str(projectPath)
+        # else:
+        #     self.projectPath = getProject()
 
         if relativePath:
             self.rootPath = os.path.join(self.projectPath, str(relativePath))
@@ -773,7 +798,7 @@ class MainUI(QtWidgets.QMainWindow):
             return
 
         logPath = os.path.join(self.databaseDir, "transferLogs")
-        folderCheck(logPath)
+        self.imageViewer.folderCheck(logPath)
 
         seqCopy = SeqCopyProgress()
         seqCopy.copysequence(self.sequenceData, selectedItemNames, self.tLocation, logPath, self.rootPath)
@@ -785,7 +810,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         for itemName in selectedItemNames:
             seq = self.sequenceData[str(itemName)]
-            importSequence(seq)
+            self.imageViewer.importSequence(seq)
 
 
     def onShowInExplorer(self, path=None):
@@ -883,7 +908,7 @@ class MainUI(QtWidgets.QMainWindow):
         # row = self.sequences_treeWidget.currentRow()
         # item = self.sequenceData[row]
         firstImagePath = os.path.join(os.path.normpath(seq.dirname), seq.name)
-        self.executeFile(firstImagePath)
+        self.imageViewer.executeFile(firstImagePath)
         # os.startfile(firstImagePath)
 
     def stop(self):  # Connect to Stop-button clicked()

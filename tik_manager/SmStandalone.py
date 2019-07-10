@@ -64,6 +64,11 @@ logging.basicConfig()
 logger = logging.getLogger('smStandalone')
 logger.setLevel(logging.WARNING)
 
+# class StandaloneCoreFunctions(object):
+#     def __init__(self):
+#         super(StandaloneCoreFunctions, self).__init__()
+
+
 class SwViewer(RootManager):
     """
     Helper class for StandaloneManager. Views and opens Scenes.
