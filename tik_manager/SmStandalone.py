@@ -52,7 +52,6 @@ import logging
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Scene Manager for Maya Project"
 __credits__ = []
-__version__ = "2.0.0"
 __license__ = "GPL"
 __maintainer__ = "Arda Kutlu"
 __email__ = "ardakutlu@gmail.com"

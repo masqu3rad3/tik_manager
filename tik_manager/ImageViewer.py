@@ -65,6 +65,7 @@ try:
     from Sm3dsMax import MaxCoreFunctions as CoreFunctions
     BoilerDict["Environment"] = "3dsMax"
     BoilerDict["WindowTitle"] = "Image Viewer 3ds Max v%s" % _version.__version__
+
 except ImportError:
     pass
 
@@ -91,7 +92,8 @@ except ImportError:
 try:
     from PyQt4 import QtCore, Qt
     from PyQt4 import QtGui as QtWidgets
-    from SmStandalone import StandaloneCoreFunctions as CoreFunctions
+    # from SmStandalone import StandaloneCoreFunctions as CoreFunctions
+    CoreFunctions = object
     BoilerDict["Environment"] = "Standalone"
     BoilerDict["WindowTitle"] = "Image Viewer Standalone v%s" % _version.__version__
     FORCE_QT4 = True
@@ -721,7 +723,7 @@ class MainUI(QtWidgets.QMainWindow):
         """Updates the Remote Location Folder database"""
         tLocationFile = os.path.normpath(os.path.join(self.databaseDir, "tLocation.json"))
         self.tLocation = unicode(dir).encode("utf-8")
-        self._dumpJson(self.tLocation, tLocationFile)
+        self.imageViewer._dumpJson(self.tLocation, tLocationFile)
         self.raidFolder_lineEdit.setText(self.tLocation)
 
     def onCheckbox(self, extensions, state):
@@ -798,7 +800,7 @@ class MainUI(QtWidgets.QMainWindow):
             return
 
         logPath = os.path.join(self.databaseDir, "transferLogs")
-        self.imageViewer.folderCheck(logPath)
+        self.imageViewer._folderCheck(logPath)
 
         seqCopy = SeqCopyProgress()
         seqCopy.copysequence(self.sequenceData, selectedItemNames, self.tLocation, logPath, self.rootPath)

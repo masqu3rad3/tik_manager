@@ -1051,32 +1051,32 @@ class RootManager(object):
         if ext in validImageFormats and asSeq==False and exeDict["image_exec"] != "":
             # execute image
             flagList = resolveExeFlags(exeDict["image_exec"], filePath)
-            subprocess.call(flagList, shell=True)
+            subprocess.Popen(flagList, shell=True)
             return
         elif ext in validImageFormats and asSeq==True and exeDict["imageSeq_exec"] != "":
             # execute imageSeq
             flagList = resolveExeFlags(exeDict["imageSeq_exec"], filePath)
-            subprocess.call(flagList, shell=True)
+            subprocess.Popen(flagList, shell=True)
             return
         elif ext in validVideoFormats and exeDict["video_exec"] != "":
             # execute video
             flagList = resolveExeFlags(exeDict["video_exec"], filePath)
-            subprocess.call(flagList, shell=True)
+            subprocess.Popen(flagList, shell=True)
             return
         elif ext == ".obj" and exeDict["obj_exec"] != "":
             # execute obj
             flagList = resolveExeFlags(exeDict["obj_exec"], filePath)
-            subprocess.call(flagList, shell=True)
+            subprocess.Popen(flagList, shell=True)
             return
         elif ext == ".fbx" and exeDict["fbx_exec"] != "":
             # execute fbx
             flagList = resolveExeFlags(exeDict["fbx_exec"], filePath)
-            subprocess.call(flagList, shell=True)
+            subprocess.Popen(flagList, shell=True)
             return
         elif ext == ".abc" and exeDict["alembic_exec"] != "":
             # execute alembic
             flagList = resolveExeFlags(exeDict["alembic_exec"], filePath)
-            subprocess.call(flagList, shell=True)
+            subprocess.Popen(flagList, shell=True)
             return
         else:
             if self.currentPlatform == "Windows":

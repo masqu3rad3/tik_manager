@@ -118,7 +118,7 @@ import iconsSource as icons
 
 import pprint
 
-import ImageViewer
+# import ImageViewer
 
 import logging
 
@@ -195,12 +195,18 @@ class MainUI(QtWidgets.QMainWindow):
             self.headerBFont = QtWidgets.QFont("Segoe UI Symbol", 10, QtWidgets.QFont.Bold)
             self.displayFont = QtWidgets.QFont("Segoe UI Symbol", 8, QtWidgets.QFont.Bold)
             self.infoFont = QtWidgets.QFont("", 8, QtWidgets.QFont.Helvetica)
+            self.Pixmap = QtWidgets.QPixmap
+            self.QIcon = QtWidgets.QIcon
         else:
             self.iconFont = QtGui.QFont("Segoe UI Symbol", 12, QtGui.QFont.Bold)
             self.headerAFont = QtGui.QFont("Segoe UI Symbol", 14, QtGui.QFont.Bold)
             self.headerBFont = QtGui.QFont("Segoe UI Symbol", 10, QtGui.QFont.Bold)
             self.displayFont = QtGui.QFont("Segoe UI Symbol", 8, QtGui.QFont.Bold)
             self.infoFont = QtGui.QFont("", 8, QtGui.QFont.Helvetica)
+            self.Pixmap = QtGui.QPixmap
+            self.QIcon = QtGui.QIcon
+
+
 
         # self.headerAFont.setPointSize(14)
         # self.headerAFont.setBold(True)
@@ -262,12 +268,14 @@ class MainUI(QtWidgets.QMainWindow):
         except AttributeError: pass
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
-        if FORCE_QT4:
-            # headerBitmap = QtWidgets.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
-            headerBitmap = QtWidgets.QPixmap(":/icons/CSS/rc/tmMain.png")
-        else:
-            # headerBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
-            headerBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmMain.png")
+        # if FORCE_QT4:
+        #     # headerBitmap = QtWidgets.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
+        #     headerBitmap = QtWidgets.QPixmap(":/icons/CSS/rc/tmMain.png")
+        # else:
+        #     # headerBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
+        #     headerBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmMain.png")
+        headerBitmap = self.Pixmap(":/icons/CSS/rc/tmMain.png")
+
         tikIcon_label.setPixmap(headerBitmap)
 
         headerLayout.addWidget(tikIcon_label)
@@ -318,7 +326,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         # self.saveBaseScene_pushButton.setFixedWidth(250)
         self.saveBaseScene_pushButton.setFont(self.iconFont)
-        self.saveBaseScene_pushButton.setText((" Save Base Scene".decode("utf-8")))
+        self.saveBaseScene_pushButton.setText(("Save Base Scene".decode("utf-8")))
         self.main_horizontalLayout.addWidget(self.saveBaseScene_pushButton)
 
         self.saveVersion_pushButton = QtWidgets.QPushButton(self.centralwidget)
@@ -327,7 +335,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.saveVersion_pushButton.setStyleSheet("min-width: 120; min-height: 45;")
         self.saveVersion_pushButton.setFont(self.iconFont)
 
-        self.saveVersion_pushButton.setText((" Save As Version".decode("utf-8")))
+        self.saveVersion_pushButton.setText(("Save As Version".decode("utf-8")))
         self.main_horizontalLayout.addWidget(self.saveVersion_pushButton)
 
         self.export_pushButton = QtWidgets.QPushButton(self.centralwidget)
@@ -389,13 +397,17 @@ class MainUI(QtWidgets.QMainWindow):
         # self.dirFilter_lineEdit.setPlaceholderText("🔍")
 
         self.addSubProject_pushButton.setFont(self.iconFont)
-        self.addSubProject_pushButton.setText("➕".decode("utf-8"))
+        # self.addSubProject_pushButton.setText("➕".decode("utf-8"))
+        plusIcon = self.QIcon(":/icons/CSS/rc/plus.png")
+        self.addSubProject_pushButton.setIcon(plusIcon)
+
 
 
         self.r2_gridLayout.addWidget(self.addSubProject_pushButton, 0, 4, 1, 1)
 
         self.user_label = QtWidgets.QLabel(self.centralwidget)
         self.user_label.setText(("User:"))
+        # self.user_label.setPixmap(self.Pixmap(":/icons/CSS/rc/user.png"))
         self.user_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.r2_gridLayout.addWidget(self.user_label, 0, 5, 1, 1)
 
@@ -525,12 +537,15 @@ class MainUI(QtWidgets.QMainWindow):
 
         # emptyIcon = os.path.normpath(os.path.join(self.manager.getIconsDir(), "empty_thumbnail.png"))
 
-        if FORCE_QT4:
-            # self.E_tPixmap = QtWidgets.QPixmap(emptyIcon)
-            self.E_tPixmap = QtWidgets.QPixmap(":/icons/CSS/rc/empty_thumbnail.png")
-        else:
-            # self.E_tPixmap = QtGui.QPixmap(emptyIcon)
-            self.E_tPixmap = QtGui.QPixmap(":/icons/CSS/rc/empty_thumbnail.png")
+        # if FORCE_QT4:
+        #     # self.E_tPixmap = QtWidgets.QPixmap(emptyIcon)
+        #     self.E_tPixmap = QtWidgets.QPixmap(":/icons/CSS/rc/empty_thumbnail.png")
+        # else:
+        #     # self.E_tPixmap = QtGui.QPixmap(emptyIcon)
+        #     self.E_tPixmap = QtGui.QPixmap(":/icons/CSS/rc/empty_thumbnail.png")
+
+        self.E_tPixmap = self.Pixmap(":/icons/CSS/rc/empty_thumbnail.png")
+
         self.thumbnail_label = ImageWidget(self.frame)
         self.thumbnail_label.setObjectName("image")
         self.thumbnail_label.setPixmap(self.E_tPixmap)
@@ -1075,8 +1090,9 @@ class MainUI(QtWidgets.QMainWindow):
         sizePolicy.setHeightForWidth(self.back_pushButton.sizePolicy().hasHeightForWidth())
         self.back_pushButton.setSizePolicy(sizePolicy)
         self.back_pushButton.setMaximumSize(QtCore.QSize(30, 16777215))
-        self.back_pushButton.setFont(self.iconFont)
-        self.back_pushButton.setText("".decode("utf-8"))
+        # self.back_pushButton.setFont(self.iconFont)
+        # self.back_pushButton.setText("".decode("utf-8"))
+        self.back_pushButton.setIcon(self.QIcon(":/icons/CSS/rc/arrow_left.png"))
         self.back_pushButton.setShortcut((""))
 
         M1_horizontalLayout.addWidget(self.back_pushButton)
@@ -1084,7 +1100,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.forward_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
         self.forward_pushButton.setMaximumSize(QtCore.QSize(30, 16777215))
         self.forward_pushButton.setFont(self.iconFont)
-        self.forward_pushButton.setText("".decode("utf-8"))
+        # self.forward_pushButton.setText("".decode("utf-8"))
+        self.forward_pushButton.setIcon(self.QIcon(":/icons/CSS/rc/arrow_right.png"))
         self.forward_pushButton.setShortcut((""))
 
         M1_horizontalLayout.addWidget(self.forward_pushButton)
@@ -1092,7 +1109,8 @@ class MainUI(QtWidgets.QMainWindow):
         up_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
         up_pushButton.setMaximumSize(QtCore.QSize(30, 16777215))
         up_pushButton.setFont(self.iconFont)
-        up_pushButton.setText("".decode("utf-8"))
+        # up_pushButton.setText("".decode("utf-8"))
+        up_pushButton.setIcon(self.QIcon(":/icons/CSS/rc/arrow_up.png"))
         up_pushButton.setShortcut((""))
 
         M1_horizontalLayout.addWidget(up_pushButton)
@@ -1155,7 +1173,8 @@ class MainUI(QtWidgets.QMainWindow):
         remove_pushButton = QtWidgets.QPushButton(verticalLayoutWidget)
         remove_pushButton.setMaximumSize(QtCore.QSize(35, 35))
         remove_pushButton.setFont(self.iconFont)
-        remove_pushButton.setText("".decode("utf-8"))
+        # remove_pushButton.setText("".decode("utf-8"))
+        remove_pushButton.setIcon(self.QIcon(":/icons/CSS/rc/minus.png"))
         remove_pushButton.setObjectName(("remove_pushButton"))
 
         M2_S2_horizontalLayout.addWidget(remove_pushButton)
@@ -1163,7 +1182,8 @@ class MainUI(QtWidgets.QMainWindow):
         add_pushButton = QtWidgets.QPushButton(verticalLayoutWidget)
         add_pushButton.setMaximumSize(QtCore.QSize(35, 35))
         add_pushButton.setFont(self.iconFont)
-        add_pushButton.setText("".decode("utf-8"))
+        # add_pushButton.setText("".decode("utf-8"))
+        add_pushButton.setIcon(self.QIcon(":/icons/CSS/rc/plus.png"))
         add_pushButton.setObjectName(("add_pushButton"))
 
         M2_S2_horizontalLayout.addWidget(add_pushButton)
@@ -1192,6 +1212,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.dirFilter_lineEdit.setFont(self.iconFont)
         self.dirFilter_lineEdit.setPlaceholderText("🔍".decode("utf-8"))
+        # self.dirFilter_lineEdit.setWindowIcon(self.QIcon(":/icons/CSS/rc/star.png"))
+
 
         M3_horizontalLayout.addWidget(dirFilter_label)
         M3_horizontalLayout.addWidget(self.dirFilter_lineEdit)
@@ -1452,8 +1474,8 @@ class MainUI(QtWidgets.QMainWindow):
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
         # testBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmTransfer.png"))
-        testBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmTransfer.png")
-        tikIcon_label.setPixmap(testBitmap)
+        headerBitmap = self.Pixmap(":/icons/CSS/rc/tmTransfer.png")
+        tikIcon_label.setPixmap(headerBitmap)
 
         headerLayout.addWidget(tikIcon_label)
 
@@ -3406,7 +3428,7 @@ class MainUI(QtWidgets.QMainWindow):
             row = listWidget.currentRow()
             if row == -1:
                 return
-            trashCategory = listWidget.currentItem().text()
+            trashCategory = unicode(listWidget.currentItem().text()).decode("utf-8")
             categories = self.allSettingsDict.get(settingKey)
             ## check if this is the last category
             if len(categories) == 1:
@@ -3424,6 +3446,8 @@ class MainUI(QtWidgets.QMainWindow):
             else:
                 self.infoPop(textTitle="Cannot Remove Category",
                              textHeader="%s Category is not empty. Aborting..." % trashCategory)
+            self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
+
 
         def onAdd(settingKey, listWidget):
             addCategory_Dialog = QtWidgets.QDialog(parent=self)
@@ -3453,7 +3477,7 @@ class MainUI(QtWidgets.QMainWindow):
             buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
 
             def addCategory():
-                newCategory = categoryName_lineEdit.text()
+                newCategory = unicode(categoryName_lineEdit.text()).decode("utf-8")
                 categories = self.allSettingsDict.get(settingKey)
                 for x in categories:
                     if newCategory.lower() == x.lower():
@@ -3465,6 +3489,7 @@ class MainUI(QtWidgets.QMainWindow):
                 listWidget.clear()
                 listWidget.addItems(categories)
                 addCategory_Dialog.accept()
+                self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
 
                 # pprint.pprint(self.allSettingsDict)
 
@@ -3496,9 +3521,9 @@ class MainUI(QtWidgets.QMainWindow):
             swTabs.addTab(tabWidget, cat.replace("categories_", ""))
 
             categories_listWidget.addItems(self.allSettingsDict[cat]["newSettings"])
-            add_pushButton.clicked.connect(lambda settingKey=cat, listWidget=categories_listWidget: onAdd(settingKey, listWidget))
+            add_pushButton.clicked.connect(lambda ignore, settingKey=cat, listWidget=categories_listWidget: onAdd(settingKey, listWidget))
             # add_pushButton.clicked.connect(lambda: onAdd(cat, categories_listWidget))
-            remove_pushButton.clicked.connect(lambda settingKey=cat, listWidget=categories_listWidget: onRemove(settingKey, listWidget))
+            remove_pushButton.clicked.connect(lambda ignore, settingKey=cat, listWidget=categories_listWidget: onRemove(settingKey, listWidget))
             # remove_pushButton.clicked.connect(lambda: onRemove(cat, categories_listWidget))
 
 
@@ -5787,10 +5812,11 @@ class MainUI(QtWidgets.QMainWindow):
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
         # saveBaseHeaderBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmBaseScene.png"))
-        if FORCE_QT4:
-            saveBaseHeaderBitmap = QtWidgets.QPixmap(":/icons/CSS/rc/tmBaseScene.png")
-        else:
-            saveBaseHeaderBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmBaseScene.png")
+        # if FORCE_QT4:
+        #     saveBaseHeaderBitmap = QtWidgets.QPixmap(":/icons/CSS/rc/tmBaseScene.png")
+        # else:
+        #     saveBaseHeaderBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmBaseScene.png")
+        saveBaseHeaderBitmap = self.Pixmap(":/icons/CSS/rc/tmBaseScene.png")
         tikIcon_label.setPixmap(saveBaseHeaderBitmap)
 
         headerLayout.addWidget(tikIcon_label)
@@ -6044,11 +6070,11 @@ class MainUI(QtWidgets.QMainWindow):
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
         # saveVersionHeaderBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmVersion.png"))
-        if FORCE_QT4:
-            saveVersionHeaderBitmap = QtWidgets.QPixmap(":/icons/CSS/rc/tmVersion.png")
-        else:
-            saveVersionHeaderBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmVersion.png")
-
+        # if FORCE_QT4:
+        #     saveVersionHeaderBitmap = QtWidgets.QPixmap(":/icons/CSS/rc/tmVersion.png")
+        # else:
+        #     saveVersionHeaderBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmVersion.png")
+        saveVersionHeaderBitmap = self.Pixmap(":/icons/CSS/rc/tmVersion.png")
         tikIcon_label.setPixmap(saveVersionHeaderBitmap)
 
         headerLayout.addWidget(tikIcon_label)
@@ -6712,6 +6738,7 @@ class MainUI(QtWidgets.QMainWindow):
 
     def onIviewer(self):
         # This method is NOT Software Specific.
+        import ImageViewer
         ImageViewer.MainUI(self.manager.projectDir).show()
 
     def onPMaterials(self):

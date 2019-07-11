@@ -87,5 +87,25 @@
     <file>CSS/rc/tmProjectMaterials.png</file>
     <file>CSS/rc/tmTransfer.png</file>
     <file>CSS/rc/tmVersion.png</file>
+    <file>CSS/rc/settings_pressed.png</file>
+    <file>CSS/rc/plus_pressed.png</file>
+    <file>CSS/rc/minus_pressed.png</file>
+    <file>CSS/rc/user_pressed.png</file>
+    <file>CSS/rc/clock_pressed.png</file>
+    <file>CSS/rc/camera_pressed.png</file>
+    <file>CSS/rc/home_pressed.png</file>
+    <file>CSS/rc/star_pressed.png</file>
+    <file>CSS/rc/save_pressed.png</file>
+    <file>CSS/rc/delete_pressed.png</file>
+    <file>CSS/rc/settings.png</file>
+    <file>CSS/rc/plus.png</file>
+    <file>CSS/rc/minus.png</file>
+    <file>CSS/rc/user.png</file>
+    <file>CSS/rc/clock.png</file>
+    <file>CSS/rc/camera.png</file>
+    <file>CSS/rc/home.png</file>
+    <file>CSS/rc/star.png</file>
+    <file>CSS/rc/save.png</file>
+    <file>CSS/rc/delete.png</file>
   </qresource>
 </RCC>
