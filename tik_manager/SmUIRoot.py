@@ -39,6 +39,7 @@ import os
 import _version
 from copy import deepcopy
 import re
+import datetime
 
 # Below is the standard dictionary for Scene Manager Standalone
 BoilerDict = {"Environment":"Standalone",
@@ -512,7 +513,14 @@ class MainUI(QtWidgets.QMainWindow):
         self.splitter.setOrientation(QtCore.Qt.Horizontal)
 
 
-        self.scenes_listWidget = QtWidgets.QListWidget(self.splitter)
+        # self.scenes_listWidget = QtWidgets.QListWidget(self.splitter)
+        self.scenes_listWidget = QtWidgets.QTreeWidget(self.splitter)
+        self.scenes_listWidget.setSortingEnabled(True)
+        header = QtWidgets.QTreeWidgetItem(["Name", "Date"])
+        self.scenes_listWidget.setHeaderItem(header)
+        self.scenes_listWidget.setColumnWidth(0, 250)
+        self.scenes_listWidget.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.scenes_listWidget.setRootIsDecorated(False)
 
         self.frame = QtWidgets.QFrame(self.splitter)
         self.frame.setFrameShape(QtWidgets.QFrame.StyledPanel)
@@ -2519,7 +2527,6 @@ class MainUI(QtWidgets.QMainWindow):
                 color = item[1]
                 # try:
                 pushbutton = self.findChild(QtWidgets.QPushButton, "cc_%s" % niceName)
-                print niceName, color
                 pushbutton.setStyleSheet("background-color:%s; min-width: 80px;" % color)
                 # except AttributeError:
                 #     pass
@@ -3491,7 +3498,6 @@ class MainUI(QtWidgets.QMainWindow):
                 addCategory_Dialog.accept()
                 self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
 
-                # pprint.pprint(self.allSettingsDict)
 
             buttonBox.accepted.connect(addCategory)
             buttonBox.rejected.connect(addCategory_Dialog.reject)
@@ -6125,7 +6131,6 @@ class MainUI(QtWidgets.QMainWindow):
         spacerItem = QtWidgets.QSpacerItem(80, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         formats_horizontalLayout.addItem(spacerItem)
 
-        # print self.manager.getSceneFile()
         ext = os.path.splitext(self.manager.getSceneFile())[1][1:]
         radioButtonList = []
         for format in BoilerDict["SceneFormats"]:
@@ -6191,7 +6196,6 @@ class MainUI(QtWidgets.QMainWindow):
                     sceneFormat = button.text()
                     break
 
-            # print "sceneFormat", sceneFormat
             sceneInfo = self.manager.saveVersion(makeReference=makeReference_checkBox.checkState(),
                                                  versionNotes=notes_plainTextEdit.toPlainText(),
                                                  sceneFormat=sceneFormat)
@@ -6201,11 +6205,14 @@ class MainUI(QtWidgets.QMainWindow):
             self.manager.currentBaseSceneName = sceneInfo["Name"]
             self.manager.currentVersionIndex = len(sceneInfo["Versions"])
 
-            currentRow = self.scenes_listWidget.currentRow()
+            # currentRow = self.scenes_listWidget.currentRow()
+            currentIndex = self.scenes_listWidget.currentIndex()
+
+
             self.populateBaseScenes()
             self.onBaseSceneChange()
-            logger.debug("row %s" %currentRow)
-            self.scenes_listWidget.setCurrentRow(currentRow)
+            # self.scenes_listWidget.setCurrentRow(currentRow)
+            self.scenes_listWidget.setCurrentIndex(currentIndex)
             saveV_Dialog.accept()
 
         def getResolvedPath():
@@ -6419,7 +6426,6 @@ class MainUI(QtWidgets.QMainWindow):
     def rcAction_thumb(self, command):
         # This method IS Software Specific
         manager = self._getManager()
-        # print "comm: ", command
         if command == "file":
             fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', manager.projectDir,"Image files (*.jpg *.gif)")[0]
             if not fname: # if dialog is canceled
@@ -6438,7 +6444,9 @@ class MainUI(QtWidgets.QMainWindow):
         # This method IS Software Specific
         manager = self._getManager()
 
-        row = self.scenes_listWidget.currentRow()
+        # row = self.scenes_listWidget.currentRow()
+        row = self.scenes_listWidget.currentIndex().row()
+
         if row == -1:
             self.scenes_rcItem_0.setEnabled(False)
             self.scenes_rcItem_1.setEnabled(False)
@@ -6528,11 +6536,13 @@ class MainUI(QtWidgets.QMainWindow):
         #clear version_combobox
         self.version_comboBox.clear()
 
-        row = self.scenes_listWidget.currentRow()
+        # row = self.scenes_listWidget.currentRow()
+        row = self.scenes_listWidget.currentIndex().row()
         if row == -1:
             manager.currentBaseSceneName = ""
         else:
-            manager.currentBaseSceneName = str(self.scenes_listWidget.currentItem().text())
+            # manager.currentBaseSceneName = str(self.scenes_listWidget.currentItem().text())
+            manager.currentBaseSceneName = str(self.scenes_listWidget.currentItem().text(0))
 
         self._vEnableDisable()
         #get versions and add it to the combobox
@@ -6562,11 +6572,11 @@ class MainUI(QtWidgets.QMainWindow):
 
 
         # update thumb
-        if FORCE_QT4:
-            self.tPixmap = QtWidgets.QPixmap(manager.getThumbnail())
-        else:
-            self.tPixmap = QtGui.QPixmap(manager.getThumbnail())
-
+        # if FORCE_QT4:
+        #     self.tPixmap = QtWidgets.QPixmap(manager.getThumbnail())
+        # else:
+        #     self.tPixmap = QtGui.QPixmap(manager.getThumbnail())
+        self.tPixmap = self.Pixmap(manager.getThumbnail())
         # self.tPixmap = QtGui.QPixmap(self.manager.getThumbnail())
 
         if self.tPixmap.isNull():
@@ -6604,19 +6614,29 @@ class MainUI(QtWidgets.QMainWindow):
                 codeDict = {-1: QtGui.QColor(255, 0, 0, 255), 1: QtGui.QColor(0, 255, 0, 255),
                             0: QtGui.QColor(255, 255, 0, 255), -2: QtGui.QColor(20, 20, 20, 255)}  # dictionary for color codes red, green, yellow
 
-            for key in sorted(baseScenesDict):
+            # for key in sorted(baseScenesDict):
+            #     retCode = manager.checkReference(baseScenesDict[key], deepCheck=deepCheck) # returns -1, 0 or 1 for color ref
+            #     color = codeDict[retCode]
+            #     listItem = QtWidgets.QListWidgetItem()
+            #     listItem.setText(key)
+            #     listItem.setForeground(color)
+            #     self.scenes_listWidget.addItem(listItem)
+            for key in baseScenesDict:
                 retCode = manager.checkReference(baseScenesDict[key], deepCheck=deepCheck) # returns -1, 0 or 1 for color ref
                 color = codeDict[retCode]
-                listItem = QtWidgets.QListWidgetItem()
-                listItem.setText(key)
-                listItem.setForeground(color)
-                self.scenes_listWidget.addItem(listItem)
+                timestamp = os.path.getmtime(baseScenesDict[key])
+                timestampFormatted = datetime.datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
+                item = QtWidgets.QTreeWidgetItem(self.scenes_listWidget, [key, str(timestampFormatted)])
+                item.setForeground(0, color)
+                # obj_topLevel.setBackground(0, QtGui.QBrush(QtGui.QColor("yellow")))
+                # obj_topLevel.setForeground(0, QtGui.QBrush(QtGui.QColor("black")))
+
         self.scenes_listWidget.blockSignals(False)
 
     def onLoadScene(self):
         # This method IS Software Specific. BUT overriding it is better, so it is not selecting manager
-
-        row = self.scenes_listWidget.currentRow()
+        # row = self.scenes_listWidget.currentRow()
+        row = self.scenes_listWidget.currentIndex().row()
         if row == -1:
             return
 

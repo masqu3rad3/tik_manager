@@ -1095,7 +1095,7 @@ class RootManager(object):
         logger.debug("Func: showInExplorer")
 
         if os.path.isfile(tpath):
-            path = os.path.dirname(tpath)
+            tpath = os.path.dirname(tpath)
         if self.currentPlatform == "Windows":
             os.startfile(tpath)
         elif self.currentPlatform == "Darwin":
