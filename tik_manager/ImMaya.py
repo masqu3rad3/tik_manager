@@ -131,7 +131,8 @@ class ImageManager(RootManager):
         #     self.deadlineFlag = True
 
 
-        self.folderTemplate = "{4}/{0}/{1}/{3}/{2}/"
+        # self.folderTemplate = "{4}/{0}/{1}/{3}/{2}/"
+        self.folderTemplate = "{0}{1}/{3}/{2}/"
         self.nameTemplate = "{0}_{1}_{2}_{3}_"
         self.supportedRenderers = ["arnold", "vray", "mentalRay", "redshift"]
         self.currentRenderer = ""
@@ -216,17 +217,24 @@ class ImageManager(RootManager):
         else:
             renderlayer="<RenderLayer>"
 
-        subProject = "" if self.sceneInfo["subProject"] == "None" else self.sceneInfo["subProject"]
+        subProject = "" if self.sceneInfo["subProject"] == "None" else "%s\\" %self.sceneInfo["subProject"]
 
         shotName = self.sceneInfo["shotName"]
         version=self.sceneInfo["version"]
 
-        self.folderTemplate = os.path.normpath(self.folderTemplate.format(subProject,shotName,renderlayer,version,projectImgDir))
+        logger.warning(subProject)
+        logger.warning(shotName)
+        logger.warning(version)
+        logger.warning(self.folderTemplate)
+
+        # self.folderTemplate = os.path.normpath(self.folderTemplate.format(subProject,shotName,renderlayer,version,projectImgDir))
+        self.folderTemplate = os.path.normpath(self.folderTemplate.format(subProject,shotName,renderlayer,version))
         self.nameTemplate = (self.nameTemplate.format(subProject,shotName,renderlayer,version)).lstrip("_")
 
-        # print self.folderTemplate
-        # print self.nameTemplate
+        print "folderTemplate", self.folderTemplate
+        print "nameTemplate", self.nameTemplate
         return os.path.join(self.folderTemplate, self.nameTemplate)
+        # return "%s%s" %(self.folderTemplate, self.nameTemplate)
 
     def initRenderer(self):
         # self.currentRenderer = pm.getAttr('defaultRenderGlobals.currentRenderer')
@@ -694,7 +702,7 @@ class ImageManager(RootManager):
         scriptPath = os.path.join(self.getSharedSettingsDir(), "SubmitMayaToDeadlineCustom.mel")
 
         if os.path.isfile(scriptPath):
-            scriptPath = scriptPath.replace(os.sep, "//") ## for compatibility with mel syntax.
+            scriptPath = scriptPath.replace("\\", "//") ## for compatibility with mel syntax.
             # mel.eval('source "%s//SubmitMayaToDeadlineCustom.mel";' % compatibility)
             # print os.path.normpath(scriptPath)
             cmd = ('source "{0}";'.format(scriptPath))

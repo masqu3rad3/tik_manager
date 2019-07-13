@@ -639,7 +639,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         # add_remove_categories_fm = QtWidgets.QAction("&Add/Remove Categories", self)
 
-        settings_fm = QtWidgets.QAction("&Settings", self)
+        settings_fm = QtWidgets.QAction(self.QIcon(":/icons/CSS/rc/settings.png"), "&Settings", self)
 
         # pb_settings_fm = QtWidgets.QAction("&Playblast Settings", self)
 
@@ -650,8 +650,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.changeCommonFolder =  QtWidgets.QAction("&Change Common Database", self)
         # self.changeCommonFolder.setVisible(False)
 
-        deleteFile_fm = QtWidgets.QAction("&Delete Selected Base Scene", self)
-        deleteReference_fm = QtWidgets.QAction("&Delete Reference of Selected Scene", self)
+        deleteFile_fm = QtWidgets.QAction(self.QIcon(":/icons/CSS/rc/delete.png"), "&Delete Selected Base Scene", self)
+        deleteReference_fm = QtWidgets.QAction(self.QIcon(":/icons/CSS/rc/delete.png"), "&Delete Reference of Selected Scene", self)
         reBuildDatabase_fm = QtWidgets.QAction("&Re-build Project Database", self)
         projectReport_fm = QtWidgets.QAction("&Project Report", self)
         projectReport_fm.setEnabled(False)
