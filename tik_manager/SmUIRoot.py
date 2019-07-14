@@ -6605,7 +6605,11 @@ class MainUI(QtWidgets.QMainWindow):
         if self.reference_radioButton.isChecked():
             for key in baseScenesDict:
                 if manager.checkReference(baseScenesDict[key]) == 1:
-                    self.scenes_listWidget.addItem(key)
+                    # self.scenes_listWidget.addItem(key)
+                    timestamp = os.path.getmtime(baseScenesDict[key])
+                    timestampFormatted = datetime.datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
+                    item = QtWidgets.QTreeWidgetItem(self.scenes_listWidget, [key, str(timestampFormatted)])
+
         else:
             if BoilerDict["Environment"] == "Standalone":
                 codeDict = {-1: QtWidgets.QColor(255, 0, 0, 255), 1: QtWidgets.QColor(0, 255, 0, 255),
