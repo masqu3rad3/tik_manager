@@ -969,7 +969,8 @@ class ProjectMaterials(RootManager, CoreFunctions):
         for item in absPaths:
             # build a dictionary
             baseName = os.path.basename(item)
-            niceName = os.path.splitext(baseName)[0]
+            # niceName = os.path.splitext(baseName)[0]
+            niceName = baseName
             relativePath = os.path.relpath(item, self._pathsDict["projectDir"])
             dictItem = {
                 "niceName": niceName,

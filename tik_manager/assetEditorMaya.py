@@ -415,7 +415,8 @@ class AssetEditorMaya(MayaCoreFunctions):
             cmds.setAttr("%s.fileTextureName" % data["FileNode"], data["OldPath"], type="string")
 
     def _checkVersionMatch(self, databaseVersion):
-        currentVersion = cmds.about(api=True)
+        # currentVersion = cmds.about(api=True)
+        currentVersion = self._getVersion()
 
         if currentVersion != databaseVersion:
             msg = "Database version ({0}) and Current version ({1}) are not matching. Do you want to try anyway?".format(databaseVersion, currentVersion)

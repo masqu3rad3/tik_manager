@@ -128,9 +128,11 @@ try:
     import hou
     import Qt
     from Qt import QtWidgets, QtCore, QtGui
+    from assetEditorHoudini import AssetEditorHoudini as AssetEditor
     BoilerDict["Environment"] = "Houdini"
     BoilerDict["WindowTitle"] = "Asset Library Houdini v%s" % _version.__version__
     BoilerDict["SceneFormats"] = ["hip", "hiplc"]
+    print "DEB6"
 except ImportError:
     pass
 
