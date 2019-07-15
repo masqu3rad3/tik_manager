@@ -145,10 +145,6 @@ try:
 except ImportError:
     pass
 
-
-
-
-
 import os
 import sys
 import shutil
@@ -189,11 +185,6 @@ __status__ = "Development"
 logging.basicConfig()
 logger = logging.getLogger('AssetLibrary')
 logger.setLevel(logging.WARNING)
-
-
-
-
-
 
 def getMainWindow():
     """This function should be overriden"""
