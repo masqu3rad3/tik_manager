@@ -252,7 +252,6 @@ class HoudiniCoreFunctions(object):
         # delete the export nodes
         geoNode.destroy()
 
-
     def _getSceneFile(self):
         s_path = hou.hipFile.path()
         niceName = os.path.splitext(hou.hipFile.basename())[0]

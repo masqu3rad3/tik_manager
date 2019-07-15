@@ -33,6 +33,7 @@ Source: "..\__init__.pyc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\_version.pyc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\assetEditor3dsMax.pyc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\assetEditorMaya.pyc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\assetEditorHoudini.pyc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\assetLibrary.pyc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\ffmpeg.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\iconsSource.pyc"; DestDir: "{app}"; Flags: ignoreversion
