@@ -61,8 +61,9 @@ import os
 os.environ["FORCE_QT4"]="0"
 import maya.mel as mel
 
-import SmRoot
 from SmRoot import RootManager
+# from SmMaya import MayaCoreFunctions as CoreFunctions
+from tik_manager.coreFunctions.coreFunctions_Maya import MayaCoreFunctions
 
 import logging
 
@@ -72,15 +73,10 @@ from Qt import QtWidgets, QtCore, QtGui
 from maya import OpenMayaUI as omui
 if Qt.__binding__ == "PySide":
     from shiboken import wrapInstance
-    from Qt.QtCore import Signal
 elif Qt.__binding__.startswith('PyQt'):
     from sip import wrapinstance as wrapInstance
-    from Qt.Core import pyqtSignal as Signal
 else:
     from shiboken2 import wrapInstance
-    from Qt.QtCore import Signal
-
-
 
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Image Manager for Maya Project"
@@ -109,7 +105,7 @@ def getMayaMainWindow():
     ptr = wrapInstance(long(win), QtWidgets.QMainWindow)
     return ptr
 
-class ImageManager(RootManager):
+class ImageManager(RootManager, MayaCoreFunctions):
     def __init__(self):
         super(ImageManager, self).__init__()
 
@@ -166,37 +162,37 @@ class ImageManager(RootManager):
     #             "categoriesFile": "categoriesMaya.json",
     #             "userSettingsDir": "SceneManager\\Maya"}
 
-    def getProjectDir(self):
-        """Overriden function"""
-        # This function gets the current maya project and informs the base class
-        # In addition it updates the projects file for (planned) interactivities with concurrent softwares
-        p_path = cmds.workspace(q=1, rd=1)
-        norm_p_path = os.path.normpath(p_path)
-        projectsDict = self.loadProjects()
-
-        if not projectsDict: # if there is no project database file at all
-            projectsDict = {"MayaProject": norm_p_path}
-            self.saveProjects(projectsDict)
-            return norm_p_path
-
-        # get the project defined in the database file
-        try:
-            dbProject = projectsDict["MayaProject"]
-        except KeyError:
-            dbProject = None
-
-        if dbProject == norm_p_path:
-            # do nothing to the database if it is the same project
-            return norm_p_path
-
-        if dbProject:
-            projectsDict["MayaProject"] = norm_p_path
-            self.saveProjects(projectsDict)
-            return norm_p_path
-        else:
-            projectsDict = {"MayaProject": norm_p_path}
-            self.saveProjects(projectsDict)
-            return norm_p_path
+    # def getProjectDir(self):
+    #     """Overriden function"""
+    #     # This function gets the current maya project and informs the base class
+    #     # In addition it updates the projects file for (planned) interactivities with concurrent softwares
+    #     p_path = cmds.workspace(q=1, rd=1)
+    #     norm_p_path = os.path.normpath(p_path)
+    #     projectsDict = self.loadProjects()
+    #
+    #     if not projectsDict: # if there is no project database file at all
+    #         projectsDict = {"MayaProject": norm_p_path}
+    #         self.saveProjects(projectsDict)
+    #         return norm_p_path
+    #
+    #     # get the project defined in the database file
+    #     try:
+    #         dbProject = projectsDict["MayaProject"]
+    #     except KeyError:
+    #         dbProject = None
+    #
+    #     if dbProject == norm_p_path:
+    #         # do nothing to the database if it is the same project
+    #         return norm_p_path
+    #
+    #     if dbProject:
+    #         projectsDict["MayaProject"] = norm_p_path
+    #         self.saveProjects(projectsDict)
+    #         return norm_p_path
+    #     else:
+    #         projectsDict = {"MayaProject": norm_p_path}
+    #         self.saveProjects(projectsDict)
+    #         return norm_p_path
 
 
     def getSceneFile(self):
@@ -527,7 +523,6 @@ class ImageManager(RootManager):
             if not matInfo == None:
                 # sGroup = pm.getAttr(matInfo.shadingGroup)
                 print "Aa", matInfo
-                import pymel.core as pm
 
                 # sGroup = pm.getAttr("%s.shadingGroup" %matInfo)
                 # print sGroup

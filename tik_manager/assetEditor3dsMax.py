@@ -39,7 +39,9 @@ from pymxs import runtime as rt
 from shutil import copyfile
 # import json
 # import logging
-from Sm3dsMax import MaxCoreFunctions
+# from Sm3dsMax import MaxCoreFunctions
+from coreFunctions.coreFunctions_Max import MaxCoreFunctions
+
 
 class AssetEditor3dsMax(MaxCoreFunctions):
     def __init__(self):

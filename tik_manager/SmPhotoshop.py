@@ -41,17 +41,17 @@ os.environ["PS_APP"]="1"
 from PyQt4 import QtCore, Qt
 from PyQt4 import QtGui as QtWidgets
 
-import SmUIRoot
-reload(SmUIRoot)
 from SmRoot import RootManager
+from tik_manager.coreFunctions.coreFunctions_PS import PsCoreFunctions
+
 from SmUIRoot import MainUI as baseUI
 
 import _version
 # import subprocess
 
-from win32com.client import Dispatch
+# from win32com.client import Dispatch
 # import comtypes.client as ct
-import win32gui
+# import win32gui
 
 # import pprint
 import logging
@@ -76,115 +76,6 @@ logging.basicConfig()
 logger = logging.getLogger('smPhotoshop')
 logger.setLevel(logging.WARNING)
 
-class PsCoreFunctions(object):
-    def __init__(self):
-        super(PsCoreFunctions, self).__init__()
-        # self.psApp = Dispatch('Photoshop.Application')
-
-    def _save(self, *args, **kwargs):
-        logger.warning("_save function is not implemented for SmPhotoshop")
-        pass
-        # not needed
-
-    def _saveAs(self, filePath, format=None, *args, **kwargs):
-
-
-        if format == "psd":
-            # PhotoshopSaveOptions=ct.CreateObject("Photoshop.PhotoshopSaveOptions")
-            # PhotoshopSaveOptions.AlphaChannels = True
-            # PhotoshopSaveOptions.Annotations = True
-            # PhotoshopSaveOptions.Layers = True
-            # PhotoshopSaveOptions.SpotColors = True
-            # activeDocument.SaveAs(sceneFile, PhotoshopSaveOptions, False)
-
-            desc19 = Dispatch("Photoshop.ActionDescriptor")
-            desc20 = Dispatch("Photoshop.ActionDescriptor")
-            desc20.PutBoolean(self.psApp.StringIDToTypeID('maximizeCompatibility'), True)
-            desc19.PutObject(
-                self.psApp.CharIDToTypeID('As  '), self.psApp.CharIDToTypeID('Pht3'), desc20)
-            desc19.PutPath(self.psApp.CharIDToTypeID('In  '), filePath)
-            desc19.PutBoolean(self.psApp.CharIDToTypeID('LwCs'), True)
-            self.psApp.ExecuteAction(self.psApp.CharIDToTypeID('save'), desc19, 3)
-
-        else:
-
-            desc19 = Dispatch("Photoshop.ActionDescriptor")
-            desc20 = Dispatch("Photoshop.ActionDescriptor")
-            desc20.PutBoolean(self.psApp.StringIDToTypeID('maximizeCompatibility'), True)
-
-            desc19.PutObject(
-                self.psApp.CharIDToTypeID('As  '), self.psApp.CharIDToTypeID('Pht8'), desc20)
-            desc19.PutPath(self.psApp.CharIDToTypeID('In  '), filePath)
-            desc19.PutBoolean(self.psApp.CharIDToTypeID('LwCs'), True)
-            self.psApp.ExecuteAction(self.psApp.CharIDToTypeID('save'), desc19, 3)
-
-    def _load(self, filePath, force=True, *args, **kwargs):
-        self.psApp.Open(filePath)
-
-    def _reference(self, filePath):
-        logger.warning("_reference function is not implemented for SmPhotoshop")
-        pass
-
-    def _import(self, filePath, *args, **kwargs):
-        logger.warning("_import function is not implemented for SmPhotoshop")
-        pass
-
-    def _importObj(self, filePath, importSettings, *args, **kwargs):
-        logger.warning("_importObj function is not implemented for SmPhotoshop")
-        pass
-
-    def _importAlembic(self, filePath, importSettings, *args, **kwargs):
-        logger.warning("_importAlembic function is not implemented for SmPhotoshop")
-        pass
-
-    def _importFbx(self, filePath, importSettings, *args, **kwargs):
-        logger.warning("_importFbx function is not implemented for SmPhotoshop")
-        pass
-
-    def _exportObj(self, filePath, exportSettings, exportSelected=True):
-        logger.warning("_exportObj function is not implemented for SmPhotoshop")
-        pass
-
-    def _exportAlembic(self, filePath, exportSettings, exportSelected=True, timeRange=[0,10]):
-        logger.warning("_exportAlembic function is not implemented for SmPhotoshop")
-        pass
-
-    def _exportFbx(self, filePath, exportSettings, exportSelected=True, timeRange=[0,10]):
-        logger.warning("_exportFbx function is not implemented for SmPhotoshop")
-        pass
-
-    def _getSceneFile(self):
-        try:
-            activeDocument = self.psApp.Application.ActiveDocument
-            docName = activeDocument.name
-            docPath = activeDocument.path
-            return os.path.join(docPath, docName)
-        except:
-            return "Untitled"
-
-    def _getProject(self):
-        """returns the project folder DEFINED BY THE HOST SOFTWARE, not the Tik Manager Project"""
-        homeDir = os.path.expanduser("~")
-        norm_p_path = os.path.normpath(homeDir)
-        return norm_p_path
-
-    def _getVersion(self):
-        logger.warning("_getVersion function is not implemented for SmPhotoshop")
-        pass
-
-    def _getCurrentFrame(self):
-        logger.warning("_getCurrentFrame function is not implemented for SmPhotoshop")
-        pass
-
-    def _getSelection(self):
-        logger.warning("_getSelection function is not implemented for SmPhotoshop")
-        pass
-
-    def _isSceneModified(self):
-        return False
-
-
-
 class PsManager(RootManager, PsCoreFunctions):
     def __init__(self):
         super(PsManager, self).__init__()
@@ -199,7 +90,8 @@ class PsManager(RootManager, PsCoreFunctions):
         self.init_database()
         self.textureTypes = self._sceneManagerDefaults["exportTextureTypes"]
         # self.psApp = ct.CreateObject('Photoshop.Application')
-        self.psApp = Dispatch('Photoshop.Application')
+        # self.psApp = Dispatch('Photoshop.Application')
+        self.psApp = self.comLink()
 
         # winName = win32gui.GetWindowText(win32gui.GetForegroundWindow())
         # print winName
@@ -596,80 +488,104 @@ class PsManager(RootManager, PsCoreFunctions):
             else:
                 pass
 
-        activeDocument = self.psApp.Application.ActiveDocument
         if extension == "jpg":
-            saveOPT=Dispatch("Photoshop.JPEGSaveOptions")
-            saveOPT.EmbedColorProfile = True
-            saveOPT.FormatOptions = 1 # => psStandardBaseline
-            saveOPT.Matte = 1 # => No Matte
-            saveOPT.Quality = 12
-            activeDocument.SaveAs(filePath, saveOPT, True)
+            self._exportJPG(filePath)
+
         if extension == "png":
-            saveOPT=Dispatch("Photoshop.PNGSaveOptions")
-            activeDocument.SaveAs(filePath, saveOPT, True)
+            self._exportPNG(filePath)
+
         if extension == "bmp":
-            saveOPT=Dispatch("Photoshop.BMPSaveOptions")
-            activeDocument.SaveAs(filePath, saveOPT, True)
+            self._exportBMP(filePath)
+
         if extension == "tga":
-            saveOPT=Dispatch("Photoshop.TargaSaveOptions")
-            saveOPT.Resolution=32
-            saveOPT.AlphaChannels=True
-            saveOPT.RLECompression=True
-            activeDocument.SaveAs(filePath, saveOPT, True)
+            self._exportTGA(filePath)
+
         if extension == "psd":
-            saveOPT=Dispatch("Photoshop.PhotoshopSaveOptions")
-            saveOPT.AlphaChannels = True
-            saveOPT.Annotations = True
-            saveOPT.Layers = True
-            saveOPT.SpotColors = True
-            activeDocument.SaveAs(filePath, saveOPT, True)
+            self._exportPSD(filePath)
+
         if extension == "tif":
-            saveOPT=Dispatch("Photoshop.TiffSaveOptions")
-            saveOPT.AlphaChannels = True
-            saveOPT.EmbedColorProfile = True
-            saveOPT.Layers = False
-            activeDocument.SaveAs(filePath, saveOPT, True)
+            self._exportTIF(filePath)
+
         if extension == "exr":
-            idsave = self.psApp.CharIDToTypeID("save")
-            desc182 = Dispatch("Photoshop.ActionDescriptor")
-            idAs = self.psApp.CharIDToTypeID("As  ")
-            desc183 = Dispatch("Photoshop.ActionDescriptor")
-            idBtDp = self.psApp.CharIDToTypeID("BtDp")
-            desc183.PutInteger(idBtDp, 16);
-            idCmpr = self.psApp.CharIDToTypeID("Cmpr")
-            desc183.PutInteger(idCmpr, 1)
-            idAChn = self.psApp.CharIDToTypeID("AChn")
-            desc183.PutInteger(idAChn, 0)
-            idEXRf = self.psApp.CharIDToTypeID("EXRf")
-            desc182.PutObject(idAs, idEXRf, desc183)
-            idIn = self.psApp.CharIDToTypeID("In  ")
-            desc182.PutPath(idIn, (filePath))
-            idDocI = self.psApp.CharIDToTypeID("DocI")
-            desc182.PutInteger(idDocI, 340)
-            idCpy = self.psApp.CharIDToTypeID("Cpy ")
-            desc182.PutBoolean(idCpy, True)
-            idsaveStage = self.psApp.StringIDToTypeID("saveStage")
-            idsaveStageType = self.psApp.StringIDToTypeID("saveStageType")
-            idsaveSucceeded = self.psApp.StringIDToTypeID("saveSucceeded")
-            desc182.PutEnumerated(idsaveStage, idsaveStageType, idsaveSucceeded)
-            self.psApp.ExecuteAction(idsave, desc182, 3)
+            self._exportEXR(filePath)
 
         if extension == "hdr":
-            idsave = self.psApp.CharIDToTypeID("save")
-            desc419 = Dispatch("Photoshop.ActionDescriptor")
-            idAs = self.psApp.CharIDToTypeID("As  ")
-            desc419.PutString(idAs, """Radiance""")
-            idIn = self.psApp.CharIDToTypeID("In  ")
-            desc419.PutPath(idIn, (filePath))
-            idDocI = self.psApp.CharIDToTypeID("DocI")
-            desc419.PutInteger(idDocI, 333)
-            idCpy = self.psApp.CharIDToTypeID("Cpy ")
-            desc419.PutBoolean(idCpy, True)
-            idsaveStage = self.psApp.StringIDToTypeID("saveStage")
-            idsaveStageType = self.psApp.StringIDToTypeID("saveStageType")
-            idsaveSucceeded = self.psApp.StringIDToTypeID("saveSucceeded")
-            desc419.PutEnumerated(idsaveStage, idsaveStageType, idsaveSucceeded)
-            self.psApp.ExecuteAction(idsave, desc419, 3)
+            self._exportHDR(filePath)
+
+        # activeDocument = self.psApp.Application.ActiveDocument
+        # if extension == "jpg":
+        #     saveOPT=Dispatch("Photoshop.JPEGSaveOptions")
+        #     saveOPT.EmbedColorProfile = True
+        #     saveOPT.FormatOptions = 1 # => psStandardBaseline
+        #     saveOPT.Matte = 1 # => No Matte
+        #     saveOPT.Quality = 12
+        #     activeDocument.SaveAs(filePath, saveOPT, True)
+        # if extension == "png":
+        #     saveOPT=Dispatch("Photoshop.PNGSaveOptions")
+        #     activeDocument.SaveAs(filePath, saveOPT, True)
+        # if extension == "bmp":
+        #     saveOPT=Dispatch("Photoshop.BMPSaveOptions")
+        #     activeDocument.SaveAs(filePath, saveOPT, True)
+        # if extension == "tga":
+        #     saveOPT=Dispatch("Photoshop.TargaSaveOptions")
+        #     saveOPT.Resolution=32
+        #     saveOPT.AlphaChannels=True
+        #     saveOPT.RLECompression=True
+        #     activeDocument.SaveAs(filePath, saveOPT, True)
+        # if extension == "psd":
+        #     saveOPT=Dispatch("Photoshop.PhotoshopSaveOptions")
+        #     saveOPT.AlphaChannels = True
+        #     saveOPT.Annotations = True
+        #     saveOPT.Layers = True
+        #     saveOPT.SpotColors = True
+        #     activeDocument.SaveAs(filePath, saveOPT, True)
+        # if extension == "tif":
+        #     saveOPT=Dispatch("Photoshop.TiffSaveOptions")
+        #     saveOPT.AlphaChannels = True
+        #     saveOPT.EmbedColorProfile = True
+        #     saveOPT.Layers = False
+        #     activeDocument.SaveAs(filePath, saveOPT, True)
+        # if extension == "exr":
+        #     idsave = self.psApp.CharIDToTypeID("save")
+        #     desc182 = Dispatch("Photoshop.ActionDescriptor")
+        #     idAs = self.psApp.CharIDToTypeID("As  ")
+        #     desc183 = Dispatch("Photoshop.ActionDescriptor")
+        #     idBtDp = self.psApp.CharIDToTypeID("BtDp")
+        #     desc183.PutInteger(idBtDp, 16);
+        #     idCmpr = self.psApp.CharIDToTypeID("Cmpr")
+        #     desc183.PutInteger(idCmpr, 1)
+        #     idAChn = self.psApp.CharIDToTypeID("AChn")
+        #     desc183.PutInteger(idAChn, 0)
+        #     idEXRf = self.psApp.CharIDToTypeID("EXRf")
+        #     desc182.PutObject(idAs, idEXRf, desc183)
+        #     idIn = self.psApp.CharIDToTypeID("In  ")
+        #     desc182.PutPath(idIn, (filePath))
+        #     idDocI = self.psApp.CharIDToTypeID("DocI")
+        #     desc182.PutInteger(idDocI, 340)
+        #     idCpy = self.psApp.CharIDToTypeID("Cpy ")
+        #     desc182.PutBoolean(idCpy, True)
+        #     idsaveStage = self.psApp.StringIDToTypeID("saveStage")
+        #     idsaveStageType = self.psApp.StringIDToTypeID("saveStageType")
+        #     idsaveSucceeded = self.psApp.StringIDToTypeID("saveSucceeded")
+        #     desc182.PutEnumerated(idsaveStage, idsaveStageType, idsaveSucceeded)
+        #     self.psApp.ExecuteAction(idsave, desc182, 3)
+        #
+        # if extension == "hdr":
+        #     idsave = self.psApp.CharIDToTypeID("save")
+        #     desc419 = Dispatch("Photoshop.ActionDescriptor")
+        #     idAs = self.psApp.CharIDToTypeID("As  ")
+        #     desc419.PutString(idAs, """Radiance""")
+        #     idIn = self.psApp.CharIDToTypeID("In  ")
+        #     desc419.PutPath(idIn, (filePath))
+        #     idDocI = self.psApp.CharIDToTypeID("DocI")
+        #     desc419.PutInteger(idDocI, 333)
+        #     idCpy = self.psApp.CharIDToTypeID("Cpy ")
+        #     desc419.PutBoolean(idCpy, True)
+        #     idsaveStage = self.psApp.StringIDToTypeID("saveStage")
+        #     idsaveStageType = self.psApp.StringIDToTypeID("saveStageType")
+        #     idsaveSucceeded = self.psApp.StringIDToTypeID("saveSucceeded")
+        #     desc419.PutEnumerated(idsaveStage, idsaveStageType, idsaveSucceeded)
+        #     self.psApp.ExecuteAction(idsave, desc419, 3)
 
         success = os.path.isfile(filePath)
         if success:
@@ -736,12 +652,14 @@ class PsManager(RootManager, PsCoreFunctions):
                 new_height = oWidth / ratio
             dupDocument.ResizeImage(new_width, new_height)
             dupDocument.ResizeCanvas(oWidth, oHeight)
-            jpgSaveOptions = Dispatch("Photoshop.JPEGSaveOptions")
-            jpgSaveOptions.EmbedColorProfile = True
-            jpgSaveOptions.FormatOptions = 1  # => psStandardBaseline
-            jpgSaveOptions.Matte = 1  # => No Matte
-            jpgSaveOptions.Quality = 6
-            dupDocument.SaveAs(thumbPath, jpgSaveOptions, True)
+
+            self._exportJPG(thumbPath, quality=6)
+            # jpgSaveOptions = Dispatch("Photoshop.JPEGSaveOptions")
+            # jpgSaveOptions.EmbedColorProfile = True
+            # jpgSaveOptions.FormatOptions = 1  # => psStandardBaseline
+            # jpgSaveOptions.Matte = 1  # => No Matte
+            # jpgSaveOptions.Quality = 6
+            # dupDocument.SaveAs(thumbPath, jpgSaveOptions, True)
             dupDocument.Close(2)  # 2 means without saving
         else:
             print ("something went wrong with thumbnail. Skipping thumbnail")

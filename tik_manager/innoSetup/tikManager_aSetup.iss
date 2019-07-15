@@ -4,7 +4,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING .ISS SCRIPT FILES!
 
 #define appName "Tik Manager"
-#define appVersion "3.0"
+#define appVersion "3.0.2"
 
 
 [Setup]
@@ -52,6 +52,7 @@ Source: "..\SmUIRoot.pyc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\CSS\tikManager.qss"; DestDir: "{app}\CSS"; Flags: ignoreversion
 
 Source: "..\icons\*"; DestDir: "{app}\icons"; Flags: ignoreversion createallsubdirs recursesubdirs
+Source: "..\coreFunctions\*"; DestDir: "{app}\coreFunctions"; Flags: ignoreversion createallsubdirs recursesubdirs
 Source: "..\setupFiles\*"; DestDir: "{app}\setupFiles"; Flags: ignoreversion createallsubdirs recursesubdirs
 Source: "..\TikManager_Commons\*"; DestDir: "{app}\TikManager_Commons"; Flags: ignoreversion createallsubdirs recursesubdirs
 Source: "..\bin\*"; DestDir: "{app}\bin"; Flags: ignoreversion createallsubdirs recursesubdirs

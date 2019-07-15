@@ -145,10 +145,8 @@ def inject(file, newContentList, between=None, after=None, before=None, matchMod
         startLine = between[0]
         endLine = between[1]
         startIndex = collectIndex(searchList, startLine, mode=matchMode)
-        print "HERE", startIndex
         if not startIndex == None:
             endIndex = collectIndex(searchList, endLine, beginFrom=startIndex, mode=matchMode)
-            print "ENDINDEX", endIndex
         if startIndex == None or not endIndex:
             if force:
                 "Cannot find Start Line. Just appending to the file"
@@ -447,7 +445,7 @@ def mayaSetup(prompt=True):
         -marginWidth 1
         -marginHeight 1
         -command "\\nfrom tik_manager import ImMaya\\ntik_imageManager = ImMaya.MainUI(callback=\\"tik_imageManager\\")\\n" 
-        -sourceType "python" 
+        -sourceType "python"
         -commandRepeatable 1
         -flat 1
     ;
@@ -498,8 +496,9 @@ def mayaSetup(prompt=True):
         -style "iconOnly" 
         -marginWidth 1
         -marginHeight 1
-        -command "\\nfrom tik_manager import SmMaya\\ntik_imageViewer = SmMaya.MayaManager().createPreview()\\n" 
-        -sourceType "python" 
+        -command "\\nfrom tik_manager import SmMaya\\nSmMaya.MayaManager().createPreview()\\n" 
+        -sourceType "python"
+        -doubleClickCommand "from tik_manager import SmMaya\\nSmMaya.MainUI().onCreatePreview()\\n" 
         -commandRepeatable 1
         -flat 1
     ;

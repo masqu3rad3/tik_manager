@@ -52,7 +52,7 @@ try:
     import maya.cmds as cmds
     import Qt
     from Qt import QtWidgets, QtCore, QtGui
-    from SmMaya import MayaCoreFunctions as CoreFunctions
+    from tik_manager.coreFunctions.coreFunctions_Maya import MayaCoreFunctions as CoreFunctions
     BoilerDict["Environment"] = "Maya"
     BoilerDict["WindowTitle"] = "Image Viewer Maya v%s" % _version.__version__
 except ImportError:
@@ -62,7 +62,7 @@ try:
     import MaxPlus
     import Qt
     from Qt import QtWidgets, QtCore, QtGui
-    from Sm3dsMax import MaxCoreFunctions as CoreFunctions
+    from tik_manager.coreFunctions.coreFunctions_Max import MaxCoreFunctions as CoreFunctions
     BoilerDict["Environment"] = "3dsMax"
     BoilerDict["WindowTitle"] = "Image Viewer 3ds Max v%s" % _version.__version__
 
@@ -73,7 +73,7 @@ try:
     import hou
     import Qt
     from Qt import QtWidgets, QtCore, QtGui
-    from SmHoudini import HoudiniCoreFunctions as CoreFunctions
+    from tik_manager.coreFunctions.coreFunctions_Houdini import HoudiniCoreFunctions as CoreFunctions
     BoilerDict["Environment"] = "Houdini"
     BoilerDict["WindowTitle"] = "Image Viewer Houdini v%s" % _version.__version__
 except ImportError:
@@ -83,7 +83,7 @@ try:
     import nuke
     import Qt
     from Qt import QtWidgets, QtCore, QtGui
-    from SmNuke import NukeCoreFunctions as CoreFunctions
+    from tik_manager.coreFunctions.coreFunctions_Nuke import NukeCoreFunctions as CoreFunctions
     BoilerDict["Environment"] = "Nuke"
     BoilerDict["WindowTitle"] = "Image Viewer Nuke v%s" % _version.__version__
 except ImportError:
@@ -92,7 +92,6 @@ except ImportError:
 try:
     from PyQt4 import QtCore, Qt
     from PyQt4 import QtGui as QtWidgets
-    # from SmStandalone import StandaloneCoreFunctions as CoreFunctions
     CoreFunctions = object
     BoilerDict["Environment"] = "Standalone"
     BoilerDict["WindowTitle"] = "Image Viewer Standalone v%s" % _version.__version__
@@ -103,8 +102,9 @@ except ImportError:
 import os
 import sys
 
+## DO NOT REMOVE THIS:
 import iconsSource as icons
-
+## DO NOT REMOVE THIS:
 
 # PyInstaller and Standalone version compatibility
 
@@ -126,7 +126,6 @@ import iconsSource as icons
 
 import pyseq as seq
 
-import json
 import datetime
 from shutil import copyfile
 from SmRoot import RootManager
@@ -1086,7 +1085,7 @@ class SeqCopyProgress(QtWidgets.QWidget):
         self.msgDialog.setModal(True)
         self.msgDialog.setObjectName("Result_Dialog")
         self.msgDialog.setWindowTitle("Transfer Results")
-        self.msgDialog.resize(300, 120)
+        # self.msgDialog.resize(300, 120)
         layoutMain = QtWidgets.QVBoxLayout()
         self.msgDialog.setLayout(layoutMain)
 
@@ -1111,7 +1110,6 @@ class SeqCopyProgress(QtWidgets.QWidget):
         okButton = QtWidgets.QPushButton("OK")
         layoutH.addWidget(okButton)
 
-        print "HERE"
         showInExplorer.clicked.connect(lambda: self.onShowInExplorer(destPath))
 
         okButton.clicked.connect(self.msgDialog.close)

@@ -46,6 +46,7 @@ try:
     import maya.cmds as cmds
     import Qt
     from Qt import QtWidgets, QtCore, QtGui
+    from tik_manager.coreFunctions.coreFunctions_Maya import MayaCoreFunctions as CoreFunctions
 
     BoilerDict["Environment"] = "Maya"
     BoilerDict["WindowTitle"] = "Project Materials Maya v%s" % _version.__version__
@@ -56,6 +57,8 @@ try:
     import MaxPlus
     import Qt
     from Qt import QtWidgets, QtCore, QtGui
+    from tik_manager.coreFunctions.coreFunctions_Max import MaxCoreFunctions as CoreFunctions
+
     BoilerDict["Environment"] = "3dsMax"
     BoilerDict["WindowTitle"] = "Project Materials 3ds Max v%s" % _version.__version__
 except ImportError:
@@ -65,6 +68,8 @@ try:
     import hou
     import Qt
     from Qt import QtWidgets, QtCore, QtGui
+    from tik_manager.coreFunctions.coreFunctions_Houdini import HoudiniCoreFunctions as CoreFunctions
+
     BoilerDict["Environment"] = "Houdini"
     BoilerDict["WindowTitle"] = "Project Materials Houdini v%s" % _version.__version__
 except ImportError:
@@ -74,6 +79,8 @@ try:
     import nuke
     import Qt
     from Qt import QtWidgets, QtCore, QtGui
+    from tik_manager.coreFunctions.coreFunctions_Nuke import NukeCoreFunctions as CoreFunctions
+
     BoilerDict["Environment"] = "Nuke"
     BoilerDict["WindowTitle"] = "Project Materials Nuke v%s" % _version.__version__
 except ImportError:
@@ -82,6 +89,7 @@ except ImportError:
 try:
     from PyQt4 import QtCore, Qt
     from PyQt4 import QtGui as QtWidgets
+    CoreFunctions = object
     BoilerDict["Environment"] = "Standalone"
     BoilerDict["WindowTitle"] = "Project Materials Standalone v%s" % _version.__version__
     FORCE_QT4 = True
@@ -116,6 +124,10 @@ import datetime
 # from shutil import copyfile
 import shutil
 import logging
+
+## DO NOT REMOVE THIS:
+import iconsSource as icons
+## DO NOT REMOVE THIS:
 
 logging.basicConfig()
 logger = logging.getLogger('projectMaterials')
@@ -792,16 +804,19 @@ class CopyProgress(QtWidgets.QWidget):
         # except:
         #     return s
 
-class ProjectMaterials(RootManager):
-    def __init__(self, projectPath=None):
+class ProjectMaterials(RootManager, CoreFunctions):
+    def __init__(self):
         super(ProjectMaterials, self).__init__()
         #
         # self.init_paths()
         # self.init_database()
-        if projectPath:
-            self.passedProject = projectPath
-        else:
-            self.passedProject = None
+        self.swName = BoilerDict["Environment"]
+        self.init_paths()
+        self.init_database()
+        # if projectPath:
+        #     self.passedProject = projectPath
+        # else:
+        #     self.passedProject = None
 
     def init_paths(self):
         """OVERRIDEN FUNCTION - Initializes necessary paths for project materials module"""
@@ -809,6 +824,7 @@ class ProjectMaterials(RootManager):
         self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDir(), "TikManager"))
         self._folderCheck(self._pathsDict["userSettingsDir"])
         self._pathsDict["userSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "userSettings.json"))
+        self._pathsDict["projectsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smProjects.json"))
 
         self._pathsDict["commonFolderFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smCommonFolder.json"))
         self._pathsDict["sharedSettingsDir"] = self._getCommonFolder()
@@ -909,33 +925,33 @@ class ProjectMaterials(RootManager):
             return data
 
 
-    def getProjectDir(self):
-        """OVERRIDEN FUNCTION Returns the project folder according to the environment"""
-        # first try to return the passed project
-        if self.passedProject:
-            return self.passedProject
-
-        if BoilerDict["Environment"] == "Maya":
-            return os.path.normpath(cmds.workspace(q=1, rd=1))
-        elif BoilerDict["Environment"] == "3dsMax":
-            return os.path.normpath(MaxPlus.PathManager.GetProjectFolderDir())
-        elif BoilerDict["Environment"] == "Houdini":
-            return os.path.normpath((hou.hscript('echo $JOB')[0])[:-1])  # [:-1] is for the extra \n
-        elif BoilerDict["Environment"] == "Nuke":
-            # TODO // Needs a project getter for nuke
-            return os.path.normpath(os.path.join(os.path.expanduser("~")))
-        else:
-            return os.path.normpath(os.path.join(os.path.expanduser("~")))
-
-        # ---------
-        # TEMPORARY
-        # ---------
-
-        # tempPath = os.path.normpath("E:\\SceneManager_Projects\\SceneManager_DemoProject_None_181101")
-        # tempPath = os.path.normpath("C:\\Users\\Arda\\Documents\\testArea\\asdf_asdf_asdf_181020")
-        # tempPath = os.path.normpath("D:\\PROJECT_AND_ARGE\\V3Test_V3Test_V3Test_181106")
-
-        # return tempPath
+    # def getProjectDir(self):
+    #     """OVERRIDEN FUNCTION Returns the project folder according to the environment"""
+    #     # first try to return the passed project
+    #     if self.passedProject:
+    #         return self.passedProject
+    #
+    #     if BoilerDict["Environment"] == "Maya":
+    #         return os.path.normpath(cmds.workspace(q=1, rd=1))
+    #     elif BoilerDict["Environment"] == "3dsMax":
+    #         return os.path.normpath(MaxPlus.PathManager.GetProjectFolderDir())
+    #     elif BoilerDict["Environment"] == "Houdini":
+    #         return os.path.normpath((hou.hscript('echo $JOB')[0])[:-1])  # [:-1] is for the extra \n
+    #     elif BoilerDict["Environment"] == "Nuke":
+    #         # TODO // Needs a project getter for nuke
+    #         return os.path.normpath(os.path.join(os.path.expanduser("~")))
+    #     else:
+    #         return os.path.normpath(os.path.join(os.path.expanduser("~")))
+    #
+    #     # ---------
+    #     # TEMPORARY
+    #     # ---------
+    #
+    #     # tempPath = os.path.normpath("E:\\SceneManager_Projects\\SceneManager_DemoProject_None_181101")
+    #     # tempPath = os.path.normpath("C:\\Users\\Arda\\Documents\\testArea\\asdf_asdf_asdf_181020")
+    #     # tempPath = os.path.normpath("D:\\PROJECT_AND_ARGE\\V3Test_V3Test_V3Test_181106")
+    #
+    #     # return tempPath
 
     def saveMaterial(self, pathList, materialType):
         subProject = "" if self.currentSubIndex == 0 else self.subProject
@@ -1043,57 +1059,29 @@ class MainUI(QtWidgets.QMainWindow):
 
         # matCategories = ["Storyboard", "Brief", "Artwork", "Footage", "Other"]
 
-        self.promat = ProjectMaterials(projectPath=projectPath)
+        # self.promat = ProjectMaterials(projectPath=projectPath)
+        self.promat = ProjectMaterials()
 
-        pStatus = self.promat.init_paths()
-        if not pStatus:
-            msg = ["Nothing to view", "No Scene Manager Database",
-                   "There is no Scene Manager Database Folder in this project path"]
-            q = QtWidgets.QMessageBox()
-            q.setIcon(QtWidgets.QMessageBox.Information)
-            q.setText(msg[0])
-            q.setInformativeText(msg[1])
-            q.setWindowTitle(msg[2])
-            q.setStandardButtons(QtWidgets.QMessageBox.Ok)
-            q.button(QtWidgets.QMessageBox.Ok).setFixedHeight(30)
-            q.button(QtWidgets.QMessageBox.Ok).setFixedWidth(100)
-            ret = q.exec_()
-            if ret == QtWidgets.QMessageBox.Ok:
-                self.close()
-                self.deleteLater()
-                return
-
-        self.promat.init_database()
-
-        # if projectPath:
-        #     self.projectPath=str(projectPath)
-        # else:
-        #     self.projectPath = self.promat.getProjectDir()
-        #
-        # if relativePath:
-        #     self.rootPath = os.path.join(self.projectPath, str(relativePath))
-        # else:
-        #     self.rootPath = os.path.join(self.projectPath, "images")
-        #     if not os.path.isdir(self.rootPath):
-        #         self.rootPath = self.projectPath
-
-        # if not self.promat.checkDatabase():
-
-        # self.databaseDir = os.path.normpath(os.path.join(self.projectPath, "smDatabase"))
-        #
-        # if not os.path.isdir(self.databaseDir):
-        #     msg=["Nothing to view", "No Scene Manager Database",
-        #      "There is no Scene Manager Database Folder in this project path"]
+        # pStatus = self.promat.init_paths()
+        # if not pStatus:
+        #     msg = ["Nothing to view", "No Scene Manager Database",
+        #            "There is no Scene Manager Database Folder in this project path"]
         #     q = QtWidgets.QMessageBox()
         #     q.setIcon(QtWidgets.QMessageBox.Information)
         #     q.setText(msg[0])
         #     q.setInformativeText(msg[1])
         #     q.setWindowTitle(msg[2])
         #     q.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        #     q.button(QtWidgets.QMessageBox.Ok).setFixedHeight(30)
+        #     q.button(QtWidgets.QMessageBox.Ok).setFixedWidth(100)
         #     ret = q.exec_()
         #     if ret == QtWidgets.QMessageBox.Ok:
         #         self.close()
         #         self.deleteLater()
+        #         return
+
+        # self.promat.init_database()
+
 
         self.setObjectName(BoilerDict["Environment"])
         # self.resize(670, 624)
@@ -1147,7 +1135,9 @@ class MainUI(QtWidgets.QMainWindow):
             headerBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmProjectMaterials.png")
         tikIcon_label.setPixmap(headerBitmap)
 
+
         headerLayout.addWidget(tikIcon_label)
+
 
         resolvedPath_label = QtWidgets.QLabel()
         resolvedPath_label.setObjectName("header")

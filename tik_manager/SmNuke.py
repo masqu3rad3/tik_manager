@@ -35,6 +35,8 @@ os.environ["FORCE_QT4"]="0"
 
 from SmUIRoot import MainUI as baseUI
 from SmRoot import RootManager
+from tik_manager.coreFunctions.coreFunctions_Nuke import NukeCoreFunctions
+
 
 import _version
 import shutil
@@ -51,14 +53,9 @@ from Qt import QtWidgets, QtCore, QtGui
 import iconsSource as icons
 ## DO NOT REMOVE THIS:
 
-logging.basicConfig()
-logger = logging.getLogger('smMaya')
-logger.setLevel(logging.WARNING)
-
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Scene Manager for Maya Project"
 __credits__ = []
-__version__ = "2.0.0"
 __license__ = "GPL"
 __maintainer__ = "Arda Kutlu"
 __email__ = "ardakutlu@gmail.com"
@@ -70,118 +67,8 @@ logging.basicConfig()
 logger = logging.getLogger('smNuke')
 logger.setLevel(logging.DEBUG)
 
-# class PanelTest(QtGui.QWidget):
-#     def __init__(self, parent=None):
-#         QtGui.QWidget.__init__(self, parent)
-#         self.setLayout(QtGui.QVBoxLayout())
-#         self.myTable    = QtGui.QTableWidget()
-#         self.myTable.header = ['Date', 'Files', 'Size', 'Path' ]
-#         self.myTable.size = [ 75, 375, 85, 600 ]
-#         self.myTable.setColumnCount(len(self.myTable.header))
-#         self.myTable.setHorizontalHeaderLabels(self.myTable.header)
-#         self.myTable.setSelectionMode(QtGui.QTableView.ExtendedSelection)
-#         self.myTable.setSelectionBehavior(QtGui.QTableView.SelectRows)
-#         self.myTable.setSortingEnabled(1)
-#         self.myTable.sortByColumn(1, QtCore.Qt.DescendingOrder)
-#         self.myTable.setAlternatingRowColors(True)
-#
-#         self.myTable.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-#         self.myTable.setRowCount(50)
-#         self.layout().addWidget(self.myTable)
-#
-#         self.myTable.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
-#         self.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
-#
-#         def closeEvent():
-#             print 'Closed PanelTest'
-#
-# class mainPanel(QtGui.QWidget):
-#     def __init__(self):
-#         QtGui.QWidget.__init__(self)
-#         self.testBtn = QtGui.QPushButton()
-#         self.setLayout( QtGui.QVBoxLayout() )
-#         self.layout().addWidget( self.testBtn )
-#         self.testBtn.clicked.connect(self.createPanel)
-#         self.setSizePolicy( QtGui.QSizePolicy( QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding))
-#
-#     def closeEvent():
-#         print 'Closed mainPanel'
-#
-#     def createPanel(self):
-#         pane = nuke.getPaneFor("example.test.panel")
-#         print pane
-#         panels.registerWidgetAsPanel('PanelTest', 'PanelTest',"example.test.panel", True).addToPane(pane)
 
-class NukeCoreFunctions(object):
-    def __init__(self):
-        super(NukeCoreFunctions, self).__init__()
 
-    def _save(self, *args, **kwargs):
-        logger.warning("_save function is not implemented for SmNuke")
-        pass
-        # not needed
-
-    def _saveAs(self, filePath, format=None, *args, **kwargs):
-        nuke.scriptSaveAs(filePath)
-
-    def _load(self, filePath, force=True, *args, **kwargs):
-        nuke.scriptOpen(filePath)
-
-    def _reference(self, filePath):
-        logger.warning("_reference function is not implemented for SmNuke")
-        pass
-
-    def _import(self, filePath, *args, **kwargs):
-        nuke.nodePaste(filePath)
-
-    def _importObj(self, filePath, importSettings, *args, **kwargs):
-        # TODO: May prove useful to implement this as well
-        logger.warning("_importObj function is not implemented for SmNuke")
-        pass
-
-    def _importAlembic(self, filePath, importSettings, *args, **kwargs):
-        # TODO: May prove useful to implement this as well
-        logger.warning("_importAlembic function is not implemented for SmNuke")
-        pass
-
-    def _importFbx(self, filePath, importSettings, *args, **kwargs):
-        # TODO: May prove useful to implement this as well
-        logger.warning("_importFbx function is not implemented for SmNuke")
-        pass
-
-    def _exportObj(self, filePath, exportSettings, exportSelected=True):
-        logger.warning("_exportObj function is not implemented for SmNuke")
-        pass
-
-    def _exportAlembic(self, filePath, exportSettings, exportSelected=True, timeRange=[0,10]):
-        logger.warning("_exportAlembic function is not implemented for SmNuke")
-        pass
-
-    def _exportFbx(self, filePath, exportSettings, exportSelected=True, timeRange=[0,10]):
-        logger.warning("_exportFbx function is not implemented for SmNuke")
-        pass
-
-    def _getSceneFile(self):
-        sceneName = nuke.root().knob('name').value()
-        norm_s_path = os.path.normpath(sceneName)
-        return norm_s_path
-
-    def _getProject(self):
-        homeDir = os.path.expanduser("~")
-        norm_p_path = os.path.normpath(homeDir)
-        return norm_p_path
-
-    def _getVersion(self):
-        return [nuke.NUKE_VERSION_MAJOR, nuke.NUKE_VERSION_MINOR]
-
-    def _getCurrentFrame(self):
-        return nuke.frame()
-
-    def _getSelection(self):
-        return nuke.selectedNodes()
-
-    def _isSceneModified(self):
-        return nuke.modified()
 
 class NukeManager(RootManager, NukeCoreFunctions):
     def __init__(self):

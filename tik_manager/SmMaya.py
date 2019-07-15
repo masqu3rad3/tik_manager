@@ -34,13 +34,13 @@ import os
 os.environ["FORCE_QT4"]="0"
 
 # DELETE
-import SmUIRoot
 # ------
 
 from SmUIRoot import MainUI as baseUI
 # import SmRoot
 # reload(SmRoot)
 from SmRoot import RootManager
+from tik_manager.coreFunctions.coreFunctions_Maya import MayaCoreFunctions
 
 import shutil
 import maya.cmds as cmds
@@ -54,293 +54,14 @@ from glob import glob
 import ImMaya
 
 # import Qt
-from Qt import QtWidgets, QtCore, QtGui
+from Qt import QtWidgets, QtGui
 
 ## DO NOT REMOVE THIS:
-import iconsSource as icons
 ## DO NOT REMOVE THIS:
 
 logging.basicConfig()
 logger = logging.getLogger('smMaya')
 logger.setLevel(logging.WARNING)
-
-class MayaCoreFunctions(object):
-    def __init__(self):
-        super(MayaCoreFunctions, self).__init__()
-
-    def _save(self, *args, **kwargs):
-        cmds.file(save=True)
-
-    def _saveAs(self, filePath, format, *args, **kwargs):
-        cmds.file(rename=filePath)
-        cmds.file(save=True, type=format)
-
-    def _load(self, filePath, force=True, *args, **kwargs):
-        cmds.file(filePath, o=True, force=force)
-
-    def _reference(self, filePath, namespace):
-        cmds.file(os.path.normpath(filePath), reference=True, gl=True, mergeNamespacesOnClash=False,
-                  namespace=namespace)
-
-    def _import(self, filePath, *args, **kwargs):
-        cmds.file(filePath, i=True)
-
-    def _importObj(self, filePath, importSettings, *args, **kwargs):
-        mayaImp_obj = importSettings["objImportMaya"]
-        # if not cmds.pluginInfo('objImport', l=True, q=True):
-        #     try:
-        #         cmds.loadPlugin('objImport')
-        #     except:
-        #         msg = "Wavefront(Obj) Import Plugin cannot be initialized. Skipping"
-        #         cmds.confirmDialog(title='Plugin Error', message=msg)
-        #         return False
-
-        opFlag = ""
-        for item in mayaImp_obj.items():
-            opFlag = "%s %s" %(opFlag, item[1])
-
-        cmds.file(filePath, i=True, op=opFlag)
-
-    def _importAlembic(self, filePath, importSettings, *args, **kwargs):
-        mayaImp_alembic = importSettings["alembicImportMaya"]
-
-        if not cmds.pluginInfo('AbcImport.mll', l=True, q=True):
-            try:
-                cmds.loadPlugin('AbcImport.mll')
-            except:
-                msg = "Alembic Import Plugin cannot be initialized. Skipping"
-                cmds.confirmDialog(title='Plugin Error', message=msg)
-                return False
-
-        cmds.AbcImport(filePath, ftr=mayaImp_alembic["fitTimeRange"], sts=mayaImp_alembic["setToStartFrame"])
-
-    def _importFbx(self, filePath, importSettings, *args, **kwargs):
-        mayaImp_fbx = importSettings["fbxImportMaya"]
-        if not cmds.pluginInfo('fbxmaya', l=True, q=True):
-            try:
-                cmds.loadPlugin('fbxmaya')
-            except:
-                msg = "FBX Plugin cannot be initialized. Skipping"
-                cmds.confirmDialog(title='Plugin Error', message=msg)
-                return False
-
-        for item in mayaImp_fbx.items():
-            # TODO : Test with more versions of Maya
-            mel.eval('%s %s' % (item[0], item[1]))
-
-        try:
-            compFilePath = filePath.replace("\\", "//")  ## for compatibility with mel syntax.
-            cmd = ('FBXImport -f "{0}";'.format(compFilePath))
-            mel.eval(cmd)
-            return True
-        except:
-            msg = "Cannot import FBX for unknown reason. Skipping"
-            cmds.confirmDialog(title='Unknown Error', message=msg)
-            return False
-
-    def _exportObj(self, filePath, exportSettings=None, exportSelected=True):
-        """
-        Exports wavefront Obj file
-        Args:
-            filePath: (String) Absolute File path for exported file
-            exportSettings: (Dictionary) settings file (see getExportSettings)
-            exportSelected: (Boolean) If True, exports only currently selected objects, else whole scene. Default True
-
-        Returns: (Boolean) True for success False for failure
-
-        """
-        mayaExp_obj = exportSettings["objExportMaya"]
-        if not cmds.pluginInfo('objExport', l=True, q=True):
-            try:
-                cmds.loadPlugin('objExport')
-            except:
-                msg = "Wavefront(Obj) Export Plugin cannot be initialized. Skipping Obj export"
-                cmds.confirmDialog(title='Plugin Error', message=msg)
-                return False
-
-        opFlag = "groups={0}; ptgroups={1}; materials={2}; smoothing={3}; normals={4}".format(
-            mayaExp_obj["groups"],
-            mayaExp_obj["ptgroups"],
-            mayaExp_obj["materials"],
-            mayaExp_obj["smoothing"],
-            mayaExp_obj["normals"]
-        )
-        try:
-            cmds.file(os.path.splitext(filePath)[0], pr=True, force=True, typ="OBJexport", es=exportSelected,
-                      ea=not exportSelected, op=opFlag)
-            return True
-        except:
-            msg = "Cannot export OBJ for unknown reason. Skipping OBJ export"
-            cmds.confirmDialog(title='Unknown Error', message=msg)
-            return False
-
-    def _exportAlembic(self, filePath, exportSettings=None, exportSelected=True, timeRange=[0,10]):
-        """
-        Exports Alembic (.abc) file
-        Args:
-            filePath: (String) Absolute File path for exported file
-            exportSettings: (Dictionary) settings file (see getExportSettings)
-            exportSelected: (Boolean) If True, exports only currently selected objects, else whole scene. Default True
-
-        Returns: (Boolean) True for success False for failure
-
-        """
-        mayaExp_alembic = exportSettings["alembicExportMaya"]
-
-        if not cmds.pluginInfo('AbcExport.mll', l=True, q=True):
-            try:
-                cmds.loadPlugin('AbcExport.mll')
-            except:
-                msg = "Alembic Export Plugin cannot be initialized. Skipping Alembic export"
-                cmds.confirmDialog(title='Plugin Error', message=msg)
-                return False
-
-        root = ""
-        if exportSelected:
-            selection = cmds.ls(sl=True)
-            for x in selection:
-                root = "%s-root %s " % (root, x)
-            root = root[:-1]
-
-
-        # edit in - out
-        mayaExp_alembic["frameRange"] = "%s %s" %(timeRange[0], timeRange[1])
-        # mayaExp_alembic["StartFrame"] = timeRange[0]
-        # mayaExp_alembic["EndFrame"] = timeRange[1]
-
-        flags = ""
-        for item in mayaExp_alembic.items():
-            if type(item[1]) != bool:
-                flags = "%s-%s %s " % (flags, item[0], item[1])
-            else:
-                if item[1]: # if flag is true:
-                    flags = "%s-%s " %(flags, item[0])
-                else:
-                    pass
-        flags = flags[:-1]
-
-        command = "-file {0} {1} {2}".format(filePath, flags, root)
-
-        # file = "-file %s" % filePath
-        # dataFormat = "-dataFormat '%s'" % mayaExp_alembic["ArchiveType"]
-        # frameRange = "-frameRange %s %s" % (mayaExp_alembic["StartFrame"], mayaExp_alembic["EndFrame"])
-        # noNormal = "" if mayaExp_alembic["Normals"] else "-noNormals"
-        # renderableOnly = "" if mayaExp_alembic["Hidden"] else "-renderableOnly"
-        # step = "-step %s" % float(mayaExp_alembic["SamplesPerFrame"])
-        # # selection = "-selection" if exportSelected else ""
-        # selection = ""
-        # uv = "-uvWrite" if mayaExp_alembic["UVs"] else ""
-        # visibility = "-writeVisibility" if mayaExp_alembic["Visibility"] else ""
-        #
-        # command = "{0} {1} {2} {3} {4} {5} {6} {7} {8} {9}".format(file,
-        #                                                        dataFormat,
-        #                                                        frameRange,
-        #                                                        noNormal,
-        #                                                        renderableOnly,
-        #                                                        step,
-        #                                                        selection,
-        #                                                        uv,
-        #                                                        visibility,
-        #                                                        root)
-        try:
-            cmds.AbcExport(j=command)
-            return True
-        except:
-            msg = "Cannot export Alembic for unknown reason. Skipping Alembic export"
-            cmds.confirmDialog(title='Unknown Error', message=msg)
-            return False
-
-    def _exportFbx(self, filePath, exportSettings=None, exportSelected=True, timeRange=[0,10]):
-        # TODO : TEST EXPORT RANGES, SINGLE FRAMES, ETC
-        """
-        Exports FBX (.fbx) file
-        Args:
-            filePath: (String) Absolute File path for exported file
-            exportSettings: (Dictionary) settings file (see getExportSettings)
-            exportSelected: (Boolean) If True, exports only currently selected objects, else whole scene. Default True
-
-        Returns: (Boolean) True for success False for failure
-
-        """
-        mayaExp_fbx = exportSettings["fbxExportMaya"]
-
-        if not cmds.pluginInfo('fbxmaya', l=True, q=True):
-            try:
-                cmds.loadPlugin('fbxmaya')
-            except:
-                msg = "FBX Export Plugin cannot be initialized. Skipping FBX export"
-                cmds.confirmDialog(title='Plugin Error', message=msg)
-                return False
-
-        expSelectedFlag = "-s" if exportSelected else ""
-
-        # OVERRIDE ANIMATION SETTINGS
-        if timeRange[0] != timeRange[1]:
-            mayaExp_fbx["FBXExportBakeComplexStart"] = "-v %s" %timeRange[0]
-            mayaExp_fbx["FBXExportBakeComplexEnd"] = "-v %s" %timeRange[1]
-        else:
-            mayaExp_fbx["FBXExportBakeComplexAnimation"] = "-v false"
-
-        for item in mayaExp_fbx.items():
-            # TODO : Test with more versions of Maya
-            mel.eval('%s %s'%(item[0], item[1]))
-
-        try:
-            compFilePath = filePath.replace("\\", "//")  ## for compatibility with mel syntax.
-            cmd = ('FBXExport -f "{0}"{1};'.format(compFilePath, expSelectedFlag))
-            mel.eval(cmd)
-            return True
-        except:
-            msg = "Cannot export FBX for unknown reason. Skipping"
-            cmds.confirmDialog(title='Unknown Error', message=msg)
-            return False
-
-        # opFlag = ""
-        # for item in mayaExp_fbx.items():
-        #     if type(item[1]) == bool:
-        #         opFlag += "%s=%s; " % (item[0], int(item[1]))
-        #     elif type(item[1]) == str:
-        #         opFlag += "%s='%s'; " % (item[0], item[1])
-        #     else:
-        #         opFlag += "%s=%s; " % (item[0], item[1])
-        # opFlag = opFlag[:-2]
-        #
-        # try:
-        #     cmds.file(filePath, force=True, op=opFlag, typ="FBX export", pr=True, es=exportSelected, ea=not exportSelected, pmt=False)
-        #     return True
-        # except:
-        #     msg = "Cannot export FBX for unknown reason. Skipping FBX export"
-        #     cmds.confirmDialog(title='Unknown Error', message=msg)
-        #     return False
-
-    def _getSceneFile(self):
-        s_path = cmds.file(q=True, sn=True)
-        norm_s_path = os.path.normpath(s_path)
-        return norm_s_path
-
-    def _getProject(self):
-        pPath = cmds.workspace(q=1, rd=1)
-        return os.path.normpath(pPath)
-
-    def _setProject(self, path):
-        encodedPath = unicode(path).encode("utf-8")
-        # melCompPath = path.replace("\\", "/") # mel is picky
-        melCompPath = encodedPath.replace("\\", "/") # mel is picky
-        command = 'setProject "%s";' %melCompPath
-        mel.eval(command)
-
-    def _getVersion(self):
-        return cmds.about(api=True)
-
-    def _getCurrentFrame(self):
-        return cmds.currentTime(query=True)
-
-    def _getSelection(self):
-        return cmds.ls(sl=True)
-
-    def _isSceneModified(self):
-        return cmds.file(q=True, modified=True)
-
 
 class MayaManager(RootManager, MayaCoreFunctions):
     def __init__(self):
@@ -352,97 +73,10 @@ class MayaManager(RootManager, MayaCoreFunctions):
         self.backwardcompatibility()  # DO NOT RUN UNTIL RELEASE
         self.init_database()
 
-
-    # def getSoftwarePaths(self):
-    #     """Overriden function"""
-    #     logger.debug("Func: getSoftwarePaths")
-    #
-    #     # softwareDatabaseFile = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "softwareDatabase.json"))
-    #     softwareDatabaseFile = os.path.normpath(os.path.join(self.getSharedSettingsDir(), "softwareDatabase.json"))
-    #     softwareDB = self._loadJson(softwareDatabaseFile)
-    #     # To tell the base class maya specific path names
-    #     # print softwareDB
-    #     return softwareDB["Maya"]
-    #     # return {"niceName": "Maya",
-    #     #         "databaseDir": "mayaDB",
-    #     #         "scenesDir": "scenes",
-    #     #         "pbSettingsFile": "pbSettings.json",
-    #     #         "categoriesFile": "categoriesMaya.json",
-    #     #         "userSettingsDir": "SceneManager\\Maya",
-    #     #         }
-
-    # def getProjectDir(self):
-    #     """Overriden function"""
-    #     logger.debug("Func: getProjectDir")
-    #
-    #
-    #     currentProject = self._getProject()
-    #     projectsDict = self.loadProjects()
-    #
-    #     if not projectsDict: # if there is no project database file at all
-    #         projectsDict = {"MayaProject": currentProject,
-    #                         "LastProject": currentProject}
-    #         self.saveProjects(projectsDict)
-    #         return currentProject
-    #
-    #     # get the project defined in the database file
-    #     try:
-    #         dbProject = projectsDict["MayaProject"]
-    #     except KeyError:
-    #         dbProject = None
-    #
-    #     if dbProject == currentProject:
-    #         # do nothing to the database if it is the same project
-    #         return currentProject
-    #
-    #
-    #     projectsDict["MayaProject"] = currentProject
-    #     self.saveProjects(projectsDict)
-    #     return currentProject
-
-
-    # def getProjectDir(self):
-    #     """Overriden function"""
-    #     logger.debug("Func: getProjectDir")
-    #
-    #     # This function gets the current maya project and informs the base class
-    #     # In addition it updates the projects file for (planned) interactivities with concurrent softwares
-    #     # p_path = cmds.workspace(q=1, rd=1)
-    #     norm_p_path = self._getProject()
-    #     projectsDict = self.loadProjects()
-    #
-    #     if not projectsDict: # if there is no project database file at all
-    #         projectsDict = {"MayaProject": norm_p_path}
-    #         self.saveProjects(projectsDict)
-    #         return norm_p_path
-    #
-    #     # get the project defined in the database file
-    #     try:
-    #         dbProject = projectsDict["MayaProject"]
-    #     except KeyError:
-    #         dbProject = None
-    #
-    #     if dbProject == norm_p_path:
-    #         # do nothing to the database if it is the same project
-    #         return norm_p_path
-    #
-    #     if dbProject:
-    #         projectsDict["MayaProject"] = norm_p_path
-    #         self.saveProjects(projectsDict)
-    #         return norm_p_path
-    #     else:
-    #         projectsDict = {"MayaProject": norm_p_path}
-    #         self.saveProjects(projectsDict)
-    #         return norm_p_path
-
     def getSceneFile(self):
         """Overriden function"""
         logger.debug("Func: getSceneFile")
         return self._getSceneFile()
-        # Gets the current scene path ("" if untitled)
-        # s_path = cmds.file(q=True, sn=True)
-        # norm_s_path = os.path.normpath(s_path)
-        # return norm_s_path
 
     def setProject(self, path):
         """Sets the project"""
@@ -524,9 +158,6 @@ class MayaManager(RootManager, MayaCoreFunctions):
         relSceneFile = os.path.relpath(sceneFile, start=projectPath)
         # killTurtle()
         # TODO // cmds may be used instead
-        # pm.saveAs(sceneFile)
-        # cmds.file(rename=sceneFile)
-        # cmds.file(save=True, type=self.formatDict[sceneFormat])
         self._saveAs(sceneFile, format=self.formatDict[sceneFormat])
 
         thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=version)
@@ -547,7 +178,8 @@ class MayaManager(RootManager, MayaCoreFunctions):
             jsonInfo["ReferencedVersion"] = None
 
         jsonInfo["ID"] = "SmMayaV02_sceneFile"
-        jsonInfo["MayaVersion"] = cmds.about(q=True, api=True)
+        # jsonInfo["MayaVersion"] = cmds.about(q=True, api=True)
+        jsonInfo["MayaVersion"] = self._getVersion()
         jsonInfo["Name"] = baseName
         jsonInfo["Path"] = os.path.relpath(shotPath, start=projectPath)
         jsonInfo["Category"] = categoryName
@@ -654,7 +286,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
             return -1, msg
         return jsonInfo
 
-    def createPreview(self, *args, **kwargs):
+    def createPreview(self, previewCam=None, forceSequencer=False, *args, **kwargs):
         """Creates a Playblast preview from currently open scene"""
         logger.debug("Func: createPreview")
 
@@ -699,13 +331,32 @@ class MayaManager(RootManager, MayaCoreFunctions):
         selection = self._getSelection()
         cmds.select(d=pbSettings["ClearSelection"])
         jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
-        try:
-            currentCam = cmds.modelPanel(cmds.getPanel(wf=True), q=True, cam=True)
-        except RuntimeError:
-            msg = "Highlighted Pane is not a camera view"
-            self._exception(360, msg)
 
-        validName = currentCam
+        if previewCam:
+            currentCam = previewCam
+            validName = previewCam
+            sequenceTime = False
+        elif forceSequencer:
+            currentCam = "persp"
+            validName = "Sequencer"
+            sequenceTime = True
+        else:
+            try:
+                currentCam = cmds.modelPanel(cmds.getPanel(wf=True), q=True, cam=True)
+                validName = currentCam
+                sequenceTime = False
+            except RuntimeError:
+                panel = cmds.getPanel(wf=True)
+                if "sequenceEditorPanel" in panel:
+                    currentCam = "persp"
+                    validName = "Sequence"
+                    sequenceTime = True
+                else:
+                    msg = "Highlighted Pane is not a camera view"
+                    self._exception(360, msg)
+                    return
+
+        # validName = currentCam
 
         replaceDict = {"|":"__",
                        " ":"_",
@@ -813,7 +464,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
         normPB = os.path.normpath(playBlastFile)
 
         cmds.playblast(format=pbSettings["Format"],
-                       sequenceTime=False,
+                       sequenceTime=sequenceTime,
                        filename=playBlastFile,
                        widthHeight=pbSettings["Resolution"],
                        percent=pbSettings["Percent"],
@@ -867,7 +518,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
         ## find this version in the json data
         for version in jsonInfo["Versions"]:
             if relVersionName == version["RelativePath"]:
-                version["Preview"][currentCam] = relPlayBlastFile
+                version["Preview"][validName] = relPlayBlastFile
 
         self._dumpJson(jsonInfo, openSceneInfo["jsonFile"])
         return 0, ""
@@ -1271,6 +922,75 @@ class MainUI(baseUI):
         imanager = QtWidgets.QAction("&Image Manager", self)
         self.toolsMenu.addAction(imanager)
         imanager.triggered.connect(ImMaya.MainUI)
+
+    def onCreatePreview(self):
+        takePreview_Dialog = QtWidgets.QDialog(parent=self)
+        takePreview_Dialog.resize(150, 180)
+        takePreview_Dialog.setWindowTitle(("Select Preview Camera"))
+        takePreview_Dialog.setFocus()
+
+        masterLayout = QtWidgets.QVBoxLayout(takePreview_Dialog)
+        takePreview_Dialog.setLayout(masterLayout)
+        selectionLayout = QtWidgets.QVBoxLayout()
+        masterLayout.addLayout(selectionLayout)
+
+        active_rbtn = QtWidgets.QRadioButton()
+        active_rbtn.setText("Active View")
+        active_rbtn.setChecked(True)
+        sequencer_rbtn = QtWidgets.QRadioButton()
+        sequencer_rbtn.setText("Sequencer")
+        select_rbtn = QtWidgets.QRadioButton()
+        select_rbtn.setText("Select")
+
+        buttonGroup = QtWidgets.QButtonGroup()
+        buttonGroup.addButton(active_rbtn)
+        buttonGroup.addButton(sequencer_rbtn)
+        buttonGroup.addButton(select_rbtn)
+
+        select_combo = QtWidgets.QComboBox()
+        select_combo.addItems(self.manager._getCameras())
+        select_combo.setEnabled(False)
+
+        selectionLayout.addWidget(active_rbtn)
+        selectionLayout.addWidget(sequencer_rbtn)
+        selectionLayout.addWidget(select_rbtn)
+        selectionLayout.addWidget(select_combo)
+
+        execute_btn = QtWidgets.QPushButton()
+        execute_btn.setText("Take Preview")
+
+        masterLayout.addWidget(execute_btn)
+
+        def rbtnSwitch():
+            select_combo.setEnabled(select_rbtn.isChecked())
+
+        def takePreview():
+            if active_rbtn.isChecked():
+                self.statusBar().showMessage("Creating Preview...")
+                self.manager.createPreview()
+                self.statusBar().showMessage("Status | Idle")
+
+            if sequencer_rbtn.isChecked():
+                self.statusBar().showMessage("Creating Preview from sequencer...")
+                self.manager.createPreview(forceSequencer=True)
+                self.statusBar().showMessage("Status | Idle")
+
+            if select_rbtn.isChecked():
+                self.statusBar().showMessage("Creating Preview from sequencer...")
+                self.manager.createPreview(previewCam=select_combo.currentText())
+                self.statusBar().showMessage("Status | Idle")
+
+        ## -------
+        ## SIGNALS
+        ## -------
+
+        active_rbtn.toggled.connect(rbtnSwitch)
+        sequencer_rbtn.toggled.connect(rbtnSwitch)
+        select_rbtn.toggled.connect(rbtnSwitch)
+
+        execute_btn.clicked.connect(takePreview)
+
+        takePreview_Dialog.show()
 
 
 

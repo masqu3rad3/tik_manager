@@ -38,7 +38,9 @@ import maya.cmds as cmds
 from shutil import copyfile
 # import json
 # import logging
-from SmMaya import MayaCoreFunctions
+# from SmMaya import MayaCoreFunctions
+from coreFunctions.coreFunctions_Maya import MayaCoreFunctions
+
 
 # TODO : Subclass MayaCoreFunctions
 class AssetEditorMaya(MayaCoreFunctions):

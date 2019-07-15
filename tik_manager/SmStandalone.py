@@ -537,7 +537,8 @@ class StandaloneManager(RootManager):
                 return os.path.normpath(os.path.expanduser("~"))
         except KeyError:
             currentProject = os.path.normpath(os.path.expanduser("~"))
-            projectsDict = {"Standalone": currentProject}
+            # projectsDict = {"Standalone": currentProject}
+            projectsDict["Standalone"] = currentProject
             self.saveProjects(projectsDict)
             return currentProject
 
@@ -906,7 +907,8 @@ class MainUI(baseUI):
 
     def onLoadScene(self):
         """OVERRIDEN METHOD"""
-        if self.scenes_listWidget.currentRow() == -1:
+
+        if self.scenes_listWidget.currentIndex().row() == -1:
             return
         manager = self._getManager()
         if not manager:

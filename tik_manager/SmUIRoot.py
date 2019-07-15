@@ -119,7 +119,7 @@ import iconsSource as icons
 
 import pprint
 
-# import ImageViewer
+import ImageViewer
 
 import logging
 
@@ -6271,7 +6271,7 @@ class MainUI(QtWidgets.QMainWindow):
         # else:
         #     manager = self.manager
 
-        row = self.scenes_listWidget.currentRow()
+        row =  self.scenes_listWidget.currentIndex().row()
         if row == -1:
             return
 
@@ -6462,14 +6462,15 @@ class MainUI(QtWidgets.QMainWindow):
             self.scenes_rcItem_3.setEnabled(True)
             self.scenes_rcItem_4.setEnabled(True)
             # show context menu
-            self.scenes_rcItem_5.setEnabled(os.path.isdir(os.path.join(manager.projectDir, "images", manager.currentBaseSceneName)))
+            self.scenes_rcItem_5.setEnabled(
+                os.path.isdir(os.path.join(manager.projectDir, "images", manager.currentBaseSceneName)))
             self.scenes_rcItem_6.setEnabled(True)
 
         self.popMenu_scenes.exec_(self.scenes_listWidget.mapToGlobal(point))
 
     def onContextMenu_thumbnail(self, point):
         # This method is NOT Software Specific
-        row = self.scenes_listWidget.currentRow()
+        row = self.scenes_listWidget.currentIndex().row()
         if row == -1:
             return
         # show context menu
@@ -6511,7 +6512,6 @@ class MainUI(QtWidgets.QMainWindow):
 
     def onUserChange(self):
         # This method is NOT Software Specific
-        # manager = self._getManager()
         self.manager.currentUser = str(self.user_comboBox.currentText())
 
     def onModeChange(self):
@@ -6679,21 +6679,29 @@ class MainUI(QtWidgets.QMainWindow):
 
     def onMakeReference(self):
         # This method IS Software Specific.
+
         manager = self._getManager()
 
         manager.makeReference()
+
         self.onVersionChange()
         self.statusBar().showMessage(
             "Status | Version {1} is the new reference of {0}".format(manager.currentBaseSceneName, manager.currentVersionIndex))
-        currentRow = self.scenes_listWidget.currentRow()
+        # currentRow = self.scenes_listWidget.currentIndex().row()
+
+        # currentIndex = self.scenes_listWidget.currentIndex()
         self.populateBaseScenes()
-        self.scenes_listWidget.setCurrentRow(currentRow)
+        return
+
+        # self.scenes_listWidget.setCurrentRow(currentRow)
+        # self.scenes_listWidget.setCurrentIndex(currentIndex)
 
     def onShowPreview(self):
         # This method IS Software Specific.
         manager = self._getManager()
 
-        row = self.scenes_listWidget.currentRow()
+        # row = self.scenes_listWidget.currentRow()
+        row = self.scenes_listWidget.currentIndex().row()
         if row == -1:
             return
         cameraList = manager.getPreviews()
@@ -6705,7 +6713,8 @@ class MainUI(QtWidgets.QMainWindow):
                 tempAction = QtWidgets.QAction(z, self)
                 zortMenu.addAction(tempAction)
                 ## Take note about the usage of lambda "item=z" makes it possible using the loop, ignore -> for discarding emitted value
-                tempAction.triggered.connect(lambda ignore, item=z: manager.playPreview(str(item)))
+                tempAction.triggered.connect(lambda ignore=z, item=z: manager.playPreview(str(item)))
+                # tempAction.triggered.connect(lambda item=z: manager.playPreview(str(item)))
 
             if BoilerDict["Environment"] == "Standalone":
                 zortMenu.exec_((QtWidgets.QCursor.pos()))
@@ -6730,7 +6739,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         name = manager.currentBaseSceneName
 
-        row = self.scenes_listWidget.currentRow()
+        row = self.scenes_listWidget.currentIndex().row()
         if not row == -1:
             manager.deleteBasescene(manager.currentDatabasePath)
             self.populateBaseScenes()
@@ -6754,7 +6763,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         name = manager.currentBaseSceneName
 
-        row = self.scenes_listWidget.currentRow()
+        row = self.scenes_listWidget.currentIndex().row()
         if not row == -1:
             manager.deleteReference(manager.currentDatabasePath)
             self.populateBaseScenes()
@@ -6762,7 +6771,6 @@ class MainUI(QtWidgets.QMainWindow):
 
     def onIviewer(self):
         # This method is NOT Software Specific.
-        import ImageViewer
         ImageViewer.MainUI(self.manager.projectDir).show()
 
     def onPMaterials(self):

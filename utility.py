@@ -3,6 +3,7 @@ import sys, os
 import py_compile
 from shutil import copyfile, rmtree
 import subprocess
+import tik_manager._version as versionInfo
 
 class TMUtility(object):
     def __init__(self):
@@ -84,6 +85,32 @@ class TMUtility(object):
         pyFiles = [f for f in os.listdir(self.root_folder) if os.path.splitext(f)[1] == ".py"]
         map(lambda x: py_compile.compile(os.path.join(self.root_folder, x)), pyFiles)
 
+    def _updateInnoSetupFile(self):
+        filePath = os.path.join(self.root_folder, "innoSetup", "tikManager_aSetup.iss")
+
+
+        #loadContents
+        f = open(filePath, "r")
+        if f.mode == "r":
+            innoSetupContents = f.readlines()
+        else:
+            raise Exception("Inno Setup File is not readable")
+        f.close()
+        # print innoSetupContents
+
+        for lineNumber in range(len(innoSetupContents)):
+            if "#define appVersion" in innoSetupContents[lineNumber]:
+                innoSetupContents[lineNumber] = '#define appVersion "%s"\n' %versionInfo.__version__
+
+        backupFile = "tikManager_aSetup.bak".format(filePath)
+        copyfile(filePath, backupFile)
+        tempFile = "tikManager_aSetup_TMP.iss"
+        f = open(tempFile, "w+")
+        f.writelines(innoSetupContents)
+        f.close()
+        copyfile(tempFile, filePath)
+        os.remove(tempFile)
+
     def innoSetupCompile(self):
         """
         compiles project into the setup file using Inno Setup
@@ -92,19 +119,25 @@ class TMUtility(object):
         compiler = os.path.normpath("C:\\Program Files (x86)\\Inno Setup 6\\ISCC.exe")
         innoSetupScript = os.path.join(self.root_folder, "innoSetup", "tikManager_aSetup.iss")
 
+        print("Tik Manager v%s Auto Setup Creation Utility\n" %versionInfo.__version__)
         ## Preparations
         print("Starting Force Compilation...")
         self.forceCompile()
-        print("Force compilation DONE...")
+        print("Force compilation DONE...\n")
         print("Starting freezeSetup...")
         self.freezeSetup()
-        print("freezeSetup DONE...")
+        print("freezeSetup DONE...\n")
         print("Starting freezePhotoshop...")
         self.freezePhotoshop()
-        print("freezePhotoshop DONE...")
+        print("freezePhotoshop DONE...\n")
         print("Starting freezeStandalone...")
         self.freezeStandalone()
-        print("freezeStandalone DONE...")
+        print("freezeStandalone DONE...\n")
+
+        print("Editing Inno Setup File with current version")
+        self._updateInnoSetupFile()
+        print("Editing DONE...\n")
+
 
         # TODO // INNO SETUP Commandline
         print("Compiling... Please wait")
@@ -117,12 +150,10 @@ class TMUtility(object):
         targetPath = os.path.join(dst, os.path.basename(src))
         copyfile(src, targetPath)
 
+
+
 def main(argv):
     z=TMUtility().innoSetupCompile()
-    # subprocess.Popen(["python.exe"], shell=True)
-    # subprocess.call("python", shell=True)
-    # os.system("python.exe")
-    print "eesof"
     pass
 
 if __name__ == "__main__":

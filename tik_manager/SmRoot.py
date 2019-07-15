@@ -237,8 +237,8 @@ class RootManager(object):
     #         return currentProject
 
     def getProjectDir(self):
-
         ## Load dictionary from database
+
         projectsDict = self.loadProjects()
         try: currentProject = self._getProject()
         except AttributeError: currentProject = os.path.normpath(os.path.expanduser("~"))
@@ -1568,12 +1568,13 @@ Elapsed Time:{6}
         """Runs the playblast at cursor position"""
         logger.debug("Func: playPreview")
         absPath = os.path.join(self.projectDir, self._currentPreviewsDict[camera])
-        if self.currentPlatform == "Windows":
-            try:
-                os.startfile(absPath)
-            except WindowsError:
-                return -1, ["Cannot Find Playblast", "Playblast File is missing", "Do you want to remove it from the Database?"]
-        # TODO something to play the file in linux
+        self.executeFile(absPath)
+        # if self.currentPlatform == "Windows":
+        #     try:
+        #         os.startfile(absPath)
+        #     except WindowsError:
+        #         return -1, ["Cannot Find Playblast", "Playblast File is missing", "Do you want to remove it from the Database?"]
+        # # TODO something to play the file in linux
         return
 
     def removePreview(self):
