@@ -6907,9 +6907,9 @@ class MainUI(QtWidgets.QMainWindow):
             # cancelBtn = vCheck_mBox.addButton(QtWidgets.QPushButton('Cancel'), QtWidgets.QMessageBox.RejectRole)
 
             vCheck_mBox.setStandardButtons(QtWidgets.QMessageBox.Save | QtWidgets.QMessageBox.Help | QtWidgets.QMessageBox.Cancel)
-            vCheck_mBox.button(QtWidgets.QMessageBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
-            vCheck_mBox.button(QtWidgets.QMessageBox.Save).setMinimumSize(QtCore.QSize(100, 30))
-            vCheck_mBox.button(QtWidgets.QMessageBox.Help).setMinimumSize(QtCore.QSize(100, 30))
+            # vCheck_mBox.button(QtWidgets.QMessageBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
+            # vCheck_mBox.button(QtWidgets.QMessageBox.Save).setMinimumSize(QtCore.QSize(100, 30))
+            # vCheck_mBox.button(QtWidgets.QMessageBox.Help).setMinimumSize(QtCore.QSize(100, 30))
 
             buttonS = vCheck_mBox.button(QtWidgets.QMessageBox.Save)
             buttonS.setText('Download')
@@ -6924,7 +6924,7 @@ class MainUI(QtWidgets.QMainWindow):
             #     webbrowser.open_new(whatsNewPath)
         else:
             vCheck_mBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
-            vCheck_mBox.button(QtWidgets.QMessageBox.Ok).setMinimumSize(QtCore.QSize(100, 30))
+            # vCheck_mBox.button(QtWidgets.QMessageBox.Ok).setMinimumSize(QtCore.QSize(100, 30))
 
         ret = vCheck_mBox.exec_()
 
