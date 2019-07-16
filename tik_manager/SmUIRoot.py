@@ -6206,13 +6206,13 @@ class MainUI(QtWidgets.QMainWindow):
             self.manager.currentVersionIndex = len(sceneInfo["Versions"])
 
             # currentRow = self.scenes_listWidget.currentRow()
-            currentIndex = self.scenes_listWidget.currentIndex()
+            # currentIndex = self.scenes_listWidget.currentIndex()
 
 
             self.populateBaseScenes()
             self.onBaseSceneChange()
             # self.scenes_listWidget.setCurrentRow(currentRow)
-            self.scenes_listWidget.setCurrentIndex(currentIndex)
+            # self.scenes_listWidget.setCurrentIndex(currentIndex)
             saveV_Dialog.accept()
 
         def getResolvedPath():

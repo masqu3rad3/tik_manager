@@ -67,7 +67,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
     def __init__(self):
         super(MayaManager, self).__init__()
         # hard coded format dictionary to pass the format info to cmds
-        self.formatDict = {"ma": "mayaAscii", "mb": "mayaBinary"}
+        # self.formatDict = {"ma": "mayaAscii", "mb": "mayaBinary"}
         self.swName = "Maya"
         self.init_paths(self.swName)
         self.backwardcompatibility()  # DO NOT RUN UNTIL RELEASE
@@ -114,6 +114,33 @@ class MayaManager(RootManager, MayaCoreFunctions):
                 self._exception(360, msg)
                 return -1, msg
 
+        ## Unknown nodes Check
+        if sceneFormat == "mb":
+            ext = u'.mb'
+            saveFormat = "mayaBinary"
+        else:
+            ext = u'.ma'
+            saveFormat = "mayaAscii"
+
+        originalPath = self._getSceneFile()
+
+        dump, origExt = os.path.splitext(originalPath)
+
+        if len(cmds.ls(type="unknown")) > 0 and ext != origExt:
+            msg = "There are unknown nodes in the scene. Cannot proceed with %s extension.\n\nDo you want to continue with %s?" %(ext, origExt)
+            state = cmds.confirmDialog(title='Cannot Continue', message=msg, button=['Ok', 'Cancel'])
+            if state == "Ok":
+                if origExt == u'.mb':
+                    ext = u'.mb'
+                    saveFormat = "mayaBinary"
+                else:
+                    ext = u'.ma'
+                    saveFormat = "mayaAscii"
+
+            elif state == "Cancel":
+                return
+        ## Unknown nodes Check - end
+
         projectPath = self.projectDir
         databaseDir = self._pathsDict["databaseDir"]
         scenesPath = self._pathsDict["scenesDir"]
@@ -152,13 +179,13 @@ class MayaManager(RootManager, MayaCoreFunctions):
         }
         sceneName = self.resolveSaveName(nameDict, version)
 
-        # sceneName = "{0}_{1}_{2}_v{3}".format(baseName, categoryName, self._usersDict[self.currentUser], str(version).zfill(3))
-        sceneFile = os.path.join(shotPath, "{0}.{1}".format(sceneName, sceneFormat))
+        # sceneFile = os.path.join(shotPath, "{0}.{1}".format(sceneName, sceneFormat))
+        sceneFile = os.path.join(shotPath, "{0}{1}".format(sceneName, ext))
         ## relativity update
         relSceneFile = os.path.relpath(sceneFile, start=projectPath)
         # killTurtle()
-        # TODO // cmds may be used instead
-        self._saveAs(sceneFile, format=self.formatDict[sceneFormat])
+        # self._saveAs(sceneFile, format=self.formatDict[sceneFormat])
+        self._saveAs(sceneFile, format=saveFormat)
 
         thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=version)
 
@@ -167,7 +194,8 @@ class MayaManager(RootManager, MayaCoreFunctions):
         if makeReference:
             # TODO // Find an elegant solution and add MA compatibility. Can be merged with makeReference function in derived class
             referenceName = "{0}_{1}_forReference".format(baseName, categoryName)
-            referenceFile = os.path.join(shotPath, "{0}.{1}".format(referenceName, sceneFormat))
+            # referenceFile = os.path.join(shotPath, "{0}.{1}".format(referenceName, sceneFormat))
+            referenceFile = os.path.join(shotPath, "{0}{1}".format(referenceName, ext))
             ## relativity update
             relReferenceFile = os.path.relpath(referenceFile, start=projectPath)
             shutil.copyfile(sceneFile, referenceFile)
@@ -177,7 +205,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
             jsonInfo["ReferenceFile"] = None
             jsonInfo["ReferencedVersion"] = None
 
-        jsonInfo["ID"] = "SmMayaV02_sceneFile"
+        jsonInfo["ID"] = "SmMayaV03_sceneFile"
         # jsonInfo["MayaVersion"] = cmds.about(q=True, api=True)
         jsonInfo["MayaVersion"] = self._getVersion()
         jsonInfo["Name"] = baseName
@@ -228,62 +256,85 @@ class MayaManager(RootManager, MayaCoreFunctions):
 
         sceneInfo = self.getOpenSceneInfo()
 
-        if sceneInfo: ## getCurrentJson returns None if the resolved json path is missing
-            jsonFile = sceneInfo["jsonFile"]
-            jsonInfo = self._loadJson(jsonFile)
-
-            currentVersion = len(jsonInfo["Versions"]) + 1
-            ## Naming Dictionary
-            nameDict = {
-                "baseName": jsonInfo["Name"],
-                "categoryName": jsonInfo["Category"],
-                "userInitials": self._usersDict[self.currentUser],
-                "date": now
-            }
-            sceneName = self.resolveSaveName(nameDict, currentVersion)
-
-            # sceneName = "{0}_{1}_{2}_v{3}".format(jsonInfo["Name"], jsonInfo["Category"], self._usersDict[self.currentUser],
-            #                                       str(currentVersion).zfill(3))
-            relSceneFile = os.path.join(jsonInfo["Path"], "{0}.{1}".format(sceneName, sceneFormat))
-
-            sceneFile = os.path.join(sceneInfo["projectPath"], relSceneFile)
-
-            # killTurtle()
-            # TODO // cmds?
-            # pm.saveAs(sceneFile)
-
-            # cmds.file(rename=sceneFile)
-            # cmds.file(save=True, type=self.formatDict[sceneFormat])
-            self._saveAs(sceneFile, format=self.formatDict[sceneFormat])
-
-            thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=currentVersion)
-
-            jsonInfo["Versions"].append(
-                # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
-            # TODO : ref => Dict
-                {"RelativePath": relSceneFile,
-                 "Note": completeNote,
-                 "User": self._usersDict[self.currentUser],
-                 "Workstation": socket.gethostname(),
-                 "Preview": {},
-                 "Thumb": thumbPath,
-                 "Ranges": self._getTimelineRanges()
-                 }
-                )
-
-            if makeReference:
-                referenceName = "{0}_{1}_forReference".format(jsonInfo["Name"], jsonInfo["Category"])
-                relReferenceFile = os.path.join(jsonInfo["Path"], "{0}.{1}".format(referenceName, sceneFormat))
-                referenceFile = os.path.join(sceneInfo["projectPath"], relReferenceFile)
-
-                shutil.copyfile(sceneFile, referenceFile)
-                jsonInfo["ReferenceFile"] = relReferenceFile
-                jsonInfo["ReferencedVersion"] = currentVersion
-            self._dumpJson(jsonInfo, jsonFile)
-        else:
+        if not sceneInfo:
             msg = "This is not a base scene (Json file cannot be found)"
             cmds.warning(msg)
             return -1, msg
+
+        ## Unknown nodes Check
+        if sceneFormat == "mb":
+            ext = u'.mb'
+            saveFormat = "mayaBinary"
+        else:
+            ext = u'.ma'
+            saveFormat = "mayaAscii"
+
+        # originalPath = self._getSceneFile()
+
+        dump, origExt = os.path.splitext(currentSceneName)
+
+        if len(cmds.ls(type="unknown")) > 0 and ext != origExt:
+            msg = "There are unknown nodes in the scene. Cannot proceed with %s extension.\n\nDo you want to continue with %s?" %(ext, origExt)
+            state = cmds.confirmDialog(title='Cannot Continue', message=msg, button=['Ok', 'Cancel'])
+            if state == "Ok":
+                if origExt == u'.mb':
+                    ext = u'.mb'
+                    saveFormat = "mayaBinary"
+                else:
+                    ext = u'.ma'
+                    saveFormat = "mayaAscii"
+
+            elif state == "Cancel":
+                return
+        ## Unknown nodes Check - end
+
+        jsonFile = sceneInfo["jsonFile"]
+        jsonInfo = self._loadJson(jsonFile)
+
+        currentVersion = len(jsonInfo["Versions"]) + 1
+        ## Naming Dictionary
+        nameDict = {
+            "baseName": jsonInfo["Name"],
+            "categoryName": jsonInfo["Category"],
+            "userInitials": self._usersDict[self.currentUser],
+            "date": now
+        }
+        sceneName = self.resolveSaveName(nameDict, currentVersion)
+
+        # relSceneFile = os.path.join(jsonInfo["Path"], "{0}.{1}".format(sceneName, sceneFormat))
+        relSceneFile = os.path.join(jsonInfo["Path"], "{0}{1}".format(sceneName, ext))
+
+        sceneFile = os.path.join(sceneInfo["projectPath"], relSceneFile)
+
+        # self._saveAs(sceneFile, format=self.formatDict[sceneFormat])
+        self._saveAs(sceneFile, format=saveFormat)
+
+        thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=currentVersion)
+
+        jsonInfo["Versions"].append(
+            # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
+        # TODO : ref => Dict
+            {"RelativePath": relSceneFile,
+             "Note": completeNote,
+             "User": self._usersDict[self.currentUser],
+             "Workstation": socket.gethostname(),
+             "Preview": {},
+             "Thumb": thumbPath,
+             "Ranges": self._getTimelineRanges()
+             }
+            )
+
+        if makeReference:
+            referenceName = "{0}_{1}_forReference".format(jsonInfo["Name"], jsonInfo["Category"])
+            # relReferenceFile = os.path.join(jsonInfo["Path"], "{0}.{1}".format(referenceName, sceneFormat))
+            relReferenceFile = os.path.join(jsonInfo["Path"], "{0}{1}".format(referenceName, ext))
+            referenceFile = os.path.join(sceneInfo["projectPath"], relReferenceFile)
+
+            shutil.copyfile(sceneFile, referenceFile)
+            jsonInfo["ReferenceFile"] = relReferenceFile
+            jsonInfo["ReferencedVersion"] = currentVersion
+        self._dumpJson(jsonInfo, jsonFile)
+
         return jsonInfo
 
     def createPreview(self, previewCam=None, forceSequencer=False, *args, **kwargs):

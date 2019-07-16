@@ -336,6 +336,9 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
 
             thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=currentVersion)
 
+
+            # thumbPath = ""
+
             jsonInfo["Versions"].append(
                 # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
                 # [relSceneFile, completeNote, self._usersDict[self.currentUser], (socket.gethostname()), {}, thumbPath])

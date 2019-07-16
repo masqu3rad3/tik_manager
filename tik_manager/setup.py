@@ -627,6 +627,7 @@ def houdiniSetup(prompt=True):
     imageViewerIcon = os.path.join(networkDir, "icons", "imageViewer_ICON.png").replace("\\", "\\\\")
     takePreviewIcon = os.path.join(networkDir, "icons", "takePreview_ICON.png").replace("\\", "\\\\")
     projectMaterialsIcon = os.path.join(networkDir, "icons", "projectMaterials_ICON.png").replace("\\", "\\\\")
+    assetLibraryIcon = os.path.join(networkDir, "icons", "assetLibrary_ICON.png").replace("\\", "\\\\")
 
     sScriptContent = [
         "# start Scene Manager\n",
@@ -657,6 +658,7 @@ def houdiniSetup(prompt=True):
     <memberTool name="imageViewer"/>
     <memberTool name="takePreview"/>
     <memberTool name="projectMaterials"/>
+    <memberTool name="assetLibrary"/>
   </toolshelf>
 
   <tool name="tikManager" label="Tik Manager" icon="%s">
@@ -684,8 +686,13 @@ SmHoudini.HoudiniManager().createPreview()]]></script>
     <script scriptType="python"><![CDATA[from tik_manager import projectMaterials
 projectMaterials.MainUI().show()]]></script>
   </tool>
+  
+  <tool name="assetLibrary" label="Asset Library" icon="%s">
+    <script scriptType="python"><![CDATA[from tik_manager import assetLibrary
+assetLibrary.MainUI().show()]]></script>
+  </tool>
 </shelfDocument>
-    """ %(managerIcon, saveVersionIcon, imageViewerIcon, takePreviewIcon, projectMaterialsIcon)
+    """ %(managerIcon, saveVersionIcon, imageViewerIcon, takePreviewIcon, projectMaterialsIcon, assetLibraryIcon)
 
 
     for v in houdiniVersions:

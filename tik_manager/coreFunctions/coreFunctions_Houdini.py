@@ -108,7 +108,6 @@ class HoudiniCoreFunctions(object):
         ret[0].moveToGoodPosition()
 
     def _exportObj(self, filePath, exportSettings, exportSelected=True):
-
         rootNode = hou.node('obj')
         if exportSelected:
             exportList = hou.selectedNodes()
@@ -117,7 +116,7 @@ class HoudiniCoreFunctions(object):
 
         if len(exportList) == 0:
             hou.ui.displayMessage("Nothing to export. Aborting")
-            return
+            return False
 
         geoNode = rootNode.createNode('geo', node_name="tmpExport")
         try: geoNode.allSubChildren()[0].destroy()
@@ -141,6 +140,7 @@ class HoudiniCoreFunctions(object):
         ropSop.render()
         # delete the export nodes
         geoNode.destroy()
+        return True
 
     def _exportAlembic(self, filePath, exportSettings, exportSelected=True, timeRange=[0,10]):
         houdiniExp_abc = exportSettings["alembicExportHoudini"]
@@ -153,7 +153,7 @@ class HoudiniCoreFunctions(object):
 
         if len(exportList) == 0:
             hou.ui.displayMessage("Nothing to export. Aborting")
-            return
+            return False
 
         geoNode = rootNode.createNode('geo', node_name="tmpExport")
         try: geoNode.allSubChildren()[0].destroy()
@@ -196,6 +196,7 @@ class HoudiniCoreFunctions(object):
         ropSop.render()
         # delete the export nodes
         geoNode.destroy()
+        return True
 
     def _exportFbx(self, filePath, exportSettings, exportSelected=True, timeRange=[0,10]):
         houdiniExp_fbx = exportSettings["fbxExportHoudini"]
@@ -208,7 +209,7 @@ class HoudiniCoreFunctions(object):
 
         if len(exportList) == 0:
             hou.ui.displayMessage("Nothing to export. Aborting")
-            return
+            return False
 
         geoNode = rootNode.createNode('geo', node_name="tmpExport")
         try: geoNode.allSubChildren()[0].destroy()
@@ -251,6 +252,7 @@ class HoudiniCoreFunctions(object):
         ropSop.render()
         # delete the export nodes
         geoNode.destroy()
+        return True
 
     def _getSceneFile(self):
         s_path = hou.hipFile.path()
@@ -276,6 +278,10 @@ class HoudiniCoreFunctions(object):
 
     def _getSelection(self):
         return hou.selectedItems()
+
+    def _clearSelection(self):
+        node = hou.node("/obj")
+        hou.Node.setSelected(node, False, clear_all_selected=True)
 
     def _isSceneModified(self):
         return hou.hipFile.hasUnsavedChanges()

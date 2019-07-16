@@ -161,7 +161,8 @@ class AssetEditorMaya(MayaCoreFunctions):
         if exportFBX:
             # fbxSettings = self.exportSettings["fbxExportMaya"]
             fbxFilePath = os.path.join(assetDirectory, "%s.fbx" % assetName)
-            frame = cmds.currentTime(query=True)
+            # frame = cmds.currentTime(query=True)
+            frame = self._getCurrentFrame()
 
             if self._exportFbx(fbxFilePath, exportSettings=self.exportSettings, timeRange=[frame, frame]):
                 fbxName = "{0}.fbx".format(assetName)
@@ -177,7 +178,8 @@ class AssetEditorMaya(MayaCoreFunctions):
         if exportABC:
             # abcSettings = self.exportSettings["alembicExportMaya"]
             abcFilePath = os.path.join(assetDirectory, "%s.abc" % assetName)
-            frame = cmds.currentTime(query=True)
+            # frame = cmds.currentTime(query=True)
+            frame = self._getCurrentFrame()
 
             if self._exportAlembic(abcFilePath, exportSettings=self.exportSettings, timeRange=[frame, frame]):
                 abcName = "{0}.abc".format(assetName)

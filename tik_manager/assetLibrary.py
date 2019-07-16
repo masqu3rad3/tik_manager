@@ -131,8 +131,7 @@ try:
     from assetEditorHoudini import AssetEditorHoudini as AssetEditor
     BoilerDict["Environment"] = "Houdini"
     BoilerDict["WindowTitle"] = "Asset Library Houdini v%s" % _version.__version__
-    BoilerDict["SceneFormats"] = ["hip", "hiplc"]
-    print "DEB6"
+    BoilerDict["SceneFormats"] = ["hda"]
 except ImportError:
     pass
 
@@ -501,26 +500,13 @@ class MainUI(QtWidgets.QMainWindow):
         self.fileMenu = menubar.addMenu("File")
         self.addNewLibrary_mi= QtWidgets.QAction("&Add New Library", self)
         self.renameLibrary_mi = QtWidgets.QAction("&Rename Active Library", self)
-        # self.createNewAsset_mi = QtWidgets.QAction("&Create New Asset", self)
-        # self.loadAsset_mi = QtWidgets.QAction("&Load Selected Asset", self)
-        # self.mergeAsset_mi = QtWidgets.QAction("&Merge Asset", self)
-        # self.importAsset_mi = QtWidgets.QAction("&Import only", self)
-        # self.importObj_mi = QtWidgets.QAction("&Import Other", self)
-        # self.deleteAsset_mi = QtWidgets.QAction("&Delete Selected Asset", self)
         self.removeLibrary_mi = QtWidgets.QAction("&Remove Library", self)
 
         self.fileMenu.addAction(self.addNewLibrary_mi)
         self.fileMenu.addAction(self.renameLibrary_mi)
-        # self.fileMenu.addAction(self.createNewAsset_mi)
 
-        # self.fileMenu.addSeparator()
-        # self.fileMenu.addAction(self.loadAsset_mi)
-        # self.fileMenu.addAction(self.mergeAsset_mi)
-        # self.fileMenu.addAction(self.importAsset_mi)
-        # self.fileMenu.addAction(self.importObj_mi)
 
         self.fileMenu.addSeparator()
-        # self.fileMenu.addAction(self.deleteAsset_mi)
         self.fileMenu.addAction(self.removeLibrary_mi)
 
         self.tabDialog()
@@ -549,17 +535,6 @@ class MainUI(QtWidgets.QMainWindow):
         # HEADER BAR
         # ----------
         margin = 5
-        # # barColor = "background-color: rgb(80,80,80);"
-        # # barColor = "background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #565656, stop: 0.1 #525252, stop: 0.5 #4e4e4e, stop: 0.9 #4a4a4a, stop: 1 #464646);"
-        # self.colorBar = QtWidgets.QLabel()
-        # headerColor = self.manager.getColorCoding(self.manager.swName)
-        # self.colorBar.setStyleSheet("background-color: %s;" %headerColor)
-        # self.masterLayout.addWidget(self.colorBar)
-        # # pyside does not have setMargin attribute
-        # try: self.colorBar.setMargin(0)
-        # except AttributeError: pass
-        # self.colorBar.setIndent(0)
-        # self.colorBar.setMaximumHeight(1)
 
         colorWidget = QtWidgets.QWidget(self.centralwidget)
         colorWidget.setObjectName("header")
@@ -574,12 +549,9 @@ class MainUI(QtWidgets.QMainWindow):
         except AttributeError: pass
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
-        # iconsDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "CSS", "rc")
         if FORCE_QT4:
-            # headerBitmap = QtWidgets.QPixmap(os.path.join(iconsDir, "tmAssetLibrary.png"))
             headerBitmap = QtWidgets.QPixmap(":/icons/CSS/rc/tmAssetLibrary.png")
         else:
-            # headerBitmap = QtGui.QPixmap(os.path.join(iconsDir, "tmAssetLibrary.png"))
             headerBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmAssetLibrary.png")
         tikIcon_label.setPixmap(headerBitmap)
 
@@ -606,7 +578,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         headerLayout.addWidget(self.managerIcon_label)
 
-        # colorWidget.setStyleSheet(barColor)
         self.masterLayout.addWidget(colorWidget)
         # ----------
         # ----------
@@ -620,7 +591,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.masterLayout.addWidget(self.tabWidget)
 
-        for lib in self.getLibraryPaths():
+        libraries = self.getLibraryPaths()
+        for lib in libraries:
             name = lib[0]
             path = lib[1]
             if not os.path.exists(path):
@@ -632,6 +604,9 @@ class MainUI(QtWidgets.QMainWindow):
             self.tabWidget.addTab(preTab, name)
             preTab.setObjectName(name)
             preTab.setLayout(preTab.layout)
+
+        if len(libraries) == 0:
+            self.newLibraryUI()
 
         self.tabWidget.currentChanged.connect(self.refreshTab)
         self.refreshTab()
@@ -1026,12 +1001,16 @@ class LibraryTab(QtWidgets.QWidget):
         self.importWithTextures_checkbox = QtWidgets.QCheckBox(self.frame_right)
         self.importWithTextures_checkbox.setText("Copy Textures")
         importSceneSubLay.addWidget(self.importWithTextures_checkbox)
+        if BoilerDict["Environment"] == "Houdini":
+            self.importWithTextures_checkbox.setEnabled(False)
 
         self.load_pushButton = QtWidgets.QPushButton(self.frame_right)
         # self.load_pushButton.setMinimumSize(QtCore.QSize(100, 30))
         # self.load_pushButton.setMaximumSize(QtCore.QSize(150, 30))
         self.load_pushButton.setText(("Load"))
         rightUp_vLayout.addWidget(self.load_pushButton)
+        if BoilerDict["Environment"] == "Houdini":
+            self.load_pushButton.setText("Load HDA")
 
         self.importOther_pushButton = QtWidgets.QPushButton(self.frame_right)
         # self.importOther_pushButton.setMinimumSize(QtCore.QSize(100, 30))
@@ -1281,6 +1260,8 @@ class LibraryTab(QtWidgets.QWidget):
         self.exportUv_checkBox = QtWidgets.QCheckBox(saveAsset_Dialog)
         self.exportUv_checkBox.setText(("Export UV Snapshots"))
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.exportUv_checkBox)
+        if BoilerDict["Environment"] == "Houdini":
+            self.exportUv_checkBox.setEnabled(False)
 
         self.exportObj_checkBox = QtWidgets.QCheckBox(saveAsset_Dialog)
         self.exportObj_checkBox.setText(("Export .obj(Wavefront)"))
@@ -1612,7 +1593,7 @@ class LibraryTab(QtWidgets.QWidget):
         for z in otherFormats:
             tempAction = QtWidgets.QAction(z, self)
             zortMenu.addAction(tempAction)
-            tempAction.triggered.connect(lambda ignore, item=z: self.multiExecute(assetData, str(item)))
+            tempAction.triggered.connect(lambda ignore=z, item=z: self.multiExecute(assetData, str(item)))
         # if BoilerDict["Environment"] == "Standalone":
         #     zortMenu.exec_((QtWidgets.QCursor.pos()))
         # else:
