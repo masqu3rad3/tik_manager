@@ -440,7 +440,6 @@ class StandaloneManager(RootManager):
     def init_paths(self, nicename):
         """Overriden function"""
 
-
         self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDir(), "TikManager"))
         self._folderCheck(os.path.join(self._pathsDict["userSettingsDir"], nicename))
         self._pathsDict["userSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "userSettings.json"))
@@ -469,6 +468,7 @@ class StandaloneManager(RootManager):
 
         self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "softwareDatabase.json"))
         self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerDefaults.json"))
+        self._pathsDict["tikConventions"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "tikConventions.json"))
         self._pathsDict["adminPass"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "adminPass.psw"))
         self._pathsDict["iconsDir"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "CSS", "rc")
     # def init_paths(self, nicename):

@@ -981,7 +981,7 @@ class MainUI(QtWidgets.QMainWindow):
 
 
         def onCreateNewProject():
-            root = os.path.normpath(self.projectroot_lineEdit.text())
+            root = os.path.normpath(unicode(self.projectroot_lineEdit.text()).decode("utf-8"))
             if not self.manager.nameCheck(root, allowSpaces=True, directory=True):
                 self.infoPop(textTitle="Non-Ascii Character", textHeader="Selected Project Root cannot be used",
                              textInfo="There are non-ascii characters in the selected path.", type="C")
@@ -992,9 +992,9 @@ class MainUI(QtWidgets.QMainWindow):
 
             # root = unicode(self.projectroot_lineEdit.text()).encode("utf-8")
             # root = unicode(self.projectroot_lineEdit.text(), "utf-8")
-            pName = self.projectname_lineEdit.text()
-            bName = self.brandname_lineEdit.text()
-            cName = self.client_lineEdit.text()
+            pName = unicode(self.projectname_lineEdit.text()).decode("utf-8")
+            bName = unicode(self.brandname_lineEdit.text()).decode("utf-8")
+            cName = unicode(self.client_lineEdit.text()).decode("utf-8")
             projectSettingsDB = {"Resolution": [resolutionX_spinBox.value(), resolutionY_spinBox.value()],
                                    "FPS": int(fps_comboBox.currentText())}
 
@@ -1011,10 +1011,10 @@ class MainUI(QtWidgets.QMainWindow):
                 self.resolvedpath_label.setText("Fill the mandatory fields")
                 self.newProjectPath = None
                 return
-            resolvedPath = self.manager.resolveProjectPath(self.projectroot_lineEdit.text(),
-                                                           self.projectname_lineEdit.text(),
-                                                           self.brandname_lineEdit.text(),
-                                                           self.client_lineEdit.text())
+            resolvedPath = self.manager.resolveProjectPath(unicode(self.projectroot_lineEdit.text()).decode("utf-8"),
+                                                           unicode(self.projectname_lineEdit.text()).decode("utf-8"),
+                                                           unicode(self.brandname_lineEdit.text()).decode("utf-8"),
+                                                           unicode(self.client_lineEdit.text()).decode("utf-8"))
             self.resolvedpath_label.setText(resolvedPath)
 
         resolve()
