@@ -464,12 +464,16 @@ class StandaloneManager(RootManager):
             self._exception(201, "Cannot Continue Without Common Database")
             return -1
 
+        self._pathsDict["previewsRoot"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "Playblasts")) # dont change
+
         self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerUsers.json"))
 
         self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "softwareDatabase.json"))
         self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerDefaults.json"))
         self._pathsDict["tikConventions"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "tikConventions.json"))
         self._pathsDict["adminPass"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "adminPass.psw"))
+        self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "exportSettings.json"))
+        self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "importSettings.json"))
         self._pathsDict["iconsDir"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "CSS", "rc")
     # def init_paths(self, nicename):
     #     """Overriden function"""
@@ -570,9 +574,11 @@ class StandaloneManager(RootManager):
         for swDict in self.softwareDictionary.items():
             searchPath = (os.path.join(self.projectDir, "smDatabase", swDict[1]["databaseDir"]))
             if os.path.isdir(searchPath):
-                # create a new software viewer object with the accessed project path
-                # and append it to the list of valid softwares for the current project
-                self.swList.append(SwViewer(swDict[1], self.projectDir, self._pathsDict["sharedSettingsDir"]))
+                filesInFolders = [filenames for (dirpath, dirnames, filenames) in os.walk(searchPath)]
+                if len(filesInFolders) > 1:
+                    # create a new software viewer object with the accessed project path
+                    # and append it to the list of valid softwares for the current project
+                    self.swList.append(SwViewer(swDict[1], self.projectDir, self._pathsDict["sharedSettingsDir"]))
 
         return self.swList
 
@@ -942,10 +948,10 @@ if __name__ == '__main__':
     selfLoc = os.path.dirname(os.path.abspath(__file__))
     app = QtWidgets.QApplication(sys.argv)
     # stylesheetFile = os.path.join(selfLoc, "CSS", "darkorange.stylesheet")
-    # stylesheetFile = os.path.join(selfLoc, "CSS", "tikManager.qss")
-    # if os.path.isfile(stylesheetFile):
-    #     with open(stylesheetFile, "r") as fh:
-    #         app.setStyleSheet(fh.read())
+    stylesheetFile = os.path.join(selfLoc, "CSS", "tikManager.qss")
+    if os.path.isfile(stylesheetFile):
+        with open(stylesheetFile, "r") as fh:
+            app.setStyleSheet(fh.read())
     window = MainUI()
     window.show()
     sys.exit(app.exec_())

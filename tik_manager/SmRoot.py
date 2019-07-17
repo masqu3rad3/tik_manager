@@ -147,8 +147,8 @@ class RootManager(object):
         self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerDefaults.json"))
         self._pathsDict["tikConventions"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "tikConventions.json"))
         self._pathsDict["adminPass"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "adminPass.psw"))
-        # self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "exportSettings.json"))
-        # self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "importSettings.json"))
+        self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "exportSettings.json"))
+        self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "importSettings.json"))
         self._pathsDict["iconsDir"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "CSS", "rc")
         ## FFMPEG conversion paths
         self._pathsDict["conversionLUTFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "conversionLUT.json"))

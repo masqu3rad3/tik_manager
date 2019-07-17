@@ -1970,7 +1970,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.sourceModel.setNameFilters(self.DirFilter)
 
     def settingsUI(self):
-        manager = self._getManager()
+        # manager = self._getManager()
 
         # self.allSettingsDict={}
         self.allSettingsDict=Settings()
@@ -2160,20 +2160,20 @@ class MainUI(QtWidgets.QMainWindow):
                 isVisible = False if item[0] == self.settingsMenu_treeWidget.currentItem().text(0) else True
                 item[1].setHidden(isVisible)
 
-        self.softwareDB = manager.loadSoftwareDatabase()
+        self.softwareDB = self.manager.loadSoftwareDatabase()
 
 
         ## USER SETTINGS
-        currentUserSettings = manager.loadUserSettings()
-        self.allSettingsDict.add("userSettings", currentUserSettings, manager._pathsDict["userSettingsFile"])
-        currentCommonFolder = manager._getCommonFolder()
-        self.allSettingsDict.add("sharedSettingsDir", currentCommonFolder, manager._pathsDict["commonFolderFile"])
+        currentUserSettings = self.manager.loadUserSettings()
+        self.allSettingsDict.add("userSettings", currentUserSettings, self.manager._pathsDict["userSettingsFile"])
+        currentCommonFolder = self.manager._getCommonFolder()
+        self.allSettingsDict.add("sharedSettingsDir", currentCommonFolder, self.manager._pathsDict["commonFolderFile"])
         self._userSettingsContent()
         #
         #
         ## PROJECT SETTINGS
-        currentProjectSettings = manager.loadProjectSettings()
-        self.allSettingsDict.add("projectSettings", currentProjectSettings, manager._pathsDict["projectSettingsFile"])
+        currentProjectSettings = self.manager.loadProjectSettings()
+        self.allSettingsDict.add("projectSettings", currentProjectSettings, self.manager._pathsDict["projectSettingsFile"])
         self._projectSettingsContent()
 
         ## PREVIEW SETTINGS
@@ -2183,8 +2183,8 @@ class MainUI(QtWidgets.QMainWindow):
         # sw="standalone"
 
         if sw == "maya" or sw == "standalone":
-            settingsFilePathMaya = os.path.join(manager._pathsDict["previewsRoot"], self.softwareDB["Maya"]["pbSettingsFile"])
-            currentMayaSettings = manager.loadPBSettings(filePath=settingsFilePathMaya)
+            settingsFilePathMaya = os.path.join(self.manager._pathsDict["previewsRoot"], self.softwareDB["Maya"]["pbSettingsFile"])
+            currentMayaSettings = self.manager.loadPBSettings(filePath=settingsFilePathMaya)
             # backward compatibility:
             try:
                 currentMayaSettings["ConvertMP4"]
@@ -2198,8 +2198,8 @@ class MainUI(QtWidgets.QMainWindow):
 
             self._previewSettingsContent_maya()
         if sw == "3dsmax" or sw == "standalone":
-            settingsFilePathMax = os.path.join(manager._pathsDict["previewsRoot"], self.softwareDB["3dsMax"]["pbSettingsFile"])
-            currentMaxSettings = manager.loadPBSettings(filePath=settingsFilePathMax)
+            settingsFilePathMax = os.path.join(self.manager._pathsDict["previewsRoot"], self.softwareDB["3dsMax"]["pbSettingsFile"])
+            currentMaxSettings = self.manager.loadPBSettings(filePath=settingsFilePathMax)
             # backward compatibility:
             try:
                 currentMaxSettings["ConvertMP4"]
@@ -2213,8 +2213,8 @@ class MainUI(QtWidgets.QMainWindow):
 
             self._previewSettingsContent_max()
         if sw == "houdini" or sw == "standalone":
-            settingsFilePathHou = os.path.join(manager._pathsDict["previewsRoot"], self.softwareDB["Houdini"]["pbSettingsFile"])
-            currentHoudiniSettings = manager.loadPBSettings(filePath=settingsFilePathHou)
+            settingsFilePathHou = os.path.join(self.manager._pathsDict["previewsRoot"], self.softwareDB["Houdini"]["pbSettingsFile"])
+            currentHoudiniSettings = self.manager.loadPBSettings(filePath=settingsFilePathHou)
             # backward compatibility:
             try:
                 currentHoudiniSettings["ConvertMP4"]
@@ -2239,40 +2239,40 @@ class MainUI(QtWidgets.QMainWindow):
             # if it is standalone, get all categories for all softwares
             for value in self.softwareDB.values():
                 niceName = value["niceName"]
-                folderPath = os.path.normpath(os.path.join(manager._pathsDict["masterDir"], value["databaseDir"]))
-                manager._folderCheck(folderPath)
+                folderPath = os.path.normpath(os.path.join(self.manager._pathsDict["masterDir"], value["databaseDir"]))
+                self.manager._folderCheck(folderPath)
 
                 filePath = os.path.normpath(os.path.join(folderPath, value["categoriesFile"]))
-                categoryData = manager.loadCategories(filePath=filePath, swName=niceName)
+                categoryData = self.manager.loadCategories(filePath=filePath, swName=niceName)
                 self.allSettingsDict.add("categories_%s" %niceName, categoryData, filePath)
         else:
-            currentCategories = manager.loadCategories()
-            self.allSettingsDict.add("categories_%s" %manager.swName, currentCategories, manager._pathsDict["categoriesFile"])
+            currentCategories = self.manager.loadCategories()
+            self.allSettingsDict.add("categories_%s" %self.manager.swName, currentCategories, self.manager._pathsDict["categoriesFile"])
 
         # pprint.pprint(self.allSettingsDict)
 
         self._categoriesContent()
         #
         ## IMPORT/EXPORT OPTIONS
-        currentImportSettings = manager.loadImportSettings()
-        self.allSettingsDict.add("importSettings", currentImportSettings, manager._pathsDict["importSettingsFile"])
-        currentExportSettings = manager.loadExportSettings()
-        self.allSettingsDict.add("exportSettings", currentExportSettings, manager._pathsDict["exportSettingsFile"])
+        currentImportSettings = self.manager.loadImportSettings()
+        self.allSettingsDict.add("importSettings", currentImportSettings, self.manager._pathsDict["importSettingsFile"])
+        currentExportSettings = self.manager.loadExportSettings()
+        self.allSettingsDict.add("exportSettings", currentExportSettings, self.manager._pathsDict["exportSettingsFile"])
         self._importExportContent()
 
         self._sharedSettingsContent()
 
         ## USERS
-        currentUsers = manager.loadUsers()
-        self.allSettingsDict.add("users", currentUsers, manager._pathsDict["usersFile"])
+        currentUsers = self.manager.loadUsers()
+        self.allSettingsDict.add("users", currentUsers, self.manager._pathsDict["usersFile"])
         self._usersContent()
 
         ## PASSWORDS
         self._passwordsContent()
 
         ## NAMING CONVENTIONS
-        currentConventions = manager.loadNameConventions()
-        self.allSettingsDict.add("nameConventions", currentConventions, manager._pathsDict["tikConventions"])
+        currentConventions = self.manager.loadNameConventions()
+        self.allSettingsDict.add("nameConventions", currentConventions, self.manager._pathsDict["tikConventions"])
         self._namingConventions()
 
         self.settingsButtonBox = QtWidgets.QDialogButtonBox(settings_Dialog)
@@ -2291,7 +2291,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         def applySettingChanges():
             for x in self.allSettingsDict.apply():
-                manager._dumpJson(x["data"], x["filepath"])
+                self.manager._dumpJson(x["data"], x["filepath"])
             self.settingsApply_btn.setEnabled(False)
             self.initMainUI()
             # self.manager.init_paths()
@@ -2314,7 +2314,7 @@ class MainUI(QtWidgets.QMainWindow):
         settings_Dialog.show()
 
     def _userSettingsContent(self):
-        manager = self._getManager()
+        # manager = self._getManager()
         userSettings_Layout = QtWidgets.QVBoxLayout(self.userSettings_vis)
         userSettings_Layout.setSpacing(6)
         userSettings = self.allSettingsDict.get("userSettings")
@@ -2327,7 +2327,7 @@ class MainUI(QtWidgets.QMainWindow):
             userSettings["globalFavorites"] = globalFavorites_radiobutton.isChecked()
 
             enteredPath = os.path.normpath(unicode(commonDir_lineEdit.text()).encode("utf-8"))
-            if manager._checkCommonFolder(enteredPath):
+            if self.manager._checkCommonFolder(enteredPath):
                 self.allSettingsDict["sharedSettingsDir"]["newSettings"] = enteredPath
             else:
                 commonDir_lineEdit.setText(self.allSettingsDict["sharedSettingsDir"]["oldSettings"])
@@ -2358,11 +2358,11 @@ class MainUI(QtWidgets.QMainWindow):
         favorites_layout = QtWidgets.QHBoxLayout()
         globalFavorites_radiobutton = QtWidgets.QRadioButton()
         globalFavorites_radiobutton.setText("Global Favorites")
-        globalFavorites_radiobutton.setChecked(manager.isGlobalFavorites())
+        globalFavorites_radiobutton.setChecked(self.manager.isGlobalFavorites())
 
         localFavorites_radiobutton = QtWidgets.QRadioButton()
         localFavorites_radiobutton.setText("Software Specific")
-        localFavorites_radiobutton.setChecked(not manager.isGlobalFavorites())
+        localFavorites_radiobutton.setChecked(not self.manager.isGlobalFavorites())
 
         favorites_buttonGroup = QtWidgets.QButtonGroup(self.userSettings_vis)
         favorites_buttonGroup.addButton(globalFavorites_radiobutton)
@@ -2380,7 +2380,7 @@ class MainUI(QtWidgets.QMainWindow):
         commonDir_layout.setSpacing(2)
 
         commonDir_lineEdit = QtWidgets.QLineEdit()
-        commonDir_lineEdit.setText(manager.getSharedSettingsDir())
+        commonDir_lineEdit.setText(self.manager.getSharedSettingsDir())
         commonDir_lineEdit.setMinimumWidth(350)
         commonDir_layout.addWidget(commonDir_lineEdit)
 
@@ -2677,7 +2677,7 @@ class MainUI(QtWidgets.QMainWindow):
         currentProject_lbl.setObjectName("current_project")
         project_hLayout = QtWidgets.QHBoxLayout()
         currentProject_le = QtWidgets.QLineEdit()
-        currentProject_le.setText(manager.getProjectDir())
+        currentProject_le.setText(self.manager.getProjectDir())
         currentProject_le.setReadOnly(True)
         currentProject_le.setMinimumWidth(500)
         project_hLayout.addWidget(currentProject_le)
@@ -2717,7 +2717,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         fps_comboBox = QtWidgets.QComboBox(self.projectSettings_vis)
         # fps_comboBox.setMaximumSize(QtCore.QSize(60, 16777215))
-        fps_comboBox.addItems(manager.fpsList)
+        fps_comboBox.addItems(self.manager.fpsList)
         try:
             index = self.manager.fpsList.index(str(settings["FPS"]))
         except:
@@ -2766,10 +2766,10 @@ class MainUI(QtWidgets.QMainWindow):
         importExportOptions_cmdButton.clicked.connect(lambda: self.settingsMenu_treeWidget.setCurrentItem(self.importExport_item))
 
     def _previewSettingsContent_maya(self):
-        manager = self._getManager()
+        # manager = self._getManager()
         settings = self.allSettingsDict.get("preview_maya")
         def updateMayaCodecs():
-            codecList = manager.getFormatsAndCodecs()[self.format_Maya_comboBox.currentText()]
+            codecList = self.manager.getFormatsAndCodecs()[self.format_Maya_comboBox.currentText()]
             self.codec_Maya_comboBox.clear()
             self.codec_Maya_comboBox.addItems(codecList)
 
@@ -2852,7 +2852,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.convertMP4_Maya_chb.setLayoutDirection(QtCore.Qt.LeftToRight)
         # videoProperties_formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.convertMP4_Maya_chb)
         videoProperties_formLayout.addRow(self.convertMP4_Maya_chb)
-        if manager.currentPlatform is not "Windows":
+        if self.manager.currentPlatform is not "Windows":
             self.convertMP4_Maya_chb.setChecked(False)
             self.convertMP4_Maya_chb.setEnabled(False)
         else:
@@ -2876,7 +2876,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.format_Maya_comboBox = QtWidgets.QComboBox()
         videoProperties_formLayout.addRow(format_label, self.format_Maya_comboBox)
 
-        formatsAndCodecs = manager.getFormatsAndCodecs()
+        formatsAndCodecs = self.manager.getFormatsAndCodecs()
         if not formatsAndCodecs:
             self.format_Maya_comboBox.setEnabled(False)
         else:
@@ -3083,7 +3083,7 @@ class MainUI(QtWidgets.QMainWindow):
         # self.contentsMaster_layout.addWidget(self.previewSettings_vis)
 
     def _previewSettingsContent_max(self):
-        manager = self._getManager()
+        # manager = self._getManager()
         # settings = self.allSettingsDict["preview_max"]["oldSettings"]
         settings = self.allSettingsDict.get("preview_max")
 
@@ -3150,7 +3150,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.convertMP4_Max_chb.setLayoutDirection(QtCore.Qt.LeftToRight)
         # videoProperties_formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.convertMP4_Max_chb)
         videoProperties_formLayout.addRow(self.convertMP4_Max_chb)
-        if manager.currentPlatform is not "Windows":
+        if self.manager.currentPlatform is not "Windows":
             self.convertMP4_Max_chb.setChecked(False)
             self.convertMP4_Max_chb.setEnabled(False)
         else:
@@ -3294,7 +3294,7 @@ class MainUI(QtWidgets.QMainWindow):
         # self.contentsMaster_layout.addWidget(self.previewSettings_vis)
 
     def _previewSettingsContent_houdini(self):
-        manager = self._getManager()
+        # manager = self._getManager()
         # settings = self.allSettingsDict["preview_houdini"]["oldSettings"]
         settings = self.allSettingsDict.get("preview_houdini")
 
@@ -3356,7 +3356,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.convertMP4_Houdini_chb.setLayoutDirection(QtCore.Qt.LeftToRight)
         # videoProperties_formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.convertMP4_Houdini_chb)
         videoProperties_formLayout.addRow(self.convertMP4_Houdini_chb)
-        if manager.currentPlatform is not "Windows":
+        if self.manager.currentPlatform is not "Windows":
             self.convertMP4_Houdini_chb.setChecked(False)
             self.convertMP4_Houdini_chb.setEnabled(False)
         else:
@@ -3409,7 +3409,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.resY_Houdini_spinBox.valueChanged.connect(updateDictionary)
 
     def _categoriesContent(self):
-        manager = self._getManager()
+        # manager = self._getManager()
         categorySwList = [key for key in self.allSettingsDict.listNames() if key.startswith("categories")]
 
         categories_Layout = QtWidgets.QVBoxLayout(self.categories_vis)
@@ -3446,7 +3446,7 @@ class MainUI(QtWidgets.QMainWindow):
             niceName=settingKey.replace("categories_", "")
             dbPath = os.path.normpath(os.path.join(manager._pathsDict["masterDir"], self.softwareDB[niceName]["databaseDir"]))
 
-            if manager.isCategoryTrash(trashCategory, dbPath=dbPath):
+            if self.manager.isCategoryTrash(trashCategory, dbPath=dbPath):
                 categories.remove(trashCategory)
                 listWidget.clear()
                 listWidget.addItems(categories)
@@ -3548,7 +3548,7 @@ class MainUI(QtWidgets.QMainWindow):
         #                "False": False,
         #                "0": False,
         #                "1": True}
-        manager = self._getManager()
+        # manager = self._getManager()
         # sw = manager.swName.lower()
         sw = BoilerDict["Environment"].lower()
         exportSettings = self.allSettingsDict.get("exportSettings")
@@ -4409,7 +4409,7 @@ class MainUI(QtWidgets.QMainWindow):
         namingConventions_cmdButton.clicked.connect(lambda: self.settingsMenu_treeWidget.setCurrentItem(self.namingConventions_item))
 
     def _usersContent(self):
-        manager = self._getManager()
+        # manager = self._getManager()
         userList = self.allSettingsDict.get("users")
 
         users_Layout = QtWidgets.QVBoxLayout(self.users_vis)
