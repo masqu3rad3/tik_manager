@@ -456,6 +456,8 @@ class StandaloneManager(RootManager):
         self._pathsDict["sceneFile"] = ""
 
         self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
+        self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "exportSettings.json"))
+        self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "importSettings.json"))
 
         self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
 
@@ -472,8 +474,8 @@ class StandaloneManager(RootManager):
         self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerDefaults.json"))
         self._pathsDict["tikConventions"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "tikConventions.json"))
         self._pathsDict["adminPass"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "adminPass.psw"))
-        self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "exportSettings.json"))
-        self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "importSettings.json"))
+        # self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "exportSettings.json"))
+        # self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "importSettings.json"))
         self._pathsDict["iconsDir"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "CSS", "rc")
     # def init_paths(self, nicename):
     #     """Overriden function"""
@@ -575,7 +577,7 @@ class StandaloneManager(RootManager):
             searchPath = (os.path.join(self.projectDir, "smDatabase", swDict[1]["databaseDir"]))
             if os.path.isdir(searchPath):
                 filesInFolders = [filenames for (dirpath, dirnames, filenames) in os.walk(searchPath)]
-                if len(filesInFolders) > 1:
+                if len(filesInFolders) > 3:
                     # create a new software viewer object with the accessed project path
                     # and append it to the list of valid softwares for the current project
                     self.swList.append(SwViewer(swDict[1], self.projectDir, self._pathsDict["sharedSettingsDir"]))
