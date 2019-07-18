@@ -416,10 +416,10 @@ class MainUI(QtWidgets.QMainWindow):
         tikIcon_label.setScaledContents(False)
         if FORCE_QT4:
             # headerBitmap = QtWidgets.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
-            headerBitmap = QtWidgets.QPixmap(":/icons/CSS/rc/tmMain.png")
+            headerBitmap = QtWidgets.QPixmap(":/icons/CSS/rc/tmImageViewer.png")
         else:
             # headerBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
-            headerBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmMain.png")
+            headerBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmImageViewer.png")
         tikIcon_label.setPixmap(headerBitmap)
 
         headerLayout.addWidget(tikIcon_label)

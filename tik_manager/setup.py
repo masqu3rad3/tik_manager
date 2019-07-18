@@ -1044,6 +1044,8 @@ def prepareCommonFolder(targetCommonFolderPath):
         ["", "softwareDatabase.json"],
         ["", "SubmitMayaToDeadlineCustom.mel"],
         ["", "tikConventions.json"],
+        ["", "alExportSettings.json"],
+        ["", "alImportSettings.json"],
         ["icons", "iconHoudini.png"],
         ["icons", "iconMax.png"],
         ["icons", "iconMaya.png"],

@@ -647,7 +647,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         # changeAdminPass_fm = QtWidgets.QAction("&Change Admin Password", self)
 
-        self.changeCommonFolder =  QtWidgets.QAction("&Change Common Database", self)
+        # self.changeCommonFolder =  QtWidgets.QAction("&Change Common Database", self)
         # self.changeCommonFolder.setVisible(False)
 
         deleteFile_fm = QtWidgets.QAction(self.QIcon(":/icons/CSS/rc/delete.png"), "&Delete Selected Base Scene", self)
@@ -676,7 +676,7 @@ class MainUI(QtWidgets.QMainWindow):
         # self.fileMenu.addAction(pb_settings_fm)
         # self.fileMenu.addAction(projectSettings_fm)
         # self.fileMenu.addAction(changeAdminPass_fm)
-        self.fileMenu.addAction(self.changeCommonFolder)
+        # self.fileMenu.addAction(self.changeCommonFolder)
 
         self.fileMenu.addSeparator()
 
@@ -775,11 +775,11 @@ class MainUI(QtWidgets.QMainWindow):
         # SIGNAL CONNECTIONS
         # ------------------
 
-        self.changeCommonFolder.triggered.connect(self.manager._defineCommonFolder)
-        self.changeCommonFolder.triggered.connect(lambda: self.manager.init_paths(self.manager.swName))
-        self.changeCommonFolder.triggered.connect(self.manager.init_database)
-        self.changeCommonFolder.triggered.connect(self._initUsers)
-        self.changeCommonFolder.triggered.connect(self.onUserChange)
+        # self.changeCommonFolder.triggered.connect(self.manager._defineCommonFolder)
+        # self.changeCommonFolder.triggered.connect(lambda: self.manager.init_paths(self.manager.swName))
+        # self.changeCommonFolder.triggered.connect(self.manager.init_database)
+        # self.changeCommonFolder.triggered.connect(self._initUsers)
+        # self.changeCommonFolder.triggered.connect(self.onUserChange)
 
         createProject_fm.triggered.connect(self.createProjectUI)
 

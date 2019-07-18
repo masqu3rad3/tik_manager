@@ -818,8 +818,8 @@ class MainUI(baseUI):
         self.saveBaseScene_fm.setVisible(False)
         self.scenes_rcItem_0.setVisible(False)
 
-        self.changeCommonFolder.setVisible(True)
-        self.changeCommonFolder.triggered.connect(self.manager._defineCommonFolder)
+        # self.changeCommonFolder.setVisible(True)
+        # self.changeCommonFolder.triggered.connect(self.manager._defineCommonFolder)
 
     def rcAction_load(self):
         pass

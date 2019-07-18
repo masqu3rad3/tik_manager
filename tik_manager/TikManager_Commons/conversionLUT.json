@@ -1,8 +1,0 @@
-{
-    "videoCodec": "-c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p", 
-    "compression": "-crf 23", 
-    "foolproof": "-vf scale=ceil(iw/2)*2:ceil(ih/2)*2", 
-    "speed": "-preset ultrafast", 
-    "resolution": "", 
-    "audioCodec": "-c:a aac"
-}

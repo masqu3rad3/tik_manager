@@ -367,7 +367,7 @@ class AssetLibrary(AssetEditor, RootManager):
     def saveScene(self):
         self._save()
 
-    def getThumbnail(self, assetName):
+    def getAssetThumbnail(self, assetName):
         thumbPath = os.path.join(self.directory, assetName, "%s_thumb.jpg" %assetName)
         return thumbPath
 
@@ -381,7 +381,7 @@ class AssetLibrary(AssetEditor, RootManager):
         swPath = os.path.join(self.directory, assetName, data["swPath"])
         return swPath
 
-    def getNotes(self, assetName):
+    def getAssetNotes(self, assetName):
         data = self._getData(assetName)
         try:
             notes = data["notes"]
@@ -1422,8 +1422,8 @@ class LibraryTab(QtWidgets.QWidget):
         # self.screenshot_label.setImage(self.tPixmap)
 
         # get Notes
-        # assetNotes = self.library.getNotes(assetName)
-        # self.notes_textEdit.setText(assetNotes)
+        assetNotes = self.library.getAssetNotes(assetName)
+        self.notes_textEdit.setText(assetNotes)
 
         # get display data
         assetNotes = assetData["notes"]
@@ -1527,7 +1527,7 @@ class LibraryTab(QtWidgets.QWidget):
             filteredItems = self.filterList(self.library.assetsList, filterWord)
             for itemName in filteredItems:
                 item = QtWidgets.QListWidgetItem(itemName)
-                thumbPath = self.library.getThumbnail(itemName)
+                thumbPath = self.library.getAssetThumbnail(itemName)
 
                 if FORCE_QT4:
                     icon = QtWidgets.QIcon(thumbPath)
