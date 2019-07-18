@@ -2508,14 +2508,14 @@ class MainUI(QtWidgets.QMainWindow):
 
         def colorSet(button, niceName):
             color = QtWidgets.QColorDialog.getColor()
-            button.setStyleSheet("background-color: %s" % color.name())
+            button.setStyleSheet("background-color: %s; min-width: 80px;" % color.name())
             userSettings["colorCoding"][niceName] = "rgb%s" % str(color.getRgb())
             # self.allSettingsDict["userSettings"]["newSettings"]["colorCoding"][niceName] = "rgb%s" % str(color.getRgb())
             self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
 
         def resetColors():
             try:
-                defaults = deepcopy(manager._sceneManagerDefaults["defaultColorCoding"])
+                defaults = deepcopy(self.manager._sceneManagerDefaults["defaultColorCoding"])
                 for key in userSettings["colorCoding"].keys():
                     userSettings["colorCoding"][key] = defaults[key]
             except KeyError:
@@ -2539,11 +2539,12 @@ class MainUI(QtWidgets.QMainWindow):
             if dlg.exec_():
                 # selectedroot = os.path.normpath(unicode(dlg.selectedFiles()[0]))
                 selectedroot = os.path.normpath(unicode(dlg.selectedFiles()[0])).encode("utf-8")
-                if manager._checkCommonFolder(selectedroot):
+                if self.manager._checkCommonFolder(selectedroot):
                     commonDir_lineEdit.setText(selectedroot)
                 else:
                     return
-            self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
+            updateDictionary()
+            # self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
 
             # self._isSettingsChanged()
             return
@@ -2598,7 +2599,7 @@ class MainUI(QtWidgets.QMainWindow):
             ccpushbutton.setMinimumSize(80, 20)
 
             colorCoding_formlayout.addRow(cclabel, ccpushbutton)
-            ccpushbutton.clicked.connect(lambda ignore, button=ccpushbutton, item=item[0]: colorSet(button, item))
+            ccpushbutton.clicked.connect(lambda ignore=item[0], button=ccpushbutton, item=item[0]: colorSet(button, item))
 
 
         ccReset_button = QtWidgets.QPushButton()
