@@ -2335,19 +2335,26 @@ Elapsed Time:{6}
         #     return vMsg, None, None
 
         majorV, minorV, patch = map(lambda x: int(x) ,_version.__version__.split("."))
+        print majorV, minorV, patch
+        print majorV_remote, minorV_remote, patch_remote
 
         if majorV_remote > majorV:
             vMsg = "New major version!\nTik Manager v{0} is now available".format(versionStr_remote)
             return vMsg, downloadPath, whatsNewPath
+        else:
+            vMsg = "Tik Manager is up to date"
+            return vMsg, None, None
 
-        elif minorV_remote > minorV:
+        if minorV_remote > minorV:
             vMsg = "Tik Manager v{0} is now available".format(versionStr_remote)
             return vMsg, downloadPath, whatsNewPath
+        else:
+            vMsg = "Tik Manager is up to date"
+            return vMsg, None, None
 
-        elif patch_remote > patch:
+        if patch_remote > patch:
             vMsg = "Tik Manager v{0} with minor bug fixes and improvements is now available".format(versionStr_remote)
             return vMsg, downloadPath, whatsNewPath
-
         else:
             vMsg = "Tik Manager is up to date"
             return vMsg, None, None
