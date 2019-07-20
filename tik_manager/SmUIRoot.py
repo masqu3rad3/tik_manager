@@ -327,7 +327,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         # self.saveBaseScene_pushButton.setFixedWidth(250)
         self.saveBaseScene_pushButton.setFont(self.iconFont)
-        self.saveBaseScene_pushButton.setText(("Save Base Scene".decode("utf-8")))
+        self.saveBaseScene_pushButton.setText("Save Base Scene")
+        self.saveBaseScene_pushButton.setToolTip("Saves the currently open scene as a Base Scene ")
         self.main_horizontalLayout.addWidget(self.saveBaseScene_pushButton)
 
         self.saveVersion_pushButton = QtWidgets.QPushButton(self.centralwidget)
@@ -336,7 +337,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.saveVersion_pushButton.setStyleSheet("min-width: 120; min-height: 45;")
         self.saveVersion_pushButton.setFont(self.iconFont)
 
-        self.saveVersion_pushButton.setText(("Save As Version".decode("utf-8")))
+        self.saveVersion_pushButton.setText("Save As Version")
+        self.saveVersion_pushButton.setToolTip("Saves a new version from the currently open Base Scene ")
+
         self.main_horizontalLayout.addWidget(self.saveVersion_pushButton)
 
         self.export_pushButton = QtWidgets.QPushButton(self.centralwidget)
@@ -345,6 +348,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.export_pushButton.setStyleSheet("min-width: 120; min-height: 45;")
         self.export_pushButton.setFont(self.iconFont)
         self.export_pushButton.setText("Transfer Central")
+        self.export_pushButton.setToolTip("Export/Import Geometry formats")
         self.main_horizontalLayout.addWidget(self.export_pushButton)
         # make it invisible
         self.export_pushButton.setVisible(True)
@@ -368,26 +372,31 @@ class MainUI(QtWidgets.QMainWindow):
         self.r2_gridLayout.setColumnStretch(1, 1)
 
         self.load_radioButton = QtWidgets.QRadioButton(self.centralwidget)
-        self.load_radioButton.setText(("Load Mode"))
+        self.load_radioButton.setText("Load Mode")
+        self.load_radioButton.setToolTip("Activates Loading mode and lists all base scenes")
         self.r2_gridLayout.addWidget(self.load_radioButton, 0, 0, 1, 1)
 
         self.reference_radioButton = QtWidgets.QRadioButton(self.centralwidget)
-        self.reference_radioButton.setText(("Reference Mode"))
+        self.reference_radioButton.setText("Reference Mode")
+        self.reference_radioButton.setToolTip("Activates Referencing mode and lists base scenes with references")
         self.r2_gridLayout.addWidget(self.reference_radioButton, 0, 1, 1, 1)
 
         self.subProject_label = QtWidgets.QLabel(self.centralwidget)
-        self.subProject_label.setText(("Sub-Project:"))
+        self.subProject_label.setText("Sub-Project:")
+        self.subProject_label.setToolTip("Changes sub-project level")
         self.subProject_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.r2_gridLayout.addWidget(self.subProject_label, 0, 2, 1, 1)
 
         self.subProject_comboBox = QtWidgets.QComboBox(self.centralwidget)
         self.subProject_comboBox.setMinimumSize(QtCore.QSize(150, 30))
         self.subProject_comboBox.setMaximumSize(QtCore.QSize(16777215, 30))
+        self.subProject_comboBox.setToolTip("Changes sub-project level")
         self.r2_gridLayout.addWidget(self.subProject_comboBox, 0, 3, 1, 1)
 
         self.addSubProject_pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.addSubProject_pushButton.setMinimumSize(QtCore.QSize(30, 30))
         self.addSubProject_pushButton.setMaximumSize(QtCore.QSize(30, 30))
+        self.addSubProject_pushButton.setToolTip("Adds a new sub-project level")
         self.addSubProject_pushButton.setStyleSheet("min-width: 20;" )
         # if FORCE_QT4:
         #     plusfont = QtWidgets.QFont("Segoe UI Symbol", 22, QtWidgets.QFont.Bold)
@@ -408,6 +417,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.user_label = QtWidgets.QLabel(self.centralwidget)
         self.user_label.setText(("User:"))
+        self.user_label.setToolTip("Changes the current user")
         # self.user_label.setPixmap(self.Pixmap(":/icons/CSS/rc/user.png"))
         self.user_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.r2_gridLayout.addWidget(self.user_label, 0, 5, 1, 1)
@@ -415,6 +425,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.user_comboBox = QtWidgets.QComboBox(self.centralwidget)
         self.user_comboBox.setMinimumSize(QtCore.QSize(130, 30))
         self.user_comboBox.setMaximumSize(QtCore.QSize(16777215, 30))
+        self.user_comboBox.setToolTip("Changes the current user")
         self.r2_gridLayout.addWidget(self.user_comboBox, 0, 6, 1, 1)
 
         self.main_gridLayout.addLayout(self.r2_gridLayout, 1, 0, 1, 1)
@@ -486,7 +497,7 @@ class MainUI(QtWidgets.QMainWindow):
 
 
         self.project_label = QtWidgets.QLabel(self.centralwidget)
-        self.project_label.setText(("Project:"))
+        self.project_label.setText("Project:")
         self.project_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.r1_gridLayout.addWidget(self.project_label, 1, 0, 1, 1)
 
@@ -496,7 +507,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.r1_gridLayout.addWidget(self.project_lineEdit, 1, 1, 1, 1)
 
         self.setProject_pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.setProject_pushButton.setText(("SET"))
+        self.setProject_pushButton.setText("SET")
+        self.setProject_pushButton.setToolTip("Changes the active project")
+
         self.r1_gridLayout.addWidget(self.setProject_pushButton, 1, 2, 1, 1)
 
         self.main_gridLayout.addLayout(self.r1_gridLayout, 0, 0, 1, 1)
