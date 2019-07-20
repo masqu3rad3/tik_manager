@@ -1,10 +1,25 @@
 =============================
 Tik Manager Version History
 =============================
+
+3.0
+---
 * **New.0** Photoshop module added
 * **Update.0** Software icons added to each software
 * **Update.0** Common database folder seperated from core files
 * **Fix.0** Fixed Error in asset library Maya preventing the merge option.
+* **New.0** One single executable installer (Windows)
+* **New.0** Completely new settings menu
+* **Update.0** Redesigned and improved Asset Library including 3ds Max and Houdini support
+* **New.0** Transfer Central
+* **Update.0** Image Viewer improvements
+* **New.0** MP4 conversion support
+* **Update.0** UI improvements
+* **Fix.23** Fixed wrong header image in Image Viewer
+* **Fix.23** Removed the excess "change remote directory' menu item
+* **Fix.24** Fixed bug which prevents removing users (unicode)
+* **Fix.24** Potential crash cause removed from settings _usersContent
+* **Update.24** TikPhotoshop added to the executable and icon creation group in installer.
 
 2.5
 ---

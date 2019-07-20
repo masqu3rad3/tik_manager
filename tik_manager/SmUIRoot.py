@@ -1980,15 +1980,9 @@ class MainUI(QtWidgets.QMainWindow):
         settings_Dialog = QtWidgets.QDialog(parent=self)
         settings_Dialog.setWindowTitle(("Settings"))
         settings_Dialog.resize(960, 630)
-        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
-        # sizePolicy.setHorizontalStretch(0)
-        # sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setHeightForWidth(settings_Dialog.sizePolicy().hasHeightForWidth())
-
-        # settings_Dialog.setSizePolicy(sizePolicy)
 
         verticalLayout_2 = QtWidgets.QVBoxLayout(settings_Dialog)
-        # verticalLayout_2.setContentsMargins(-1, -1, -1, -1)
+
         try: verticalLayout_2.setMargin(0)
         except AttributeError: pass
         verticalLayout_2.setContentsMargins(10, 10 ,10 ,10)
@@ -1999,20 +1993,11 @@ class MainUI(QtWidgets.QMainWindow):
         splitter = QtWidgets.QSplitter(settings_Dialog)
         splitter.setChildrenCollapsible(False)
 
-        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        # sizePolicy.setHorizontalStretch(0)
-        # sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setHeightForWidth(splitter.sizePolicy().hasHeightForWidth())
-        # splitter.setSizePolicy(sizePolicy)
         splitter.setLineWidth(0)
         splitter.setOrientation(QtCore.Qt.Horizontal)
 
         left_frame = QtWidgets.QFrame(splitter)
-        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
-        # sizePolicy.setHorizontalStretch(0)
-        # sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setHeightForWidth(left_frame.sizePolicy().hasHeightForWidth())
-        # left_frame.setSizePolicy(sizePolicy)
+
         left_frame.setMinimumSize(QtCore.QSize(150, 0))
         left_frame.setMaximumSize(QtCore.QSize(16777215, 16777215))
         left_frame.setFrameShape(QtWidgets.QFrame.NoFrame)
@@ -2020,7 +2005,6 @@ class MainUI(QtWidgets.QMainWindow):
         left_frame.setLineWidth(0)
 
         verticalLayout_4 = QtWidgets.QVBoxLayout(left_frame)
-        # verticalLayout_4.setMargin(10)
         verticalLayout_4.setSpacing(0)
 
         leftFrame_verticalLayout = QtWidgets.QVBoxLayout()
@@ -2031,15 +2015,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.settingsMenu_treeWidget.setLineWidth(1)
         self.settingsMenu_treeWidget.setRootIsDecorated(True)
         self.settingsMenu_treeWidget.setHeaderHidden(True)
-        # if FORCE_QT4:
-        #     font = QtWidgets.QFont()
-        # else:
-        #     font = QtGui.QFont()
-        # # font = QtGui.QFont()
-        # font.setPointSize(12)
-        # font.setBold(False)
-        # font.setWeight(75)
-        # self.settingsMenu_treeWidget.setFont(font)
+
         self.settingsMenu_treeWidget.setFont(self.headerBFont)
 
 
@@ -2079,36 +2055,22 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.contents_frame = QtWidgets.QFrame(splitter)
         self.contents_frame.setEnabled(True)
-        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        # sizePolicy.setHorizontalStretch(100)
-        # sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setHeightForWidth(self.contents_frame.sizePolicy().hasHeightForWidth())
-        # self.contents_frame.setSizePolicy(sizePolicy)
-        # self.contents_frame.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        # self.contents_frame.setFrameShadow(QtWidgets.QFrame.Raised)
+
 
         self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.contents_frame)
         self.contents_Layout = QtWidgets.QVBoxLayout()
         self.contents_Layout.setSpacing(0)
 
         self.scrollArea = QtWidgets.QScrollArea(self.contents_frame)
-        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        # sizePolicy.setHorizontalStretch(0)
-        # sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setHeightForWidth(self.scrollArea.sizePolicy().hasHeightForWidth())
-        # self.scrollArea.setSizePolicy(sizePolicy)
-        # self.scrollArea.setFrameShape(QtWidgets.QFrame.NoFrame)
+
         self.scrollArea.setWidgetResizable(True)
 
         self.scrollAreaWidgetContents_2 = QtWidgets.QWidget()
-        # self.scrollAreaWidgetContents_2.setGeometry(QtCore.QRect(0, 0, 656, 567))
 
         self.contentsMaster_layout = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents_2)
         try: self.contentsMaster_layout.setMargin(9)
         except AttributeError: pass
         self.contentsMaster_layout.setSpacing(9)
-
-
 
         self.scrollArea.setWidget(self.scrollAreaWidgetContents_2)
         self.contents_Layout.addWidget(self.scrollArea)
@@ -2294,9 +2256,6 @@ class MainUI(QtWidgets.QMainWindow):
                 self.manager._dumpJson(x["data"], x["filepath"])
             self.settingsApply_btn.setEnabled(False)
             self.initMainUI()
-            # self.manager.init_paths()
-            # self.manager.init_database()
-            # self._initUsers()
 
         # # SIGNALS
         # # -------
@@ -4433,12 +4392,14 @@ class MainUI(QtWidgets.QMainWindow):
 
         users_treeWidget = QtWidgets.QTreeWidget()
         users_treeWidget.setRootIsDecorated(False)
-        header = users_treeWidget.header()
-        if FORCE_QT4:
-            header.setResizeMode(QtWidgets.QHeaderView.Stretch)
-        else:
-            header.setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
 
+        ### THIS MAY BE CAUSING THE CRASH ###
+        # header = users_treeWidget.header()
+        # if FORCE_QT4:
+        #     header.setResizeMode(QtWidgets.QHeaderView.Stretch)
+        # else:
+        #     header.setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        ### THIS MAY BE CAUSING THE CRASH ### -end
 
         users_treeWidget.setSortingEnabled(True)
         headerItem = QtWidgets.QTreeWidgetItem(["Full Name", "Initials"])
@@ -4450,8 +4411,6 @@ class MainUI(QtWidgets.QMainWindow):
         users_treeWidget.setColumnWidth(1000,10)
 
 
-        # users_listWidget = QtWidgets.QListWidget()
-        # users_hLayout.addWidget(users_listWidget)
 
         users_vLayout = QtWidgets.QVBoxLayout()
         users_vLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
@@ -4550,7 +4509,7 @@ class MainUI(QtWidgets.QMainWindow):
             if not getSelected:
                 return
             for item in getSelected:
-                del userList[item.text(0)]
+                del userList[unicode(item.text(0)).decode("utf-8")]
             updateUsers()
             self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
 

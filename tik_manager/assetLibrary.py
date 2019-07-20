@@ -637,7 +637,10 @@ class MainUI(QtWidgets.QMainWindow):
         self.gridLayout = QtWidgets.QGridLayout()
 
         self.directory_lineEdit = QtWidgets.QLineEdit(newLibrary_Dialog)
-        self.directory_lineEdit.setToolTip("Directory path to the assets")
+        # self.directory_lineEdit.setToolTip("Directory path to the assets")
+        self.directory_lineEdit.setToolTip(("Directory path to the assets"))
+        self.directory_lineEdit.setWhatsThis(("Directory path to the assets"))
+
 
         self.gridLayout.addWidget(self.directory_lineEdit, 1, 1, 1, 1)
 
@@ -658,6 +661,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.aliasName_lineEdit = QtWidgets.QLineEdit(newLibrary_Dialog)
         self.aliasName_lineEdit.setToolTip("This name will be visible on Library tab. Directory name will be used if left empty")
+        self.aliasName_lineEdit.setWhatsThis("This name will be visible on Library tab. Directory name will be used if left empty")
         self.aliasName_lineEdit.setText("")
         self.aliasName_lineEdit.setAlignment(QtCore.Qt.AlignCenter)
         self.aliasName_lineEdit.setPlaceholderText("(optional)")
@@ -1405,20 +1409,32 @@ class LibraryTab(QtWidgets.QWidget):
 
         assetData = self.library._getData(assetName)
 
+
         if self.wireframeMode == -1:
             # get preview image
             screenshotPath = self.library.getScreenShot(assetName)
+
         else:
             screenshotPath = self.library.getWireFrame(assetName)
+
 
         # print screenshotPath
 
         # update preview image
         if FORCE_QT4:
             self.tPixmap = QtWidgets.QPixmap(screenshotPath)
+            # msg = "debug_3 %s" % self.tPixmap
+            # infoPop(msg)
+            # print msg
         else:
             self.tPixmap = QtGui.QPixmap(screenshotPath)
+            # msg = "debug_4 %s" % self.tPixmap
+            # infoPop(msg)
+            # print msg
+
         self.screenshot_label.setPixmap(self.tPixmap)
+        # self.screenshot_label.setText(msg)
+
         # self.screenshot_label.setImage(self.tPixmap)
 
         # get Notes

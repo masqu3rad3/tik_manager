@@ -64,8 +64,9 @@ QToolTip
      background-color: #ff8d1c;
      padding: 1px;
      border-radius: 3px;
-     opacity: 100;
+     opacity: 50;
 }
+
 
 /* QStatusBar -------------------------------------------------------------
 

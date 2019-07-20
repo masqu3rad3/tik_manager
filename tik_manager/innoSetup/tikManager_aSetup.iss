@@ -4,7 +4,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING .ISS SCRIPT FILES!
 
 #define appName "Tik Manager"
-#define appVersion "3.0.22"
+#define appVersion "3.0.24"
 
 
 [Setup]
@@ -61,7 +61,9 @@ Source: "..\bin\*"; DestDir: "{app}\bin"; Flags: ignoreversion createallsubdirs 
 [Icons]
 Name: "{group}\{#appName}"; Filename: "{app}\MyProg.exe"
 Name: "{autoprograms}\{#appName}"; Filename: "{app}\bin\SmStandalone.exe"
+Name: "{autoprograms}\TikPhotoshop"; Filename: "{app}\bin\SmPhotoshop.exe"
 Name: "{autodesktop}\{#appName}"; Filename: "{app}\bin\SmStandalone.exe"; Tasks: desktopicon
+Name: "{autodesktop}\TikPhotoshop"; Filename: "{app}\bin\SmPhotoshop.exe"; Tasks: desktopicon
 
 ;[Components]
 ;Name: "Standalone"; Description: "Standalone";

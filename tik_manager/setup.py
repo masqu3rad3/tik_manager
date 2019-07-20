@@ -1046,6 +1046,7 @@ def prepareCommonFolder(targetCommonFolderPath):
         ["", "tikConventions.json"],
         ["", "alExportSettings.json"],
         ["", "alImportSettings.json"],
+        ["", "conversionLUT.json"],
         ["icons", "iconHoudini.png"],
         ["icons", "iconMax.png"],
         ["icons", "iconMaya.png"],
