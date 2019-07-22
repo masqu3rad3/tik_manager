@@ -2,8 +2,10 @@ import maya.cmds as mc
 import os
 
 selfLocation = os.path.dirname(os.path.abspath(__file__))
-iconsLocation = os.path.join(selfLocation, "icons")
-shelfName = "SceneManager"
+setupFolder = os.path.abspath(os.path.join(selfLocation, os.pardir))
+tikManagerFolder = os.path.abspath(os.path.join(setupFolder, os.pardir))
+iconsLocation = os.path.join(tikManagerFolder, "icons")
+shelfName = "TikManager"
 labelBackground = (0, 0, 0, 0)
 labelColour = (.9, .9, .9)
 
