@@ -89,74 +89,13 @@ class PsManager(RootManager, PsCoreFunctions):
         self.init_paths(self.swName)
         self.init_database()
         self.textureTypes = self._sceneManagerDefaults["exportTextureTypes"]
-        # self.psApp = ct.CreateObject('Photoshop.Application')
-        # self.psApp = Dispatch('Photoshop.Application')
         self.psApp = self.comLink()
-
-        # winName = win32gui.GetWindowText(win32gui.GetForegroundWindow())
-        # print winName
-
-    # def getSoftwarePaths(self):
-    #     """Overriden function"""
-    #     logger.debug("Func: getSoftwarePaths")
-    #     softwareDatabaseFile = os.path.normpath(os.path.join(self.getSharedSettingsDir(), "softwareDatabase.json"))
-    #
-    #     softwareDB = self._loadJson(softwareDatabaseFile)
-    #     # To tell the base class maya specific path names
-    #     # print softwareDB
-    #     return softwareDB["Photoshop"]
-
-    # def getProjectDir(self):
-    #     """OVERRIDEN FUNCTION"""
-    #     # get the projects file for standalone manager
-    #     projectsDict = self.loadProjects()
-    #     if not projectsDict:
-    #         norm_p_path = os.path.normpath(os.path.expanduser("~"))
-    #         projectsDict = {"PhotoshopProject": norm_p_path}
-    #
-    #         self.saveProjects(projectsDict)
-    #         return norm_p_path
-    #
-    #     # get the project defined in the database file
-    #     try:
-    #         norm_p_path = projectsDict["PhotoshopProject"]
-    #         if norm_p_path: #some error can save it as None
-    #             return norm_p_path
-    #         else:
-    #             return os.path.normpath(os.path.expanduser("~"))
-    #     except KeyError:
-    #         norm_p_path = os.path.normpath(os.path.expanduser("~"))
-    #         projectsDict = {"PhotoshopProject": norm_p_path}
-    #         self.saveProjects(projectsDict)
-    #         return norm_p_path
-
-    # def setProject(self, path):
-    #     """Sets the project"""
-    #     print "ANAN", path
-    #     projectsDict = self.loadProjects()
-    #     if not projectsDict:
-    #         projectsDict = {"PhotoshopProject": path}
-    #     else:
-    #         projectsDict["PhotoshopProject"] = path
-    #     self.saveProjects(projectsDict)
-    #     self.projectDir = path
-    #     self.init_paths("Photoshop")
-    #     self.init_database()
-    #     # self.initSoftwares()
-
 
 
     def getSceneFile(self):
         # """This method must be overridden to return the full scene path ('' for unsaved) of current scene"""
         logger.debug("Func: getSceneFile")
         return self._getSceneFile()
-        # try:
-        #     activeDocument = self.psApp.Application.ActiveDocument
-        #     docName = activeDocument.name
-        #     docPath = activeDocument.path
-        #     return os.path.join(docPath, docName)
-        # except:
-        #     return "Untitled"
 
     def getFormatOptions(self):
         """returns the format options according to the bit depth of active document"""
@@ -795,12 +734,7 @@ class MainUI(baseUI):
     def extraMenus(self):
         """Adds extra menu and widgets to the base UI"""
         pass
-        # self.software_comboBox = QtWidgets.QComboBox(self.centralwidget)
-        # self.software_comboBox.setMinimumSize(QtCore.QSize(150, 30))
-        # self.software_comboBox.setMaximumSize(QtCore.QSize(16777215, 30))
-        # self.software_comboBox.setObjectName(("software_comboBox"))
-        # self.r2_gridLayout.addWidget(self.software_comboBox, 0, 1, 1, 1)
-        # self.software_comboBox.activated.connect(self.onSoftwareChange)
+
 
     def modify(self):
         """Modifications to the base UI"""
@@ -842,12 +776,10 @@ class MainUI(baseUI):
         self.exportTexture_Dialog.setWindowTitle(("Export Textures"))
 
         self.verticalLayout = QtWidgets.QVBoxLayout(self.exportTexture_Dialog)
-        self.verticalLayout.setObjectName(("verticalLayout"))
 
         self.resolvedName_label = QtWidgets.QLabel(self.exportTexture_Dialog)
         self.resolvedName_label.setText(("Resolved File Name"))
         self.resolvedName_label.setWordWrap(True)
-        self.resolvedName_label.setObjectName(("resolvedName_label"))
         self.verticalLayout.addWidget(self.resolvedName_label)
 
         self.line = QtWidgets.QFrame(self.exportTexture_Dialog)
@@ -872,7 +804,6 @@ class MainUI(baseUI):
         self.format_comboBox = QtWidgets.QComboBox(self.exportTexture_Dialog)
         self.format_comboBox.setMinimumSize(QtCore.QSize(60, 16777215))
         self.format_comboBox.setMaximumSize(QtCore.QSize(200, 16777215))
-        self.format_comboBox.setObjectName(("format_comboBox"))
         self.format_comboBox.addItems(self.manager.getFormatOptions())
         self.format_layout.addWidget(self.format_comboBox)
 
@@ -961,12 +892,12 @@ class MainUI(baseUI):
             revisionNumber = version_spinBox.value()
             exportedFilePath = self.manager.exportSourceimage(extension=extension, textureType=textureType, asNextRevision=asNextRevision, revisionNumber=revisionNumber)
             if exportedFilePath:
-                successUI("Success", destPath=exportedFilePath)
+                successUI("Success", success=True, destPath=exportedFilePath)
             else:
-                successUI("Failure")
+                successUI("Failure", success=False)
             self.exportTexture_Dialog.close()
 
-        def successUI(status, color="white", destPath=None):
+        def successUI(status, success=True, destPath=None):
 
             self.msgDialog = QtWidgets.QDialog(parent=self)
             self.msgDialog.setModal(True)
@@ -978,12 +909,9 @@ class MainUI(baseUI):
             infoHeader = QtWidgets.QLabel(status)
             isEnabled = False if status=="Failure" else True
 
-            infoHeader.setStyleSheet(""
-                                     "border: 18px solid black;"
-                                     "background-color: black;"
-                                     "font-size: 14px;"
-                                     "color: {0}"
-                                     "".format(color))
+            infoHeader.setProperty("infoHeader", True)
+            infoHeader.setProperty("success", success)
+            infoHeader.setStyleSheet("")
 
             layoutMain.addWidget(infoHeader)
             layoutH = QtWidgets.QHBoxLayout()

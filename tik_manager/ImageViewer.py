@@ -303,7 +303,6 @@ class MainUI(QtWidgets.QMainWindow):
                 pass
         parent = getMainWindow()
         super(MainUI, self).__init__(parent=parent)
-        # super(MainUI, self).__init__()
 
         # Set Stylesheet
         dirname = os.path.dirname(os.path.abspath(__file__))
@@ -312,19 +311,13 @@ class MainUI(QtWidgets.QMainWindow):
         with open(stylesheetFile, "r") as fh:
             self.setStyleSheet(fh.read())
 
-        # self.setStyleSheet(darkorange.getStyleSheet())
         self.imageViewer = ImageViewer()
         self.projectPath = self.imageViewer.getProjectDir()
 
-        # if projectPath:
-        #     self.projectPath = str(projectPath)
-        # else:
-        #     self.projectPath = getProject()
 
         if relativePath:
             self.rootPath = os.path.join(self.projectPath, str(relativePath))
         else:
-            # self.rootPath = os.path.join(self.projectPath, "images")
             # setting the project path as the root seems like a better option
             self.rootPath = os.path.join(self.projectPath)
             if not os.path.isdir(self.rootPath):
@@ -383,7 +376,7 @@ class MainUI(QtWidgets.QMainWindow):
         # ----------
         margin = 5
         self.colorBar = QtWidgets.QLabel()
-        self.colorBar.setStyleSheet("background-color: rgb(0,0,0,0);")
+        self.colorBar.setStyleSheet("background-color: %s;" %self.imageViewer.getColorCoding())
         masterLayout.addWidget(self.colorBar)
         # pyside does not have setMargin attribute
         try: self.colorBar.setMargin(0)
@@ -392,7 +385,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.colorBar.setMaximumHeight(1)
 
         colorWidget = QtWidgets.QWidget(self.centralwidget)
-        colorWidget.setObjectName("header")
+        colorWidget.setProperty("header", True)
+        colorWidget.setStyleSheet("")
         headerLayout = QtWidgets.QHBoxLayout(colorWidget)
         headerLayout.setSpacing(0)
         try: headerLayout.setMargin(0)
@@ -401,7 +395,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         colorWidget = QtWidgets.QWidget(self.centralwidget)
         colorWidget.setMaximumHeight(60)
-        colorWidget.setObjectName("header")
+        colorWidget.setProperty("header", True)
+        colorWidget.setStyleSheet("")
         headerLayout = QtWidgets.QHBoxLayout(colorWidget)
         headerLayout.setSpacing(0)
         # headerLayout.setContentsMargins(100, -1, -1, -1)
@@ -409,7 +404,8 @@ class MainUI(QtWidgets.QMainWindow):
         except AttributeError: pass
 
         tikIcon_label = QtWidgets.QLabel(self.centralwidget)
-        tikIcon_label.setObjectName("header")
+        tikIcon_label.setProperty("header", True)
+        tikIcon_label.setStyleSheet("")
         try: tikIcon_label.setMargin(margin)
         except AttributeError: pass
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
@@ -425,7 +421,8 @@ class MainUI(QtWidgets.QMainWindow):
         headerLayout.addWidget(tikIcon_label)
 
         self.baseScene_label = QtWidgets.QLabel(self.centralwidget)
-        self.baseScene_label.setObjectName("header")
+        self.baseScene_label.setProperty("header", True)
+        self.baseScene_label.setStyleSheet("")
         try: self.baseScene_label.setMargin(margin)
         except AttributeError: pass
         self.baseScene_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
@@ -438,7 +435,8 @@ class MainUI(QtWidgets.QMainWindow):
         headerLayout.addWidget(self.baseScene_label)
 
         self.managerIcon_label = QtWidgets.QLabel(self.centralwidget)
-        self.managerIcon_label.setObjectName("header")
+        self.managerIcon_label.setProperty("header", True)
+        self.managerIcon_label.setStyleSheet("")
         try: self.managerIcon_label.setMargin(margin)
         except AttributeError: pass
         self.managerIcon_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
@@ -446,14 +444,12 @@ class MainUI(QtWidgets.QMainWindow):
 
         headerLayout.addWidget(self.managerIcon_label)
 
-        # colorWidget.setStyleSheet(barColor)
         masterLayout.addWidget(colorWidget)
         # ----------
         # ----------
 
 
         self.gridLayout = QtWidgets.QGridLayout()
-        self.gridLayout.setObjectName(("gridLayout"))
         masterLayout.addLayout(self.gridLayout)
 
         self.recursive_checkBox = QtWidgets.QCheckBox(self.centralwidget)
@@ -1079,24 +1075,21 @@ class SeqCopyProgress(QtWidgets.QWidget):
         self.cancelAllButton.clicked.connect(lambda: self.terminate(all=True))
         self.show()
 
-    def results_ui(self, status, color="white", logPath=None, destPath=None):
+    def results_ui(self, status, success=True, logPath=None, destPath=None):
 
         self.msgDialog = QtWidgets.QDialog(parent=self)
         self.msgDialog.setModal(True)
-        self.msgDialog.setObjectName("Result_Dialog")
         self.msgDialog.setWindowTitle("Transfer Results")
         # self.msgDialog.resize(300, 120)
         layoutMain = QtWidgets.QVBoxLayout()
         self.msgDialog.setLayout(layoutMain)
 
         infoHeader = QtWidgets.QLabel(status)
+        #
+        infoHeader.setProperty("infoHeader", True)
+        infoHeader.setProperty("success", success)
+        infoHeader.setStyleSheet("")
 
-        infoHeader.setStyleSheet(""
-                                 "border: 18px solid black;"
-                                 "background-color: black;"
-                                 "font-size: 14px;"
-                                 "color: {0}"
-                                 "".format(color))
 
         layoutMain.addWidget(infoHeader)
         layoutH = QtWidgets.QHBoxLayout()
@@ -1202,11 +1195,11 @@ class SeqCopyProgress(QtWidgets.QWidget):
 
         self.close()
         if self.cancelAll:
-            self.results_ui("Canceled by user", logPath=logFile, destPath=destination)
+            self.results_ui("Canceled by user", success=False, logPath=logFile, destPath=destination)
         elif self.errorFlag:
-            self.results_ui("Check log file for errors", color="red", logPath=logFile, destPath=destination)
+            self.results_ui("Check log file for errors", success=False, logPath=logFile, destPath=destination)
         else:
-            self.results_ui("Transfer Successfull", logPath=logFile, destPath=destination)
+            self.results_ui("Transfer Successfull", success=True, logPath=logFile, destPath=destination)
         pass
 
     def setupLogger(self, handlerPath):

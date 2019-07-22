@@ -1125,11 +1125,11 @@ class MainUI(baseUI):
         if self.load_radioButton.isChecked():
             self.loadScene_pushButton.setText("Load Scene")
 
-            self.scenes_listWidget.setStyleSheet("background-color: rgb(24,24,24); border-style: solid; border-width: 2px; border-color: grey;")
+            self.scenes_listWidget.setProperty("reference_pyside", False)
         else:
             self.loadScene_pushButton.setText("Reference Scene")
-            # self.scenes_listWidget.setStyleSheet("background-color: rgb(100,100,100);")
-            self.scenes_listWidget.setStyleSheet("background-color: rgb(80,120,120); border-style: solid ; border-width: 2px; border-color: cyan;")
+            self.scenes_listWidget.setProperty("reference_pyside", True)
+        self.scenes_listWidget.setStyleSheet("")
         self.populateBaseScenes()
 
 

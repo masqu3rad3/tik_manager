@@ -537,14 +537,16 @@ class MainUI(QtWidgets.QMainWindow):
         margin = 5
 
         colorWidget = QtWidgets.QWidget(self.centralwidget)
-        colorWidget.setObjectName("header")
+        colorWidget.setProperty("header", True)
+        colorWidget.setStyleSheet("")
         headerLayout = QtWidgets.QHBoxLayout(colorWidget)
         headerLayout.setSpacing(0)
         try: self.headerLayout.setMargin(0)
         except AttributeError: pass
 
         tikIcon_label = QtWidgets.QLabel(self.centralwidget)
-        tikIcon_label.setObjectName("header")
+        tikIcon_label.setProperty("header", True)
+        tikIcon_label.setStyleSheet("")
         try: tikIcon_label.setMargin(margin)
         except AttributeError: pass
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
@@ -558,7 +560,8 @@ class MainUI(QtWidgets.QMainWindow):
         headerLayout.addWidget(tikIcon_label)
 
         self.currentProject_label = QtWidgets.QLabel()
-        self.currentProject_label.setObjectName("header")
+        self.currentProject_label.setProperty("header", True)
+        self.currentProject_label.setStyleSheet("")
         try: self.currentProject_label.setMargin(margin)
         except AttributeError: pass
         self.currentProject_label.setIndent(2)
@@ -570,7 +573,8 @@ class MainUI(QtWidgets.QMainWindow):
         headerLayout.addWidget(self.currentProject_label)
 
         self.managerIcon_label = QtWidgets.QLabel(self.centralwidget)
-        self.managerIcon_label.setObjectName("header")
+        self.managerIcon_label.setProperty("header", True)
+        self.managerIcon_label.setStyleSheet("")
         try: self.managerIcon_label.setMargin(margin)
         except AttributeError: pass
         self.managerIcon_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
@@ -613,11 +617,7 @@ class MainUI(QtWidgets.QMainWindow):
 
     def viewOnlyMode(self):
         pass
-        # self.createNewAsset_mi.setVisible(False)
-        # self.loadAsset_mi.setVisible(False)
-        # self.mergeAsset_mi.setVisible(False)
-        # self.importAsset_mi.setVisible(False)
-        # self.importObj_mi.setVisible(False)
+
 
     def refreshTab(self):
         if self.tabWidget.currentWidget():
@@ -1177,22 +1177,6 @@ class LibraryTab(QtWidgets.QWidget):
         # self.populate()
 
     def addNoteUI(self):
-        # inputD = QtWidgets.QInputDialog(self)
-        # inputD.setInputMode(QtWidgets.QInputDialog.TextInput)
-        # inputD.setLabelText("Add Notes:")
-        # inputD.resize(200, 800)
-        # ok = inputD.exec_()
-        #
-        # text, ok = QtWidgets.QInputDialog.getText(self, 'Input Dialog', 'Enter text:')
-        # if ok:
-        #     print text
-            # print inputD.textValue()
-            # self.le.setText(str(text))
-        # This method IS Software Specific
-        # if BoilerDict["Environment"]=="Standalone":
-        #     manager=self._getManager()
-        # else:
-        #     manager = self.manager
 
         row = self.assets_listWidget.currentRow()
         if row == -1:
@@ -1202,7 +1186,6 @@ class LibraryTab(QtWidgets.QWidget):
 
         addNotes_Dialog = QtWidgets.QDialog(parent=self)
         addNotes_Dialog.setModal(True)
-        addNotes_Dialog.setObjectName(("addNotes_Dialog"))
         addNotes_Dialog.resize(255, 290)
         addNotes_Dialog.setMinimumSize(QtCore.QSize(255, 290))
         addNotes_Dialog.setMaximumSize(QtCore.QSize(255, 290))
@@ -1211,11 +1194,9 @@ class LibraryTab(QtWidgets.QWidget):
         addNotes_label = QtWidgets.QLabel(addNotes_Dialog)
         addNotes_label.setGeometry(QtCore.QRect(15, 15, 100, 20))
         addNotes_label.setText(("Additional Notes"))
-        addNotes_label.setObjectName(("addNotes_label"))
 
         addNotes_textEdit = QtWidgets.QTextEdit(addNotes_Dialog)
         addNotes_textEdit.setGeometry(QtCore.QRect(15, 40, 215, 170))
-        addNotes_textEdit.setObjectName(("addNotes_textEdit"))
 
         addNotes_buttonBox = QtWidgets.QDialogButtonBox(addNotes_Dialog)
         addNotes_buttonBox.setGeometry(QtCore.QRect(20, 250, 220, 32))
@@ -1229,11 +1210,8 @@ class LibraryTab(QtWidgets.QWidget):
         buttonC = addNotes_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel)
         buttonC.setText('Cancel')
 
-        addNotes_buttonBox.setObjectName(("addNotes_buttonBox"))
-        # addNotes_buttonBox.accepted.connect(lambda: manager.addNote(addNotes_textEdit.toPlainText()))
 
         addNotes_buttonBox.accepted.connect(lambda: self.library.addNote(assetName, addNotes_textEdit.toPlainText()))
-        # addNotes_buttonBox.accepted.connect(self.onVersionChange)
         addNotes_buttonBox.accepted.connect(self.onAssetChange)
         addNotes_buttonBox.accepted.connect(addNotes_Dialog.accept)
 
@@ -1749,18 +1727,19 @@ class LibraryTab(QtWidgets.QWidget):
         self.onAssetChange()
 
     def _checkValidity(self, text, button, lineEdit, allowSpaces=False):
+        if text == "":
+            lineEdit.setProperty("error", False)
+            lineEdit.setStyleSheet("") #update
+            return False
 
-        if allowSpaces:
-            pattern = "^[ A-Za-z0-9_-]*$"
-        else:
-            pattern = "^[A-Za-z0-9_-]*$"
-
-        if re.match(pattern, text):
-            lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: white")
+        if self.library.nameCheck(text, allowSpaces=allowSpaces, directory=False):
+            lineEdit.setProperty("error", False)
+            lineEdit.setStyleSheet("") #update
             button.setEnabled(True)
             # return True
         else:
-            lineEdit.setStyleSheet("background-color: red; color: black")
+            lineEdit.setProperty("error", True)
+            lineEdit.setStyleSheet("") #update
             button.setEnabled(False)
             # return False
 

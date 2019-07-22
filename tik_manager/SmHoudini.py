@@ -758,13 +758,6 @@ class MainUI(baseUI):
             self.close()
             self.deleteLater()
 
-        # # Set Stylesheet
-        # dirname = os.path.dirname(os.path.abspath(__file__))
-        # stylesheetFile = os.path.join(dirname, "CSS", "darkorange.stylesheet")
-        #
-        # with open(stylesheetFile, "r") as fh:
-        #     self.setStyleSheet(fh.read())
-
         self.buildUI()
         self.initMainUI(newborn=True)
         self.extraMenus()

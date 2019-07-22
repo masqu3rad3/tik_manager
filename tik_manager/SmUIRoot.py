@@ -57,12 +57,6 @@ try:
     BoilerDict["Environment"] = "Maya"
     BoilerDict["WindowTitle"] = "Tik Manager Maya v%s" %_version.__version__
     BoilerDict["SceneFormats"] = ["mb", "ma"]
-    # if Qt.__binding__ == "PySide":
-    #     from shiboken import wrapInstance
-    # elif Qt.__binding__.startswith('PyQt'):
-    #     from sip import wrapinstance as wrapInstance
-    # else:
-    #     from shiboken2 import wrapInstance
 except ImportError:
     pass
 
@@ -180,10 +174,8 @@ class MainUI(QtWidgets.QMainWindow):
         parent = getMainWindow()
         super(MainUI, self).__init__(parent=parent)
 
-
         # Set Stylesheet
         dirname = os.path.dirname(os.path.abspath(__file__))
-        # stylesheetFile = os.path.join(dirname, "CSS", "darkorange.stylesheet")
         stylesheetFile = os.path.join(dirname, "CSS", "tikManager.qss")
 
         with open(stylesheetFile, "r") as fh:
@@ -207,17 +199,6 @@ class MainUI(QtWidgets.QMainWindow):
             self.Pixmap = QtGui.QPixmap
             self.QIcon = QtGui.QIcon
 
-
-
-        # self.headerAFont.setPointSize(14)
-        # self.headerAFont.setBold(True)
-        # self.headerAFont.setWeight(75)
-        #
-        # self.headerBFont.setPointSize(10)
-        # self.headerBFont.setBold(True)
-        # self.headerBFont.setWeight(75)
-
-        # super(MainUI, self).closeEvent(event)
         self.superUser = False
 
     def buildUI(self):
@@ -230,7 +211,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
-        # self.buildUI()
         self.setCentralWidget(self.centralwidget)
 
         mainLayout = QtWidgets.QVBoxLayout(self.centralwidget)
@@ -243,8 +223,6 @@ class MainUI(QtWidgets.QMainWindow):
         # HEADER BAR
         # ----------
         margin = 5
-        # barColor = "background-color: rgb(80,80,80);"
-        # barColor = "background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #565656, stop: 0.1 #525252, stop: 0.5 #4e4e4e, stop: 0.9 #4a4a4a, stop: 1 #464646);"
         self.colorBar = QtWidgets.QLabel()
         headerColor = self.manager.getColorCoding(self.manager.swName)
         self.colorBar.setStyleSheet("background-color: %s;" %headerColor)
@@ -254,7 +232,6 @@ class MainUI(QtWidgets.QMainWindow):
         except AttributeError: pass
         self.colorBar.setIndent(0)
         self.colorBar.setMaximumHeight(1)
-
 
         colorWidget = QtWidgets.QWidget(self.centralwidget)
         colorWidget.setProperty("header", True)
@@ -269,12 +246,6 @@ class MainUI(QtWidgets.QMainWindow):
         except AttributeError: pass
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
-        # if FORCE_QT4:
-        #     # headerBitmap = QtWidgets.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
-        #     headerBitmap = QtWidgets.QPixmap(":/icons/CSS/rc/tmMain.png")
-        # else:
-        #     # headerBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
-        #     headerBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmMain.png")
         headerBitmap = self.Pixmap(":/icons/CSS/rc/tmMain.png")
 
         tikIcon_label.setPixmap(headerBitmap)
@@ -286,10 +257,6 @@ class MainUI(QtWidgets.QMainWindow):
         try: self.baseScene_label.setMargin(margin)
         except AttributeError: pass
         self.baseScene_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-        # if FORCE_QT4:
-        #     self.baseScene_label.setFont(QtWidgets.QFont("Times", 10, QtWidgets.QFont.Bold))
-        # else:
-        #     self.baseScene_label.setFont(QtGui.QFont("Times", 10, QtGui.QFont.Bold))
 
         self.baseScene_label.setFont(self.displayFont)
         headerLayout.addWidget(self.baseScene_label)
@@ -307,65 +274,37 @@ class MainUI(QtWidgets.QMainWindow):
         # ----------
         # ----------
 
-
-        # self.main_gridLayout = QtWidgets.QGridLayout(self.centralwidget)
         self.main_gridLayout = QtWidgets.QGridLayout()
         mainLayout.addLayout(self.main_gridLayout)
 
-        # self.main_gridLayout.setObjectName(("main_gridLayout"))
 
         self.main_horizontalLayout = QtWidgets.QHBoxLayout()
         self.main_horizontalLayout.setContentsMargins(-1, -1, 0, -1)
         self.main_horizontalLayout.setSpacing(6)
-        self.main_horizontalLayout.setStretch(0, 1)
+        # self.main_horizontalLayout.setStretch(0, 1)
 
-        self.saveBaseScene_pushButton = QtWidgets.QPushButton(self.centralwidget)
-        # self.saveBaseScene_pushButton.setMinimumSize(QtCore.QSize(150, 45))
-        # self.saveBaseScene_pushButton.setMaximumSize(QtCore.QSize(150, 45))
-        # self.saveBaseScene_pushButton.setStyleSheet("min-width: 120; min-height: 45;")
+        self.saveBaseScene_pushButton = QtWidgets.QPushButton(self.centralwidget, text="Save Base Scene", font=self.iconFont)
         self.saveBaseScene_pushButton.setProperty("menuButton", True)
-
-        # self.saveBaseScene_pushButton.setFixedWidth(250)
-        self.saveBaseScene_pushButton.setFont(self.iconFont)
-        self.saveBaseScene_pushButton.setText("Save Base Scene")
         self.saveBaseScene_pushButton.setToolTip("Saves the currently open scene as a Base Scene ")
         self.main_horizontalLayout.addWidget(self.saveBaseScene_pushButton)
 
-        self.saveVersion_pushButton = QtWidgets.QPushButton(self.centralwidget)
-        # self.saveVersion_pushButton.setMinimumSize(QtCore.QSize(150, 45))
-        # self.saveVersion_pushButton.setMaximumSize(QtCore.QSize(150, 45))
-        # self.saveVersion_pushButton.setStyleSheet("min-width: 120; min-height: 45;")
+        self.saveVersion_pushButton = QtWidgets.QPushButton(self.centralwidget, text="Save As Version", font=self.iconFont)
         self.saveVersion_pushButton.setProperty("menuButton", True)
-        self.saveVersion_pushButton.setFont(self.iconFont)
-        self.saveVersion_pushButton.setText("Save As Version")
         self.saveVersion_pushButton.setToolTip("Saves a new version from the currently open Base Scene ")
 
         self.main_horizontalLayout.addWidget(self.saveVersion_pushButton)
 
-        self.export_pushButton = QtWidgets.QPushButton(self.centralwidget)
-        # self.export_pushButton.setMinimumSize(QtCore.QSize(150, 45))
-        # self.export_pushButton.setMaximumSize(QtCore.QSize(150, 45))
-        # self.export_pushButton.setStyleSheet("min-width: 120; min-height: 45;")
+        self.export_pushButton = QtWidgets.QPushButton(self.centralwidget, text="Transfer Central", font=self.iconFont)
         self.export_pushButton.setProperty("menuButton", True)
-        self.export_pushButton.setFont(self.iconFont)
-        self.export_pushButton.setText("Transfer Central")
         self.export_pushButton.setToolTip("Export/Import Geometry formats")
         self.main_horizontalLayout.addWidget(self.export_pushButton)
-        # make it invisible
-        self.export_pushButton.setVisible(True)
 
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.main_horizontalLayout.addItem(spacerItem)
 
-        self.loadScene_pushButton = QtWidgets.QPushButton(self.centralwidget)
-        # self.loadScene_pushButton.setMinimumSize(QtCore.QSize(120, 45))
-        # self.loadScene_pushButton.setMaximumSize(QtCore.QSize(120, 45))
+        self.loadScene_pushButton = QtWidgets.QPushButton(self.centralwidget, text="Load Scene", font=self.iconFont)
         self.loadScene_pushButton.setProperty("menuButton", True)
-        # self.loadScene_pushButton.setStyleSheet("min-width: 120; min-height: 45;")
-
         self.loadScene_pushButton.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.loadScene_pushButton.setFont(self.iconFont)
-        self.loadScene_pushButton.setText(("Load Scene"))
         self.main_horizontalLayout.addWidget(self.loadScene_pushButton)
         #
         self.main_gridLayout.addLayout(self.main_horizontalLayout, 4, 0, 1, 1)
@@ -373,52 +312,34 @@ class MainUI(QtWidgets.QMainWindow):
         self.r2_gridLayout = QtWidgets.QGridLayout()
         self.r2_gridLayout.setColumnStretch(1, 1)
 
-        self.load_radioButton = QtWidgets.QRadioButton(self.centralwidget)
-        self.load_radioButton.setText("Load Mode")
+        self.load_radioButton = QtWidgets.QRadioButton(self.centralwidget, text="Load Mode")
         self.load_radioButton.setToolTip("Activates Loading mode and lists all base scenes")
         self.r2_gridLayout.addWidget(self.load_radioButton, 0, 0, 1, 1)
 
-        self.reference_radioButton = QtWidgets.QRadioButton(self.centralwidget)
-        self.reference_radioButton.setText("Reference Mode")
+        self.reference_radioButton = QtWidgets.QRadioButton(self.centralwidget, text="Reference Mode")
         self.reference_radioButton.setToolTip("Activates Referencing mode and lists base scenes with references")
         self.r2_gridLayout.addWidget(self.reference_radioButton, 0, 1, 1, 1)
 
-        self.subProject_label = QtWidgets.QLabel(self.centralwidget)
-        self.subProject_label.setText("Sub-Project:")
+        self.subProject_label = QtWidgets.QLabel(self.centralwidget, text="Sub-Project:")
         self.subProject_label.setToolTip("Changes sub-project level")
         self.subProject_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.r2_gridLayout.addWidget(self.subProject_label, 0, 2, 1, 1)
 
-        self.subProject_comboBox = QtWidgets.QComboBox(self.centralwidget)
-        self.subProject_comboBox.setMinimumSize(QtCore.QSize(150, 30))
-        self.subProject_comboBox.setMaximumSize(QtCore.QSize(16777215, 30))
+        self.subProject_comboBox = QtWidgets.QComboBox(self.centralwidget, minimumSize=QtCore.QSize(150, 30), maximumSize=QtCore.QSize(16777215, 30))
         self.subProject_comboBox.setToolTip("Changes sub-project level")
         self.r2_gridLayout.addWidget(self.subProject_comboBox, 0, 3, 1, 1)
 
-        self.addSubProject_pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.addSubProject_pushButton.setMinimumSize(QtCore.QSize(30, 30))
-        self.addSubProject_pushButton.setMaximumSize(QtCore.QSize(30, 30))
+        self.addSubProject_pushButton = QtWidgets.QPushButton(self.centralwidget, size=QtCore.QSize(30, 30), font=self.iconFont)
         self.addSubProject_pushButton.setToolTip("Adds a new sub-project level")
-
-        self.addSubProject_pushButton.setFont(self.iconFont)
-        # self.addSubProject_pushButton.setText("➕".decode("utf-8"))
-        plusIcon = self.QIcon(":/icons/CSS/rc/plus.png")
-        self.addSubProject_pushButton.setIcon(plusIcon)
-
-
+        self.addSubProject_pushButton.setIcon(self.QIcon(":/icons/CSS/rc/plus.png"))
 
         self.r2_gridLayout.addWidget(self.addSubProject_pushButton, 0, 4, 1, 1)
 
-        self.user_label = QtWidgets.QLabel(self.centralwidget)
-        self.user_label.setText(("User:"))
+        self.user_label = QtWidgets.QLabel(self.centralwidget, text="User:", alignment=(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter))
         self.user_label.setToolTip("Changes the current user")
-        # self.user_label.setPixmap(self.Pixmap(":/icons/CSS/rc/user.png"))
-        self.user_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.r2_gridLayout.addWidget(self.user_label, 0, 5, 1, 1)
 
-        self.user_comboBox = QtWidgets.QComboBox(self.centralwidget)
-        self.user_comboBox.setMinimumSize(QtCore.QSize(130, 30))
-        self.user_comboBox.setMaximumSize(QtCore.QSize(16777215, 30))
+        self.user_comboBox = QtWidgets.QComboBox(self.centralwidget, minimumSize=QtCore.QSize(130, 30), maximumSize=QtCore.QSize(16777215, 30))
         self.user_comboBox.setToolTip("Changes the current user")
         self.r2_gridLayout.addWidget(self.user_comboBox, 0, 6, 1, 1)
 
@@ -426,79 +347,46 @@ class MainUI(QtWidgets.QMainWindow):
         self.r1_gridLayout = QtWidgets.QGridLayout()
 
 
-        self.project_label = QtWidgets.QLabel(self.centralwidget)
-        self.project_label.setText("Project:")
-        self.project_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.project_label = QtWidgets.QLabel(self.centralwidget, text="Project:", alignment=(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter))
         self.r1_gridLayout.addWidget(self.project_label, 1, 0, 1, 1)
 
         self.project_lineEdit = QtWidgets.QLineEdit(self.centralwidget)
-        self.project_lineEdit.setText((""))
-        self.project_lineEdit.setPlaceholderText((""))
         self.r1_gridLayout.addWidget(self.project_lineEdit, 1, 1, 1, 1)
 
-        self.setProject_pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.setProject_pushButton.setText("SET")
+        self.setProject_pushButton = QtWidgets.QPushButton(self.centralwidget, text="SET")
         self.setProject_pushButton.setToolTip("Changes the active project")
 
         self.r1_gridLayout.addWidget(self.setProject_pushButton, 1, 2, 1, 1)
 
         self.main_gridLayout.addLayout(self.r1_gridLayout, 0, 0, 1, 1)
 
-        self.category_tabWidget = QtWidgets.QTabWidget(self.centralwidget)
-        self.category_tabWidget.setMaximumSize(QtCore.QSize(16777215, 20))
-        self.category_tabWidget.setTabPosition(QtWidgets.QTabWidget.North)
-        self.category_tabWidget.setElideMode(QtCore.Qt.ElideNone)
-        self.category_tabWidget.setUsesScrollButtons(False)
+        self.category_tabWidget = QtWidgets.QTabWidget(self.centralwidget, maximumSize=QtCore.QSize(16777215, 20), tabPosition=QtWidgets.QTabWidget.North, elideMode=QtCore.Qt.ElideNone, usesScrollButtons=False)
 
         self.main_gridLayout.addWidget(self.category_tabWidget, 2, 0, 1, 1)
 
-        self.splitter = QtWidgets.QSplitter(self.centralwidget)
-        self.splitter.setOrientation(QtCore.Qt.Horizontal)
+        self.splitter = QtWidgets.QSplitter(self.centralwidget, orientation=QtCore.Qt.Horizontal)
 
-
-        # self.scenes_listWidget = QtWidgets.QListWidget(self.splitter)
-        self.scenes_listWidget = QtWidgets.QTreeWidget(self.splitter)
-        self.scenes_listWidget.setSortingEnabled(True)
+        self.scenes_listWidget = QtWidgets.QTreeWidget(self.splitter, sortingEnabled=True, selectionMode=QtWidgets.QAbstractItemView.SingleSelection, rootIsDecorated=False)
         header = QtWidgets.QTreeWidgetItem(["Name", "Date"])
         self.scenes_listWidget.setHeaderItem(header)
         self.scenes_listWidget.setColumnWidth(0, 250)
-        self.scenes_listWidget.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-        self.scenes_listWidget.setRootIsDecorated(False)
 
-        self.frame = QtWidgets.QFrame(self.splitter)
-        self.frame.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.frame.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame = QtWidgets.QFrame(self.splitter, frameShape=QtWidgets.QFrame.StyledPanel, frameShadow=QtWidgets.QFrame.Raised)
 
         self.gridLayout_6 = QtWidgets.QGridLayout(self.frame)
         self.gridLayout_6.setContentsMargins(-1, -1, 0, 0)
 
         self.verticalLayout = QtWidgets.QVBoxLayout()
 
-        self.notes_label = QtWidgets.QLabel(self.frame)
-        self.notes_label.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.notes_label.setText(("Version Notes:"))
-        self.notes_label.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        self.notes_label = QtWidgets.QLabel(self.frame, text="Version Notes:", layoutDirection=QtCore.Qt.LeftToRight, alignment=(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter))
         self.verticalLayout.addWidget(self.notes_label)
 
-        self.notes_textEdit = QtWidgets.QTextEdit(self.frame)
-        self.notes_textEdit.setReadOnly(True)
+        self.notes_textEdit = QtWidgets.QTextEdit(self.frame, readOnly=True)
         self.verticalLayout.addWidget(self.notes_textEdit)
 
-        # PyInstaller and Standalone version compatibility
-
-        # emptyIcon = os.path.normpath(os.path.join(self.manager.getIconsDir(), "empty_thumbnail.png"))
-
-        # if FORCE_QT4:
-        #     # self.E_tPixmap = QtWidgets.QPixmap(emptyIcon)
-        #     self.E_tPixmap = QtWidgets.QPixmap(":/icons/CSS/rc/empty_thumbnail.png")
-        # else:
-        #     # self.E_tPixmap = QtGui.QPixmap(emptyIcon)
-        #     self.E_tPixmap = QtGui.QPixmap(":/icons/CSS/rc/empty_thumbnail.png")
-
         self.E_tPixmap = self.Pixmap(":/icons/CSS/rc/empty_thumbnail.png")
-
         self.thumbnail_label = ImageWidget(self.frame)
-        self.thumbnail_label.setProperty("style", "image")
+        self.thumbnail_label.setProperty("image", True)
         self.thumbnail_label.setPixmap(self.E_tPixmap)
 
         self.thumbnail_label.setMinimumSize(QtCore.QSize(221, 124))
@@ -512,40 +400,24 @@ class MainUI(QtWidgets.QMainWindow):
         self.gridLayout_7 = QtWidgets.QGridLayout()
         self.gridLayout_7.setContentsMargins(-1, -1, 10, 10)
 
-        self.showPreview_pushButton = QtWidgets.QPushButton(self.frame)
-        self.showPreview_pushButton.setMinimumSize(QtCore.QSize(100, 30))
-        self.showPreview_pushButton.setMaximumSize(QtCore.QSize(150, 30))
-        self.showPreview_pushButton.setText(("Show Preview"))
+        self.showPreview_pushButton = QtWidgets.QPushButton(self.frame, text="Show Preview", minimumSize=QtCore.QSize(100, 30), maximumSize=QtCore.QSize(150, 30))
         self.gridLayout_7.addWidget(self.showPreview_pushButton, 0, 3, 1, 1)
 
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_4.setSpacing(1)
 
-        self.version_label = QtWidgets.QLabel(self.frame)
-        self.version_label.setMinimumSize(QtCore.QSize(60, 30))
-        self.version_label.setMaximumSize(QtCore.QSize(60, 30))
-        self.version_label.setFrameShape(QtWidgets.QFrame.Box)
-        self.version_label.setText(("Version:"))
-        self.version_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.version_label = QtWidgets.QLabel(self.frame, text="Version:", minimumSize=QtCore.QSize(60, 30), maximumSize=QtCore.QSize(60, 30), frameShape=QtWidgets.QFrame.Box, alignment=QtCore.Qt.AlignCenter)
         self.horizontalLayout_4.addWidget(self.version_label)
 
-        self.version_comboBox = QtWidgets.QComboBox(self.frame)
-        self.version_comboBox.setMinimumSize(QtCore.QSize(60, 30))
-        self.version_comboBox.setMaximumSize(QtCore.QSize(100, 30))
+        self.version_comboBox = QtWidgets.QComboBox(self.frame, minimumSize=QtCore.QSize(60, 30), maximumSize=QtCore.QSize(100, 30))
         self.horizontalLayout_4.addWidget(self.version_comboBox)
 
         self.gridLayout_7.addLayout(self.horizontalLayout_4, 0, 0, 1, 1)
 
-        self.makeReference_pushButton = QtWidgets.QPushButton(self.frame)
-        self.makeReference_pushButton.setMinimumSize(QtCore.QSize(100, 30))
-        self.makeReference_pushButton.setMaximumSize(QtCore.QSize(300, 30))
-        self.makeReference_pushButton.setText(("Make Reference"))
+        self.makeReference_pushButton = QtWidgets.QPushButton(self.frame, text="Make Reference", minimumSize=QtCore.QSize(100, 30), maximumSize=QtCore.QSize(300, 30))
         self.gridLayout_7.addWidget(self.makeReference_pushButton, 1, 0, 1, 1)
 
-        self.addNote_pushButton = QtWidgets.QPushButton(self.frame)
-        self.addNote_pushButton.setMinimumSize(QtCore.QSize(100, 30))
-        self.addNote_pushButton.setMaximumSize(QtCore.QSize(150, 30))
-        self.addNote_pushButton.setText(("Add Note"))
+        self.addNote_pushButton = QtWidgets.QPushButton(self.frame,  text="Add Note", minimumSize=QtCore.QSize(100, 30), maximumSize=QtCore.QSize(150, 30))
         self.gridLayout_7.addWidget(self.addNote_pushButton, 1, 3, 1, 1)
 
         self.gridLayout_6.addLayout(self.gridLayout_7, 0, 0, 1, 1)
@@ -562,9 +434,7 @@ class MainUI(QtWidgets.QMainWindow):
         # MENU BAR / STATUS BAR
         # ---------------------
 
-        self.menubar = QtWidgets.QMenuBar(self)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 680, 18))
-
+        self.menubar = QtWidgets.QMenuBar(self, geometry=QtCore.QRect(0, 0, 680, 18))
         self.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(self)
         self.setStatusBar(self.statusbar)
@@ -576,24 +446,10 @@ class MainUI(QtWidgets.QMainWindow):
 
         loadReferenceScene_fm = QtWidgets.QAction("&Load/Reference Scene", self)
 
-        # add_remove_users_fm = QtWidgets.QAction("&Add/Remove Users", self)
-
-        # add_remove_categories_fm = QtWidgets.QAction("&Add/Remove Categories", self)
-
         settings_fm = QtWidgets.QAction(self.QIcon(":/icons/CSS/rc/settings.png"), "&Settings", self)
-
-        # pb_settings_fm = QtWidgets.QAction("&Playblast Settings", self)
-
-        # projectSettings_fm = QtWidgets.QAction("&Project Settings", self)
-
-        # changeAdminPass_fm = QtWidgets.QAction("&Change Admin Password", self)
-
-        # self.changeCommonFolder =  QtWidgets.QAction("&Change Common Database", self)
-        # self.changeCommonFolder.setVisible(False)
 
         deleteFile_fm = QtWidgets.QAction(self.QIcon(":/icons/CSS/rc/delete.png"), "&Delete Selected Base Scene", self)
         deleteReference_fm = QtWidgets.QAction(self.QIcon(":/icons/CSS/rc/delete.png"), "&Delete Reference of Selected Scene", self)
-        reBuildDatabase_fm = QtWidgets.QAction("&Re-build Project Database", self)
         projectReport_fm = QtWidgets.QAction("&Project Report", self)
         projectReport_fm.setEnabled(False)
         checkReferences_fm = QtWidgets.QAction("&Check References", self)
@@ -602,23 +458,14 @@ class MainUI(QtWidgets.QMainWindow):
         self.fileMenu.addAction(createProject_fm)
         self.fileMenu.addAction(self.saveVersion_fm)
         self.fileMenu.addAction(self.saveBaseScene_fm)
-
         self.fileMenu.addSeparator()
 
         #load
         self.fileMenu.addAction(loadReferenceScene_fm)
-
         self.fileMenu.addSeparator()
 
         #settings
         self.fileMenu.addAction(settings_fm)
-        # self.fileMenu.addAction(add_remove_users_fm)
-        # self.fileMenu.addAction(add_remove_categories_fm)
-        # self.fileMenu.addAction(pb_settings_fm)
-        # self.fileMenu.addAction(projectSettings_fm)
-        # self.fileMenu.addAction(changeAdminPass_fm)
-        # self.fileMenu.addAction(self.changeCommonFolder)
-
         self.fileMenu.addSeparator()
 
         #delete
@@ -716,31 +563,13 @@ class MainUI(QtWidgets.QMainWindow):
         # SIGNAL CONNECTIONS
         # ------------------
 
-        # self.changeCommonFolder.triggered.connect(self.manager._defineCommonFolder)
-        # self.changeCommonFolder.triggered.connect(lambda: self.manager.init_paths(self.manager.swName))
-        # self.changeCommonFolder.triggered.connect(self.manager.init_database)
-        # self.changeCommonFolder.triggered.connect(self._initUsers)
-        # self.changeCommonFolder.triggered.connect(self.onUserChange)
-
         createProject_fm.triggered.connect(self.createProjectUI)
 
         settings_fm.triggered.connect(self.settingsUI)
-        # add_remove_users_fm.triggered.connect(self.addRemoveUserUI)
-        # pb_settings_fm.triggered.connect(self.onPbSettings)
-
-        # add_remove_categories_fm.triggered.connect(self.addRemoveCategoryUI)
-
-        # projectSettings_fm.triggered.connect(self.projectSettingsUI)
-
-        # changeAdminPass_fm.triggered.connect(self.changePasswordUI)
-
-
-
 
         deleteFile_fm.triggered.connect(self.onDeleteBaseScene)
 
         deleteReference_fm.triggered.connect(self.onDeleteReference)
-
 
         checkReferences_fm.triggered.connect(lambda: self.populateBaseScenes(deepCheck=True))
 
@@ -753,8 +582,6 @@ class MainUI(QtWidgets.QMainWindow):
         checkVersion_mi.triggered.connect(self.onCheckNewVersion)
 
         self.statusBar().showMessage("Status | Idle")
-
-        # self.project_lineEdit.
 
         self.load_radioButton.clicked.connect(self.onModeChange)
         self.reference_radioButton.clicked.connect(self.onModeChange)
@@ -800,101 +627,80 @@ class MainUI(QtWidgets.QMainWindow):
                 self.subProject_comboBox.addItems(self.manager.createSubproject(newSub))
                 self.subProject_comboBox.setCurrentIndex(self.manager.currentSubIndex)
                 self.populateBaseScenes()
-                # self.onSubProjectChange()
             else:
                 self.infoPop(textTitle="Naming Error", textHeader="Naming Error",
                              textInfo="Choose an unique name with latin characters without spaces", type="C")
 
     def createProjectUI(self):
+        createProject_Dialog = QtWidgets.QDialog(parent=self, size=QtCore.QSize(420,220), windowTitle="Create New Project")
 
-        # This method is NOT Software Specific
-        self.createproject_Dialog = QtWidgets.QDialog(parent=self)
-        self.createproject_Dialog.resize(419, 300)
-        self.createproject_Dialog.setWindowTitle(("Create New Project"))
+        masterLayout = QtWidgets.QVBoxLayout(createProject_Dialog)
 
-        self.projectroot_label = QtWidgets.QLabel(self.createproject_Dialog)
-        self.projectroot_label.setGeometry(QtCore.QRect(20, 30, 71, 20))
-        self.projectroot_label.setText(("Project Path:"))
+        formLayout = QtWidgets.QFormLayout(spacing=15, labelAlignment=(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter))
+        masterLayout.addLayout(formLayout)
 
-        currentProjects = os.path.abspath(os.path.join(self.manager.projectDir, os.pardir))
-        self.projectroot_lineEdit = QtWidgets.QLineEdit(self.createproject_Dialog)
-        self.projectroot_lineEdit.setGeometry(QtCore.QRect(90, 30, 241, 21))
-        self.projectroot_lineEdit.setText((currentProjects))
 
-        self.browse_pushButton = QtWidgets.QPushButton(self.createproject_Dialog)
-        self.browse_pushButton.setText(("Browse"))
-        self.browse_pushButton.setGeometry(QtCore.QRect(340, 30, 61, 21))
+        resolvedPath_lbl = QtWidgets.QLabel(createProject_Dialog, text="Fill the mandatory fields")
+        formLayout.addRow(resolvedPath_lbl)
 
-        self.resolvedpath_label = QtWidgets.QLabel(self.createproject_Dialog)
-        self.resolvedpath_label.setGeometry(QtCore.QRect(20, 70, 381, 21))
+        projectRoot_lbl = QtWidgets.QLabel(createProject_Dialog, text="Projects Root")
+        projectRoot_lbl.setFocus()
+        projectRoot_hLay = QtWidgets.QHBoxLayout(spacing=4)
+        projectRoot_le = QtWidgets.QLineEdit(text=os.path.abspath(os.path.join(self.manager.projectDir, os.pardir)))
+        projectRoot_pb = QtWidgets.QPushButton(text="Browse")
+        projectRoot_hLay.addWidget(projectRoot_le)
+        projectRoot_hLay.addWidget(projectRoot_pb)
+        formLayout.addRow(projectRoot_lbl, projectRoot_hLay)
 
-        self.brandname_label = QtWidgets.QLabel(self.createproject_Dialog)
-        self.brandname_label.setGeometry(QtCore.QRect(20, 110, 111, 20))
-        self.brandname_label.setFrameShape(QtWidgets.QFrame.Box)
-        self.brandname_label.setText(("Brand Name"))
-        self.brandname_label.setAlignment(QtCore.Qt.AlignCenter)
+        nameFields_hLay = QtWidgets.QHBoxLayout()
 
-        self.projectname_label = QtWidgets.QLabel(self.createproject_Dialog)
-        self.projectname_label.setGeometry(QtCore.QRect(140, 110, 131, 20))
-        self.projectname_label.setFrameShape(QtWidgets.QFrame.Box)
-        self.projectname_label.setText(("Project Name"))
-        self.projectname_label.setAlignment(QtCore.Qt.AlignCenter)
+        brandName_vLay = QtWidgets.QVBoxLayout(spacing=6)
+        brandName_lbl = QtWidgets.QLabel(text="Brand Name", alignment=QtCore.Qt.AlignCenter)
+        brandName_le = QtWidgets.QLineEdit(placeholderText="(optional)")
+        brandName_vLay.addWidget(brandName_lbl)
+        brandName_vLay.addWidget(brandName_le)
+        nameFields_hLay.addLayout(brandName_vLay)
 
-        self.client_label = QtWidgets.QLabel(self.createproject_Dialog)
-        self.client_label.setGeometry(QtCore.QRect(280, 110, 121, 20))
-        self.client_label.setFrameShape(QtWidgets.QFrame.Box)
-        self.client_label.setText(("Client"))
-        self.client_label.setAlignment(QtCore.Qt.AlignCenter)
+        projectName_vLay = QtWidgets.QVBoxLayout(spacing=6)
+        projectName_lbl = QtWidgets.QLabel(text="Project Name", alignment=QtCore.Qt.AlignCenter)
+        projectName_le = QtWidgets.QLineEdit(placeholderText="Mandatory Field")
+        projectName_vLay.addWidget(projectName_lbl)
+        projectName_vLay.addWidget(projectName_le)
+        nameFields_hLay.addLayout(projectName_vLay)
 
-        self.brandname_lineEdit = QtWidgets.QLineEdit(self.createproject_Dialog)
-        self.brandname_lineEdit.setGeometry(QtCore.QRect(20, 140, 111, 21))
-        self.brandname_lineEdit.setPlaceholderText(("(optional)"))
+        client_vLay = QtWidgets.QVBoxLayout(spacing=6)
+        client_lbl = QtWidgets.QLabel(text="Client", alignment=QtCore.Qt.AlignCenter)
+        client_le = QtWidgets.QLineEdit(placeholderText="Mandatory Field")
+        client_vLay.addWidget(client_lbl)
+        client_vLay.addWidget(client_le)
+        nameFields_hLay.addLayout(client_vLay)
 
-        self.projectname_lineEdit = QtWidgets.QLineEdit(self.createproject_Dialog)
-        self.projectname_lineEdit.setGeometry(QtCore.QRect(140, 140, 131, 21))
-        self.projectname_lineEdit.setPlaceholderText(("Mandatory Field"))
+        formLayout.addRow(nameFields_hLay)
 
-        self.client_lineEdit = QtWidgets.QLineEdit(self.createproject_Dialog)
-        self.client_lineEdit.setGeometry(QtCore.QRect(280, 140, 121, 21))
-        self.client_lineEdit.setPlaceholderText(("Mandatory Field"))
+        resolution_lbl = QtWidgets.QLabel(text="Resolution")
+        resolution_hLay = QtWidgets.QHBoxLayout(spacing=4)
+        resolutionX_spinBox = QtWidgets.QSpinBox(minimum=1, maximum=99999, value=1920, minimumWidth=(65), maximumWidth=(65), buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons)
+        resolutionY_spinBox = QtWidgets.QSpinBox(minimum=1, maximum=99999, value=1080, minimumWidth=(65), maximumWidth=(65), buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons)
+        resolution_hLay.addWidget(resolutionX_spinBox)
+        resolution_hLay.addWidget(resolutionY_spinBox)
+        formLayout.addRow(resolution_lbl, resolution_hLay)
 
-        # TODO : ref
+        fps_lbl = QtWidgets.QLabel(text="FPS")
+        fps_combo = QtWidgets.QComboBox(maximumWidth=(65))
+        fps_combo.addItems(self.manager.fpsList)
+        fps_combo.setCurrentIndex(13)
+        formLayout.addRow(fps_lbl, fps_combo)
 
-        resolution_label = QtWidgets.QLabel(self.createproject_Dialog)
-        resolution_label.setGeometry(QtCore.QRect(24, 180 , 111, 21))
-        resolution_label.setText("Resolution")
+        createproject_buttonBox = QtWidgets.QDialogButtonBox(createProject_Dialog, orientation=QtCore.Qt.Horizontal)
+        createproject_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
+        createproject_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
+        createproject_buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setMinimumSize(QtCore.QSize(100, 30))
 
-        resolutionX_spinBox = QtWidgets.QSpinBox(self.createproject_Dialog)
-        resolutionX_spinBox.setGeometry(QtCore.QRect(80, 180, 60, 21))
-        resolutionX_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-        resolutionX_spinBox.setRange(1,99999)
-        resolutionX_spinBox.setValue(1920)
+        cp_button = createproject_buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
+        cp_button.setText('Create Project')
+        cp_button.setProperty("menuButton", True)
 
-        resolutionY_spinBox = QtWidgets.QSpinBox(self.createproject_Dialog)
-        resolutionY_spinBox.setGeometry(QtCore.QRect(145, 180, 60, 21))
-        resolutionY_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-        resolutionY_spinBox.setRange(1,99999)
-        resolutionY_spinBox.setValue(1080)
-
-        fps_label = QtWidgets.QLabel(self.createproject_Dialog)
-        fps_label.setGeometry(QtCore.QRect(54, 210 , 111, 21))
-        fps_label.setText("FPS")
-
-        fps_comboBox = QtWidgets.QComboBox(self.createproject_Dialog)
-        fps_comboBox.setGeometry(QtCore.QRect(80, 210 , 60, 21))
-        fps_comboBox.addItems(self.manager.fpsList)
-        fps_comboBox.setCurrentIndex(13)
-
-        self.createproject_buttonBox = QtWidgets.QDialogButtonBox(self.createproject_Dialog)
-        self.createproject_buttonBox.setGeometry(QtCore.QRect(30, 250, 371, 32))
-        self.createproject_buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.createproject_buttonBox.setStandardButtons(
-            QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
-        self.createproject_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
-        self.createproject_buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setMinimumSize(QtCore.QSize(100, 30))
-
-        self.cp_button = self.createproject_buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
-        self.cp_button.setText('Create Project')
+        masterLayout.addWidget(createproject_buttonBox)
 
         def browseProjectRoot():
             dlg = QtWidgets.QFileDialog()
@@ -903,12 +709,12 @@ class MainUI(QtWidgets.QMainWindow):
             if dlg.exec_():
                 # selectedroot = os.path.normpath(unicode(dlg.selectedFiles()[0]))
                 selectedroot = os.path.normpath(unicode(dlg.selectedFiles()[0])).encode("utf-8")
-                self.projectroot_lineEdit.setText(selectedroot)
+                projectRoot_le.setText(selectedroot)
                 resolve()
 
 
         def onCreateNewProject():
-            root = os.path.normpath(unicode(self.projectroot_lineEdit.text()).decode("utf-8"))
+            root = os.path.normpath(unicode(projectRoot_le.text()).decode("utf-8"))
             if not self.manager.nameCheck(root, allowSpaces=True, directory=True):
                 self.infoPop(textTitle="Non-Ascii Character", textHeader="Selected Project Root cannot be used",
                              textInfo="There are non-ascii characters in the selected path.", type="C")
@@ -917,11 +723,11 @@ class MainUI(QtWidgets.QMainWindow):
                 self.infoPop(textTitle="Path Error", textHeader="Selected Project Root does not exist", type="C")
                 return
 
-            pName = unicode(self.projectname_lineEdit.text()).decode("utf-8")
-            bName = unicode(self.brandname_lineEdit.text()).decode("utf-8")
-            cName = unicode(self.client_lineEdit.text()).decode("utf-8")
+            pName = unicode(projectName_le.text()).decode("utf-8")
+            bName = unicode(brandName_le.text()).decode("utf-8")
+            cName = unicode(client_le.text()).decode("utf-8")
             projectSettingsDB = {"Resolution": [resolutionX_spinBox.value(), resolutionY_spinBox.value()],
-                                   "FPS": int(fps_comboBox.currentText())}
+                                   "FPS": int(fps_combo.currentText())}
 
             pPath = self.manager.createNewProject(root, pName, bName, cName, settingsData=projectSettingsDB)
             if pPath:
@@ -929,51 +735,44 @@ class MainUI(QtWidgets.QMainWindow):
             # self.onProjectChange()
 
             self.initMainUI()
-            self.createproject_Dialog.close()
+            createProject_Dialog.close()
 
         def resolve():
-            if self.projectname_lineEdit.text() == "" or self.client_lineEdit.text() == "" or self.projectroot_lineEdit.text() == "":
-                self.resolvedpath_label.setText("Fill the mandatory fields")
-                self.newProjectPath = None
+            if projectName_le.text() == "" or client_le.text() == "" or projectRoot_le.text() == "":
+                resolvedPath_lbl.setText("Fill the mandatory fields")
                 return
-            resolvedPath = self.manager.resolveProjectPath(unicode(self.projectroot_lineEdit.text()).decode("utf-8"),
-                                                           unicode(self.projectname_lineEdit.text()).decode("utf-8"),
-                                                           unicode(self.brandname_lineEdit.text()).decode("utf-8"),
-                                                           unicode(self.client_lineEdit.text()).decode("utf-8"))
-            self.resolvedpath_label.setText(resolvedPath)
+            resolvedPath = self.manager.resolveProjectPath(unicode(projectRoot_le.text()).decode("utf-8"),
+                                                           unicode(projectName_le.text()).decode("utf-8"),
+                                                           unicode(brandName_le.text()).decode("utf-8"),
+                                                           unicode(client_le.text()).decode("utf-8"))
+            resolvedPath_lbl.setText(resolvedPath)
 
         resolve()
-        self.browse_pushButton.clicked.connect(browseProjectRoot)
 
-        self.brandname_lineEdit.textEdited.connect(lambda: resolve())
-        self.projectname_lineEdit.textEdited.connect(lambda: resolve())
-        self.client_lineEdit.textEdited.connect(lambda: resolve())
+        projectRoot_pb.clicked.connect(browseProjectRoot)
 
-        self.createproject_buttonBox.accepted.connect(onCreateNewProject)
-        self.createproject_buttonBox.rejected.connect(self.createproject_Dialog.reject)
+        brandName_le.textEdited.connect(lambda: resolve())
+        projectName_le.textEdited.connect(lambda: resolve())
+        client_le.textEdited.connect(lambda: resolve())
 
-        self.brandname_lineEdit.textChanged.connect(
-            lambda: self._checkValidity(self.brandname_lineEdit.text(), self.cp_button,
-                                        self.brandname_lineEdit))
-        self.projectname_lineEdit.textChanged.connect(
-            lambda: self._checkValidity(self.projectname_lineEdit.text(), self.cp_button,
-                                        self.projectname_lineEdit))
-        self.client_lineEdit.textChanged.connect(
-            lambda: self._checkValidity(self.client_lineEdit.text(), self.cp_button, self.client_lineEdit))
+        createproject_buttonBox.accepted.connect(onCreateNewProject)
+        createproject_buttonBox.rejected.connect(createProject_Dialog.reject)
 
-        self.createproject_Dialog.show()
+        brandName_le.textChanged.connect(
+            lambda: self._checkValidity(brandName_le.text(), cp_button,
+                                        brandName_le))
+        projectName_le.textChanged.connect(
+            lambda: self._checkValidity(projectName_le.text(), cp_button,
+                                        projectName_le))
+        client_le.textChanged.connect(
+            lambda: self._checkValidity(client_le.text(), cp_button, client_le))
+
+        createProject_Dialog.show()
+
 
     def setProjectUI(self):
 
         # This method is NOT Software Specific
-        # if FORCE_QT4:
-        #     iconFont = QtWidgets.QFont()
-        # else:
-        #     iconFont = QtGui.QFont()
-        # # iconFont = QtGui.QFont()
-        # iconFont.setPointSize(12)
-        # iconFont.setBold(True)
-        # iconFont.setWeight(75)
 
         self.setProject_Dialog = QtWidgets.QDialog(parent=self)
         self.setProject_Dialog.resize(982, 450)
@@ -1740,11 +1539,11 @@ class MainUI(QtWidgets.QMainWindow):
         def resolveName():
             # resolve name
             if not sceneInfo:
-                customName_lineEdit.setProperty("warning", True)
+                customName_lineEdit.setProperty("error", True)
                 customName_lineEdit.setStyleSheet("") # refresh
                 customName_lineEdit.setText("Scene Needs to be saved as Base Scene")
                 return
-            customName_lineEdit.setProperty("warning", False)
+            customName_lineEdit.setProperty("error", False)
             customName_lineEdit.setStyleSheet("")
 
             if customName_radioButton.isChecked():
@@ -1759,7 +1558,7 @@ class MainUI(QtWidgets.QMainWindow):
                     elif len(sel) == 1:
                         name = "{0}/{0}_{1}_{2}".format(sceneInfo["shotName"], sceneInfo["version"], sel[0])
                     else:
-                        customName_lineEdit.setProperty("warning", True)
+                        customName_lineEdit.setProperty("error", True)
                         customName_lineEdit.setStyleSheet("")  # refresh
                         customName_lineEdit.setText("No Object Selected")
                         return
@@ -5807,18 +5606,18 @@ class MainUI(QtWidgets.QMainWindow):
 
     def _checkValidity(self, text, button, lineEdit, allowSpaces=False, directory=False):
         if text == "":
-            lineEdit.setProperty("style", "normal")
+            lineEdit.setProperty("error", False)
             lineEdit.setStyleSheet("") #update
             return False
         if self.manager.nameCheck(text, allowSpaces=allowSpaces, directory=directory):
             # lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: white")
-            lineEdit.setProperty("style", "normal")
+            lineEdit.setProperty("error", False)
             lineEdit.setStyleSheet("") #update
             button.setEnabled(True)
             return True
         else:
             # lineEdit.setStyleSheet("background-color: red; color: black")
-            lineEdit.setProperty("style", "warning")
+            lineEdit.setProperty("error", True)
             lineEdit.setStyleSheet("") #update
             button.setEnabled(False)
             return False

@@ -73,59 +73,16 @@ logger.setLevel(logging.DEBUG)
 class NukeManager(RootManager, NukeCoreFunctions):
     def __init__(self):
         super(NukeManager, self).__init__()
-        # hard coded format dictionary to pass the format info to cmds
-        # self.formatDict = {"ma": "mayaAscii", "mb": "mayaBinary"}
         self.swName = "Nuke"
         self.init_paths(self.swName)
         self.init_database()
 
-
-    # def getSoftwarePaths(self):
-    #     """Overriden function"""
-    #     logger.debug("Func: getSoftwarePaths")
-    #     softwareDatabaseFile = os.path.normpath(os.path.join(self.getSharedSettingsDir(), "softwareDatabase.json"))
-    #     softwareDB = self._loadJson(softwareDatabaseFile)
-    #     return softwareDB["Nuke"]
-
-    # def getProjectDir(self):
-    #     """Overriden function"""
-    #     # p_path = pManager.GetProjectFolderDir()
-    #     # norm_p_path = os.path.normpath(p_path)
-    #     projectsDict = self.loadProjects()
-    #     print projectsDict
-    #     homeDir = os.path.expanduser("~")
-    #
-    #     if not projectsDict:
-    #         norm_p_path = os.path.normpath(homeDir)
-    #         projectsDict = {"NukeProject": norm_p_path}
-    #         self.saveProjects(projectsDict)
-    #         return norm_p_path
-    #
-    #     # get the project defined in the database file
-    #     try:
-    #         norm_p_path = projectsDict["NukeProject"]
-    #         return norm_p_path
-    #     except KeyError:
-    #         norm_p_path = os.path.normpath(homeDir)
-    #         projectsDict = {"NukeProject": norm_p_path}
-    #         self.saveProjects(projectsDict)
-    #         return norm_p_path
 
     def getSceneFile(self):
         """Overriden function"""
         logger.debug("Func: getSceneFile")
         return self._getSceneFile()
 
-    # def setProject(self, path):
-    #     """Sets the project"""
-    #     logger.debug("Func: setProject")
-    #     projectsDict = self.loadProjects()
-    #     if not projectsDict:
-    #         projectsDict = {"NukeProject": path}
-    #     else:
-    #         projectsDict["NukeProject"] = path
-    #     self.saveProjects(projectsDict)
-    #     self.projectDir = path
 
     def saveBaseScene(self, categoryName, baseName, subProjectIndex=0, makeReference=True, versionNotes="", sceneFormat="nk", *args, **kwargs):
         """

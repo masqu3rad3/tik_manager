@@ -227,10 +227,9 @@ class ImageManager(RootManager, MayaCoreFunctions):
         self.folderTemplate = os.path.normpath(self.folderTemplate.format(subProject,shotName,renderlayer,version))
         self.nameTemplate = (self.nameTemplate.format(subProject,shotName,renderlayer,version)).lstrip("_")
 
-        print "folderTemplate", self.folderTemplate
-        print "nameTemplate", self.nameTemplate
+        # print "folderTemplate", self.folderTemplate
+        # print "nameTemplate", self.nameTemplate
         return os.path.join(self.folderTemplate, self.nameTemplate)
-        # return "%s%s" %(self.folderTemplate, self.nameTemplate)
 
     def initRenderer(self):
         # self.currentRenderer = pm.getAttr('defaultRenderGlobals.currentRenderer')
@@ -761,7 +760,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.setSizePolicy(sizePolicy)
         self.setWindowTitle(windowName)
         self.centralwidget = QtWidgets.QWidget(self)
-        self.centralwidget.setObjectName("centralwidget")
 
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
@@ -775,15 +773,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.refresh()
         scriptJobs = []
         if callback:
-            ## create a script jobs
-            # self.job_1 = pm.scriptJob(ac=["defaultRenderGlobals.currentRenderer", "%s.refresh()" %callback], parent=windowName)
-            # self.job_2 = pm.scriptJob(e=["NewSceneOpened", "%s.refresh()" %callback], parent=windowName)
-            # self.job_3 = pm.scriptJob(e=["playbackRangeSliderChanged", "%s.refresh()" %callback], parent=windowName)
-            # self.job_4 = pm.scriptJob(e=["SceneOpened", "%s.refresh()" %callback], parent=windowName)
-            # self.job_5 = pm.scriptJob(e=["timeUnitChanged", "%s.refresh()" %callback], parent=windowName)
-            # self.job_6 = pm.scriptJob(e=["renderLayerChange", "%s.refresh()" %callback], parent=windowName)
-            # self.job_7 = pm.scriptJob(e=["workspaceChanged", "%s.refresh()" %callback], parent=windowName)
-
+            ## create script jobs
             self.job_1 = cmds.scriptJob(ac=["defaultRenderGlobals.currentRenderer", "%s.refresh()" %callback], parent=windowName)
             self.job_2 = cmds.scriptJob(e=["NewSceneOpened", "%s.refresh()" %callback], parent=windowName)
             self.job_3 = cmds.scriptJob(e=["playbackRangeSliderChanged", "%s.refresh()" %callback], parent=windowName)
@@ -793,7 +783,6 @@ class MainUI(QtWidgets.QMainWindow):
             self.job_7 = cmds.scriptJob(e=["workspaceChanged", "%s.refresh()" %callback], parent=windowName)
             self.scriptJobs = [self.job_1, self.job_2, self.job_3, self.job_4, self.job_5, self.job_6, self.job_7]
 
-            # return
     def buildUI(self):
 
         masterLayout = QtWidgets.QVBoxLayout(self.centralwidget)
@@ -811,7 +800,8 @@ class MainUI(QtWidgets.QMainWindow):
         except AttributeError: pass
 
         tikIcon_label = QtWidgets.QLabel(self.centralwidget)
-        tikIcon_label.setObjectName("header")
+        tikIcon_label.setProperty("header", True)
+        tikIcon_label.setStyleSheet("")
         tikIcon_label.setMaximumWidth(125)
         tikIcon_label.setMargin(margin)
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
@@ -823,7 +813,8 @@ class MainUI(QtWidgets.QMainWindow):
         headerLayout.addWidget(tikIcon_label)
 
         self.imagePath_lineEdit = QtWidgets.QLabel()
-        self.imagePath_lineEdit.setObjectName("header")
+        self.imagePath_lineEdit.setProperty("header", True)
+        self.imagePath_lineEdit.setStyleSheet("")
         self.imagePath_lineEdit.setMargin(margin)
         self.imagePath_lineEdit.setIndent(2)
         self.imagePath_lineEdit.setFont(QtGui.QFont("Times", 7, QtGui.QFont.Bold))
@@ -836,48 +827,26 @@ class MainUI(QtWidgets.QMainWindow):
         # ----------
 
         self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
-        self.gridLayout.setObjectName("gridLayout")
         masterLayout.addLayout(self.gridLayout)
 
         self.projectPath_label = QtWidgets.QLabel(self.centralwidget)
         self.projectPath_label.setFrameShape(QtWidgets.QFrame.Box)
         self.projectPath_label.setLineWidth(1)
         self.projectPath_label.setScaledContents(False)
-        self.projectPath_label.setObjectName("projectPath_label")
         self.projectPath_label.setText("Project:")
         self.gridLayout.addWidget(self.projectPath_label, 0, 0, 1, 1)
 
         self.projectPath_lineEdit = QtWidgets.QLineEdit(self.centralwidget)
-        self.projectPath_lineEdit.setObjectName("projectPath_lineEdit")
         self.projectPath_lineEdit.setReadOnly(True)
         self.gridLayout.addWidget(self.projectPath_lineEdit, 0, 1, 1, 1)
 
 
-
-        # self.imagePath_label = QtWidgets.QLabel(self.centralwidget)
-        # self.imagePath_label.setFrameShape(QtWidgets.QFrame.Box)
-        # self.imagePath_label.setObjectName("imagePath_label")
-        # self.imagePath_label.setText("Image Path:")
-        # self.gridLayout.addWidget(self.imagePath_label, 1, 0, 1, 1)
-
-        # self.imagePath_lineEdit = QtWidgets.QLineEdit(self.centralwidget)
-        # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
-        # sizePolicy.setHorizontalStretch(0)
-        # sizePolicy.setVerticalStretch(0)
-        # sizePolicy.setHeightForWidth(self.imagePath_lineEdit.sizePolicy().hasHeightForWidth())
-        # self.imagePath_lineEdit.setReadOnly(True)
-        # self.imagePath_lineEdit.setSizePolicy(sizePolicy)
-        # self.imagePath_lineEdit.setObjectName("imagePath_lineEdit")
-        # self.gridLayout.addWidget(self.imagePath_lineEdit, 1, 1, 1, 2)
-
         self.foolcheck_label = QtWidgets.QLabel(self.centralwidget)
-        self.foolcheck_label.setObjectName("foolcheck_label")
         self.foolcheck_label.setText("Warnings:")
         self.gridLayout.addWidget(self.foolcheck_label, 3, 0, 1, 1)
 
         self.foolcheck_listWidget = QtWidgets.QListWidget(self.centralwidget)
-        self.foolcheck_listWidget.setObjectName("foolcheck_listView")
-        self.foolcheck_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: grey;")
+        # self.foolcheck_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: grey;")
 
         self.gridLayout.addWidget(self.foolcheck_listWidget, 4, 0, 1, 3)
 
@@ -902,22 +871,11 @@ class MainUI(QtWidgets.QMainWindow):
         self.imageSequencer_pushButton.setEnabled(self.imanager.renderFlag)
         imageSequencerLayout.addWidget(self.imageSequencer_pushButton)
 
-        # self.imageSequencerOB_pushButton = QtWidgets.QPushButton(self.centralwidget)
-        # self.imageSequencerOB_pushButton.setText("█")
-        # self.imageSequencerOB_pushButton.setEnabled(self.imanager.renderFlag)
-        # self.imageSequencerOB_pushButton.setMaximumWidth(20)
-        # imageSequencerLayout.addWidget(self.imageSequencerOB_pushButton)
-
         self.batch_pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.batch_pushButton.setText("Batch Render")
         self.batch_pushButton.setEnabled(self.imanager.renderFlag)
         batchLayout.addWidget(self.batch_pushButton)
 
-        # self.batchOB_pushButton = QtWidgets.QPushButton(self.centralwidget)
-        # self.batchOB_pushButton.setText("█")
-        # self.batchOB_pushButton.setEnabled(self.imanager.renderFlag)
-        # self.batchOB_pushButton.setMaximumWidth(20)
-        # batchLayout.addWidget(self.batchOB_pushButton)
 
         self.sendDeadline_pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.sendDeadline_pushButton.setText("Send To Deadline")
@@ -933,33 +891,21 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.menubar = QtWidgets.QMenuBar(self)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 656, 21))
-        self.menubar.setObjectName("menubar")
         self.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(self)
-        self.statusbar.setObjectName("statusbar")
         self.setStatusBar(self.statusbar)
 
-        # self.setProject_pushButton.clicked.connect(self.onSetProject)
         self.foolcheck_listWidget.doubleClicked.connect(self.onDoubleClick)
         self.sendDeadline_pushButton.clicked.connect(self.onDeadline)
 
         self.imageSequencer_pushButton.clicked.connect(lambda: self.imanager.imageSequencer(optionBox=True))
-        # self.imageSequencerOB_pushButton.clicked.connect(lambda: self.imanager.imageSequencer(optionBox=True))
         self.batch_pushButton.clicked.connect(lambda: self.imanager.batchRender(optionBox=False))
-        # self.batchOB_pushButton.clicked.connect(lambda: self.imanager.batchRender(optionBox=True))
 
         shortcutRefresh = Qt.QtWidgets.QShortcut(Qt.QtGui.QKeySequence("F5"), self, self.refresh)
 
 
         self.setCentralWidget(self.centralwidget)
-        # self.imagePath_lineEdit.setText(self.imanager.resolvedName)
-        # self.populateWarnings()
         self.show()
-
-
-    # def onSetProject(self):
-    #     self.imanager.setProject()
-    #     self.projectPath_lineEdit.setText(self.imanager.projectDir)
 
     def refresh(self):
 
@@ -969,22 +915,16 @@ class MainUI(QtWidgets.QMainWindow):
 
         if not self.imanager.currentRenderer in self.imanager.supportedRenderers:
             self.infoPop(textTitle="Render Engine Not Supported", textHeader="%s is not supported by Image Manager" %self.imanager.currentRenderer, textInfo="Image Path will not be set by Image Manager")
-            self.imagePath_lineEdit.setStyleSheet("color: red")
+            # self.imagePath_lineEdit.setStyleSheet("color: red")
+            self.imagePath_lineEdit.setProperty("error", True)
         else:
-            self.imagePath_lineEdit.setStyleSheet("color: rgb(200,200,200)")
+            # self.imagePath_lineEdit.setStyleSheet("color: rgb(200,200,200)")
+            self.imagePath_lineEdit.setProperty("error", False)
+        self.imagePath_lineEdit.setStyleSheet("")
 
         self.imagePath_lineEdit.setText(self.imanager.resolvedName)
         self.projectPath_lineEdit.setText(self.imanager.projectDir)
         self.populateWarnings()
-
-    # def closeEvent(self, event):
-    #     # do stuff
-    #     try:
-    #         for i in self.scriptJobs:
-    #             pm.scriptJob(kill=i)
-    #     except AttributeError:
-    #         pass
-
 
     def populateWarnings(self):
 
