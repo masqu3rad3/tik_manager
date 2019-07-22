@@ -632,7 +632,8 @@ class MainUI(QtWidgets.QMainWindow):
                              textInfo="Choose an unique name with latin characters without spaces", type="C")
 
     def createProjectUI(self):
-        createProject_Dialog = QtWidgets.QDialog(parent=self, size=QtCore.QSize(420,220), windowTitle="Create New Project")
+        createProject_Dialog = QtWidgets.QDialog(parent=self, windowTitle="Create New Project")
+        createProject_Dialog.resize(420,220)
 
         masterLayout = QtWidgets.QVBoxLayout(createProject_Dialog)
 
@@ -774,73 +775,42 @@ class MainUI(QtWidgets.QMainWindow):
 
         # This method is NOT Software Specific
 
-        self.setProject_Dialog = QtWidgets.QDialog(parent=self)
+        self.setProject_Dialog = QtWidgets.QDialog(parent=self, windowTitle="SetProject")
         self.setProject_Dialog.resize(982, 450)
-        self.setProject_Dialog.setWindowTitle(("Set Project"))
         self.setProject_Dialog.setFocus()
 
         gridLayout = QtWidgets.QGridLayout(self.setProject_Dialog)
 
         M1_horizontalLayout = QtWidgets.QHBoxLayout()
 
-        lookIn_label = QtWidgets.QLabel(self.setProject_Dialog)
-        lookIn_label.setText(("Look in:"))
-        lookIn_label.setFocusPolicy(QtCore.Qt.StrongFocus)
-        # lookIn_label.setFocus()
+        lookIn_label = QtWidgets.QLabel(self.setProject_Dialog, text="Look in:")
 
         M1_horizontalLayout.addWidget(lookIn_label)
 
         self.lookIn_lineEdit = QtWidgets.QLineEdit(self.setProject_Dialog)
-        self.lookIn_lineEdit.setText((""))
-        self.lookIn_lineEdit.setPlaceholderText((""))
-        # self.lookIn_lineEdit.setStyleSheet("background-color: rgb(80,80,80); color: white")
-
 
         M1_horizontalLayout.addWidget(self.lookIn_lineEdit)
 
         # a fake button which actually does nothing
-        fakeButton = QtWidgets.QPushButton(self.setProject_Dialog)
-        fakeButton.setVisible(False)
+        # fakeButton = QtWidgets.QPushButton(self.setProject_Dialog)
+        # fakeButton.setVisible(False)
 
 
-        browse_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(browse_pushButton.sizePolicy().hasHeightForWidth())
-        browse_pushButton.setSizePolicy(sizePolicy)
-        browse_pushButton.setMaximumSize(QtCore.QSize(50, 16777215))
-        browse_pushButton.setText("Browse")
+        browse_pushButton = QtWidgets.QPushButton(self.setProject_Dialog, text="Browse")
 
         M1_horizontalLayout.addWidget(browse_pushButton)
 
         self.back_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.back_pushButton.sizePolicy().hasHeightForWidth())
-        self.back_pushButton.setSizePolicy(sizePolicy)
-        self.back_pushButton.setMaximumSize(QtCore.QSize(30, 16777215))
-        # self.back_pushButton.setFont(self.iconFont)
-        # self.back_pushButton.setText("".decode("utf-8"))
         self.back_pushButton.setIcon(self.QIcon(":/icons/CSS/rc/arrow_left.png"))
-        self.back_pushButton.setShortcut((""))
 
         M1_horizontalLayout.addWidget(self.back_pushButton)
 
         self.forward_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
-        self.forward_pushButton.setMaximumSize(QtCore.QSize(30, 16777215))
-        self.forward_pushButton.setFont(self.iconFont)
-        # self.forward_pushButton.setText("".decode("utf-8"))
         self.forward_pushButton.setIcon(self.QIcon(":/icons/CSS/rc/arrow_right.png"))
-        self.forward_pushButton.setShortcut((""))
 
         M1_horizontalLayout.addWidget(self.forward_pushButton)
 
         up_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
-        up_pushButton.setMaximumSize(QtCore.QSize(30, 16777215))
-        up_pushButton.setFont(self.iconFont)
-        # up_pushButton.setText("".decode("utf-8"))
         up_pushButton.setIcon(self.QIcon(":/icons/CSS/rc/arrow_up.png"))
         up_pushButton.setShortcut((""))
 
@@ -854,18 +824,9 @@ class MainUI(QtWidgets.QMainWindow):
         M2_splitter.setHandleWidth(10)
 
 
-        # self.folders_tableView = QtWidgets.QTableView(self.M2_splitter)
-        self.folders_treeView = QtWidgets.QTreeView(M2_splitter)
-        self.folders_treeView.setMinimumSize(QtCore.QSize(0, 0))
-        self.folders_treeView.setDragEnabled(True)
-        self.folders_treeView.setDragDropMode(QtWidgets.QAbstractItemView.DragOnly)
-        self.folders_treeView.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-
-        self.folders_treeView.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.folders_treeView.setItemsExpandable(False)
-        self.folders_treeView.setRootIsDecorated(False)
-        self.folders_treeView.setSortingEnabled(True)
-        # self.folders_treeView.setStyleSheet("background-color: rgb(80,80,80); color: white")
+        self.folders_treeView = QtWidgets.QTreeView(M2_splitter, minimumSize=QtCore.QSize(0,0), dragEnabled=True, dragDropMode=QtWidgets.QAbstractItemView.DragOnly,
+                                                    selectionMode=QtWidgets.QAbstractItemView.SingleSelection, itemsExpandable=False, rootIsDecorated=False,
+                                                    sortingEnabled=True, frameShape=QtWidgets.QFrame.NoFrame)
 
         verticalLayoutWidget = QtWidgets.QWidget(M2_splitter)
 
@@ -873,17 +834,7 @@ class MainUI(QtWidgets.QMainWindow):
         M2_S2_verticalLayout.setContentsMargins(0, 10, 0, 10)
         M2_S2_verticalLayout.setSpacing(6)
 
-        favorites_label = QtWidgets.QLabel(verticalLayoutWidget)
-        if FORCE_QT4:
-            font = QtWidgets.QFont()
-        else:
-            font = QtGui.QFont()
-        # font = QtGui.QFont()
-        font.setPointSize(10)
-        font.setBold(True)
-        font.setWeight(75)
-        favorites_label.setFont(font)
-        favorites_label.setText("Bookmarks:")
+        favorites_label = QtWidgets.QLabel(verticalLayoutWidget, text="Bookmarks:", font=self.headerBFont)
 
         M2_S2_verticalLayout.addWidget(favorites_label)
 
@@ -897,16 +848,11 @@ class MainUI(QtWidgets.QMainWindow):
         M2_S2_horizontalLayout.addItem(spacerItem)
 
         remove_pushButton = QtWidgets.QPushButton(verticalLayoutWidget)
-        remove_pushButton.setMaximumSize(QtCore.QSize(35, 35))
-        remove_pushButton.setFont(self.iconFont)
-        # remove_pushButton.setText("".decode("utf-8"))
         remove_pushButton.setIcon(self.QIcon(":/icons/CSS/rc/minus.png"))
 
         M2_S2_horizontalLayout.addWidget(remove_pushButton)
 
         add_pushButton = QtWidgets.QPushButton(verticalLayoutWidget)
-        add_pushButton.setMaximumSize(QtCore.QSize(35, 35))
-        add_pushButton.setFont(self.iconFont)
         add_pushButton.setIcon(self.QIcon(":/icons/CSS/rc/plus.png"))
 
         M2_S2_horizontalLayout.addWidget(add_pushButton)
@@ -922,38 +868,26 @@ class MainUI(QtWidgets.QMainWindow):
 
         spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
 
-        dirFilter_label = QtWidgets.QLabel()
-        dirFilter_label.setText("Search Filter")
-        self.dirFilter_lineEdit = QtWidgets.QLineEdit(self.setProject_Dialog)
-        self.dirFilter_lineEdit.setMaximumWidth(175)
+        dirFilter_label = QtWidgets.QLabel(text="Search Filter")
 
-        # if FORCE_QT4:
-        #     placeholderFont = QtWidgets.QFont("Segoe UI Symbol", 12, QtWidgets.QFont.Bold)
-        # else:
-        #     placeholderFont = QtGui.QFont("Segoe UI Symbol", 12, QtGui.QFont.Bold)
-
+        self.dirFilter_lineEdit = QtWidgets.QLineEdit(self.setProject_Dialog, maximumWidth=175)
         self.dirFilter_lineEdit.setFont(self.iconFont)
         self.dirFilter_lineEdit.setPlaceholderText("🔍".decode("utf-8"))
-        # self.dirFilter_lineEdit.setWindowIcon(self.QIcon(":/icons/CSS/rc/star.png"))
-
 
         M3_horizontalLayout.addWidget(dirFilter_label)
         M3_horizontalLayout.addWidget(self.dirFilter_lineEdit)
 
-
         M3_horizontalLayout.addItem(spacerItem1)
 
-        cancel_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
-        cancel_pushButton.setMaximumSize(QtCore.QSize(70, 16777215))
-        cancel_pushButton.setText("Cancel")
+        setproject_buttonBox = QtWidgets.QDialogButtonBox(self.setProject_Dialog, orientation=QtCore.Qt.Horizontal)
+        setproject_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
+        setproject_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
+        setproject_buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setMinimumSize(QtCore.QSize(100, 30))
 
-        M3_horizontalLayout.addWidget(cancel_pushButton, QtCore.Qt.AlignRight)
+        set_pushButton = setproject_buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
+        set_pushButton.setText('Set')
 
-        set_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
-        set_pushButton.setMaximumSize(QtCore.QSize(70, 16777215))
-        set_pushButton.setText("Set")
-
-        M3_horizontalLayout.addWidget(set_pushButton, QtCore.Qt.AlignRight)
+        M3_horizontalLayout.addWidget(setproject_buttonBox, QtCore.Qt.AlignRight)
 
         gridLayout.addLayout(M3_horizontalLayout, 2, 0, 1, 1)
 
@@ -967,58 +901,25 @@ class MainUI(QtWidgets.QMainWindow):
         self.spActiveProjectPath = None
         self.__flagView = True
 
-        # self.proxyModel = QtWidgets.QSortFilterProxyModel()
-        # self.proxyModel.setDynamicSortFilter(True)
-
-        self.sourceModel = QtWidgets.QFileSystemModel()
-        self.sourceModel.setNameFilterDisables(False)
+        self.sourceModel = QtWidgets.QFileSystemModel(nameFilterDisables=False)
         self.sourceModel.setNameFilters(["*"])
 
         self.sourceModel.setRootPath(self.projectsRoot)
         self.sourceModel.setFilter(QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot | QtCore.QDir.Time)
 
-
-        # self.proxyModel.setSourceModel(self.sourceModel)
-        # self.folders_treeView.setModel(self.proxyModel)
         self.folders_treeView.setModel(self.sourceModel)
         self.folders_treeView.setRootIndex(self.sourceModel.index(self.projectsRoot))
 
-
-        # self.folders_treeView.hideColumn(1)
-        # self.folders_treeView.hideColumn(2)
         self.folders_treeView.setColumnWidth(0,400)
         self.folders_treeView.setColumnWidth(1,0)
         self.folders_treeView.setColumnWidth(2,0)
-
-
-        # self.setPmodel.setRootPath(self.projectsRoot)
-        # self.setPmodel.setFilter(QtCore.QDir.Dirs | QtCore.QDir.NoDotAndDotDot | QtCore.QDir.Time)
-        # # self.setPmodel.setFilter(QtCore.QDir.Dirs)
-        # # self.setPmodel.setFilter(QtCore.QDir.Files)
-        #
-        # # --------------s
-        # if FORCE_QT4:
-        #     self.DirFilter = QtCore.QStringList()
-        # else:
-        #     self.DirFilter = []
-        #
-        # self.setPmodel.setNameFilterDisables(False)
-        # # --------------e
-        #
-        #
-        #
-        # self.folders_tableView.setModel(self.setPmodel)
-        # self.folders_tableView.setRootIndex(self.setPmodel.index(self.projectsRoot))
-        # self.folders_tableView.hideColumn(1)
-        # self.folders_tableView.hideColumn(2)
-        # self.folders_tableView.setColumnWidth(0,400)
 
         self.favList = self.manager.loadFavorites()
         self.favorites_listWidget.addItems([x[0] for x in self.favList])
 
         self.lookIn_lineEdit.setText(self.projectsRoot)
 
-        def navigate(command, index=None):
+        def navigate(command):
             if command == "init":
                 # feed the initial data
                 self.browser.addData(self.projectsRoot)
@@ -1057,7 +958,6 @@ class MainUI(QtWidgets.QMainWindow):
                     self.lookIn_lineEdit.setText(self.projectsRoot)
 
             self.sourceModel.setRootPath(self.projectsRoot)
-
             self.forward_pushButton.setDisabled(self.browser.isForwardLocked())
             self.back_pushButton.setDisabled(self.browser.isBackwardLocked())
             self.folders_treeView.setRootIndex(self.sourceModel.index(self.browser.getData()))
@@ -1149,11 +1049,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.favorites_listWidget.doubleClicked.connect(setProject)
 
         self.dirFilter_lineEdit.textChanged.connect(self._filterDirectories)
-        # self.dirFilter_lineEdit.returnPressed.connect(self.filterDirectories)
 
-        cancel_pushButton.clicked.connect(self.setProject_Dialog.close)
         set_pushButton.clicked.connect(setProject)
-        # set_pushButton.clicked.connect(self.setProject_Dialog.close)
 
         self.setProject_Dialog.show()
 
@@ -1165,11 +1062,9 @@ class MainUI(QtWidgets.QMainWindow):
         sceneInfo = self.manager.getOpenSceneInfo()
 
 
-        self.transferCentral_Dialog = QtWidgets.QDialog(parent=self)
+        self.transferCentral_Dialog = QtWidgets.QDialog(parent=self, windowTitle="Transfer Central")
         self.transferCentral_Dialog.resize(460, 320)
-        self.transferCentral_Dialog.setWindowTitle(("Transfer Central"))
         self.transferCentral_Dialog.setFocus()
-        # transferCentral_Dialog.setModal(True)
 
         tc_verticalLayout = QtWidgets.QVBoxLayout(self.transferCentral_Dialog)
 
@@ -1177,23 +1072,17 @@ class MainUI(QtWidgets.QMainWindow):
         # HEADER BAR
         # ----------
         margin = 5
-        # barColor = "background-color: rgb(80,80,80);"
-        # barColor = "background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #565656, stop: 0.1 #525252, stop: 0.5 #4e4e4e, stop: 0.9 #4a4a4a, stop: 1 #464646);"
         colorWidget = QtWidgets.QWidget(self.transferCentral_Dialog)
         headerLayout = QtWidgets.QHBoxLayout(colorWidget)
         headerLayout.setSpacing(0)
         try: headerLayout.setMargin(0)
         except AttributeError: pass
 
-        tikIcon_label = QtWidgets.QLabel(self.centralwidget)
-        # tikIcon_label.setFixedSize(115, 30)
+        tikIcon_label = QtWidgets.QLabel(self.centralwidget, alignment=(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter), scaledContents=False)
         tikIcon_label.setProperty("header", True)
         tikIcon_label.setMaximumWidth(125)
         try: tikIcon_label.setMargin(margin)
         except AttributeError: pass
-        tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
-        tikIcon_label.setScaledContents(False)
-        # testBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmTransfer.png"))
         headerBitmap = self.Pixmap(":/icons/CSS/rc/tmTransfer.png")
         tikIcon_label.setPixmap(headerBitmap)
 
@@ -1204,15 +1093,11 @@ class MainUI(QtWidgets.QMainWindow):
         try: resolvedPath_label.setMargin(margin)
         except AttributeError: pass
         resolvedPath_label.setIndent(2)
-        # resolvedPath_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-        # resolvedPath_label.setFont(QtGui.QFont("Times", 7, QtGui.QFont.Bold))
         resolvedPath_label.setFont(self.displayFont)
         resolvedPath_label.setWordWrap(True)
 
         headerLayout.addWidget(resolvedPath_label)
 
-
-        # colorWidget.setStyleSheet(barColor)
         tc_verticalLayout.addWidget(colorWidget)
         # ----------
         # ----------
@@ -1221,28 +1106,19 @@ class MainUI(QtWidgets.QMainWindow):
         exportTab = QtWidgets.QWidget()
 
         exp_verticalLayout = QtWidgets.QVBoxLayout(exportTab)
-        currentProject_label = QtWidgets.QLabel(exportTab)
+        currentProject_label = QtWidgets.QLabel(exportTab, text="Current Project:")
         currentProject_label.setAlignment(QtCore.Qt.AlignTop)
-        currentProject_label.setText("Current Project:")
         exp_verticalLayout.addWidget(currentProject_label)
 
         formLayout = QtWidgets.QFormLayout()
-        formLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
-        formLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
-        formLayout.setFormAlignment(QtCore.Qt.AlignJustify | QtCore.Qt.AlignTop)
-        formLayout.setAlignment(QtCore.Qt.AlignTop)
 
-        name_label = QtWidgets.QLabel(exportTab)
-        name_label.setText(("Name:"))
+        name_label = QtWidgets.QLabel(exportTab, text="Name:")
         formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, name_label)
 
         name_horizontalLayout = QtWidgets.QHBoxLayout()
-        autoName_radioButton = QtWidgets.QRadioButton(exportTab)
-        autoName_radioButton.setText(("Auto from Scene/Object"))
-        autoName_radioButton.setChecked(True)
+        autoName_radioButton = QtWidgets.QRadioButton(exportTab, text="Auto from Scene/Object", checked=True)
 
-        customName_radioButton = QtWidgets.QRadioButton(exportTab)
-        customName_radioButton.setText(("Custom"))
+        customName_radioButton = QtWidgets.QRadioButton(exportTab, text="Custom")
 
         naming_buttonGroup = QtWidgets.QButtonGroup(self.transferCentral_Dialog)
         naming_buttonGroup.addButton(autoName_radioButton)
@@ -1255,23 +1131,17 @@ class MainUI(QtWidgets.QMainWindow):
         name_horizontalLayout.addItem(spacerItem)
         formLayout.setLayout(0, QtWidgets.QFormLayout.FieldRole, name_horizontalLayout)
 
-        customName_lineEdit = QtWidgets.QLineEdit(exportTab)
-        customName_lineEdit.setFrame(True)
-        customName_lineEdit.setPlaceholderText(("Custom Export Name"))
+        customName_lineEdit = QtWidgets.QLineEdit(exportTab, placeholderText="Custom Export Name", frame=True)
 
         formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, customName_lineEdit)
 
-        selection_label = QtWidgets.QLabel(exportTab)
-        selection_label.setText(("Selection:"))
+        selection_label = QtWidgets.QLabel(exportTab, text="Selection:")
         formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, selection_label)
 
         selection_horizontalLayout = QtWidgets.QHBoxLayout()
-        selection_radioButton = QtWidgets.QRadioButton(exportTab)
-        selection_radioButton.setText(("Selection"))
-        selection_radioButton.setChecked(True)
+        selection_radioButton = QtWidgets.QRadioButton(exportTab, text="Selection", checked=True)
 
-        scene_radioButton = QtWidgets.QRadioButton(exportTab)
-        scene_radioButton.setText(("Scene"))
+        scene_radioButton = QtWidgets.QRadioButton(exportTab, text="Scene")
 
         sel_buttonGroup = QtWidgets.QButtonGroup(self.transferCentral_Dialog)
         sel_buttonGroup.addButton(selection_radioButton)
@@ -1284,55 +1154,40 @@ class MainUI(QtWidgets.QMainWindow):
         selection_horizontalLayout.addItem(spacerItem1)
 
         formLayout.setLayout(2, QtWidgets.QFormLayout.FieldRole, selection_horizontalLayout)
-        format_label = QtWidgets.QLabel(exportTab)
-        format_label.setText(("Format:"))
+        format_label = QtWidgets.QLabel(exportTab, text="Format:")
         formLayout.setWidget(3, QtWidgets.QFormLayout.LabelRole, format_label)
 
         format_horizontalLayout = QtWidgets.QHBoxLayout()
 
-        obj_checkBox = QtWidgets.QCheckBox(exportTab)
-        obj_checkBox.setText(("Obj"))
-        obj_checkBox.setChecked(True)
+        obj_checkBox = QtWidgets.QCheckBox(exportTab, text="Obj", checked=True)
         format_horizontalLayout.addWidget(obj_checkBox)
 
-        alembic_checkBox = QtWidgets.QCheckBox(exportTab)
-        alembic_checkBox.setText(("Alembic"))
-        alembic_checkBox.setChecked(False)
+        alembic_checkBox = QtWidgets.QCheckBox(exportTab, text="Alembic", checked=False)
         format_horizontalLayout.addWidget(alembic_checkBox)
 
-        fbx_checkBox = QtWidgets.QCheckBox(exportTab)
-        fbx_checkBox.setText(("FBX"))
-        fbx_checkBox.setChecked(False)
+        fbx_checkBox = QtWidgets.QCheckBox(exportTab, text="FBX", checked=False)
         format_horizontalLayout.addWidget(fbx_checkBox)
 
         spacerItem2 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         format_horizontalLayout.addItem(spacerItem2)
         formLayout.setLayout(3, QtWidgets.QFormLayout.FieldRole, format_horizontalLayout)
 
-        range_label = QtWidgets.QLabel(exportTab)
-        range_label.setText(("Time Range:"))
+        range_label = QtWidgets.QLabel(exportTab, text="Time Range:")
         formLayout.setWidget(4, QtWidgets.QFormLayout.LabelRole, range_label)
 
         timeRange_horizontalLayout1 = QtWidgets.QHBoxLayout()
 
-        timeSlider_radioButton = QtWidgets.QRadioButton(exportTab)
-        timeSlider_radioButton.setText(("Time Slider"))
-        timeSlider_radioButton.setShortcut((""))
-        timeSlider_radioButton.setChecked(True)
+        timeSlider_radioButton = QtWidgets.QRadioButton(exportTab, text="Time Slider", checked=True)
 
         timerange_buttonGroup = QtWidgets.QButtonGroup(self.transferCentral_Dialog)
         timerange_buttonGroup.addButton(timeSlider_radioButton)
         timeRange_horizontalLayout1.addWidget(timeSlider_radioButton)
 
-        singleFrame_radioButton = QtWidgets.QRadioButton(exportTab)
-        singleFrame_radioButton.setText(("Single Frame"))
-        singleFrame_radioButton.setChecked(False)
+        singleFrame_radioButton = QtWidgets.QRadioButton(exportTab, text="Single Frame", checked=False)
         timerange_buttonGroup.addButton(singleFrame_radioButton)
         timeRange_horizontalLayout1.addWidget(singleFrame_radioButton)
 
-        customRange_radioButton = QtWidgets.QRadioButton(exportTab)
-        customRange_radioButton.setText(("Custom"))
-        customRange_radioButton.setChecked(False)
+        customRange_radioButton = QtWidgets.QRadioButton(exportTab, text="Custom", checked=False)
 
         timerange_buttonGroup.addButton(customRange_radioButton)
         timeRange_horizontalLayout1.addWidget(customRange_radioButton)
@@ -1342,83 +1197,24 @@ class MainUI(QtWidgets.QMainWindow):
 
         timeRange_horizontalLayout2 = QtWidgets.QHBoxLayout()
 
-        frameStart_label = QtWidgets.QLabel(exportTab)
-        frameStart_label.setText(("Start"))
+        frameStart_label = QtWidgets.QLabel(exportTab, text="Start")
 
         timeRange_horizontalLayout2.addWidget(frameStart_label)
 
-        frameStart_doubleSpinBox = QtWidgets.QDoubleSpinBox(exportTab)
-        frameStart_doubleSpinBox.setWrapping(False)
-        frameStart_doubleSpinBox.setFrame(True)
-        frameStart_doubleSpinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-        frameStart_doubleSpinBox.setSpecialValueText((""))
-        frameStart_doubleSpinBox.setKeyboardTracking(True)
+        frameStart_doubleSpinBox = QtWidgets.QDoubleSpinBox(exportTab, wrapping=False, frame=True, buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons, keyboardTracking=True)
         timeRange_horizontalLayout2.addWidget(frameStart_doubleSpinBox)
         spacerItem4 = QtWidgets.QSpacerItem(10, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         timeRange_horizontalLayout2.addItem(spacerItem4)
 
-        frameEnd_label = QtWidgets.QLabel(exportTab)
-        frameEnd_label.setText(("End"))
+        frameEnd_label = QtWidgets.QLabel(exportTab, text="End")
         timeRange_horizontalLayout2.addWidget(frameEnd_label)
 
-        frameEnd_doubleSpinBox = QtWidgets.QDoubleSpinBox(exportTab)
-        frameEnd_doubleSpinBox.setWrapping(False)
-        frameEnd_doubleSpinBox.setFrame(True)
-        frameEnd_doubleSpinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-        frameEnd_doubleSpinBox.setSpecialValueText((""))
-        frameEnd_doubleSpinBox.setKeyboardTracking(True)
-        frameEnd_doubleSpinBox.setProperty("value", 10.0)
+        frameEnd_doubleSpinBox = QtWidgets.QDoubleSpinBox(exportTab, wrapping=False, frame=True, buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons, keyboardTracking=True, value=10.0)
         timeRange_horizontalLayout2.addWidget(frameEnd_doubleSpinBox)
 
         spacerItem5 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         timeRange_horizontalLayout2.addItem(spacerItem5)
         formLayout.setLayout(5, QtWidgets.QFormLayout.FieldRole, timeRange_horizontalLayout2)
-
-        # options_label = QtWidgets.QLabel(exportTab)
-        # options_label.setEnabled(True)
-        # options_label.setInputMethodHints(QtCore.Qt.ImhNone)
-        # options_label.setText(("Options:"))
-        # formLayout.setWidget(6, QtWidgets.QFormLayout.LabelRole, options_label)
-
-        # options_horizontalLayout = QtWidgets.QHBoxLayout()
-        #
-        # useAssetLibrarySettings_radioButton = QtWidgets.QRadioButton(exportTab)
-        # useAssetLibrarySettings_radioButton.setText(("Use Asset Library Settings"))
-        # useAssetLibrarySettings_radioButton.setChecked(False)
-        #
-        # options_buttonGroup = QtWidgets.QButtonGroup(self.transferCentral_Dialog)
-        # options_buttonGroup.addButton(useAssetLibrarySettings_radioButton)
-        # options_horizontalLayout.addWidget(useAssetLibrarySettings_radioButton)
-        # openExportOptions_radioButton = QtWidgets.QRadioButton(exportTab)
-        # openExportOptions_radioButton.setText(("Open Export Options"))
-        # openExportOptions_radioButton.setChecked(True)
-        # options_buttonGroup.addButton(openExportOptions_radioButton)
-        # options_horizontalLayout.addWidget(openExportOptions_radioButton)
-        # spacerItem6 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        # options_horizontalLayout.addItem(spacerItem6)
-        # formLayout.setLayout(6, QtWidgets.QFormLayout.FieldRole, options_horizontalLayout)
-        #
-        #
-
-        # revision_label = QtWidgets.QLabel(exportTab)
-        # revision_label.setText(("Revision:"))
-        # revision_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        # formLayout.setWidget(6, QtWidgets.QFormLayout.LabelRole, revision_label)
-        #
-        # rev_horizontalLayout = QtWidgets.QHBoxLayout()
-        #
-        # revision_Spinbox = QtWidgets.QSpinBox(exportTab)
-        # revision_Spinbox.setMaximumSize(QtCore.QSize(50, 16777215))
-        # revision_Spinbox.setMinimum(1)
-        # revision_Spinbox.setMaximum(999)
-        # rev_horizontalLayout.addWidget(revision_Spinbox)
-        #
-        # incremental_checkBox = QtWidgets.QCheckBox(exportTab)
-        # incremental_checkBox.setText(("Use Next Available Revision"))
-        # incremental_checkBox.setChecked(True)
-        # rev_horizontalLayout.addWidget(incremental_checkBox)
-
-        # formLayout.setLayout(6, QtWidgets.QFormLayout.FieldRole, rev_horizontalLayout)
 
         exp_verticalLayout.addLayout(formLayout)
 
@@ -1426,12 +1222,10 @@ class MainUI(QtWidgets.QMainWindow):
         exp_verticalLayout.addItem(spacerItem_m)
 
         expButtons_horizontalLayout = QtWidgets.QHBoxLayout()
-        export_pushButton = QtWidgets.QPushButton(exportTab)
-        export_pushButton.setText(("Export"))
+        export_pushButton = QtWidgets.QPushButton(exportTab, text="Export")
         expButtons_horizontalLayout.addWidget(export_pushButton)
         exp_verticalLayout.addLayout(expButtons_horizontalLayout)
-        cancel_pushButton = QtWidgets.QPushButton(exportTab)
-        cancel_pushButton.setText(("Cancel"))
+        cancel_pushButton = QtWidgets.QPushButton(exportTab, text="Cancel")
         expButtons_horizontalLayout.addWidget(cancel_pushButton)
         tabWidget.addTab(exportTab, ("Export"))
 
@@ -1443,40 +1237,12 @@ class MainUI(QtWidgets.QMainWindow):
         imp_verticalLayout = QtWidgets.QVBoxLayout(importTab)
         transfers_treeWidget = QtWidgets.QTreeWidget(importTab)
 
-        # obj_topLevel = QtWidgets.QTreeWidgetItem(["OBJ"])
-        # fbx_topLevel = QtWidgets.QTreeWidgetItem(["FBX"])
-        # alembic_topLevel = QtWidgets.QTreeWidgetItem(["ALEMBIC"])
-        #
-        # transfers_treeWidget.setHeaderLabels(["Transfer Items"])
-        # transfers_treeWidget.addTopLevelItem(obj_topLevel)
-        # transfers_treeWidget.addTopLevelItem(fbx_topLevel)
-        # transfers_treeWidget.addTopLevelItem(alembic_topLevel)
-
-
-
-        # transfers_treeWidget.headerItem().setText(0, "Transfer Items")
-
-        # # items_OBJ = QtWidgets.QTreeWidgetItem(transfers_treeWidget)
-        # items_OBJ = QtWidgets.QTreeWidgetItem(transfers_treeWidget)
-        # items_OBJ.setText(0, "OBJ")
-        # # item_1 = QtWidgets.QTreeWidgetItem(item_0)
-        # # item_1 = QtWidgets.QTreeWidgetItem(item_0)
-        # items_FBX = QtWidgets.QTreeWidgetItem(transfers_treeWidget)
-        # items_FBX.setText(0, "FBX")
-        # # item_1 = QtWidgets.QTreeWidgetItem(item_0)
-        # # item_1 = QtWidgets.QTreeWidgetItem(item_0)
-        # items_ABC = QtWidgets.QTreeWidgetItem(transfers_treeWidget)
-        # items_ABC.setText(0, "ALEMBIC")
-        # # item_1 = QtWidgets.QTreeWidgetItem(item_0)
-        # # item_1 = QtWidgets.QTreeWidgetItem(item_0)
         imp_verticalLayout.addWidget(transfers_treeWidget)
         impButtons_horizontalLayout = QtWidgets.QHBoxLayout()
-        import_pushButton = QtWidgets.QPushButton(importTab)
-        import_pushButton.setText(("Import"))
+        import_pushButton = QtWidgets.QPushButton(importTab, text="Import")
         impButtons_horizontalLayout.addWidget(import_pushButton)
         imp_verticalLayout.addLayout(impButtons_horizontalLayout)
-        cancel_pushButton_2 = QtWidgets.QPushButton(importTab)
-        cancel_pushButton_2.setText(("Cancel"))
+        cancel_pushButton_2 = QtWidgets.QPushButton(importTab, text="Cancel")
         impButtons_horizontalLayout.addWidget(cancel_pushButton_2)
         tabWidget.addTab(importTab, ("Import"))
         tc_verticalLayout.addWidget(tabWidget)
@@ -1517,11 +1283,6 @@ class MainUI(QtWidgets.QMainWindow):
 
 
         tabWidget.setCurrentIndex(0)
-
-        # def enableDisableRevision():
-        #     revision_Spinbox.setDisabled(incremental_checkBox.isChecked())
-
-        # enableDisableRevision()
 
         def formatProof():
             timeRangeState = False
@@ -1607,14 +1368,11 @@ class MainUI(QtWidgets.QMainWindow):
 
         def executeImport():
 
-            # print tabWidget.tabText(tabWidget.currentIndex())
             absPath = transfers_treeWidget.currentItem().text(1)
-            # print it
             if absPath:
                 self.manager.importTransfers(absPath)
 
         def onContextMenu_transfers(point):
-            # print transfers_treeWidget.selectedItems()[0].text(0)
             if transfers_treeWidget.selectedItems()[0].text(1): # if there is a path info on the widget item
                 popMenu_transfers.exec_(transfers_treeWidget.mapToGlobal(point))
 
@@ -1632,8 +1390,6 @@ class MainUI(QtWidgets.QMainWindow):
         transfers_treeWidget.customContextMenuRequested.connect(onContextMenu_transfers)
         popMenu_transfers = QtWidgets.QMenu()
 
-        # QtWidgets.QTreeWidgetItem.
-
         transfers_rcItem_0 = QtWidgets.QAction('Show in Explorer', self)
         popMenu_transfers.addAction(transfers_rcItem_0)
         transfers_rcItem_0.triggered.connect(lambda: importRc_actions("showInExplorer"))
@@ -1641,10 +1397,6 @@ class MainUI(QtWidgets.QMainWindow):
         transfers_rcItem_1 = QtWidgets.QAction('Execute', self)
         popMenu_transfers.addAction(transfers_rcItem_1)
         transfers_rcItem_1.triggered.connect(lambda: importRc_actions("execute"))
-
-
-
-
 
         ## ------------------
         ## SIGNAL CONNECTIONS
@@ -1664,16 +1416,11 @@ class MainUI(QtWidgets.QMainWindow):
         selection_radioButton.clicked.connect(resolveName)
         scene_radioButton.clicked.connect(resolveName)
 
-        # incremental_checkBox.toggled.connect(enableDisableRevision)
-
-
         # Import Signals
         cancel_pushButton_2.clicked.connect(self.transferCentral_Dialog.close)
 
         tabWidget.currentChanged.connect(populateImports)
 
-        # transfers_treeWidget.doubleClicked.connect(executeImport)
-        # transfers_treeWidget.currentItemChanged.connect(executeImport)
         transfers_treeWidget.doubleClicked.connect(executeImport)
         import_pushButton.clicked.connect(executeImport)
 
@@ -1685,15 +1432,11 @@ class MainUI(QtWidgets.QMainWindow):
         self.sourceModel.setNameFilters(self.DirFilter)
 
     def settingsUI(self):
-        # manager = self._getManager()
-
-        # self.allSettingsDict={}
         self.allSettingsDict=Settings()
 
         self.minSPBSize = (70, 25)
 
-        settings_Dialog = QtWidgets.QDialog(parent=self)
-        settings_Dialog.setWindowTitle(("Settings"))
+        settings_Dialog = QtWidgets.QDialog(parent=self, windowTitle="Settings")
         settings_Dialog.resize(960, 630)
 
         verticalLayout_2 = QtWidgets.QVBoxLayout(settings_Dialog)
@@ -1711,12 +1454,12 @@ class MainUI(QtWidgets.QMainWindow):
         splitter.setLineWidth(0)
         splitter.setOrientation(QtCore.Qt.Horizontal)
 
-        left_frame = QtWidgets.QFrame(splitter)
+        left_frame = QtWidgets.QFrame(splitter, minimumSize=QtCore.QSize(150, 0), frameShape=QtWidgets.QFrame.NoFrame, frameShadow=QtWidgets.QFrame.Plain)
 
-        left_frame.setMinimumSize(QtCore.QSize(150, 0))
-        left_frame.setMaximumSize(QtCore.QSize(16777215, 16777215))
-        left_frame.setFrameShape(QtWidgets.QFrame.NoFrame)
-        left_frame.setFrameShadow(QtWidgets.QFrame.Plain)
+        # left_frame.setMinimumSize(QtCore.QSize(150, 0))
+        # left_frame.setMaximumSize(QtCore.QSize(16777215, 16777215))
+        # left_frame.setFrameShape(QtWidgets.QFrame.NoFrame)
+        # left_frame.setFrameShadow(QtWidgets.QFrame.Plain)
         left_frame.setLineWidth(0)
 
         verticalLayout_4 = QtWidgets.QVBoxLayout(left_frame)

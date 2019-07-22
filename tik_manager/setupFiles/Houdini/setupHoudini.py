@@ -2,14 +2,15 @@ import os
 import hou
 
 # find
-
 selfLocation = os.path.dirname(os.path.abspath(__file__))
-iconsLocation = os.path.join(selfLocation, "icons")
+setupFolder = os.path.abspath(os.path.join(selfLocation, os.pardir))
+tikManagerFolder = os.path.abspath(os.path.join(setupFolder, os.pardir))
+iconsLocation = os.path.join(tikManagerFolder, "icons")
 
 try:
-    smShelf = hou.shelves.shelves()["SceneManager"]
+    smShelf = hou.shelves.shelves()["TikManager"]
 except KeyError:
-    smShelf = hou.shelves.newShelf(name="SceneManager", label="SceneManager")
+    smShelf = hou.shelves.newShelf(name="TikManager", label="TikManager")
 
 smShelf.setTools([])
 
