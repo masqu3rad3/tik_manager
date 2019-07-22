@@ -90,10 +90,6 @@ QStatusBar QLabel {
   background: transparent;
 }
 
-QLabel#header
-{
-  background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #565656, stop: 0.1 #525252, stop: 0.5 #4e4e4e, stop: 0.9 #4a4a4a, stop: 1 #464646);
-}
 
 /* QCheckBox --------------------------------------------------------------
 
@@ -520,15 +516,31 @@ QLabel {
   color: #F0F0F0;
 }
 
-QLabel#image {
-    border: 1px solid #4c4c4c;
-    background-color: #242424
-}
-
 QLabel::disabled {
   background-color: #303030;
   border: 1px solid #404040;
   color: #505050;
+}
+
+QLabel[image=true] {
+    border: 1px solid #4c4c4c;
+    background-color: #242424
+}
+
+QLabel[header=true] {
+  background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #565656, stop: 0.1 #525252, stop: 0.5 #4e4e4e, stop: 0.9 #4a4a4a, stop: 1 #464646);
+}
+
+QLabel[seperator=true] {
+  background-color: gray;
+}
+
+QLabel[baseScene=true] {
+  color: cyan;
+}
+
+QLabel[baseScene=false] {
+  color: yellow;
 }
 
 /* QTextBrowser -----------------------------------------------------------
@@ -652,11 +664,8 @@ QPushButton
     border-width: 1px;
     border-color: #1e1e1e;
     border-style: solid;
-    padding: 3px;
+    padding: 5px;
     font-size: 12px;
-    padding-left: 5px;
-    padding-right: 5px;
-    min-width: 60px;
 }
 
 
@@ -677,6 +686,11 @@ QPushButton:disabled {
 QPushButton:pressed {
   background-color: #ff8d1c;
   border: 1px solid #ff8d1c;
+}
+
+QPushButton[menuButton=true] {
+  min-width: 120;
+  min-height: 45;
 }
 
 /* QToolButton ------------------------------------------------------------
@@ -868,6 +882,12 @@ QComboBox::down-arrow:hover {
   width: 12px;
 }
 
+QComboBox[preVersion=true] {
+  color: yellow
+}
+
+
+
 /* QSlider ----------------------------------------------------------------
 
 https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qslider
@@ -980,6 +1000,11 @@ QLineEdit:selected {
   background: #1464A0;
   color: #346e7c;
 }
+
+QLineEdit[warning = true] {
+  color: red;
+}
+
 
 /* QSpinBox ------------------------------------------
 --------------------------------------------------------------------------- */
@@ -1250,6 +1275,9 @@ QTreeView,
 QListView,
 QTableView,
 QColumnView {
+  border-style: solid;
+  border-width: 2px;
+  border-color: #242424;
   background-color: #242424;
   color: #F0F0F0;
   border-radius: 0px;
@@ -1314,6 +1342,15 @@ QTableCornerButton::section {
   background-color: #303030;
   border: 1px transparent #4c4c4c;
   border-radius: 0px;
+}
+
+QTreeView[reference=true],
+QListView[reference=true],
+QTableView[reference=true],
+QColumnView[reference=true] {
+  border-style: solid;
+  border-width: 2px;
+  border-color: cyan;
 }
 
 /* QHeaderView ------------------------------------------------------------

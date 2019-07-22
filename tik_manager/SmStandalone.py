@@ -790,12 +790,18 @@ class MainUI(baseUI):
     def extraMenus(self):
         """Adds extra menu and widgets to the base UI"""
 
-        self.software_comboBox = QtWidgets.QComboBox(self.centralwidget)
-        self.software_comboBox.setMinimumSize(QtCore.QSize(150, 30))
-        self.software_comboBox.setMaximumSize(QtCore.QSize(16777215, 30))
+        swComboLayout = QtWidgets.QVBoxLayout(spacing=0)
+        self.comboColorbar = QtWidgets.QLabel(maximumHeight=2)
+        self.comboColorbar.setStyleSheet("background-color: black;")
+        swComboLayout.addWidget(self.comboColorbar)
+
+        self.software_comboBox = QtWidgets.QComboBox(self.centralwidget, minimumSize=QtCore.QSize(150, 28), maximumSize=QtCore.QSize(16777215, 28))
         self.software_comboBox.setToolTip("Switches between software databases")
-        self.software_comboBox.setObjectName(("software_comboBox"))
-        self.r2_gridLayout.addWidget(self.software_comboBox, 0, 1, 1, 1)
+        swComboLayout.addWidget(self.software_comboBox)
+
+        # self.r2_gridLayout.addWidget(self.software_comboBox, 0, 1, 1, 1)
+        self.r2_gridLayout.addLayout(swComboLayout, 0, 1, 1, 1)
+
         self.software_comboBox.activated.connect(self.onSoftwareChange)
 
     def modify(self):
@@ -860,8 +866,9 @@ class MainUI(baseUI):
         self.software_comboBox.clear()
         self.subProject_comboBox.clear()
         self.scenes_listWidget.clear()
-        self.software_comboBox.setStyleSheet("background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:1 #404040, stop:0.11 #404040, stop:0.1 %s); " %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
-        self.colorBar.setStyleSheet("background-color: %s;" %self.manager.getColorCoding(niceName=""))
+        # self.software_comboBox.setStyleSheet("background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:1 #404040, stop:0.11 #404040, stop:0.1 %s); " %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
+        self.comboColorbar.setStyleSheet("background-color: %s" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
+        # self.colorBar.setStyleSheet("background-color: %s;" %self.manager.getColorCoding(niceName=""))
 
         self._vEnableDisable()
         self.category_tabWidget.blockSignals(False)
@@ -885,8 +892,9 @@ class MainUI(baseUI):
             self.software_comboBox.addItem(x.swName)
         # print self.manager.getColorCoding(niceName="standalone")
 
-        self.software_comboBox.setStyleSheet("background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:1 #404040, stop:0.11 #404040, stop:0.1 %s)" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
-        self.colorBar.setStyleSheet("background-color: %s;" %self.manager.getColorCoding(niceName=""))
+        # self.software_comboBox.setStyleSheet("background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:1 #404040, stop:0.11 #404040, stop:0.1 %s)" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
+        self.comboColorbar.setStyleSheet("background-color: %s" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
+        # self.colorBar.setStyleSheet("background-color: %s;" %self.manager.getColorCoding(niceName=""))
 
         self.software_comboBox.blockSignals(False)
 
@@ -897,10 +905,9 @@ class MainUI(baseUI):
         self._initCategories()
         self._initSubProjects()
         self.populateBaseScenes()
-        # self.software_comboBox.setStyleSheet("background-color: %s; color: black" %self.swColorDict[str(self.software_comboBox.currentText())])
-        self.software_comboBox.setStyleSheet("background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:1 #404040, stop:0.11 #404040, stop:0.1 %s)" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
-        # self.colorBar.setStyleSheet("background-color: %s;" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
-        self.colorBar.setStyleSheet("background-color: %s;" %self.manager.getColorCoding(niceName=""))
+        # self.software_comboBox.setStyleSheet("background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:1 #404040, stop:0.11 #404040, stop:0.1 %s)" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
+        self.comboColorbar.setStyleSheet("background-color: %s" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
+        # self.colorBar.setStyleSheet("background-color: %s;" %self.manager.getColorCoding(niceName=""))
 
         # self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
         self._vEnableDisable()
@@ -946,7 +953,6 @@ class MainUI(baseUI):
 if __name__ == '__main__':
     selfLoc = os.path.dirname(os.path.abspath(__file__))
     app = QtWidgets.QApplication(sys.argv)
-    # stylesheetFile = os.path.join(selfLoc, "CSS", "darkorange.stylesheet")
     stylesheetFile = os.path.join(selfLoc, "CSS", "tikManager.qss")
     if os.path.isfile(stylesheetFile):
         with open(stylesheetFile, "r") as fh:

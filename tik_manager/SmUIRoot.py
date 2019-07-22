@@ -257,14 +257,14 @@ class MainUI(QtWidgets.QMainWindow):
 
 
         colorWidget = QtWidgets.QWidget(self.centralwidget)
-        colorWidget.setObjectName("header")
+        colorWidget.setProperty("header", True)
         headerLayout = QtWidgets.QHBoxLayout(colorWidget)
         headerLayout.setSpacing(0)
         try: headerLayout.setMargin(0)
         except AttributeError: pass
 
         tikIcon_label = QtWidgets.QLabel(self.centralwidget)
-        tikIcon_label.setObjectName("header")
+        tikIcon_label.setProperty("header", True)
         try: tikIcon_label.setMargin(margin)
         except AttributeError: pass
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
@@ -282,7 +282,7 @@ class MainUI(QtWidgets.QMainWindow):
         headerLayout.addWidget(tikIcon_label)
 
         self.baseScene_label = QtWidgets.QLabel(self.centralwidget)
-        self.baseScene_label.setObjectName("header")
+        self.baseScene_label.setProperty("header", True)
         try: self.baseScene_label.setMargin(margin)
         except AttributeError: pass
         self.baseScene_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
@@ -295,7 +295,7 @@ class MainUI(QtWidgets.QMainWindow):
         headerLayout.addWidget(self.baseScene_label)
 
         self.managerIcon_label = QtWidgets.QLabel(self.centralwidget)
-        self.managerIcon_label.setObjectName("header")
+        self.managerIcon_label.setProperty("header", True)
         try: self.managerIcon_label.setMargin(margin)
         except AttributeError: pass
         self.managerIcon_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
@@ -303,7 +303,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         headerLayout.addWidget(self.managerIcon_label)
 
-        # colorWidget.setStyleSheet(barColor)
         mainLayout.addWidget(colorWidget)
         # ----------
         # ----------
@@ -313,7 +312,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.main_gridLayout = QtWidgets.QGridLayout()
         mainLayout.addLayout(self.main_gridLayout)
 
-        self.main_gridLayout.setObjectName(("main_gridLayout"))
+        # self.main_gridLayout.setObjectName(("main_gridLayout"))
 
         self.main_horizontalLayout = QtWidgets.QHBoxLayout()
         self.main_horizontalLayout.setContentsMargins(-1, -1, 0, -1)
@@ -323,7 +322,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.saveBaseScene_pushButton = QtWidgets.QPushButton(self.centralwidget)
         # self.saveBaseScene_pushButton.setMinimumSize(QtCore.QSize(150, 45))
         # self.saveBaseScene_pushButton.setMaximumSize(QtCore.QSize(150, 45))
-        self.saveBaseScene_pushButton.setStyleSheet("min-width: 120; min-height: 45;")
+        # self.saveBaseScene_pushButton.setStyleSheet("min-width: 120; min-height: 45;")
+        self.saveBaseScene_pushButton.setProperty("menuButton", True)
 
         # self.saveBaseScene_pushButton.setFixedWidth(250)
         self.saveBaseScene_pushButton.setFont(self.iconFont)
@@ -334,9 +334,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.saveVersion_pushButton = QtWidgets.QPushButton(self.centralwidget)
         # self.saveVersion_pushButton.setMinimumSize(QtCore.QSize(150, 45))
         # self.saveVersion_pushButton.setMaximumSize(QtCore.QSize(150, 45))
-        self.saveVersion_pushButton.setStyleSheet("min-width: 120; min-height: 45;")
+        # self.saveVersion_pushButton.setStyleSheet("min-width: 120; min-height: 45;")
+        self.saveVersion_pushButton.setProperty("menuButton", True)
         self.saveVersion_pushButton.setFont(self.iconFont)
-
         self.saveVersion_pushButton.setText("Save As Version")
         self.saveVersion_pushButton.setToolTip("Saves a new version from the currently open Base Scene ")
 
@@ -345,7 +345,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.export_pushButton = QtWidgets.QPushButton(self.centralwidget)
         # self.export_pushButton.setMinimumSize(QtCore.QSize(150, 45))
         # self.export_pushButton.setMaximumSize(QtCore.QSize(150, 45))
-        self.export_pushButton.setStyleSheet("min-width: 120; min-height: 45;")
+        # self.export_pushButton.setStyleSheet("min-width: 120; min-height: 45;")
+        self.export_pushButton.setProperty("menuButton", True)
         self.export_pushButton.setFont(self.iconFont)
         self.export_pushButton.setText("Transfer Central")
         self.export_pushButton.setToolTip("Export/Import Geometry formats")
@@ -357,9 +358,10 @@ class MainUI(QtWidgets.QMainWindow):
         self.main_horizontalLayout.addItem(spacerItem)
 
         self.loadScene_pushButton = QtWidgets.QPushButton(self.centralwidget)
-        # self.loadScene_pushButton.setMinimumSize(QtCore.QSize(150, 45))
-        # self.loadScene_pushButton.setMaximumSize(QtCore.QSize(150, 45))
-        self.loadScene_pushButton.setStyleSheet("min-width: 120; min-height: 45;")
+        # self.loadScene_pushButton.setMinimumSize(QtCore.QSize(120, 45))
+        # self.loadScene_pushButton.setMaximumSize(QtCore.QSize(120, 45))
+        self.loadScene_pushButton.setProperty("menuButton", True)
+        # self.loadScene_pushButton.setStyleSheet("min-width: 120; min-height: 45;")
 
         self.loadScene_pushButton.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.loadScene_pushButton.setFont(self.iconFont)
@@ -397,14 +399,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.addSubProject_pushButton.setMinimumSize(QtCore.QSize(30, 30))
         self.addSubProject_pushButton.setMaximumSize(QtCore.QSize(30, 30))
         self.addSubProject_pushButton.setToolTip("Adds a new sub-project level")
-        self.addSubProject_pushButton.setStyleSheet("min-width: 20;" )
-        # if FORCE_QT4:
-        #     plusfont = QtWidgets.QFont("Segoe UI Symbol", 22, QtWidgets.QFont.Bold)
-        # else:
-        #     plusfont = QtGui.QFont("Segoe UI Symbol", 22, QtGui.QFont.Bold)
-
-        # self.dirFilter_lineEdit.setFont(placeholderFont)
-        # self.dirFilter_lineEdit.setPlaceholderText("🔍")
 
         self.addSubProject_pushButton.setFont(self.iconFont)
         # self.addSubProject_pushButton.setText("➕".decode("utf-8"))
@@ -430,70 +424,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.main_gridLayout.addLayout(self.r2_gridLayout, 1, 0, 1, 1)
         self.r1_gridLayout = QtWidgets.QGridLayout()
-
-        # # ----------
-        # # HEADER BAR
-        # # ----------
-        #
-        # # self.headerBar_layout = QtWidgets.QHBoxLayout()
-        # # self.r1_gridLayout.addLayout(self.headerBar_layout, 0, 0, 1, 1)
-        #
-        # tikIcon_label = QtWidgets.QLabel(self.centralwidget)
-        # tikIcon_label.setAutoFillBackground(True)
-        # tikIcon_label.setText("iconHere")
-        # tikIcon_label.setFixedSize(115, 30)
-        # headerBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
-        #
-        # tikIcon_label.setPixmap(headerBitmap)
-        # # tikIcon_label.setScaledContents(False)
-        #
-        # # self.headerBar_layout.addWidget(self.tikIcon_label)
-        # self.r1_gridLayout.addWidget(tikIcon_label, 0, 0, 1, 1)
-        #
-        # self.baseScene_label = QtWidgets.QLabel(self.centralwidget)
-        # self.baseScene_label.setText((""))
-        # self.baseScene_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-        # self.baseScene_label.setMargin(15)
-        # self.baseScene_label.setObjectName("headerBar")
-        #
-        #
-        # # self.headerBar_layout.addWidget(self.tikIcon_label)
-        # self.r1_gridLayout.addWidget(self.baseScene_label, 0, 1, 1, 1)
-        #
-        # self.managerIcon_label = QtWidgets.QLabel(self.centralwidget)
-        # self.managerIcon_label.setText("")
-        # self.managerIcon_label.setFixedSize(30, 30)
-        # self.managerIcon_label.setScaledContents(True)
-        # self.r1_gridLayout.addWidget(self.managerIcon_label, 0, 2, 1, 1)
-        #
-        # # ----------
-        # # ----------
-
-
-        ## DUMP
-
-
-        # self.baseScene_label = QtWidgets.QLabel(self.centralwidget)
-        # self.baseScene_label.setLayoutDirection(QtCore.Qt.LeftToRight)
-        # self.baseScene_label.setText(("Base Scene:"))
-        # self.baseScene_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        # self.r1_gridLayout.addWidget(self.baseScene_label, 0, 0, 1, 1)
-        #
-        # self.baseScene_lineEdit = QtWidgets.QLineEdit(self.centralwidget)
-        # self.baseScene_lineEdit.setText((""))
-        # self.baseScene_lineEdit.setPlaceholderText((""))
-        # self.baseScene_lineEdit.setReadOnly(True)
-        # self.r1_gridLayout.addWidget(self.baseScene_lineEdit, 0, 1, 1, 1)
-        #
-        # self.managerIcon_label = QtWidgets.QLabel(self.centralwidget)
-        # self.managerIcon_label.setText("")
-        # self.managerIcon_label.setFixedSize(30, 30)
-        # self.managerIcon_label.setScaledContents(True)
-        # self.r1_gridLayout.addWidget(self.managerIcon_label, 0, 2, 1, 1)
-        # self.headerBar_layout.addWidget(self.managerIcon_label)
-
-
-
 
 
         self.project_label = QtWidgets.QLabel(self.centralwidget)
@@ -568,7 +498,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.E_tPixmap = self.Pixmap(":/icons/CSS/rc/empty_thumbnail.png")
 
         self.thumbnail_label = ImageWidget(self.frame)
-        self.thumbnail_label.setObjectName("image")
+        self.thumbnail_label.setProperty("style", "image")
         self.thumbnail_label.setPixmap(self.E_tPixmap)
 
         self.thumbnail_label.setMinimumSize(QtCore.QSize(221, 124))
@@ -634,11 +564,9 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.menubar = QtWidgets.QMenuBar(self)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 680, 18))
-        self.menubar.setObjectName(("menubar"))
 
         self.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(self)
-        self.statusbar.setObjectName(("statusbar"))
         self.setStatusBar(self.statusbar)
 
         self.fileMenu = self.menubar.addMenu("File")
@@ -881,65 +809,54 @@ class MainUI(QtWidgets.QMainWindow):
 
         # This method is NOT Software Specific
         self.createproject_Dialog = QtWidgets.QDialog(parent=self)
-        self.createproject_Dialog.setObjectName(("createproject_Dialog"))
         self.createproject_Dialog.resize(419, 300)
         self.createproject_Dialog.setWindowTitle(("Create New Project"))
 
         self.projectroot_label = QtWidgets.QLabel(self.createproject_Dialog)
         self.projectroot_label.setGeometry(QtCore.QRect(20, 30, 71, 20))
         self.projectroot_label.setText(("Project Path:"))
-        self.projectroot_label.setObjectName(("projectpath_label"))
 
         currentProjects = os.path.abspath(os.path.join(self.manager.projectDir, os.pardir))
         self.projectroot_lineEdit = QtWidgets.QLineEdit(self.createproject_Dialog)
         self.projectroot_lineEdit.setGeometry(QtCore.QRect(90, 30, 241, 21))
         self.projectroot_lineEdit.setText((currentProjects))
-        self.projectroot_lineEdit.setObjectName(("projectpath_lineEdit"))
 
         self.browse_pushButton = QtWidgets.QPushButton(self.createproject_Dialog)
         self.browse_pushButton.setText(("Browse"))
         self.browse_pushButton.setGeometry(QtCore.QRect(340, 30, 61, 21))
-        self.browse_pushButton.setObjectName(("browse_pushButton"))
 
         self.resolvedpath_label = QtWidgets.QLabel(self.createproject_Dialog)
         self.resolvedpath_label.setGeometry(QtCore.QRect(20, 70, 381, 21))
-        self.resolvedpath_label.setObjectName(("resolvedpath_label"))
 
         self.brandname_label = QtWidgets.QLabel(self.createproject_Dialog)
         self.brandname_label.setGeometry(QtCore.QRect(20, 110, 111, 20))
         self.brandname_label.setFrameShape(QtWidgets.QFrame.Box)
         self.brandname_label.setText(("Brand Name"))
         self.brandname_label.setAlignment(QtCore.Qt.AlignCenter)
-        self.brandname_label.setObjectName(("brandname_label"))
 
         self.projectname_label = QtWidgets.QLabel(self.createproject_Dialog)
         self.projectname_label.setGeometry(QtCore.QRect(140, 110, 131, 20))
         self.projectname_label.setFrameShape(QtWidgets.QFrame.Box)
         self.projectname_label.setText(("Project Name"))
         self.projectname_label.setAlignment(QtCore.Qt.AlignCenter)
-        self.projectname_label.setObjectName(("projectname_label"))
 
         self.client_label = QtWidgets.QLabel(self.createproject_Dialog)
         self.client_label.setGeometry(QtCore.QRect(280, 110, 121, 20))
         self.client_label.setFrameShape(QtWidgets.QFrame.Box)
         self.client_label.setText(("Client"))
         self.client_label.setAlignment(QtCore.Qt.AlignCenter)
-        self.client_label.setObjectName(("client_label"))
 
         self.brandname_lineEdit = QtWidgets.QLineEdit(self.createproject_Dialog)
         self.brandname_lineEdit.setGeometry(QtCore.QRect(20, 140, 111, 21))
         self.brandname_lineEdit.setPlaceholderText(("(optional)"))
-        self.brandname_lineEdit.setObjectName(("brandname_lineEdit"))
 
         self.projectname_lineEdit = QtWidgets.QLineEdit(self.createproject_Dialog)
         self.projectname_lineEdit.setGeometry(QtCore.QRect(140, 140, 131, 21))
         self.projectname_lineEdit.setPlaceholderText(("Mandatory Field"))
-        self.projectname_lineEdit.setObjectName(("projectname_lineEdit"))
 
         self.client_lineEdit = QtWidgets.QLineEdit(self.createproject_Dialog)
         self.client_lineEdit.setGeometry(QtCore.QRect(280, 140, 121, 21))
         self.client_lineEdit.setPlaceholderText(("Mandatory Field"))
-        self.client_lineEdit.setObjectName(("client_lineEdit"))
 
         # TODO : ref
 
@@ -949,14 +866,12 @@ class MainUI(QtWidgets.QMainWindow):
 
         resolutionX_spinBox = QtWidgets.QSpinBox(self.createproject_Dialog)
         resolutionX_spinBox.setGeometry(QtCore.QRect(80, 180, 60, 21))
-        resolutionX_spinBox.setObjectName(("resolutionX_spinBox"))
         resolutionX_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
         resolutionX_spinBox.setRange(1,99999)
         resolutionX_spinBox.setValue(1920)
 
         resolutionY_spinBox = QtWidgets.QSpinBox(self.createproject_Dialog)
         resolutionY_spinBox.setGeometry(QtCore.QRect(145, 180, 60, 21))
-        resolutionY_spinBox.setObjectName(("resolutionY_spinBox"))
         resolutionY_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
         resolutionY_spinBox.setRange(1,99999)
         resolutionY_spinBox.setValue(1080)
@@ -977,7 +892,6 @@ class MainUI(QtWidgets.QMainWindow):
             QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
         self.createproject_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
         self.createproject_buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setMinimumSize(QtCore.QSize(100, 30))
-        self.createproject_buttonBox.setObjectName(("buttonBox"))
 
         self.cp_button = self.createproject_buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
         self.cp_button.setText('Create Project')
@@ -1003,8 +917,6 @@ class MainUI(QtWidgets.QMainWindow):
                 self.infoPop(textTitle="Path Error", textHeader="Selected Project Root does not exist", type="C")
                 return
 
-            # root = unicode(self.projectroot_lineEdit.text()).encode("utf-8")
-            # root = unicode(self.projectroot_lineEdit.text(), "utf-8")
             pName = unicode(self.projectname_lineEdit.text()).decode("utf-8")
             bName = unicode(self.brandname_lineEdit.text()).decode("utf-8")
             cName = unicode(self.client_lineEdit.text()).decode("utf-8")
@@ -1069,7 +981,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.setProject_Dialog.setFocus()
 
         gridLayout = QtWidgets.QGridLayout(self.setProject_Dialog)
-        gridLayout.setObjectName(("gridLayout"))
 
         M1_horizontalLayout = QtWidgets.QHBoxLayout()
 
@@ -1173,19 +1084,14 @@ class MainUI(QtWidgets.QMainWindow):
         font.setBold(True)
         font.setWeight(75)
         favorites_label.setFont(font)
-        favorites_label.setText(("Bookmarks:"))
-        favorites_label.setObjectName(("favorites_label"))
+        favorites_label.setText("Bookmarks:")
 
         M2_S2_verticalLayout.addWidget(favorites_label)
 
         self.favorites_listWidget = DropListWidget(verticalLayoutWidget)
-        # self.favorites_listWidget.setAlternatingRowColors(True)
-        self.favorites_listWidget.setObjectName(("favorites_listWidget"))
-        # self.favorites_listWidget.setStyleSheet("background-color: rgb(80,80,80); color: white")
 
         M2_S2_verticalLayout.addWidget(self.favorites_listWidget)
         M2_S2_horizontalLayout = QtWidgets.QHBoxLayout()
-        M2_S2_horizontalLayout.setObjectName(("M2_S2_horizontalLayout"))
 
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
 
@@ -1196,16 +1102,13 @@ class MainUI(QtWidgets.QMainWindow):
         remove_pushButton.setFont(self.iconFont)
         # remove_pushButton.setText("".decode("utf-8"))
         remove_pushButton.setIcon(self.QIcon(":/icons/CSS/rc/minus.png"))
-        remove_pushButton.setObjectName(("remove_pushButton"))
 
         M2_S2_horizontalLayout.addWidget(remove_pushButton)
 
         add_pushButton = QtWidgets.QPushButton(verticalLayoutWidget)
         add_pushButton.setMaximumSize(QtCore.QSize(35, 35))
         add_pushButton.setFont(self.iconFont)
-        # add_pushButton.setText("".decode("utf-8"))
         add_pushButton.setIcon(self.QIcon(":/icons/CSS/rc/plus.png"))
-        add_pushButton.setObjectName(("add_pushButton"))
 
         M2_S2_horizontalLayout.addWidget(add_pushButton)
 
@@ -1217,7 +1120,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         M3_horizontalLayout = QtWidgets.QHBoxLayout()
         M3_horizontalLayout.setContentsMargins(0, 10, -1, -1)
-        M3_horizontalLayout.setObjectName(("M3_horizontalLayout"))
 
         spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
 
@@ -1245,14 +1147,12 @@ class MainUI(QtWidgets.QMainWindow):
         cancel_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
         cancel_pushButton.setMaximumSize(QtCore.QSize(70, 16777215))
         cancel_pushButton.setText("Cancel")
-        cancel_pushButton.setObjectName(("cancel_pushButton"))
 
         M3_horizontalLayout.addWidget(cancel_pushButton, QtCore.Qt.AlignRight)
 
         set_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
         set_pushButton.setMaximumSize(QtCore.QSize(70, 16777215))
         set_pushButton.setText("Set")
-        set_pushButton.setObjectName(("set_pushButton"))
 
         M3_horizontalLayout.addWidget(set_pushButton, QtCore.Qt.AlignRight)
 
@@ -1488,7 +1388,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         tikIcon_label = QtWidgets.QLabel(self.centralwidget)
         # tikIcon_label.setFixedSize(115, 30)
-        tikIcon_label.setObjectName("header")
+        tikIcon_label.setProperty("header", True)
         tikIcon_label.setMaximumWidth(125)
         try: tikIcon_label.setMargin(margin)
         except AttributeError: pass
@@ -1501,7 +1401,7 @@ class MainUI(QtWidgets.QMainWindow):
         headerLayout.addWidget(tikIcon_label)
 
         resolvedPath_label = QtWidgets.QLabel()
-        resolvedPath_label.setObjectName("header")
+        resolvedPath_label.setProperty("header", True)
         try: resolvedPath_label.setMargin(margin)
         except AttributeError: pass
         resolvedPath_label.setIndent(2)
@@ -1559,6 +1459,7 @@ class MainUI(QtWidgets.QMainWindow):
         customName_lineEdit = QtWidgets.QLineEdit(exportTab)
         customName_lineEdit.setFrame(True)
         customName_lineEdit.setPlaceholderText(("Custom Export Name"))
+
         formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, customName_lineEdit)
 
         selection_label = QtWidgets.QLabel(exportTab)
@@ -1569,7 +1470,6 @@ class MainUI(QtWidgets.QMainWindow):
         selection_radioButton = QtWidgets.QRadioButton(exportTab)
         selection_radioButton.setText(("Selection"))
         selection_radioButton.setChecked(True)
-        selection_radioButton.setObjectName(("selection_radioButton"))
 
         scene_radioButton = QtWidgets.QRadioButton(exportTab)
         scene_radioButton.setText(("Scene"))
@@ -1840,15 +1740,17 @@ class MainUI(QtWidgets.QMainWindow):
         def resolveName():
             # resolve name
             if not sceneInfo:
-                customName_lineEdit.setStyleSheet("color: red;")
-                customName_lineEdit.setText("Scene Needs to be saves as Base Scene")
+                customName_lineEdit.setProperty("warning", True)
+                customName_lineEdit.setStyleSheet("") # refresh
+                customName_lineEdit.setText("Scene Needs to be saved as Base Scene")
                 return
-            customName_lineEdit.setStyleSheet("color: white;")
+            customName_lineEdit.setProperty("warning", False)
+            customName_lineEdit.setStyleSheet("")
+
             if customName_radioButton.isChecked():
                 customName_lineEdit.setText("")
                 customName_lineEdit.setReadOnly(False)
                 return
-                # name = customName_lineEdit.text()
             else:
                 if selection_radioButton.isChecked():
                     sel = self.manager._getSelection()
@@ -1857,7 +1759,8 @@ class MainUI(QtWidgets.QMainWindow):
                     elif len(sel) == 1:
                         name = "{0}/{0}_{1}_{2}".format(sceneInfo["shotName"], sceneInfo["version"], sel[0])
                     else:
-                        customName_lineEdit.setStyleSheet("color: red;")
+                        customName_lineEdit.setProperty("warning", True)
+                        customName_lineEdit.setStyleSheet("")  # refresh
                         customName_lineEdit.setText("No Object Selected")
                         return
                 else:
@@ -2358,7 +2261,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         setCommon_button = QtWidgets.QPushButton()
         setCommon_button.setText("...")
-        setCommon_button.setStyleSheet("min-width: 20px;")
         commonDir_layout.addWidget(setCommon_button)
         userSettings_formLayout.setLayout(2, QtWidgets.QFormLayout.FieldRole, commonDir_layout)
 
@@ -2391,14 +2293,12 @@ class MainUI(QtWidgets.QMainWindow):
         exeImages_lbl.setText("Image viewer: ")
         exeImages_hlay = QtWidgets.QHBoxLayout(spacing=2)
         exeImages_le = QtWidgets.QLineEdit()
-        exeImages_le.setObjectName("image_exec")
         try: exeImages_le.setText(userSettings["executables"]["image_exec"])
         except KeyError: pass
         exeImages_le.setMinimumWidth(350)
         exeImages_le.setPlaceholderText("Define an executable for images (Optional) ")
         exeImages_hlay.addWidget(exeImages_le)
         exeImages_btn = QtWidgets.QPushButton(text="...")
-        exeImages_btn.setStyleSheet("min-width: 20px;")
         exeImages_hlay.addWidget(exeImages_btn)
         userSettings_formLayout.addRow(exeImages_lbl, exeImages_hlay)
         #imageSeq
@@ -2406,14 +2306,12 @@ class MainUI(QtWidgets.QMainWindow):
         exeImageSeq_lbl.setText("Sequence viewer: ")
         exeImageSeq_hlay = QtWidgets.QHBoxLayout(spacing=2)
         exeImageSeq_le = QtWidgets.QLineEdit()
-        exeImageSeq_le.setObjectName("imageSeq_exec")
         try: exeImageSeq_le.setText(userSettings["executables"]["imageSeq_exec"])
         except KeyError: pass
         exeImageSeq_le.setMinimumWidth(350)
         exeImageSeq_le.setPlaceholderText("Define an executable for imageSeq (Optional) ")
         exeImageSeq_hlay.addWidget(exeImageSeq_le)
         exeImageSeq_btn = QtWidgets.QPushButton(text="...")
-        exeImageSeq_btn.setStyleSheet("min-width: 20px;")
         exeImageSeq_hlay.addWidget(exeImageSeq_btn)
         userSettings_formLayout.addRow(exeImageSeq_lbl, exeImageSeq_hlay)
         #Video Files
@@ -2421,14 +2319,12 @@ class MainUI(QtWidgets.QMainWindow):
         exeVideo_lbl.setText("Video viewer: ")
         exeVideo_hlay = QtWidgets.QHBoxLayout(spacing=2)
         exeVideo_le = QtWidgets.QLineEdit()
-        exeVideo_le.setObjectName("video_exec")
         try: exeVideo_le.setText(userSettings["executables"]["video_exec"])
         except KeyError: pass
         exeVideo_le.setMinimumWidth(350)
         exeVideo_le.setPlaceholderText("Define an executable for video (Optional) ")
         exeVideo_hlay.addWidget(exeVideo_le)
         exeVideo_btn = QtWidgets.QPushButton(text="...")
-        exeVideo_btn.setStyleSheet("min-width: 20px;")
         exeVideo_hlay.addWidget(exeVideo_btn)
         userSettings_formLayout.addRow(exeVideo_lbl, exeVideo_hlay)
         #Obj
@@ -2436,14 +2332,12 @@ class MainUI(QtWidgets.QMainWindow):
         exeObj_lbl.setText("Obj viewer: ")
         exeObj_hlay = QtWidgets.QHBoxLayout(spacing=2)
         exeObj_le = QtWidgets.QLineEdit()
-        exeObj_le.setObjectName("obj_exec")
         try: exeObj_le.setText(userSettings["executables"]["obj_exec"])
         except KeyError: pass
         exeObj_le.setMinimumWidth(350)
         exeObj_le.setPlaceholderText("Define an executable for obj (Optional) ")
         exeObj_hlay.addWidget(exeObj_le)
         exeObj_btn = QtWidgets.QPushButton(text="...")
-        exeObj_btn.setStyleSheet("min-width: 20px;")
         exeObj_hlay.addWidget(exeObj_btn)
         userSettings_formLayout.addRow(exeObj_lbl, exeObj_hlay)
         #Fbx
@@ -2451,14 +2345,12 @@ class MainUI(QtWidgets.QMainWindow):
         exeFbx_lbl.setText("Fbx viewer: ")
         exeFbx_hlay = QtWidgets.QHBoxLayout(spacing=2)
         exeFbx_le = QtWidgets.QLineEdit()
-        exeFbx_le.setObjectName("fbx_exec")
         try: exeFbx_le.setText(userSettings["executables"]["fbx_exec"])
         except KeyError: pass
         exeFbx_le.setMinimumWidth(350)
         exeFbx_le.setPlaceholderText("Define an executable for fbx (Optional) ")
         exeFbx_hlay.addWidget(exeFbx_le)
         exeFbx_btn = QtWidgets.QPushButton(text="...")
-        exeFbx_btn.setStyleSheet("min-width: 20px;")
         exeFbx_hlay.addWidget(exeFbx_btn)
         userSettings_formLayout.addRow(exeFbx_lbl, exeFbx_hlay)
         #Abc
@@ -2466,14 +2358,12 @@ class MainUI(QtWidgets.QMainWindow):
         exeAbc_lbl.setText("Alembic viewer: ")
         exeAbc_hlay = QtWidgets.QHBoxLayout(spacing=2)
         exeAbc_le = QtWidgets.QLineEdit()
-        exeAbc_le.setObjectName("alembic_exec")
         try: exeAbc_le.setText(userSettings["executables"]["alembic_exec"])
         except KeyError: pass
         exeAbc_le.setMinimumWidth(350)
         exeAbc_le.setPlaceholderText("Define an executable for abc (Optional) ")
         exeAbc_hlay.addWidget(exeAbc_le)
         exeAbc_btn = QtWidgets.QPushButton(text="...")
-        exeAbc_btn.setStyleSheet("min-width: 20px;")
         exeAbc_hlay.addWidget(exeAbc_btn)
         userSettings_formLayout.addRow(exeAbc_lbl, exeAbc_hlay)
 
@@ -2647,26 +2537,21 @@ class MainUI(QtWidgets.QMainWindow):
 
         currentProject_lbl = QtWidgets.QLabel()
         currentProject_lbl.setText("Project")
-        currentProject_lbl.setObjectName("current_project")
         project_hLayout = QtWidgets.QHBoxLayout()
         currentProject_le = QtWidgets.QLineEdit()
         currentProject_le.setText(self.manager.getProjectDir())
         currentProject_le.setReadOnly(True)
         currentProject_le.setMinimumWidth(500)
         project_hLayout.addWidget(currentProject_le)
-        # setProject_pb = QtWidgets.QPushButton()
-        # setProject_pb.setText("SET")
-        # project_hLayout.addWidget(setProject_pb)
+
         projectSettings_formLayout.addRow(currentProject_lbl, project_hLayout)
 
         resolution_label = QtWidgets.QLabel(self.projectSettings_vis)
         resolution_label.setText("Resolution: ")
         resolution_label.setMinimumSize(70, 25)
-        resolution_label.setObjectName("resolution_label")
 
         resolution_hLay = QtWidgets.QHBoxLayout()
         resolution_hLay.setSpacing(5)
-        resolution_hLay.setObjectName("horizontalLayout")
 
         resolutionX_spinBox = QtWidgets.QSpinBox(self.projectSettings_vis)
         resolutionX_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
@@ -2800,7 +2685,8 @@ class MainUI(QtWidgets.QMainWindow):
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(1)
         h1_s1_line.setSizePolicy(sizePolicy)
-        h1_s1_line.setStyleSheet("background-color: gray;")
+        # h1_s1_line.setStyleSheet("background-color: gray;")
+        h1_s1_line.setProperty("seperator", True)
         h1_s1_horizontalLayout.addWidget(h1_s1_line)
         try: h1_s1_line.setMargin(0)
         except AttributeError: pass
@@ -2917,7 +2803,7 @@ class MainUI(QtWidgets.QMainWindow):
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(1)
         h1_s3_line.setSizePolicy(sizePolicy)
-        h1_s3_line.setStyleSheet("background-color: gray;")
+        h1_s3_line.setProperty("seperator", True)
         h1_s3_horizontalLayout.addWidget(h1_s3_line)
         try: h1_s3_line.setMargin(0)
         except AttributeError: pass
@@ -2977,7 +2863,7 @@ class MainUI(QtWidgets.QMainWindow):
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(1)
         h1_s5_line.setSizePolicy(sizePolicy)
-        h1_s5_line.setStyleSheet("background-color: gray;")
+        h1_s5_line.setProperty("seperator", True)
         h1_s5_horizontalLayout.addWidget(h1_s5_line)
         try: h1_s5_line.setMargin(0)
         except AttributeError: pass
@@ -3098,7 +2984,7 @@ class MainUI(QtWidgets.QMainWindow):
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(1)
         h1_s1_line.setSizePolicy(sizePolicy)
-        h1_s1_line.setStyleSheet("background-color: gray;")
+        h1_s1_line.setProperty("seperator", True)
         h1_s1_horizontalLayout.addWidget(h1_s1_line)
         try: h1_s1_line.setMargin(0)
         except AttributeError: pass
@@ -3175,7 +3061,7 @@ class MainUI(QtWidgets.QMainWindow):
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(1)
         h1_s3_line.setSizePolicy(sizePolicy)
-        h1_s3_line.setStyleSheet("background-color: gray;")
+        h1_s3_line.setProperty("seperator", True)
         h1_s3_horizontalLayout.addWidget(h1_s3_line)
         try: h1_s3_line.setMargin(0)
         except AttributeError: pass
@@ -3223,7 +3109,7 @@ class MainUI(QtWidgets.QMainWindow):
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(1)
         h1_s5_line.setSizePolicy(sizePolicy)
-        h1_s5_line.setStyleSheet("background-color: gray;")
+        h1_s5_line.setProperty("seperator", True)
         h1_s5_horizontalLayout.addWidget(h1_s5_line)
         try: h1_s5_line.setMargin(0)
         except AttributeError: pass
@@ -3304,7 +3190,7 @@ class MainUI(QtWidgets.QMainWindow):
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(1)
         h1_s1_line.setSizePolicy(sizePolicy)
-        h1_s1_line.setStyleSheet("background-color: gray;")
+        h1_s1_line.setProperty("seperator", True)
         h1_s1_horizontalLayout.addWidget(h1_s1_line)
         try: h1_s1_line.setMargin(0)
         except AttributeError: pass
@@ -3580,7 +3466,7 @@ class MainUI(QtWidgets.QMainWindow):
                 obj_horizontal_layout = QtWidgets.QHBoxLayout(objTab)
                 obj_import_layout = QtWidgets.QVBoxLayout()
                 obj_seperator = QtWidgets.QLabel()
-                obj_seperator.setStyleSheet("background-color: rgb(255,141,28,60);")
+                obj_seperator.setProperty("seperator", True)
                 obj_seperator.setMaximumWidth(2)
                 obj_export_layout = QtWidgets.QVBoxLayout()
 
@@ -3647,7 +3533,7 @@ class MainUI(QtWidgets.QMainWindow):
                 fbx_horizontal_layout = QtWidgets.QHBoxLayout(fbxTab)
                 fbx_import_layout = QtWidgets.QVBoxLayout()
                 fbx_seperator = QtWidgets.QLabel()
-                fbx_seperator.setStyleSheet("background-color: rgb(255,141,28,60);")
+                fbx_seperator.setProperty("seperator", True)
                 fbx_seperator.setMaximumWidth(2)
                 fbx_export_layout = QtWidgets.QVBoxLayout()
 
@@ -3755,7 +3641,7 @@ class MainUI(QtWidgets.QMainWindow):
                 alembic_horizontal_layout = QtWidgets.QHBoxLayout(alembicTab)
                 alembic_import_layout = QtWidgets.QVBoxLayout()
                 alembic_seperator = QtWidgets.QLabel()
-                alembic_seperator.setStyleSheet("background-color: rgb(255,141,28,60);")
+                alembic_seperator.setProperty("seperator", True)
                 alembic_seperator.setMaximumWidth(2)
                 alembic_export_layout = QtWidgets.QVBoxLayout()
 
@@ -3848,7 +3734,7 @@ class MainUI(QtWidgets.QMainWindow):
                 obj_horizontal_layout = QtWidgets.QHBoxLayout(objTab)
                 obj_import_layout = QtWidgets.QVBoxLayout()
                 obj_seperator = QtWidgets.QLabel()
-                obj_seperator.setStyleSheet("background-color: rgb(255,141,28,60);")
+                obj_seperator.setProperty("seperator", True)
                 obj_seperator.setMaximumWidth(2)
                 obj_export_layout = QtWidgets.QVBoxLayout()
 
@@ -3951,7 +3837,7 @@ class MainUI(QtWidgets.QMainWindow):
                 fbx_horizontal_layout = QtWidgets.QHBoxLayout(fbxTab)
                 fbx_import_layout = QtWidgets.QVBoxLayout()
                 fbx_seperator = QtWidgets.QLabel()
-                fbx_seperator.setStyleSheet("background-color: rgb(255,141,28,60);")
+                fbx_seperator.setProperty("seperator", True)
                 fbx_seperator.setMaximumWidth(2)
                 fbx_export_layout = QtWidgets.QVBoxLayout()
 
@@ -4060,7 +3946,7 @@ class MainUI(QtWidgets.QMainWindow):
                 alembic_horizontal_layout = QtWidgets.QHBoxLayout(alembicTab)
                 alembic_import_layout = QtWidgets.QVBoxLayout()
                 alembic_seperator = QtWidgets.QLabel()
-                alembic_seperator.setStyleSheet("background-color: rgb(255,141,28,60);")
+                alembic_seperator.setProperty("seperator", True)
                 alembic_seperator.setMaximumWidth(2)
                 alembic_export_layout = QtWidgets.QVBoxLayout()
 
@@ -4178,7 +4064,7 @@ class MainUI(QtWidgets.QMainWindow):
                 fbx_horizontal_layout = QtWidgets.QHBoxLayout(fbxTab)
                 fbx_import_layout = QtWidgets.QVBoxLayout()
                 fbx_seperator = QtWidgets.QLabel()
-                fbx_seperator.setStyleSheet("background-color: rgb(255,141,28,60);")
+                fbx_seperator.setProperty("seperator", True)
                 fbx_seperator.setMaximumWidth(2)
                 fbx_export_layout = QtWidgets.QVBoxLayout()
 
@@ -4270,7 +4156,7 @@ class MainUI(QtWidgets.QMainWindow):
                 alembic_horizontal_layout = QtWidgets.QHBoxLayout(alembicTab)
                 alembic_import_layout = QtWidgets.QVBoxLayout()
                 alembic_seperator = QtWidgets.QLabel()
-                alembic_seperator.setStyleSheet("background-color: rgb(255,141,28,60);")
+                alembic_seperator.setProperty("seperator", True)
                 alembic_seperator.setMaximumWidth(2)
                 alembic_export_layout = QtWidgets.QVBoxLayout()
 
@@ -4587,7 +4473,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         changePass_btn = QtWidgets.QPushButton()
         changePass_btn.setText("Change Password")
-        changePass_btn.setStyleSheet("min-width: 200px;")
         changePass_btn.setMinimumWidth(200)
         changePass_btn.setMaximumWidth(200)
         # formLayout.addRow(changePass_btn)
@@ -4888,861 +4773,6 @@ class MainUI(QtWidgets.QMainWindow):
                 )
 
 
-    # def pbSettingsMayaUI(self):
-    #     # This method iS Software Specific
-    #     if BoilerDict["Environment"]=="Standalone":
-    #         # manager=self._getManager()
-    #         formatFlag = False
-    #     else:
-    #         # manager = self.manager
-    #         formatFlag = True
-    #
-    #     manager = self._getManager()
-    #
-    #     passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query",
-    #                                            "Enter Admin Password:", QtWidgets.QLineEdit.Password)
-    #
-    #     if ok:
-    #         if manager.checkPassword(passw):
-    #             pass
-    #         else:
-    #             self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
-    #             return
-    #     else:
-    #         return
-    #
-    #
-    #     if formatFlag:
-    #         formatDict = manager.getFormatsAndCodecs()
-    #     else:
-    #         formatDict = {}
-    #
-    #     def updateCodecs():
-    #         codecList = formatDict[self.fileformat_comboBox.currentText()]
-    #         self.codec_comboBox.clear()
-    #
-    #         self.codec_comboBox.addItems(codecList)
-    #     def onPbSettingsAccept():
-    #         newPbSettings = {"Resolution": (self.resolutionx_spinBox.value(), self.resolutiony_spinBox.value()),
-    #                          "Format": self.fileformat_comboBox.currentText(),
-    #                          "Codec": self.codec_comboBox.currentText(),
-    #                          "Percent": 100,  ## this one never changes
-    #                          "Quality": self.quality_spinBox.value(),
-    #                          "ShowFrameNumber": self.showframenumber_checkBox.isChecked(),
-    #                          "ShowSceneName": self.showscenename_checkBox.isChecked(),
-    #                          "ShowCategory": self.showcategory_checkBox.isChecked(),
-    #                          "ShowFPS": self.showfps_checkBox.isChecked(),
-    #                          "ShowFrameRange": self.showframerange_checkBox.isChecked(),
-    #                          "PolygonOnly": self.polygononly_checkBox.isChecked(),
-    #                          "ShowGrid": self.showgrid_checkBox.isChecked(),
-    #                          "ClearSelection": self.clearselection_checkBox.isChecked(),
-    #                          "DisplayTextures": self.displaytextures_checkBox.isChecked(),
-    #                          "WireOnShaded": self.wireonshaded_checkBox.isChecked(),
-    #                          "UseDefaultMaterial": self.usedefaultmaterial_checkBox.isChecked()
-    #                          }
-    #         manager.savePBSettings(newPbSettings)
-    #         self.statusBar().showMessage("Status | Playblast Settings Saved")
-    #         self.pbSettings_dialog.accept()
-    #
-    #
-    #     currentSettings = manager.loadPBSettings()
-    #     self.pbSettings_dialog = QtWidgets.QDialog(parent=self)
-    #     self.pbSettings_dialog.setModal(True)
-    #     self.pbSettings_dialog.setObjectName(("Playblast_Dialog"))
-    #     self.pbSettings_dialog.resize(380, 483)
-    #     self.pbSettings_dialog.setMinimumSize(QtCore.QSize(380, 550))
-    #     self.pbSettings_dialog.setMaximumSize(QtCore.QSize(380, 550))
-    #     self.pbSettings_dialog.setWindowTitle(("Set Playblast Settings"))
-    #
-    #     self.pbsettings_buttonBox = QtWidgets.QDialogButtonBox(self.pbSettings_dialog)
-    #     self.pbsettings_buttonBox.setGeometry(QtCore.QRect(20, 500, 341, 30))
-    #     self.pbsettings_buttonBox.setOrientation(QtCore.Qt.Horizontal)
-    #     self.pbsettings_buttonBox.setStandardButtons(
-    #         QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Save)
-    #     self.pbsettings_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
-    #     self.pbsettings_buttonBox.button(QtWidgets.QDialogButtonBox.Save).setMinimumSize(QtCore.QSize(100, 30))
-    #     self.pbsettings_buttonBox.setObjectName(("pbsettings_buttonBox"))
-    #
-    #     self.videoproperties_groupBox = QtWidgets.QGroupBox(self.pbSettings_dialog)
-    #     self.videoproperties_groupBox.setGeometry(QtCore.QRect(10, 20, 361, 191))
-    #     self.videoproperties_groupBox.setTitle(("Video Properties"))
-    #     self.videoproperties_groupBox.setObjectName(("videoproperties_groupBox"))
-    #
-    #     self.fileformat_label = QtWidgets.QLabel(self.videoproperties_groupBox)
-    #     self.fileformat_label.setGeometry(QtCore.QRect(20, 30, 71, 20))
-    #     self.fileformat_label.setFrameShape(QtWidgets.QFrame.NoFrame)
-    #     self.fileformat_label.setFrameShadow(QtWidgets.QFrame.Plain)
-    #     self.fileformat_label.setText(("Format"))
-    #     self.fileformat_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-    #     self.fileformat_label.setObjectName(("fileformat_label"))
-    #     self.fileformat_label.setEnabled(formatFlag)
-    #
-    #     self.fileformat_comboBox = QtWidgets.QComboBox(self.videoproperties_groupBox)
-    #     self.fileformat_comboBox.setGeometry(QtCore.QRect(100, 30, 111, 22))
-    #     self.fileformat_comboBox.setObjectName(("fileformat_comboBox"))
-    #     self.fileformat_comboBox.addItems(formatDict.keys())
-    #     self.fileformat_comboBox.setEnabled(formatFlag)
-    #
-    #     # get the index number from the name in the settings file and make that index active
-    #     ffindex = self.fileformat_comboBox.findText(currentSettings["Format"], QtCore.Qt.MatchFixedString)
-    #     if ffindex >= 0:
-    #         self.fileformat_comboBox.setCurrentIndex(ffindex)
-    #
-    #     self.codec_label = QtWidgets.QLabel(self.videoproperties_groupBox)
-    #     self.codec_label.setGeometry(QtCore.QRect(30, 70, 61, 20))
-    #     self.codec_label.setFrameShape(QtWidgets.QFrame.NoFrame)
-    #     self.codec_label.setFrameShadow(QtWidgets.QFrame.Plain)
-    #     self.codec_label.setText(("Codec"))
-    #     self.codec_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-    #     self.codec_label.setObjectName(("codec_label"))
-    #     self.codec_label.setEnabled(formatFlag)
-    #
-    #     self.codec_comboBox = QtWidgets.QComboBox(self.videoproperties_groupBox)
-    #     self.codec_comboBox.setGeometry(QtCore.QRect(100, 70, 111, 22))
-    #     self.codec_comboBox.setObjectName(("codec_comboBox"))
-    #     self.codec_comboBox.setEnabled(formatFlag)
-    #     if formatFlag:
-    #         updateCodecs()
-    #
-    #     self.fileformat_comboBox.currentIndexChanged.connect(updateCodecs)
-    #
-    #     # get the index number from the name in the settings file and make that index active
-    #     cindex = self.codec_comboBox.findText(currentSettings["Codec"], QtCore.Qt.MatchFixedString)
-    #     if cindex >= 0:
-    #         self.codec_comboBox.setCurrentIndex(cindex)
-    #
-    #     self.quality_label = QtWidgets.QLabel(self.videoproperties_groupBox)
-    #     self.quality_label.setGeometry(QtCore.QRect(30, 110, 61, 20))
-    #     self.quality_label.setFrameShape(QtWidgets.QFrame.NoFrame)
-    #     self.quality_label.setFrameShadow(QtWidgets.QFrame.Plain)
-    #     self.quality_label.setText(("Quality"))
-    #     self.quality_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-    #     self.quality_label.setObjectName(("quality_label"))
-    #
-    #     self.quality_spinBox = QtWidgets.QSpinBox(self.videoproperties_groupBox)
-    #     self.quality_spinBox.setGeometry(QtCore.QRect(100, 110, 41, 21))
-    #     self.quality_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-    #     self.quality_spinBox.setMinimum(1)
-    #     self.quality_spinBox.setMaximum(100)
-    #     self.quality_spinBox.setProperty("value", currentSettings["Quality"])
-    #     self.quality_spinBox.setObjectName(("quality_spinBox"))
-    #
-    #     self.quality_horizontalSlider = QtWidgets.QSlider(self.videoproperties_groupBox)
-    #     self.quality_horizontalSlider.setGeometry(QtCore.QRect(150, 110, 191, 21))
-    #     self.quality_horizontalSlider.setMinimum(1)
-    #     self.quality_horizontalSlider.setMaximum(100)
-    #     self.quality_horizontalSlider.setProperty("value", currentSettings["Quality"])
-    #     self.quality_horizontalSlider.setOrientation(QtCore.Qt.Horizontal)
-    #     self.quality_horizontalSlider.setTickInterval(0)
-    #     self.quality_horizontalSlider.setObjectName(("quality_horizontalSlider"))
-    #
-    #     self.resolution_label = QtWidgets.QLabel(self.videoproperties_groupBox)
-    #     self.resolution_label.setGeometry(QtCore.QRect(30, 150, 61, 20))
-    #     self.resolution_label.setFrameShape(QtWidgets.QFrame.NoFrame)
-    #     self.resolution_label.setFrameShadow(QtWidgets.QFrame.Plain)
-    #     self.resolution_label.setText(("Resolution"))
-    #     self.resolution_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-    #     self.resolution_label.setObjectName(("resolution_label"))
-    #
-    #     self.resolutionx_spinBox = QtWidgets.QSpinBox(self.videoproperties_groupBox)
-    #     self.resolutionx_spinBox.setGeometry(QtCore.QRect(100, 150, 61, 21))
-    #     self.resolutionx_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-    #     self.resolutionx_spinBox.setMinimum(0)
-    #     self.resolutionx_spinBox.setMaximum(4096)
-    #     self.resolutionx_spinBox.setProperty("value", currentSettings["Resolution"][0])
-    #     self.resolutionx_spinBox.setObjectName(("resolutionx_spinBox"))
-    #
-    #     self.resolutiony_spinBox = QtWidgets.QSpinBox(self.videoproperties_groupBox)
-    #     self.resolutiony_spinBox.setGeometry(QtCore.QRect(170, 150, 61, 21))
-    #     self.resolutiony_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-    #     self.resolutiony_spinBox.setMinimum(1)
-    #     self.resolutiony_spinBox.setMaximum(4096)
-    #     self.resolutiony_spinBox.setProperty("value", currentSettings["Resolution"][1])
-    #     self.resolutiony_spinBox.setObjectName(("resolutiony_spinBox"))
-    #
-    #     self.viewportoptions_groupBox = QtWidgets.QGroupBox(self.pbSettings_dialog)
-    #     self.viewportoptions_groupBox.setGeometry(QtCore.QRect(10, 230, 361, 120))
-    #     self.viewportoptions_groupBox.setTitle(("Viewport Options"))
-    #     self.viewportoptions_groupBox.setObjectName(("viewportoptions_groupBox"))
-    #
-    #     self.polygononly_checkBox = QtWidgets.QCheckBox(self.viewportoptions_groupBox)
-    #     self.polygononly_checkBox.setGeometry(QtCore.QRect(60, 30, 91, 20))
-    #     self.polygononly_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
-    #     self.polygononly_checkBox.setText(("Polygon Only"))
-    #     self.polygononly_checkBox.setChecked(currentSettings["PolygonOnly"])
-    #     self.polygononly_checkBox.setObjectName(("polygononly_checkBox"))
-    #
-    #     self.showgrid_checkBox = QtWidgets.QCheckBox(self.viewportoptions_groupBox)
-    #     self.showgrid_checkBox.setGeometry(QtCore.QRect(210, 30, 91, 20))
-    #     self.showgrid_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
-    #     self.showgrid_checkBox.setText(("Show Grid"))
-    #     self.showgrid_checkBox.setChecked(currentSettings["ShowGrid"])
-    #     self.showgrid_checkBox.setObjectName(("showgrid_checkBox"))
-    #
-    #     self.clearselection_checkBox = QtWidgets.QCheckBox(self.viewportoptions_groupBox)
-    #     self.clearselection_checkBox.setGeometry(QtCore.QRect(60, 60, 91, 20))
-    #     self.clearselection_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
-    #     self.clearselection_checkBox.setText(("Clear Selection"))
-    #     self.clearselection_checkBox.setChecked(currentSettings["ClearSelection"])
-    #     self.clearselection_checkBox.setObjectName(("clearselection_checkBox"))
-    #
-    #     self.wireonshaded_checkBox = QtWidgets.QCheckBox(self.viewportoptions_groupBox)
-    #     self.wireonshaded_checkBox.setGeometry(QtCore.QRect(51, 90, 100, 20))
-    #     self.wireonshaded_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
-    #     self.wireonshaded_checkBox.setText(("Wire On Shaded"))
-    #     try:
-    #         self.wireonshaded_checkBox.setChecked(currentSettings["WireOnShaded"])
-    #     except KeyError:
-    #         self.wireonshaded_checkBox.setChecked(False)
-    #     self.wireonshaded_checkBox.setObjectName(("wireonshaded_checkBox"))
-    #
-    #     self.usedefaultmaterial_checkBox = QtWidgets.QCheckBox(self.viewportoptions_groupBox)
-    #     self.usedefaultmaterial_checkBox.setGeometry(QtCore.QRect(180, 90, 120, 20))
-    #     self.usedefaultmaterial_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
-    #     self.usedefaultmaterial_checkBox.setText(("Use Default Material"))
-    #     try:
-    #         self.usedefaultmaterial_checkBox.setChecked(currentSettings["UseDefaultMaterial"])
-    #     except KeyError:
-    #         self.usedefaultmaterial_checkBox.setChecked(False)
-    #
-    #     self.displaytextures_checkBox = QtWidgets.QCheckBox(self.viewportoptions_groupBox)
-    #     self.displaytextures_checkBox.setGeometry(QtCore.QRect(190, 60, 111, 20))
-    #     self.displaytextures_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
-    #     self.displaytextures_checkBox.setText(("Display Textures"))
-    #     self.displaytextures_checkBox.setChecked(currentSettings["DisplayTextures"])
-    #     self.displaytextures_checkBox.setObjectName(("displaytextures_checkBox"))
-    #
-    #     self.hudoptions_groupBox = QtWidgets.QGroupBox(self.pbSettings_dialog)
-    #     self.hudoptions_groupBox.setGeometry(QtCore.QRect(10, 370, 361, 110))
-    #     self.hudoptions_groupBox.setTitle(("HUD Options"))
-    #     self.hudoptions_groupBox.setObjectName(("hudoptions_groupBox"))
-    #
-    #     self.showframenumber_checkBox = QtWidgets.QCheckBox(self.hudoptions_groupBox)
-    #     self.showframenumber_checkBox.setGeometry(QtCore.QRect(20, 20, 131, 20))
-    #     self.showframenumber_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
-    #     self.showframenumber_checkBox.setText(("Show Frame Number"))
-    #     self.showframenumber_checkBox.setChecked(currentSettings["ShowFrameNumber"])
-    #     self.showframenumber_checkBox.setObjectName(("showframenumber_checkBox"))
-    #
-    #     self.showscenename_checkBox = QtWidgets.QCheckBox(self.hudoptions_groupBox)
-    #     self.showscenename_checkBox.setGeometry(QtCore.QRect(20, 50, 131, 20))
-    #     self.showscenename_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
-    #     self.showscenename_checkBox.setText(("Show Scene Name"))
-    #     self.showscenename_checkBox.setChecked(currentSettings["ShowSceneName"])
-    #     self.showscenename_checkBox.setObjectName(("showscenename_checkBox"))
-    #
-    #     self.showcategory_checkBox = QtWidgets.QCheckBox(self.hudoptions_groupBox)
-    #     self.showcategory_checkBox.setGeometry(QtCore.QRect(200, 20, 101, 20))
-    #     self.showcategory_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
-    #     self.showcategory_checkBox.setText(("Show Category"))
-    #     self.showcategory_checkBox.setChecked(currentSettings["ShowCategory"])
-    #     self.showcategory_checkBox.setObjectName(("showcategory_checkBox"))
-    #
-    #     self.showfps_checkBox = QtWidgets.QCheckBox(self.hudoptions_groupBox)
-    #     self.showfps_checkBox.setGeometry(QtCore.QRect(200, 50, 101, 20))
-    #     self.showfps_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
-    #     self.showfps_checkBox.setText(("Show FPS"))
-    #     self.showfps_checkBox.setChecked(currentSettings["ShowFPS"])
-    #     self.showfps_checkBox.setObjectName(("showfps_checkBox"))
-    #
-    #     self.showframerange_checkBox = QtWidgets.QCheckBox(self.hudoptions_groupBox)
-    #     self.showframerange_checkBox.setGeometry(QtCore.QRect(20, 80, 131, 20))
-    #     self.showframerange_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
-    #     self.showframerange_checkBox.setText(("Show Frame Range"))
-    #     # v1.1 SPECIFIC
-    #     try:
-    #         self.showframerange_checkBox.setChecked(currentSettings["ShowFrameRange"])
-    #     except KeyError:
-    #         self.showframerange_checkBox.setChecked(True)
-    #     self.showframerange_checkBox.setObjectName(("showframerange_checkBox"))
-    #
-    #     self.pbsettings_buttonBox.accepted.connect(onPbSettingsAccept)
-    #     self.pbsettings_buttonBox.rejected.connect(self.pbSettings_dialog.reject)
-    #     self.quality_spinBox.valueChanged.connect(self.quality_horizontalSlider.setValue)
-    #     self.quality_horizontalSlider.valueChanged.connect(self.quality_spinBox.setValue)
-    #
-    #     self.pbSettings_dialog.show()
-    #
-    # def pbSettingsMaxUI(self):
-    #     # This method iS Software Specific
-    #
-    #     # if BoilerDict["Environment"]=="Standalone":
-    #     #     manager=self._getManager()
-    #     # else:
-    #     #     manager = self.manager
-    #     manager = self._getManager()
-    #
-    #     passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query",
-    #                                            "Enter Admin Password:", QtWidgets.QLineEdit.Password)
-    #
-    #     if ok:
-    #         if manager.checkPassword(passw):
-    #             pass
-    #         else:
-    #             self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
-    #             return
-    #     else:
-    #         return
-    #
-    #     def onPbSettingsAccept():
-    #         newPbSettings = {"Resolution": (self.resolutionx_spinBox.value(), self.resolutiony_spinBox.value()),
-    #                          "Format": "avi",
-    #                          "Codec": "N/A",
-    #                          "Percent": 100,  ## this one never changes
-    #                          "Quality": "N/A",
-    #                          "ShowFrameNumber": self.showframenumber_checkBox.isChecked(),
-    #                          "ShowSceneName": "N/A",
-    #                          "ShowCategory": "N/A",
-    #                          "ShowFPS": "N/A",
-    #                          "ShowFrameRange": "N/A",
-    #                          "PolygonOnly": self.polygononly_checkBox.isChecked(),
-    #                          "ShowGrid": self.showgrid_checkBox.isChecked(),
-    #                          "ClearSelection": self.clearselection_checkBox.isChecked(),
-    #                          "DisplayTextures": "N/A",
-    #                          "WireOnShaded": self.wireonshaded_checkBox.isChecked(),
-    #                          "UseDefaultMaterial": "N/A"
-    #                          }
-    #         manager.savePBSettings(newPbSettings)
-    #         self.statusBar().showMessage("Status | Playblast Settings Saved")
-    #         self.pbSettings_dialog.accept()
-    #
-    #     currentSettings = manager.loadPBSettings()
-    #
-    #     self.pbSettings_dialog = QtWidgets.QDialog(parent=self)
-    #     self.pbSettings_dialog.setModal(True)
-    #     self.pbSettings_dialog.setObjectName(("Playblast_Dialog"))
-    #     self.pbSettings_dialog.resize(380, 483)
-    #     self.pbSettings_dialog.setMaximumSize(QtCore.QSize(380, 400))
-    #     self.pbSettings_dialog.setWindowTitle(("Set Playblast Settings"))
-    #
-    #     self.pbsettings_buttonBox = QtWidgets.QDialogButtonBox(self.pbSettings_dialog)
-    #     self.pbsettings_buttonBox.setGeometry(QtCore.QRect(20, 345, 341, 30))
-    #     self.pbsettings_buttonBox.setOrientation(QtCore.Qt.Horizontal)
-    #     self.pbsettings_buttonBox.setStandardButtons(
-    #         QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Save)
-    #     self.pbsettings_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
-    #     self.pbsettings_buttonBox.button(QtWidgets.QDialogButtonBox.Save).setMinimumSize(QtCore.QSize(100, 30))
-    #     self.pbsettings_buttonBox.setObjectName(("pbsettings_buttonBox"))
-    #
-    #     self.videoproperties_groupBox = QtWidgets.QGroupBox(self.pbSettings_dialog)
-    #     self.videoproperties_groupBox.setGeometry(QtCore.QRect(10, 20, 361, 80))
-    #     self.videoproperties_groupBox.setTitle(("Video Properties"))
-    #     self.videoproperties_groupBox.setObjectName(("videoproperties_groupBox"))
-    #
-    #     self.resolution_label = QtWidgets.QLabel(self.videoproperties_groupBox)
-    #     self.resolution_label.setGeometry(QtCore.QRect(30, 30, 61, 20))
-    #     self.resolution_label.setFrameShape(QtWidgets.QFrame.NoFrame)
-    #     self.resolution_label.setFrameShadow(QtWidgets.QFrame.Plain)
-    #     self.resolution_label.setText(("Resolution"))
-    #     self.resolution_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-    #     self.resolution_label.setObjectName(("resolution_label"))
-    #
-    #     self.resolutionx_spinBox = QtWidgets.QSpinBox(self.videoproperties_groupBox)
-    #     self.resolutionx_spinBox.setGeometry(QtCore.QRect(100, 30, 61, 21))
-    #     self.resolutionx_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-    #     self.resolutionx_spinBox.setMinimum(0)
-    #     self.resolutionx_spinBox.setMaximum(4096)
-    #     self.resolutionx_spinBox.setProperty("value", currentSettings["Resolution"][0])
-    #     self.resolutionx_spinBox.setObjectName(("resolutionx_spinBox"))
-    #
-    #     self.resolutiony_spinBox = QtWidgets.QSpinBox(self.videoproperties_groupBox)
-    #     self.resolutiony_spinBox.setGeometry(QtCore.QRect(170, 30, 61, 21))
-    #     self.resolutiony_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-    #     self.resolutiony_spinBox.setMinimum(1)
-    #     self.resolutiony_spinBox.setMaximum(4096)
-    #     self.resolutiony_spinBox.setProperty("value", currentSettings["Resolution"][1])
-    #     self.resolutiony_spinBox.setObjectName(("resolutiony_spinBox"))
-    #
-    #     self.viewportoptions_groupBox = QtWidgets.QGroupBox(self.pbSettings_dialog)
-    #     self.viewportoptions_groupBox.setGeometry(QtCore.QRect(10, 120, 361, 95))
-    #     self.viewportoptions_groupBox.setTitle(("Viewport Options"))
-    #     self.viewportoptions_groupBox.setObjectName(("viewportoptions_groupBox"))
-    #
-    #     self.polygononly_checkBox = QtWidgets.QCheckBox(self.viewportoptions_groupBox)
-    #     self.polygononly_checkBox.setGeometry(QtCore.QRect(60, 30, 91, 20))
-    #     self.polygononly_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
-    #     self.polygononly_checkBox.setText(("Polygon Only"))
-    #     self.polygononly_checkBox.setChecked(currentSettings["PolygonOnly"])
-    #     self.polygononly_checkBox.setObjectName(("polygononly_checkBox"))
-    #
-    #     self.showgrid_checkBox = QtWidgets.QCheckBox(self.viewportoptions_groupBox)
-    #     self.showgrid_checkBox.setGeometry(QtCore.QRect(210, 30, 91, 20))
-    #     self.showgrid_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
-    #     self.showgrid_checkBox.setText(("Show Grid"))
-    #     self.showgrid_checkBox.setChecked(currentSettings["ShowGrid"])
-    #     self.showgrid_checkBox.setObjectName(("showgrid_checkBox"))
-    #
-    #     self.clearselection_checkBox = QtWidgets.QCheckBox(self.viewportoptions_groupBox)
-    #     self.clearselection_checkBox.setGeometry(QtCore.QRect(60, 60, 91, 20))
-    #     self.clearselection_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
-    #     self.clearselection_checkBox.setText(("Clear Selection"))
-    #     self.clearselection_checkBox.setChecked(currentSettings["ClearSelection"])
-    #     self.clearselection_checkBox.setObjectName(("clearselection_checkBox"))
-    #
-    #     self.wireonshaded_checkBox = QtWidgets.QCheckBox(self.viewportoptions_groupBox)
-    #     self.wireonshaded_checkBox.setGeometry(QtCore.QRect(201, 60, 100, 20))
-    #     self.wireonshaded_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
-    #     self.wireonshaded_checkBox.setText(("Wire On Shaded"))
-    #     try:
-    #         self.wireonshaded_checkBox.setChecked(currentSettings["WireOnShaded"])
-    #     except KeyError:
-    #         self.wireonshaded_checkBox.setChecked(False)
-    #     self.wireonshaded_checkBox.setObjectName(("wireonshaded_checkBox"))
-    #
-    #     self.hudoptions_groupBox = QtWidgets.QGroupBox(self.pbSettings_dialog)
-    #     self.hudoptions_groupBox.setGeometry(QtCore.QRect(10, 240, 361, 80))
-    #     self.hudoptions_groupBox.setTitle(("HUD Options"))
-    #     self.hudoptions_groupBox.setObjectName(("hudoptions_groupBox"))
-    #
-    #     self.showframenumber_checkBox = QtWidgets.QCheckBox(self.hudoptions_groupBox)
-    #     self.showframenumber_checkBox.setGeometry(QtCore.QRect(20, 20, 131, 20))
-    #     self.showframenumber_checkBox.setLayoutDirection(QtCore.Qt.RightToLeft)
-    #     self.showframenumber_checkBox.setText(("Show Frame Number"))
-    #     self.showframenumber_checkBox.setChecked(currentSettings["ShowFrameNumber"])
-    #     self.showframenumber_checkBox.setObjectName(("showframenumber_checkBox"))
-    #
-    #     self.pbsettings_buttonBox.accepted.connect(onPbSettingsAccept)
-    #     self.pbsettings_buttonBox.rejected.connect(self.pbSettings_dialog.reject)
-    #
-    #     self.pbSettings_dialog.show()
-
-    # def addRemoveUserUI(self):
-    #     # This method is NOT Software Specific
-    #     passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query",
-    #                                            "Enter Admin Password:", QtWidgets.QLineEdit.Password)
-    #
-    #     if ok:
-    #         if self.manager.checkPassword(passw):
-    #             pass
-    #         else:
-    #             self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
-    #             return
-    #     else:
-    #         return
-    #
-    #     userControl_Dialog = QtWidgets.QDialog(parent=self)
-    #     userControl_Dialog.setObjectName(("userControl_Dialog"))
-    #     userControl_Dialog.resize(349, 285)
-    #     userControl_Dialog.setWindowTitle(("Add/Remove Users"))
-    #
-    #     verticalLayout_2 = QtWidgets.QVBoxLayout(userControl_Dialog)
-    #
-    #     users_label = QtWidgets.QLabel(userControl_Dialog)
-    #     users_label.setText("Users:")
-    #     verticalLayout_2.addWidget(users_label)
-    #
-    #     horizontalLayout = QtWidgets.QHBoxLayout()
-    #
-    #     users_listWidget = QtWidgets.QListWidget(userControl_Dialog)
-    #     horizontalLayout.addWidget(users_listWidget)
-    #
-    #     verticalLayout = QtWidgets.QVBoxLayout()
-    #     verticalLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
-    #
-    #     add_pushButton = QtWidgets.QPushButton(userControl_Dialog)
-    #     add_pushButton.setText(("Add..."))
-    #     verticalLayout.addWidget(add_pushButton)
-    #
-    #     remove_pushButton = QtWidgets.QPushButton(userControl_Dialog)
-    #     remove_pushButton.setText(("Remove"))
-    #     verticalLayout.addWidget(remove_pushButton)
-    #
-    #     spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-    #     verticalLayout.addItem(spacerItem)
-    #
-    #     horizontalLayout.addLayout(verticalLayout)
-    #     verticalLayout_2.addLayout(horizontalLayout)
-    #
-    #     buttonBox = QtWidgets.QDialogButtonBox(userControl_Dialog)
-    #     CloseButton = buttonBox.addButton("Close", QtWidgets.QDialogButtonBox.RejectRole)
-    #     CloseButton.setMinimumSize(QtCore.QSize(100, 30))
-    #
-    #     verticalLayout_2.addWidget(buttonBox)
-    #
-    #     # list the users
-    #     def updateUsers():
-    #         user_list_sorted = self.manager.getUsers()
-    #         users_listWidget.clear()
-    #         users_listWidget.addItems(user_list_sorted)
-    #
-    #     def onRemoveUser():
-    #         row = users_listWidget.currentRow()
-    #         if row == -1:
-    #             return
-    #         self.manager.removeUser(str(users_listWidget.currentItem().text()))
-    #         self.manager.currentUser = self.manager.getUsers()[0]
-    #         self._initUsers()
-    #         updateUsers()
-    #
-    #     def addNewUserUI():
-    #         addUser_Dialog = QtWidgets.QDialog(parent=self)
-    #         addUser_Dialog.resize(260, 114)
-    #         addUser_Dialog.setMaximumSize(QtCore.QSize(16777215, 150))
-    #         addUser_Dialog.setFocusPolicy(QtCore.Qt.ClickFocus)
-    #         addUser_Dialog.setWindowTitle(("Add New User"))
-    #
-    #         verticalLayout = QtWidgets.QVBoxLayout(addUser_Dialog)
-    #
-    #         addNewUser_label = QtWidgets.QLabel(addUser_Dialog)
-    #         addNewUser_label.setText("Add New User:")
-    #         verticalLayout.addWidget(addNewUser_label)
-    #
-    #         formLayout = QtWidgets.QFormLayout()
-    #         formLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
-    #         formLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
-    #         formLayout.setRowWrapPolicy(QtWidgets.QFormLayout.DontWrapRows)
-    #         formLayout.setLabelAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-    #         formLayout.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
-    #
-    #         fullname_label = QtWidgets.QLabel(addUser_Dialog)
-    #         fullname_label.setFocusPolicy(QtCore.Qt.StrongFocus)
-    #         fullname_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-    #         fullname_label.setText("Full Name:")
-    #         formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, fullname_label)
-    #
-    #         fullname_lineEdit = QtWidgets.QLineEdit(addUser_Dialog)
-    #         # fullname_lineEdit.setFocusPolicy(QtCore.Qt.TabFocus)
-    #         fullname_lineEdit.setPlaceholderText("e.g \'Jon Snow\'")
-    #         formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, fullname_lineEdit)
-    #
-    #         initials_label = QtWidgets.QLabel(addUser_Dialog)
-    #         initials_label.setText("Initials:")
-    #         formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, initials_label)
-    #
-    #         initials_lineEdit = QtWidgets.QLineEdit(addUser_Dialog)
-    #         # initials_lineEdit.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
-    #         initials_lineEdit.setPlaceholderText("e.g \'js\' (must be unique)")
-    #         formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, initials_lineEdit)
-    #         verticalLayout.addLayout(formLayout)
-    #
-    #         buttonBox = QtWidgets.QDialogButtonBox(addUser_Dialog)
-    #         buttonBox.setOrientation(QtCore.Qt.Horizontal)
-    #         buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
-    #         verticalLayout.addWidget(buttonBox)
-    #         addUser_Dialog.show()
-    #
-    #
-    #         # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
-    #         # sizePolicy.setHorizontalStretch(0)
-    #         # sizePolicy.setVerticalStretch(0)
-    #         buttonBox.setMaximumSize(QtCore.QSize(16777215, 30))
-    #         buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setMinimumSize(QtCore.QSize(100, 30))
-    #         buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
-    #
-    #         def onAddUser():
-    #             ret, msg = self.manager.addUser(str(fullname_lineEdit.text()), str(initials_lineEdit.text()))
-    #             if ret == -1:
-    #                 self.infoPop(textTitle="Cannot Add User", textHeader=msg)
-    #                 return
-    #             self.manager.currentUser = fullname_lineEdit.text()
-    #             self._initUsers()
-    #             updateUsers()
-    #             addUser_Dialog.close()
-    #
-    #         buttonBox.accepted.connect(onAddUser)
-    #         buttonBox.rejected.connect(addUser_Dialog.reject)
-    #
-    #
-    #
-    #
-    #     updateUsers()
-    #
-    #     add_pushButton.clicked.connect(addNewUserUI)
-    #     remove_pushButton.clicked.connect(onRemoveUser)
-    #
-    #     buttonBox.rejected.connect(userControl_Dialog.reject)
-    #
-    #     # buttonBox.accepted.connect(onAccepted)
-    #     # buttonBox.rejected.connect(projectSettings_Dialog.reject)
-    #
-    #     userControl_Dialog.show()
-
-    # def addRemoveCategoryUI(self):
-    #     # This method IS Software Specific
-    #     manager = self._getManager()
-    #
-    #     passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query",
-    #                                            "Enter Admin Password:", QtWidgets.QLineEdit.Password)
-    #
-    #     if ok:
-    #         if manager.checkPassword(passw):
-    #             pass
-    #         else:
-    #             self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
-    #             return
-    #     else:
-    #         return
-    #
-    #
-    #     # if BoilerDict["Environment"]=="Standalone":
-    #     #     manager=self._getManager()
-    #     # else:
-    #     #     manager = self.manager
-    #
-    #
-    #     categories_dialog = QtWidgets.QDialog(parent=self)
-    #     categories_dialog.setModal(True)
-    #     categories_dialog.setObjectName(("category_Dialog"))
-    #     categories_dialog.setMinimumSize(QtCore.QSize(342, 177))
-    #     categories_dialog.setMaximumSize(QtCore.QSize(342, 177))
-    #     categories_dialog.setWindowTitle(("Add/Remove Categories"))
-    #     categories_dialog.setFocus()
-    #
-    #     addnewcategory_groupbox = QtWidgets.QGroupBox(categories_dialog)
-    #     addnewcategory_groupbox.setGeometry(QtCore.QRect(10, 10, 321, 81))
-    #     addnewcategory_groupbox.setTitle(("Add New Category"))
-    #     addnewcategory_groupbox.setObjectName(("addnewcategory_groupBox"))
-    #
-    #     categoryName_label = QtWidgets.QLabel(addnewcategory_groupbox)
-    #     categoryName_label.setGeometry(QtCore.QRect(10, 30, 81, 21))
-    #     categoryName_label.setLayoutDirection(QtCore.Qt.LeftToRight)
-    #     categoryName_label.setText(("Category Name:"))
-    #     categoryName_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-    #     categoryName_label.setObjectName(("categoryName_label"))
-    #
-    #     self.categoryName_lineEdit= QtWidgets.QLineEdit(addnewcategory_groupbox)
-    #     self.categoryName_lineEdit.setGeometry(QtCore.QRect(105, 30, 135, 20))
-    #     self.categoryName_lineEdit.setPlaceholderText(("e.g \"Look Dev\""))
-    #     self.categoryName_lineEdit.setObjectName(("categoryName_lineEdit"))
-    #
-    #     addnewcategory_pushButton = QtWidgets.QPushButton(addnewcategory_groupbox)
-    #     addnewcategory_pushButton.setGeometry(QtCore.QRect(250, 28, 61, 26))
-    #     addnewcategory_pushButton.setText(("Add"))
-    #     addnewcategory_pushButton.setObjectName(("addnewcategory_pushButton"))
-    #
-    #     deletecategory_groupBox = QtWidgets.QGroupBox(categories_dialog)
-    #     deletecategory_groupBox.setGeometry(QtCore.QRect(10, 110, 321, 51))
-    #     deletecategory_groupBox.setTitle(("Delete category"))
-    #     deletecategory_groupBox.setObjectName(("deletecategory_groupBox"))
-    #
-    #     self.selectcategory_comboBox = QtWidgets.QComboBox(deletecategory_groupBox)
-    #     self.selectcategory_comboBox.setGeometry(QtCore.QRect(10, 20, 231, 22))
-    #     self.selectcategory_comboBox.setObjectName(("selectcategory_comboBox"))
-    #
-    #     # self.selectcategory_comboBox.addItems(manager._categories)
-    #     self.selectcategory_comboBox.addItems(manager.getCategories())
-    #     # userListSorted = manager._categories
-    #     # for num in range(len(userListSorted)):
-    #     #     self.selectuser_comboBox.addItem((userListSorted[num]))
-    #     #     self.selectuser_comboBox.setItemText(num, (userListSorted[num]))
-    #
-    #     deletecategory_pushButton = QtWidgets.QPushButton(deletecategory_groupBox)
-    #     deletecategory_pushButton.setGeometry(QtCore.QRect(250, 20, 61, 21))
-    #     deletecategory_pushButton.setText(("Delete"))
-    #     deletecategory_pushButton.setObjectName(("deletecategory_pushButton"))
-    #
-    #
-    #     def onAddCategory():
-    #         manager.addCategory(str(self.categoryName_lineEdit.text()))
-    #
-    #
-    #         preTab = QtWidgets.QWidget()
-    #         preTab.setObjectName(self.categoryName_lineEdit.text())
-    #         self.category_tabWidget.addTab(preTab, self.categoryName_lineEdit.text())
-    #         self.selectcategory_comboBox.addItem(self.categoryName_lineEdit.text())
-    #
-    #         self.categoryName_lineEdit.setText("")
-    #
-    #     def onRemoveCategory():
-    #         manager.removeCategory(str(self.selectcategory_comboBox.currentText()))
-    #         self.selectcategory_comboBox.clear()
-    #         self.selectcategory_comboBox.addItems(manager.getCategories())
-    #
-    #         self._initCategories()
-    #
-    #
-    #     addnewcategory_pushButton.clicked.connect(onAddCategory)
-    #     deletecategory_pushButton.clicked.connect(onRemoveCategory)
-    #
-    #     self.categoryName_lineEdit.textChanged.connect(
-    #         lambda: self._checkValidity(self.categoryName_lineEdit.text(), addnewcategory_pushButton,
-    #                                     self.categoryName_lineEdit))
-    #
-    #
-    #     categories_dialog.show()
-
-    # def projectSettingsUI(self):
-    #     # This method is NOT Software Specific
-    #     passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query",
-    #                                            "Enter Admin Password:", QtWidgets.QLineEdit.Password)
-    #
-    #     if ok:
-    #         if self.manager.checkPassword(passw):
-    #             pass
-    #         else:
-    #             self.infoPop(textTitle="Incorrect Password", textHeader="The Password is invalid")
-    #             return
-    #     else:
-    #         return
-    #
-    #
-    #     projectSettingsDB = self.manager.loadProjectSettings()
-    #
-    #     projectSettings_Dialog = QtWidgets.QDialog(parent=self)
-    #     projectSettings_Dialog.setObjectName("projectSettings_Dialog")
-    #     projectSettings_Dialog.resize(270, 120)
-    #     projectSettings_Dialog.setMinimumSize(QtCore.QSize(270, 120))
-    #     projectSettings_Dialog.setMaximumSize(QtCore.QSize(270, 120))
-    #     projectSettings_Dialog.setWindowTitle("Project Settings")
-    #
-    #     gridLayout = QtWidgets.QGridLayout(projectSettings_Dialog)
-    #     gridLayout.setObjectName(("gridLayout"))
-    #
-    #     buttonBox = QtWidgets.QDialogButtonBox(projectSettings_Dialog)
-    #     sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
-    #     sizePolicy.setHorizontalStretch(0)
-    #     sizePolicy.setVerticalStretch(0)
-    #     buttonBox.setMaximumSize(QtCore.QSize(16777215, 30))
-    #     buttonBox.setOrientation(QtCore.Qt.Horizontal)
-    #     buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Save)
-    #     buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
-    #     buttonBox.button(QtWidgets.QDialogButtonBox.Save).setMinimumSize(QtCore.QSize(100, 30))
-    #     buttonBox.setObjectName("buttonBox")
-    #
-    #     gridLayout.addWidget(buttonBox, 1, 0, 1, 1)
-    #
-    #     formLayout = QtWidgets.QFormLayout()
-    #     formLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
-    #     formLayout.setLabelAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-    #     formLayout.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
-    #     formLayout.setObjectName("formLayout")
-    #
-    #     resolution_label = QtWidgets.QLabel(projectSettings_Dialog)
-    #     resolution_label.setText("Resolution:")
-    #     resolution_label.setObjectName("resolution_label")
-    #     formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, resolution_label)
-    #
-    #     horizontalLayout = QtWidgets.QHBoxLayout()
-    #     horizontalLayout.setObjectName("horizontalLayout")
-    #
-    #     resolutionX_spinBox = QtWidgets.QSpinBox(projectSettings_Dialog)
-    #     resolutionX_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-    #     resolutionX_spinBox.setObjectName("resolutionX_spinBox")
-    #     horizontalLayout.addWidget(resolutionX_spinBox)
-    #     resolutionX_spinBox.setRange(1, 99999)
-    #     resolutionX_spinBox.setValue(projectSettingsDB["Resolution"][0])
-    #
-    #     resolutionY_spinBox = QtWidgets.QSpinBox(projectSettings_Dialog)
-    #     resolutionY_spinBox.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-    #     resolutionY_spinBox.setObjectName("resolutionY_spinBox")
-    #     horizontalLayout.addWidget(resolutionY_spinBox)
-    #     resolutionY_spinBox.setRange(1, 99999)
-    #     resolutionY_spinBox.setValue(projectSettingsDB["Resolution"][1])
-    #
-    #     formLayout.setLayout(0, QtWidgets.QFormLayout.FieldRole, horizontalLayout)
-    #     fps_label = QtWidgets.QLabel(projectSettings_Dialog)
-    #     fps_label.setText("FPS")
-    #     fps_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-    #     fps_label.setObjectName("fps_label")
-    #     formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, fps_label)
-    #
-    #     fps_comboBox = QtWidgets.QComboBox(projectSettings_Dialog)
-    #     fps_comboBox.setMaximumSize(QtCore.QSize(60, 16777215))
-    #     fps_comboBox.setObjectName("fps_comboBox")
-    #     formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, fps_comboBox)
-    #     fps_comboBox.addItems(self.manager.fpsList)
-    #     try:
-    #         index = self.manager.fpsList.index(str(projectSettingsDB["FPS"]))
-    #     except:
-    #         index = 2
-    #     fps_comboBox.setCurrentIndex(index)
-    #     gridLayout.addLayout(formLayout, 0, 0, 1, 1)
-    #
-    #     # SIGNALS
-    #     # -------
-    #     def onAccepted():
-    #         projectSettingsDB = {"Resolution": [resolutionX_spinBox.value(), resolutionY_spinBox.value()],
-    #                              "FPS": int(fps_comboBox.currentText())}
-    #         self.manager.saveProjectSettings(projectSettingsDB)
-    #         projectSettings_Dialog.close()
-    #
-    #     buttonBox.accepted.connect(onAccepted)
-    #     buttonBox.rejected.connect(projectSettings_Dialog.reject)
-    #
-    #     projectSettings_Dialog.show()
-
-    # def changePasswordUI(self):
-    #     # This method is NOT Software Specific
-    #     changePassword_Dialog = QtWidgets.QDialog(parent=self)
-    #     changePassword_Dialog.setObjectName("projectSettings_Dialog")
-    #     changePassword_Dialog.resize(270, 120)
-    #     changePassword_Dialog.setMinimumSize(QtCore.QSize(270, 120))
-    #     changePassword_Dialog.setMaximumSize(QtCore.QSize(270, 120))
-    #     changePassword_Dialog.setWindowTitle("Project Settings")
-    #
-    #     gridLayout = QtWidgets.QGridLayout(changePassword_Dialog)
-    #     gridLayout.setObjectName(("gridLayout"))
-    #
-    #     buttonBox = QtWidgets.QDialogButtonBox(changePassword_Dialog)
-    #     sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
-    #     sizePolicy.setHorizontalStretch(0)
-    #     sizePolicy.setVerticalStretch(0)
-    #     buttonBox.setMaximumSize(QtCore.QSize(16777215, 30))
-    #     buttonBox.setOrientation(QtCore.Qt.Horizontal)
-    #     buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Save)
-    #     buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
-    #     buttonBox.button(QtWidgets.QDialogButtonBox.Save).setMinimumSize(QtCore.QSize(100, 30))
-    #     buttonBox.setObjectName("buttonBox")
-    #
-    #     gridLayout.addWidget(buttonBox, 1, 0, 1, 1)
-    #
-    #     formLayout = QtWidgets.QFormLayout()
-    #     formLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
-    #     formLayout.setLabelAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-    #     formLayout.setFormAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
-    #     formLayout.setObjectName("formLayout")
-    #
-    #     oldPass_label = QtWidgets.QLabel(changePassword_Dialog)
-    #     oldPass_label.setText("Old Password:")
-    #     formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, oldPass_label)
-    #
-    #     oldPass_lineEdit = QtWidgets.QLineEdit(changePassword_Dialog)
-    #     oldPass_lineEdit.setEchoMode(QtWidgets.QLineEdit.Password)
-    #     formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, oldPass_lineEdit)
-    #
-    #
-    #     newPass_label = QtWidgets.QLabel(changePassword_Dialog)
-    #     newPass_label.setText("New Password:")
-    #     newPass_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-    #     formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, newPass_label)
-    #
-    #     newPass_lineEdit = QtWidgets.QLineEdit(changePassword_Dialog)
-    #     newPass_lineEdit.setEchoMode(QtWidgets.QLineEdit.Password)
-    #     formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, newPass_lineEdit)
-    #
-    #     newPassAgain_label = QtWidgets.QLabel(changePassword_Dialog)
-    #     newPassAgain_label.setText("New Password Again:")
-    #     newPassAgain_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-    #     formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, newPassAgain_label)
-    #
-    #     newPassAgain_lineEdit = QtWidgets.QLineEdit(changePassword_Dialog)
-    #     newPassAgain_lineEdit.setEchoMode(QtWidgets.QLineEdit.Password)
-    #     formLayout.setWidget(2, QtWidgets.QFormLayout.FieldRole, newPassAgain_lineEdit)
-    #
-    #     gridLayout.addLayout(formLayout, 0, 0, 1, 1)
-    #     # SIGNALS
-    #     # -------
-    #     def onAccepted():
-    #
-    #         if not self.manager.checkPassword(oldPass_lineEdit.text()):
-    #             self.infoPop(textTitle="Incorrect Password", textHeader="Invalid Old Password", type="C")
-    #             return
-    #         if newPass_lineEdit.text() == "" or newPassAgain_lineEdit.text() == "":
-    #             self.infoPop(textTitle="Error", textHeader="Admin Password cannot be blank", type="C")
-    #             return
-    #         if newPass_lineEdit.text() != newPassAgain_lineEdit.text():
-    #             self.infoPop(textTitle="Error", textHeader="New passwords are not matching", type="C")
-    #             return
-    #
-    #         if self.manager.changePassword(oldPass_lineEdit.text(), newPass_lineEdit.text()):
-    #             self.infoPop(textTitle="Success", textHeader="Password Changed", type="I")
-    #             changePassword_Dialog.close()
-    #
-    #     buttonBox.accepted.connect(onAccepted)
-    #     buttonBox.rejected.connect(changePassword_Dialog.reject)
-    #
-    #     changePassword_Dialog.show()
-
     def saveBaseSceneDialog(self):
         # This method IS Software Specific
         saveBaseScene_Dialog = QtWidgets.QDialog(parent=self)
@@ -5753,29 +4783,10 @@ class MainUI(QtWidgets.QMainWindow):
 
         sbs_masterLayout = QtWidgets.QVBoxLayout(saveBaseScene_Dialog)
 
-        # headerLayout = QtWidgets.QHBoxLayout(saveBaseScene_Dialog)
-        # sbs_masterLayout.addLayout(headerLayout)
-        #
-        # tikIcon_label = QtWidgets.QLabel()
-        # tikIcon_label.setFixedSize(115, 30)
-        # saveBaseHeaderBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
-        # tikIcon_label.setPixmap(saveBaseHeaderBitmap)
-        # tikIcon_label.setScaledContents(True)
-        # headerLayout.addWidget(tikIcon_label)
-        #
-        # resolvedPath_label = QtWidgets.QLabel()
-        # resolvedPath_label.setText((""))
-        # resolvedPath_label.setIndent(12)
-        # resolvedPath_label.setWordWrap(True)
-        # headerLayout.addWidget(resolvedPath_label)
-
-
         # ----------
         # HEADER BAR
         # ----------
         margin = 5
-        # barColor = "background-color: rgb(80,80,80);"
-        # barColor = "background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #565656, stop: 0.1 #525252, stop: 0.5 #4e4e4e, stop: 0.9 #4a4a4a, stop: 1 #464646);"
         colorWidget = QtWidgets.QWidget(saveBaseScene_Dialog)
         headerLayout = QtWidgets.QHBoxLayout(colorWidget)
         headerLayout.setSpacing(0)
@@ -5783,8 +4794,7 @@ class MainUI(QtWidgets.QMainWindow):
         except AttributeError: pass
 
         tikIcon_label = QtWidgets.QLabel(self.centralwidget)
-        # tikIcon_label.setFixedSize(115, 30)
-        tikIcon_label.setObjectName("header")
+        tikIcon_label.setProperty("header", True)
         tikIcon_label.setMaximumWidth(150)
         try: tikIcon_label.setMargin(margin)
         except AttributeError: pass
@@ -5801,7 +4811,7 @@ class MainUI(QtWidgets.QMainWindow):
         headerLayout.addWidget(tikIcon_label)
 
         resolvedPath_label = QtWidgets.QLabel()
-        resolvedPath_label.setObjectName("header")
+        resolvedPath_label.setProperty("header", True)
         try:resolvedPath_label.setMargin(margin)
         except AttributeError: pass
         resolvedPath_label.setIndent(12)
@@ -5816,7 +4826,6 @@ class MainUI(QtWidgets.QMainWindow):
         headerLayout.addWidget(resolvedPath_label)
 
 
-        # colorWidget.setStyleSheet(barColor)
         sbs_masterLayout.addWidget(colorWidget)
         # ----------
         # ----------
@@ -6020,7 +5029,6 @@ class MainUI(QtWidgets.QMainWindow):
         # This method IS Software Specific
         saveV_Dialog = QtWidgets.QDialog(parent=self)
         saveV_Dialog.setModal(True)
-        saveV_Dialog.setObjectName(("saveV_Dialog"))
         saveV_Dialog.resize(300, 250)
         saveV_Dialog.setMinimumSize(QtCore.QSize(300, 250))
         saveV_Dialog.setMaximumSize(QtCore.QSize(600, 600))
@@ -6042,7 +5050,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         tikIcon_label = QtWidgets.QLabel(self.centralwidget)
         # tikIcon_label.setFixedSize(115, 30)
-        tikIcon_label.setObjectName("header")
+        tikIcon_label.setProperty("header", True)
         tikIcon_label.setMaximumWidth(114)
         try: tikIcon_label.setMargin(margin)
         except AttributeError: pass
@@ -6059,7 +5067,7 @@ class MainUI(QtWidgets.QMainWindow):
         headerLayout.addWidget(tikIcon_label)
 
         resolvedPath_label = QtWidgets.QLabel()
-        resolvedPath_label.setObjectName("header")
+        resolvedPath_label.setProperty("header", True)
         try: resolvedPath_label.setMargin(margin)
         except AttributeError: pass
         resolvedPath_label.setIndent(2)
@@ -6073,7 +5081,6 @@ class MainUI(QtWidgets.QMainWindow):
         headerLayout.addWidget(resolvedPath_label)
 
 
-        # colorWidget.setStyleSheet(barColor)
         sv_masterLayout.addWidget(colorWidget)
         # ----------
         # ----------
@@ -6142,7 +5149,6 @@ class MainUI(QtWidgets.QMainWindow):
         sv_buttonBox = QtWidgets.QDialogButtonBox(saveV_Dialog)
         sv_buttonBox.setOrientation(QtCore.Qt.Horizontal)
         sv_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
-        sv_buttonBox.setObjectName(("buttonBox"))
         right_verticalLayout.addWidget(sv_buttonBox)
         sv_masterLayout.addLayout(right_verticalLayout)
 
@@ -6250,7 +5256,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         addNotes_Dialog = QtWidgets.QDialog(parent=self)
         addNotes_Dialog.setModal(True)
-        addNotes_Dialog.setObjectName(("addNotes_Dialog"))
         addNotes_Dialog.resize(255, 290)
         addNotes_Dialog.setMinimumSize(QtCore.QSize(255, 290))
         addNotes_Dialog.setMaximumSize(QtCore.QSize(255, 290))
@@ -6259,11 +5264,9 @@ class MainUI(QtWidgets.QMainWindow):
         addNotes_label = QtWidgets.QLabel(addNotes_Dialog)
         addNotes_label.setGeometry(QtCore.QRect(15, 15, 100, 20))
         addNotes_label.setText(("Additional Notes"))
-        addNotes_label.setObjectName(("addNotes_label"))
 
         addNotes_textEdit = QtWidgets.QTextEdit(addNotes_Dialog)
         addNotes_textEdit.setGeometry(QtCore.QRect(15, 40, 215, 170))
-        addNotes_textEdit.setObjectName(("addNotes_textEdit"))
 
         addNotes_buttonBox = QtWidgets.QDialogButtonBox(addNotes_Dialog)
         addNotes_buttonBox.setGeometry(QtCore.QRect(20, 250, 220, 32))
@@ -6277,7 +5280,6 @@ class MainUI(QtWidgets.QMainWindow):
         buttonC = addNotes_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel)
         buttonC.setText('Cancel')
 
-        addNotes_buttonBox.setObjectName(("addNotes_buttonBox"))
         addNotes_buttonBox.accepted.connect(lambda: manager.addNote(addNotes_textEdit.toPlainText()))
         addNotes_buttonBox.accepted.connect(self.onVersionChange)
         addNotes_buttonBox.accepted.connect(addNotes_Dialog.accept)
@@ -6336,7 +5338,6 @@ class MainUI(QtWidgets.QMainWindow):
         self._initUsers()
 
         # disable the version related stuff
-        # self.version_comboBox.setStyleSheet("background-color: rgb(80,80,80); color: white")
         # self._vEnableDisable()
         self.onModeChange()
 
@@ -6383,12 +5384,7 @@ class MainUI(QtWidgets.QMainWindow):
             messageLayout.setContentsMargins(0, 0, 0, 0)
             helpText = QtWidgets.QTextEdit()
             helpText.setReadOnly(True)
-            helpText.setStyleSheet("background-color: rgb(255, 255, 255);")
-            helpText.setStyleSheet(""
-                                   "border: 20px solid black;"
-                                   "background-color: black;"
-                                   "font-size: 16px"
-                                   "")
+            helpText.setFontPointSize(14)
             helpText.setText(textInfo)
             messageLayout.addWidget(helpText)
 
@@ -6494,11 +5490,12 @@ class MainUI(QtWidgets.QMainWindow):
 
         if self.load_radioButton.isChecked():
             self.loadScene_pushButton.setText("Load Scene")
-            self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: #242424;")
+            self.scenes_listWidget.setProperty("reference", False)
         else:
             self.loadScene_pushButton.setText("Reference Scene")
-            self.scenes_listWidget.setStyleSheet("border-style: solid; border-width: 2px; border-color: cyan;")
+            self.scenes_listWidget.setProperty("reference", True)
 
+        self.scenes_listWidget.setStyleSheet("") #refresh
         self.manager.currentMode = self.load_radioButton.isChecked()
         self.populateBaseScenes()
 
@@ -6543,14 +5540,7 @@ class MainUI(QtWidgets.QMainWindow):
         # update notes
         self.notes_textEdit.setPlainText(manager.getNotes())
 
-
-        # update thumb
-        # if FORCE_QT4:
-        #     self.tPixmap = QtWidgets.QPixmap(manager.getThumbnail())
-        # else:
-        #     self.tPixmap = QtGui.QPixmap(manager.getThumbnail())
         self.tPixmap = self.Pixmap(manager.getThumbnail())
-        # self.tPixmap = QtGui.QPixmap(self.manager.getThumbnail())
 
         if self.tPixmap.isNull():
             self.thumbnail_label.setPixmap(self.E_tPixmap)
@@ -6558,11 +5548,11 @@ class MainUI(QtWidgets.QMainWindow):
             self.thumbnail_label.setPixmap(self.tPixmap)
 
         if manager.currentVersionIndex != len(manager.getVersions()) and manager.currentVersionIndex != -1:
-            self.version_comboBox.setStyleSheet("color: yellow")
+            self.version_comboBox.setProperty("preVersion", True)
         else:
-            self.version_comboBox.setStyleSheet("color: white")
+            self.version_comboBox.setProperty("preVersion", False)
+        self.version_comboBox.setStyleSheet("")
 
-        # self.version_comboBox.blockSignals(False)
         self._vEnableDisable()
 
     def populateBaseScenes(self, deepCheck=False):
@@ -6573,12 +5563,10 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.scenes_listWidget.blockSignals(True)
         self.scenes_listWidget.clear()
-        # logger.debug("populateBaseScenes")
         baseScenesDict = manager.getBaseScenesInCategory()
         if self.reference_radioButton.isChecked():
             for key in baseScenesDict:
                 if manager.checkReference(baseScenesDict[key]) == 1:
-                    # self.scenes_listWidget.addItem(key)
                     timestamp = os.path.getmtime(baseScenesDict[key])
                     timestampFormatted = datetime.datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
                     item = QtWidgets.QTreeWidgetItem(self.scenes_listWidget, [key, str(timestampFormatted)])
@@ -6591,13 +5579,6 @@ class MainUI(QtWidgets.QMainWindow):
                 codeDict = {-1: QtGui.QColor(255, 0, 0, 255), 1: QtGui.QColor(0, 255, 0, 255),
                             0: QtGui.QColor(255, 255, 0, 255), -2: QtGui.QColor(20, 20, 20, 255)}  # dictionary for color codes red, green, yellow
 
-            # for key in sorted(baseScenesDict):
-            #     retCode = manager.checkReference(baseScenesDict[key], deepCheck=deepCheck) # returns -1, 0 or 1 for color ref
-            #     color = codeDict[retCode]
-            #     listItem = QtWidgets.QListWidgetItem()
-            #     listItem.setText(key)
-            #     listItem.setForeground(color)
-            #     self.scenes_listWidget.addItem(listItem)
             for key in baseScenesDict:
                 retCode = manager.checkReference(baseScenesDict[key], deepCheck=deepCheck) # returns -1, 0 or 1 for color ref
                 color = codeDict[retCode]
@@ -6605,8 +5586,7 @@ class MainUI(QtWidgets.QMainWindow):
                 timestampFormatted = datetime.datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
                 item = QtWidgets.QTreeWidgetItem(self.scenes_listWidget, [key, str(timestampFormatted)])
                 item.setForeground(0, color)
-                # obj_topLevel.setBackground(0, QtGui.QBrush(QtGui.QColor("yellow")))
-                # obj_topLevel.setForeground(0, QtGui.QBrush(QtGui.QColor("black")))
+
 
         self.scenes_listWidget.blockSignals(False)
 
@@ -6809,12 +5789,6 @@ class MainUI(QtWidgets.QMainWindow):
 
     def _initOpenScene(self):
         openSceneInfo = self.manager._openSceneInfo
-        # if openSceneInfo: ## getSceneInfo returns None if there is no json database fil
-        #     self.baseScene_lineEdit.setText("%s ==> %s ==> %s" % (openSceneInfo["subProject"], openSceneInfo["category"], openSceneInfo["shotName"]))
-        #     self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: cyan")
-        # else:
-        #     self.baseScene_lineEdit.setText("Current Scene is not a Base Scene")
-        #     self.baseScene_lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: yellow")
 
         if openSceneInfo:
             jList = []
@@ -6823,24 +5797,32 @@ class MainUI(QtWidgets.QMainWindow):
             jList.extend([openSceneInfo["category"], openSceneInfo["shotName"]])
             dMsg = " > ".join(jList)
             self.baseScene_label.setText(dMsg)
-            # self.baseScene_label.setStyleSheet("background-color: rgb(40,40,40); color: cyan")
-            self.baseScene_label.setStyleSheet("color: cyan")
+            # self.baseScene_label.setStyleSheet("color: cyan")
+            self.baseScene_label.setProperty("baseScene", True)
         else:
             self.baseScene_label.setText("Current Scene is not a Base Scene")
-            # self.baseScene_label.setStyleSheet("background-color: rgb(40,40,40); color: yellow")
-            self.baseScene_label.setStyleSheet("color: yellow")
+            # self.baseScene_label.setStyleSheet("color: yellow")
+            self.baseScene_label.setProperty("baseScene", False)
+        self.baseScene_label.setStyleSheet("")
 
     def _checkValidity(self, text, button, lineEdit, allowSpaces=False, directory=False):
         if text == "":
+            lineEdit.setProperty("style", "normal")
+            lineEdit.setStyleSheet("") #update
             return False
         if self.manager.nameCheck(text, allowSpaces=allowSpaces, directory=directory):
-            lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: white")
+            # lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: white")
+            lineEdit.setProperty("style", "normal")
+            lineEdit.setStyleSheet("") #update
             button.setEnabled(True)
             return True
         else:
-            lineEdit.setStyleSheet("background-color: red; color: black")
+            # lineEdit.setStyleSheet("background-color: red; color: black")
+            lineEdit.setProperty("style", "warning")
+            lineEdit.setStyleSheet("") #update
             button.setEnabled(False)
             return False
+        # print lineEdit.styleSheet()
 
     def _vEnableDisable(self):
         manager = self._getManager()
