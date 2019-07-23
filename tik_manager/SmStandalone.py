@@ -79,63 +79,11 @@ class SwViewer(RootManager):
     def __init__(self, swDict, projectDir, commonFolder):
         super(SwViewer, self).__init__()
         self.swDict = swDict
-        # self.swNiceName = swDict["niceName"]
         self.swName = swDict["niceName"]
         self.projectDir = projectDir
 
         self.init_paths(swDict["niceName"])
         self.init_database()
-
-    # def init_paths(self, commonFolder):
-    #     """Initializes all the necessary paths"""
-    #     logger.debug("Func: init_paths")
-    #     # all paths in here must be absolute paths
-    #     _softwarePathsDict = self.getSoftwarePaths()
-    #
-    #     self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDir(), _softwarePathsDict["userSettingsDir"]))
-    #     self._folderCheck(self._pathsDict["userSettingsDir"])
-    #
-    #     self._pathsDict["bookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smBookmarks.json"))
-    #     self._pathsDict["currentsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smCurrents.json"))
-    #     self._pathsDict["projectsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smProjects.json"))
-    #
-    #     self._pathsDict["projectDir"] = self.getProjectDir()
-    #     self._pathsDict["sceneFile"] = ""
-    #     # _softwarePathsDict = self.getSoftwarePaths()
-    #     if self._pathsDict["projectDir"] == -1 or self._pathsDict["sceneFile"] == -1 or _softwarePathsDict == -1:
-    #         msg = "The following functions must be overridden in inherited class:\n'getSoftware'\n'getProjectDir'\n'getSceneFile'"
-    #         logger.error(msg)
-    #         raise Exception([102, msg])
-    #
-    #     self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
-    #     self._folderCheck(self._pathsDict["masterDir"])
-    #
-    #
-    #     self._pathsDict["databaseDir"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], _softwarePathsDict["databaseDir"]))
-    #     self._folderCheck(self._pathsDict["databaseDir"])
-    #
-    #     self._pathsDict["scenesDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], _softwarePathsDict["scenesDir"]))
-    #     self._folderCheck(self._pathsDict["scenesDir"])
-    #
-    #     self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
-    #     # self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], "subPdata.json"))
-    #     self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "subPdata.json"))
-    #     self._pathsDict["categoriesFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], _softwarePathsDict["categoriesFile"]))
-    #
-    #     self._pathsDict["previewsDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "Playblasts", _softwarePathsDict["niceName"])) # dont change
-    #     self._folderCheck(self._pathsDict["previewsDir"])
-    #
-    #     self._pathsDict["pbSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["previewsDir"], _softwarePathsDict["pbSettingsFile"]))
-    #
-    #     self._pathsDict["sharedSettingsDir"] = commonFolder
-    #
-    #     self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerUsers.json"))
-    #
-    #     self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "softwareDatabase.json"))
-    #     self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerDefaults.json"))
-    #     self._pathsDict["tikConventions"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "tikConventions.json"))
-    #     self._pathsDict["adminPass"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "adminPass.psw"))
-    #
 
     def getSoftwarePaths(self):
         """Overriden function"""
@@ -155,15 +103,11 @@ class SwViewer(RootManager):
             try:
                 versionRoots = [x for x in os.listdir(rootPath) if x.startswith(searchword) and os.path.isdir(os.path.join(rootPath, x))]
             except WindowsError:
-                # msg = "Cannot resolve executable paths"
-                # self._exception(360, msg)
                 return
         else:
             try:
                 versionRoots = [x for x in os.listdir(rootPath) if os.path.isdir(os.path.join(rootPath, x))]
             except WindowsError:
-                # msg = "Cannot resolve executable paths"
-                # self._exception(360, msg)
                 return
         for v in versionRoots:
             exeDir = os.path.join(rootPath, v, relativePath)

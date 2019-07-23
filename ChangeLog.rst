@@ -20,6 +20,7 @@ Tik Manager Version History
 * **Fix.24** Fixed bug which prevents removing users (unicode)
 * **Fix.24** Potential crash cause removed from settings _usersContent
 * **Update.24** TikPhotoshop added to the executable and icon creation group in installer.
+* **Update.25** UI Improvements
 
 2.5
 ---
