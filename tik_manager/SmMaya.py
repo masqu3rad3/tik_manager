@@ -578,15 +578,25 @@ class MayaManager(RootManager, MayaCoreFunctions):
         """Loads the scene at cursor position"""
         logger.debug("Func: loadBaseScene")
         relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"]
-        absSceneFile = os.path.join(self.projectDir, relSceneFile)
-        if os.path.isfile(absSceneFile):
+        absSceneFile = os.path.normpath(os.path.join(self.projectDir, relSceneFile))
+        linCorrect = unicode(absSceneFile.replace("\\", "/"))
+        if os.path.isfile(linCorrect):
             # cmds.file(absSceneFile, o=True, force=force)
-            self._load(absSceneFile, force=True)
+            self._load(linCorrect, force=True)
             return 0
         else:
             msg = "File in Scene Manager database doesnt exist"
             cmds.error(msg)
             return -1, msg
+
+        # if os.path.isfile(absSceneFile.replace(os.sep, "/")):
+        #     # cmds.file(absSceneFile, o=True, force=force)
+        #     self._load(absSceneFile, force=True)
+        #     return 0
+        # else:
+        #     msg = "File in Scene Manager database doesnt exist"
+        #     cmds.error(msg)
+        #     return -1, msg
 
     def importBaseScene(self):
         """Imports the scene at cursor position"""
