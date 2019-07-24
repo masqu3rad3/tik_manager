@@ -1051,6 +1051,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.dirFilter_lineEdit.textChanged.connect(self._filterDirectories)
 
         set_pushButton.clicked.connect(setProject)
+        setproject_buttonBox.rejected.connect(self.setProject_Dialog.reject)
 
         self.setProject_Dialog.show()
 
@@ -2718,9 +2719,9 @@ class MainUI(QtWidgets.QMainWindow):
             swTabs.addTab(tabWidget, cat.replace("categories_", ""))
 
             categories_listWidget.addItems(self.allSettingsDict[cat]["newSettings"])
-            add_pushButton.clicked.connect(lambda ignore, settingKey=cat, listWidget=categories_listWidget: onAdd(settingKey, listWidget))
+            add_pushButton.clicked.connect(lambda ignore=1, settingKey=cat, listWidget=categories_listWidget: onAdd(settingKey, listWidget))
             # add_pushButton.clicked.connect(lambda: onAdd(cat, categories_listWidget))
-            remove_pushButton.clicked.connect(lambda ignore, settingKey=cat, listWidget=categories_listWidget: onRemove(settingKey, listWidget))
+            remove_pushButton.clicked.connect(lambda ignore=1, settingKey=cat, listWidget=categories_listWidget: onRemove(settingKey, listWidget))
             # remove_pushButton.clicked.connect(lambda: onRemove(cat, categories_listWidget))
 
 
