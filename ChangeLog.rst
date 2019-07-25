@@ -22,6 +22,8 @@ Tik Manager Version History
 * **Update.24** TikPhotoshop added to the executable and icon creation group in installer.
 * **Update.25** UI Improvements
 * **Update.27** Linux compatibility issues (path and ffmpeg)
+* **Fix.28** Project Materials - Drag/Drop foolcheck
+* **Update.28** Project Materials - statusbar updates
 
 2.5
 ---

@@ -808,15 +808,9 @@ class ProjectMaterials(RootManager, CoreFunctions):
     def __init__(self):
         super(ProjectMaterials, self).__init__()
         #
-        # self.init_paths()
-        # self.init_database()
         self.swName = BoilerDict["Environment"]
         self.init_paths()
         self.init_database()
-        # if projectPath:
-        #     self.passedProject = projectPath
-        # else:
-        #     self.passedProject = None
 
     def init_paths(self):
         """OVERRIDEN FUNCTION - Initializes necessary paths for project materials module"""
@@ -925,34 +919,6 @@ class ProjectMaterials(RootManager, CoreFunctions):
             return data
 
 
-    # def getProjectDir(self):
-    #     """OVERRIDEN FUNCTION Returns the project folder according to the environment"""
-    #     # first try to return the passed project
-    #     if self.passedProject:
-    #         return self.passedProject
-    #
-    #     if BoilerDict["Environment"] == "Maya":
-    #         return os.path.normpath(cmds.workspace(q=1, rd=1))
-    #     elif BoilerDict["Environment"] == "3dsMax":
-    #         return os.path.normpath(MaxPlus.PathManager.GetProjectFolderDir())
-    #     elif BoilerDict["Environment"] == "Houdini":
-    #         return os.path.normpath((hou.hscript('echo $JOB')[0])[:-1])  # [:-1] is for the extra \n
-    #     elif BoilerDict["Environment"] == "Nuke":
-    #         # TODO // Needs a project getter for nuke
-    #         return os.path.normpath(os.path.join(os.path.expanduser("~")))
-    #     else:
-    #         return os.path.normpath(os.path.join(os.path.expanduser("~")))
-    #
-    #     # ---------
-    #     # TEMPORARY
-    #     # ---------
-    #
-    #     # tempPath = os.path.normpath("E:\\SceneManager_Projects\\SceneManager_DemoProject_None_181101")
-    #     # tempPath = os.path.normpath("C:\\Users\\Arda\\Documents\\testArea\\asdf_asdf_asdf_181020")
-    #     # tempPath = os.path.normpath("D:\\PROJECT_AND_ARGE\\V3Test_V3Test_V3Test_181106")
-    #
-    #     # return tempPath
-
     def saveMaterial(self, pathList, materialType):
         subProject = "" if self.currentSubIndex == 0 else self.subProject
         copier = CopyProgress()
@@ -1048,41 +1014,15 @@ class MainUI(QtWidgets.QMainWindow):
                 pass
         parent = getMainWindow()
         super(MainUI, self).__init__(parent=parent)
-        # super(MainUI, self).__init__()
 
         # # Set Stylesheet
         dirname = os.path.dirname(os.path.abspath(__file__))
         stylesheetFile = os.path.join(dirname, "CSS", "tikManager.qss")
-        # stylesheetFile = os.path.join(dirname, "CSS", BoilerDict["Stylesheet"])
-        #
+
         with open(stylesheetFile, "r") as fh:
             self.setStyleSheet(fh.read())
 
-        # matCategories = ["Storyboard", "Brief", "Artwork", "Footage", "Other"]
-
-        # self.promat = ProjectMaterials(projectPath=projectPath)
         self.promat = ProjectMaterials()
-
-        # pStatus = self.promat.init_paths()
-        # if not pStatus:
-        #     msg = ["Nothing to view", "No Scene Manager Database",
-        #            "There is no Scene Manager Database Folder in this project path"]
-        #     q = QtWidgets.QMessageBox()
-        #     q.setIcon(QtWidgets.QMessageBox.Information)
-        #     q.setText(msg[0])
-        #     q.setInformativeText(msg[1])
-        #     q.setWindowTitle(msg[2])
-        #     q.setStandardButtons(QtWidgets.QMessageBox.Ok)
-        #     q.button(QtWidgets.QMessageBox.Ok).setFixedHeight(30)
-        #     q.button(QtWidgets.QMessageBox.Ok).setFixedWidth(100)
-        #     ret = q.exec_()
-        #     if ret == QtWidgets.QMessageBox.Ok:
-        #         self.close()
-        #         self.deleteLater()
-        #         return
-
-        # self.promat.init_database()
-
 
         self.setObjectName(BoilerDict["Environment"])
         # self.resize(670, 624)
@@ -1109,7 +1049,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.verticalLayout_6 = QtWidgets.QVBoxLayout(self.centralwidget)
         self.verticalLayout_6.setObjectName(("verticalLayout_6"))
 
-
         # ----------
         # HEADER BAR
         # ----------
@@ -1118,7 +1057,6 @@ class MainUI(QtWidgets.QMainWindow):
         colorWidget.setObjectName("header")
         headerLayout = QtWidgets.QHBoxLayout(colorWidget)
         headerLayout.setSpacing(0)
-        # headerLayout.setMargin(0)
         try: headerLayout.setMargin(0)
         except AttributeError: pass
 
@@ -1129,10 +1067,8 @@ class MainUI(QtWidgets.QMainWindow):
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
         if FORCE_QT4:
-            # headerBitmap = QtWidgets.QPixmap(os.path.join(self.promat.getIconsDir(), "tmProjectMaterials.png"))
             headerBitmap = QtWidgets.QPixmap(":/icons/CSS/rc/tmProjectMaterials.png")
         else:
-            # headerBitmap = QtGui.QPixmap(os.path.join(self.promat.getIconsDir(), "tmProjectMaterials.png"))
             headerBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmProjectMaterials.png")
         tikIcon_label.setPixmap(headerBitmap)
 
@@ -1142,7 +1078,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         resolvedPath_label = QtWidgets.QLabel()
         resolvedPath_label.setObjectName("header")
-        # resolvedPath_label.setMargin(margin)
         try: resolvedPath_label.setMargin(margin)
         except AttributeError: pass
         resolvedPath_label.setIndent(2)
@@ -1356,32 +1291,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.tabWidget.addTab(self.reference_tab, ("Reference"))
 
         # -----------------------------------------
-        # self.reference_tab = QtWidgets.QWidget()
-        # self.reference_tab.setToolTip((""))
-        # self.reference_tab.setStatusTip((""))
-        #
-        # self.reference_verticalLayout = QtWidgets.QVBoxLayout(self.reference_tab)
-        #
-        # self.reference_treeWidget = QtWidgets.QTreeWidget(self.reference_tab)
-        # self.reference_treeWidget.setToolTip((""))
-        # self.reference_treeWidget.setStatusTip((""))
-        #
-        # self.reference_treeWidget.setSortingEnabled(True)
-        # header = QtWidgets.QTreeWidgetItem(["Name", "Date"])
-        # self.reference_treeWidget.setHeaderItem(header)
-        # self.reference_treeWidget.sortItems(1, 0)  # 1 is Date Column, 0 is Ascending order
-        #
-        # self.reference_verticalLayout.addWidget(self.reference_treeWidget)
-        #
-        # self.addReference_pushButton = DropPushButton(self.reference_tab)
-        # self.addReference_pushButton.setMinimumSize(QtCore.QSize(0, 40))
-        # self.addReference_pushButton.setToolTip((""))
-        # self.addReference_pushButton.setStatusTip((""))
-        # self.addReference_pushButton.setText(("Add New Artwork (Folder)"))
-        # self.addReference_pushButton.setStyleSheet(ColorStyleDict["Reference"])
-        #
-        # self.reference_verticalLayout.addWidget(self.addReference_pushButton)
-        # self.tabWidget.addTab(self.reference_tab, ("Reference"))
 
         # -----------
         # ARTWORK TAB
@@ -1506,23 +1415,12 @@ class MainUI(QtWidgets.QMainWindow):
         rcB = QtWidgets.QAction('Delete Item', self)
         for tree in tabTrees:
             tree.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-            # lambda y: (tree.customContextMenuRequested.connect(lambda x: self.onContextMenu(x, tree)))
-            # tree.customContextMenuRequested.connect(lambda x: self.onContextMenu(x, tree))
-            # rcA = QtWidgets.QAction('Show in Explorer', self)
             self.popMenu.addAction(rcB)
             self.popMenu.addAction(rcA)
 
         rcA.triggered.connect(lambda: self.onRightClick("showInExplorer"))
         rcB.triggered.connect(lambda: self.onRightClick("deleteItem"))
 
-
-
-        # self.storyboard_treeWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        # self.brief_treeWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        # self.reference_treeWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        # self.artwork_treeWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        # self.footage_treeWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        # self.other_treeWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         #
         self.storyboard_treeWidget.customContextMenuRequested.connect(lambda x: self.onContextMenu(x, self.storyboard_treeWidget))
         self.brief_treeWidget.customContextMenuRequested.connect(lambda x: self.onContextMenu(x, self.brief_treeWidget))
@@ -1531,11 +1429,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.footage_treeWidget.customContextMenuRequested.connect(lambda x: self.onContextMenu(x, self.footage_treeWidget))
         self.other_treeWidget.customContextMenuRequested.connect(lambda x: self.onContextMenu(x, self.other_treeWidget))
 
-        # self.popMenu = QtWidgets.QMenu()
-
-
-        # rcAction_0 = QtWidgets.QAction('Show in Explorer', self)
-        # self.popMenu.addAction(rcAction_0)
 
         # ------------------
         # SIGNAL CONNECTIONS
@@ -1547,12 +1440,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         for tree in tabTrees:
             tree.currentItemChanged.connect(self.onChangeItem)
-        # self.storyboard_treeWidget.currentItemChanged.connect(self.onChangeItem)
-        # self.brief_treeWidget.currentItemChanged.connect(self.onChangeItem)
-        # self.reference_treeWidget.currentItemChanged.connect(self.onChangeItem)
-        # self.artwork_treeWidget.currentItemChanged.connect(self.onChangeItem)
-        # self.footage_treeWidget.currentItemChanged.connect(self.onChangeItem)
-        # self.other_treeWidget.currentItemChanged.connect(self.onChangeItem)
+
 
         self.addStb_pushButton.dropped.connect(lambda path: self.droppedPath(path, "Storyboard"))
         self.addBrief_pushButton.dropped.connect(lambda path: self.droppedPath(path, "Brief"))
@@ -1599,12 +1487,15 @@ class MainUI(QtWidgets.QMainWindow):
         self.subP_combobox.addItems(self.promat.getSubProjects())
         self.subP_combobox.setCurrentIndex(0)
         self.initSubProjects()
+        self.statusBar().showMessage("Status | Idle")
 
     def initSubProjects(self):
+        self.statusBar().showMessage("Status | Idle")
         self.promat.currentSubIndex = self.subP_combobox.currentIndex()
         self.initCategoryItems()
 
     def initCategoryItems(self):
+        self.statusBar().showMessage("Status | Idle")
 
         self.matCategory = self.tabWidget.tabText(self.tabWidget.currentIndex())
 
@@ -1635,9 +1526,8 @@ class MainUI(QtWidgets.QMainWindow):
         # sort by date default
         treewidget.sortItems(1, QtCore.Qt.AscendingOrder)  # 1 is Date Column, 0 is Ascending order
 
-
-
     def onChangeItem(self, item):
+        self.statusBar().showMessage("Status | Idle")
         # print item
         if not item:
             return
@@ -1680,6 +1570,7 @@ class MainUI(QtWidgets.QMainWindow):
             return
 
     def onRightClick(self, cmd):
+
         if cmd == "showInExplorer":
             pathDir = os.path.dirname(self.promat.getMaterialPath())
             self.promat.showInExplorer(pathDir)
@@ -1708,20 +1599,20 @@ class MainUI(QtWidgets.QMainWindow):
             elif ret == QtWidgets.QMessageBox.Cancel:
                 return
 
-
     def droppedPath(self, paths, material):
-        # paths = [os.path.normpath(str(path)) for path in paths ]
-        paths = [os.path.normpath(unicode(path)) for path in paths ]
+        self.statusBar().showMessage("Status | Idle")
+        paths = [os.path.normpath(unicode(path)) for path in paths if path != u'']
+        if len(paths) == 0:
+            self.statusBar().showMessage("Warning | There is no file path in dropped item")
+            return
+
         self.promat.saveMaterial(paths, material)
         self.initCategoryItems()
+        self.statusBar().showMessage("Success | Item(s) added")
 
     def onButtonPush(self, material):
+        self.statusBar().showMessage("Status | Idle")
         selDialog = QFileAndFolderDialog()
-        # selDialog = QtWidgets.QFileDialog()
-        # selDialog.setFileMode(QtWidgets.QFileDialog.DirectoryOnly)
-        # selDialog.setOption(QtWidgets.QFileDialog.DontUseNativeDialog, True)
-        # selDialog.setFileMode(selDialog.Directory)
-        # names = selDialog.getOpenFileNames(self, "Select files")
         selDialog.setLabelText(selDialog.Accept, "Choose")
         x = selDialog.exec_()
 
@@ -1733,6 +1624,7 @@ class MainUI(QtWidgets.QMainWindow):
             len(paths)
             self.promat.saveMaterial(paths, material)
             self.initCategoryItems()
+            self.statusBar().showMessage("Success | Item(s) added")
         except:
             pass
 
