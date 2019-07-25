@@ -820,7 +820,7 @@ class RootManager(object):
     def getThumbnail(self):
         """returns (String) absolute thumbnail path of version on cursor position"""
         logger.debug("Func: getThumbnail")
-        return os.path.join(self.projectDir, self._currentThumbFile)
+        return os.path.join(self.projectDir, self._currentThumbFile.replace("\\", "/"))
 
     def getFPS(self):
         """returns the project FPS setting"""
@@ -1014,14 +1014,14 @@ class RootManager(object):
         """executes the file"""
         logger.debug("Func: showInExplorer")
 
-        if not os.path.isfile(filePath):
+        if not os.path.isfile(filePath.replace("\\", "/")):
             logger.warning("Given path is not a file")
             return
             pass
 
         # get execution user list
         try: exeDict = self._userSettings["executables"]
-        except KeyError: exeDict = {"image_exec": "",
+        except: exeDict = {"image_exec": "",
                                     "imageSeq_exec": "",
                                     "video_exec": "",
                                     "obj_exec": "",
@@ -1079,14 +1079,14 @@ class RootManager(object):
         else:
             if self.currentPlatform == "Windows":
                 os.startfile(filePath)
-            elif self.currentPlatform == "Darwin":
-                logger.warning("Linux execution not yet implemented")
+            elif self.currentPlatform == "Linux":
+                # logger.warning("Linux execution not yet implemented")
+                subprocess.Popen(["xdg-open", filePath])
                 pass
-                # subprocess.Popen(["open", filePath])
             else:
-                logger.warning("MacOs execution not yet implemented")
+                # logger.warning("MacOs execution not yet implemented")
+                subprocess.Popen(["open", filePath])
                 pass
-                # subprocess.Popen(["xdg-open", filePath])
 
     def showInExplorer(self, tpath):
         """Opens the path in Windows Explorer(Windows) or Nautilus(Linux)"""
@@ -1096,10 +1096,10 @@ class RootManager(object):
             tpath = os.path.dirname(tpath)
         if self.currentPlatform == "Windows":
             os.startfile(tpath)
-        elif self.currentPlatform == "Darwin":
-            subprocess.Popen(["open", tpath])
-        else:
+        elif self.currentPlatform == "Linux":
             subprocess.Popen(["xdg-open", tpath])
+        else:
+            subprocess.Popen(["open", tpath])
 
         # elif self.currentPlatform == "Linux":
         #     os.system('nautilus %s' % path)
@@ -1565,7 +1565,7 @@ Elapsed Time:{6}
     def playPreview(self, camera):
         """Runs the playblast at cursor position"""
         logger.debug("Func: playPreview")
-        absPath = os.path.join(self.projectDir, self._currentPreviewsDict[camera])
+        absPath = os.path.join(self.projectDir, self._currentPreviewsDict[camera].replace("\\", "/"))
         self.executeFile(absPath)
         # if self.currentPlatform == "Windows":
         #     try:
@@ -1746,9 +1746,9 @@ Elapsed Time:{6}
             return -2 # Corrupted database file
 
         if sceneInfo["ReferenceFile"]:
-            relVersionFile = sceneInfo["Versions"][sceneInfo["ReferencedVersion"] - 1]["RelativePath"]
+            relVersionFile = sceneInfo["Versions"][sceneInfo["ReferencedVersion"] - 1]["RelativePath"].replace("\\", "/")
             absVersionFile = os.path.join(self.projectDir, relVersionFile)
-            relRefFile = sceneInfo["ReferenceFile"]
+            relRefFile = sceneInfo["ReferenceFile"].replace("\\", "/")
             absRefFile = os.path.join(self.projectDir, relRefFile)
 
             if not os.path.isfile(absRefFile):
@@ -2362,18 +2362,50 @@ Elapsed Time:{6}
     def getPlatform(self):
         return platform.system()
 
+    def checkFFMPEG(self):
+        platform = self.getPlatform()
+        if platform == "Windows":
+            ffmpeg = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ffmpeg.exe")
+            if not os.path.isfile(ffmpeg):
+                return False
+            else:
+                return ffmpeg
+        else:
+            try:
+                v = subprocess.call(["ffmpeg", "-version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                return "ffmpeg"
+            except OSError:
+                return False
+
+
     def _convertPreview(self, sourceFile, overwrite=True, deleteAfter=False, crf=None):
         # abort if system is not supported or converter exe is missing
         compatibleVideos = [".avi", ".mov", ".mp4", ".flv", ".webm", ".mkv", ".mp4"]
         compatibleImages = [".tga", ".jpg", ".exr", ".png", ".pic"]
-        if self.currentPlatform is not "Windows":
-            self._info("Currently only Windows operating system is supported for mp4 conversion")
-            return
+        # if self.currentPlatform is not "Windows":
+        #     self._info("Currently only Windows operating system is supported for mp4 conversion")
+        #     return
 
-        ffmpeg = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ffmpeg.exe")
-        if not os.path.isfile(ffmpeg):
-            self._info("Cannot find ffmpeg.exe")
+        ffmpeg = self.checkFFMPEG()
+        if not ffmpeg:
+            self._info("Cannot find ffmpeg")
             return
+        #
+        # if self.currentPlatform == "Windows":
+        #     ffmpeg = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ffmpeg.exe")
+        #     if not os.path.isfile(ffmpeg):
+        #         self._info("Cannot find ffmpeg.exe")
+        #         return
+        #
+        # if self.currentPlatform == "Linux":
+        #     ## check if ffmpeg installed
+        #     try:
+        #         v = subprocess.call(["ffmpeg", "-version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        #         ffmpeg = "ffmpeg"
+        #         self._info("ffmpeg is not installed")
+        #     except OSError:
+        #         return
+
 
         # get the conversion lut
         presetLUT = self.loadConversionLUT()
@@ -2402,7 +2434,6 @@ Elapsed Time:{6}
             # iFlag = '-i "%s"' %sourceFile
         elif ext in compatibleImages:
             filename, startFrame, sourceSequence = self._formatImageSeq(sourceFile)
-            # iFlag = '-start_number %s -i "%s"' %(startFrame, filename)
             flagStart = ["%s" %ffmpeg, '-start_number', str(startFrame), '-i', filename]
             presetLUT["audioCodec"] = ""
 
@@ -2414,38 +2445,10 @@ Elapsed Time:{6}
                        presetLUT["foolproof"].split() + \
                        [str(outputFile)]
 
-        # command = '""{0}" {1} {2} {3} {4} {5} -ignore_unknown {6} "{7}"'.format(
-        #     ffmpeg,
-        #     iFlag,
-        #     presetLUT["videoCodec"],
-        #     presetLUT["compression"],
-        #     presetLUT["audioCodec"],
-        #     presetLUT["resolution"],
-        #     presetLUT["foolproof"],
-        #     outputFile
-        # )
-
-        # subprocess.check_call(["%s" %ffmpeg,
-        #                        "-i",
-        #                        sourceFile,
-        #                        "-c:v",
-        #                        "libx264",
-        #                        "-profile:v",
-        #                        "baseline",
-        #                        "-level",
-        #                        "3.0",
-        #                        "-pix_fmt",
-        #                        "yuv420p",
-        #                        "-crf",
-        #                        "23",
-        #                        "-c:a",
-        #                        "aac",
-        #                        "-ignore_unknown",
-        #                        "-vf",
-        #                        "scale=ceil(iw/2)*2:ceil(ih/2)*2",
-        #                        str(outputFile)],
-        #                       shell=True)
-        subprocess.check_call(fullFlagList, shell=True)
+        if self.currentPlatform == "Windows":
+            subprocess.check_call(fullFlagList, shell=True)
+        else:
+            subprocess.check_call(fullFlagList)
         # print command
         # os.system(command)
         if deleteAfter:

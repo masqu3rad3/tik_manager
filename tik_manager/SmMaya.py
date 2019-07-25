@@ -346,9 +346,16 @@ class MayaManager(RootManager, MayaCoreFunctions):
         # if the file will be converted, force it to uncompressed avi
         if pbSettings["ConvertMP4"]:
             # TODO // Make it compatible with LINUX and MAC
-            validFormats = [u'avi']
-            validCodecs = [u'none']
-            extension = "avi"
+            if self.currentPlatform == "Windows":
+                validFormats = [u'avi']
+                validCodecs = [u'none']
+                extension = "avi"
+            else:
+                validFormats = [u'qt']
+                validCodecs = [u'png']
+                extension = "mov"
+
+
 
         else:
             validFormats = cmds.playblast(format=True, q=True)
@@ -367,11 +374,11 @@ class MayaManager(RootManager, MayaCoreFunctions):
             extension = "mov" if pbSettings["Format"] == "qt" else "avi"
 
             # Quicktime format is missing the final frame all the time. Add an extra frame to compansate
-            if pbSettings["Format"] == 'qt':
-                maxTime = cmds.playbackOptions(q=True, maxTime=True)
-                endTime = cmds.playbackOptions(q=True, animationEndTime=True)
-                cmds.playbackOptions(maxTime=maxTime + 1)
-                cmds.playbackOptions(animationEndTime=endTime + 1)
+            # if pbSettings["Format"] == 'qt':
+            #     maxTime = cmds.playbackOptions(q=True, maxTime=True)
+            #     endTime = cmds.playbackOptions(q=True, animationEndTime=True)
+            #     cmds.playbackOptions(maxTime=maxTime + 1)
+            #     cmds.playbackOptions(animationEndTime=endTime + 1)
 
         openSceneInfo = self.getOpenSceneInfo()
         if not openSceneInfo:
@@ -529,9 +536,9 @@ class MayaManager(RootManager, MayaCoreFunctions):
         cmds.deleteUI(tempWindow)
 
         # Get back to the original frame range if the codec is Quick Time
-        if pbSettings["Format"] == 'qt':
-            cmds.playbackOptions(maxTime=maxTime)
-            cmds.playbackOptions(animationEndTime=endTime)
+        # if pbSettings["Format"] == 'qt':
+        #     cmds.playbackOptions(maxTime=maxTime)
+        #     cmds.playbackOptions(animationEndTime=endTime)
 
         ## remove the custom HUdS
         if pbSettings["ShowFrameNumber"]:
@@ -562,7 +569,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
         if pbSettings["ConvertMP4"]:
             convertedFile = self._convertPreview(playBlastFile, overwrite=True, deleteAfter=True, crf=pbSettings["CrfValue"])
             relPlayBlastFile = os.path.relpath(convertedFile, start=openSceneInfo["projectPath"])
-            os.startfile(convertedFile)
+            self.executeFile(convertedFile)
         else:
             relPlayBlastFile = os.path.relpath(playBlastFile, start=openSceneInfo["projectPath"])
 
@@ -577,12 +584,11 @@ class MayaManager(RootManager, MayaCoreFunctions):
     def loadBaseScene(self, force=False):
         """Loads the scene at cursor position"""
         logger.debug("Func: loadBaseScene")
-        relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"]
+        relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"].replace("\\", "/")
         absSceneFile = os.path.normpath(os.path.join(self.projectDir, relSceneFile))
-        linCorrect = unicode(absSceneFile.replace("\\", "/"))
-        if os.path.isfile(linCorrect):
+        if os.path.isfile(absSceneFile):
             # cmds.file(absSceneFile, o=True, force=force)
-            self._load(linCorrect, force=True)
+            self._load(absSceneFile, force=True)
             return 0
         else:
             msg = "File in Scene Manager database doesnt exist"
@@ -601,7 +607,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
     def importBaseScene(self):
         """Imports the scene at cursor position"""
         logger.debug("Func: importBaseScene")
-        relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"]
+        relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"].replace("\\", "/")
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
             # cmds.file(absSceneFile, i=True)
@@ -616,7 +622,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
         """Creates reference from the scene at cursor position"""
         logger.debug("Func: referenceBaseScene")
         projectPath = self.projectDir
-        relReferenceFile = self._currentSceneInfo["ReferenceFile"]
+        relReferenceFile = self._currentSceneInfo["ReferenceFile"].replace("\\", "/")
 
         if relReferenceFile:
             referenceFile = os.path.join(projectPath, relReferenceFile)

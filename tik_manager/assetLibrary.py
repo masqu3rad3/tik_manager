@@ -480,9 +480,13 @@ class MainUI(QtWidgets.QMainWindow):
             self.setStyleSheet(fh.read())
 
         self.homedir = os.path.expanduser("~")
-        self.DocumentsDir = "Documents" if BoilerDict["Environment"] == "Standalone"\
-            or BoilerDict["Environment"] == "3dsMax" else ""
-        self.settingsFile = os.path.join(self.homedir, self.DocumentsDir, "TikManager", "assetLibraryConfig.json")
+        if not "Documents" in self.homedir:
+            self.homedir = os.path.join(self.homedir, "Documents")
+
+        # self.DocumentsDir = "Documents" if BoilerDict["Environment"] == "Standalone"\
+        #     or BoilerDict["Environment"] == "3dsMax" else ""
+        # self.settingsFile = os.path.join(self.homedir, self.DocumentsDir, "TikManager", "assetLibraryConfig.json")
+        self.settingsFile = os.path.join(self.homedir, "TikManager", "assetLibraryConfig.json")
 
         self.setObjectName(BoilerDict["WindowTitle"])
         self.resize(670, 624)

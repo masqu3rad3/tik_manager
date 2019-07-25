@@ -21,6 +21,7 @@ Tik Manager Version History
 * **Fix.24** Potential crash cause removed from settings _usersContent
 * **Update.24** TikPhotoshop added to the executable and icon creation group in installer.
 * **Update.25** UI Improvements
+* **Update.27** Linux compatibility issues (path and ffmpeg)
 
 2.5
 ---

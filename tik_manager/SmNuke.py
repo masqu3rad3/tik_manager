@@ -281,7 +281,7 @@ class NukeManager(RootManager, NukeCoreFunctions):
     def loadBaseScene(self, force=False):
         """Loads the scene at cursor position"""
         logger.debug("Func: loadBaseScene")
-        relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"]
+        relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"].replace("\\", "/")
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
             nuke.scriptOpen(absSceneFile)
@@ -295,7 +295,7 @@ class NukeManager(RootManager, NukeCoreFunctions):
     def importBaseScene(self):
         """Imports the scene at cursor position"""
         logger.debug("Func: importBaseScene")
-        relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"]
+        relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"].replace("\\", "/")
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
             self._import(absSceneFile)

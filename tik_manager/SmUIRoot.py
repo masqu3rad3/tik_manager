@@ -1018,7 +1018,11 @@ class MainUI(QtWidgets.QMainWindow):
                 self.infoPop(textTitle="Invalid Path", textHeader="There are invalid (non-ascii) characters in the selected path.",
                              textInfo="This Path cannot be used", type="C")
                 return
-            self.manager.setProject(self.spActiveProjectPath)
+            if self.manager.currentPlatform == "Linux":
+                pPath = "/%s" %self.spActiveProjectPath
+            else:
+                pPath = self.spActiveProjectPath
+            self.manager.setProject(pPath)
             self.onProjectChange()
             self.setProject_Dialog.close()
 
@@ -2138,7 +2142,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.convertMP4_Maya_chb = QtWidgets.QCheckBox(text="Convert To MP4", minimumWidth=100, layoutDirection=QtCore.Qt.LeftToRight)
         videoProperties_formLayout.addRow(self.convertMP4_Maya_chb)
-        if self.manager.currentPlatform is not "Windows":
+
+        if not self.manager.checkFFMPEG():
             self.convertMP4_Maya_chb.setChecked(False)
             self.convertMP4_Maya_chb.setEnabled(False)
         else:
@@ -2353,7 +2358,9 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.convertMP4_Max_chb = QtWidgets.QCheckBox(text="Convert To MP4", minimumWidth=100, layoutDirection=QtCore.Qt.LeftToRight)
         videoProperties_formLayout.addRow(self.convertMP4_Max_chb)
-        if self.manager.currentPlatform is not "Windows":
+
+
+        if not self.manager.checkFFMPEG():
             self.convertMP4_Max_chb.setChecked(False)
             self.convertMP4_Max_chb.setEnabled(False)
         else:
@@ -2548,7 +2555,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.convertMP4_Houdini_chb.setLayoutDirection(QtCore.Qt.LeftToRight)
         # videoProperties_formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.convertMP4_Houdini_chb)
         videoProperties_formLayout.addRow(self.convertMP4_Houdini_chb)
-        if self.manager.currentPlatform is not "Windows":
+
+        if not self.manager.checkFFMPEG():
             self.convertMP4_Houdini_chb.setChecked(False)
             self.convertMP4_Houdini_chb.setEnabled(False)
         else:

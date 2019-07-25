@@ -824,7 +824,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         for itemName in selectedItemNames:
             seq = self.sequenceData[str(itemName)]
-            os.startfile(seq.dirname)
+            # os.startfile(seq.dirname)
+            self.imageViewer.showInExplorer(seq.dirname)
 
     def populate(self):
         """Search for sequences"""
@@ -1019,7 +1020,7 @@ class DeselectableTreeView(QtWidgets.QTreeView):
         QtWidgets.QTreeView.mousePressEvent(self, event)
 
 
-class SeqCopyProgress(QtWidgets.QWidget):
+class SeqCopyProgress(QtWidgets.QWidget, RootManager):
     """Custom Widget for visualizing progress of file transfer"""
 
     def __init__(self, src=None, dest=None):
@@ -1032,6 +1033,7 @@ class SeqCopyProgress(QtWidgets.QWidget):
         self.cancelAll = False
         self.errorFlag = False
         # self.copyfileobj(src=self.src, dst=self.dest)
+        self.currentPlatform = self.getPlatform()
 
         dirname = os.path.dirname(os.path.abspath(__file__))
         stylesheetFile = os.path.join(dirname, "CSS", "tikManager.qss")
@@ -1097,7 +1099,7 @@ class SeqCopyProgress(QtWidgets.QWidget):
         if logPath:
             showLogButton = QtWidgets.QPushButton("Show Log File")
             layoutH.addWidget(showLogButton)
-            showLogButton.clicked.connect(lambda: os.startfile(logPath))
+            showLogButton.clicked.connect(lambda: self.executeFile(logPath))
         showInExplorer = QtWidgets.QPushButton("Show in Explorer")
         layoutH.addWidget(showInExplorer)
         okButton = QtWidgets.QPushButton("OK")
@@ -1112,7 +1114,9 @@ class SeqCopyProgress(QtWidgets.QWidget):
     def onShowInExplorer(self, path):
         """Open the folder in explorer"""
         # TODO // Make it compatible with Linux
-        os.startfile(str(os.path.normpath(path)))
+        # os.startfile(str(os.path.normpath(path)))
+
+        self.showInExplorer(unicode(os.path.normpath(path)).decode("utf-8"))
         pass
 
     def closeEvent(self, *args, **kwargs):

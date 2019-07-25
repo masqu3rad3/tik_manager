@@ -70,6 +70,21 @@ if not os.path.isfile(icon):
     icon = None
 addButton("imageViewer", command=cmd, icon=icon )
 
+## add createPreview button
+cmd = """
+from tik_manager import SmMaya
+SmMaya.MayaManager().createPreview()
+"""
+dcmd = """
+from tik_manager import SmMaya
+SmMaya.MainUI().onCreatePreview()
+"""
+icon = os.path.join(iconsLocation, "takePreview_ICON.png")
+if not os.path.isfile(icon):
+    mc.warning("Icon cannot found - %s" %icon)
+    icon = None
+addButton("imageViewer", command=cmd, doubleCommand=dcmd, icon=icon)
+
 ## add projectMaterials button
 cmd="""
 from tik_manager import projectMaterials
