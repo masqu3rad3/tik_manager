@@ -337,6 +337,131 @@ class MayaManager(RootManager, MayaCoreFunctions):
 
         return jsonInfo
 
+
+
+    # def createPreview(self, previewCam=None, forceSequencer=False, *args, **kwargs):
+    #     """Creates a Playblast preview from currently open scene"""
+    #     logger.debug("Func: createPreview")
+    #
+    #     pbSettings = self.loadPBSettings()
+    #
+    #     openSceneInfo = self.getOpenSceneInfo()
+    #     if not openSceneInfo:
+    #         msg = "This is not a base scene. Scene must be saved as a base scene before playblasting."
+    #         self._exception(360, msg)
+    #         return
+    #
+    #     ## ----------------
+    #     ## VIDEO PROPERTIES
+    #     ## ----------------
+    #     if pbSettings["ConvertMP4"]:
+    #         # TODO // Make it compatible with LINUX and MAC
+    #         if self.currentPlatform == "Windows":
+    #             validFormats = [u'avi']
+    #             validCodecs = [u'none']
+    #             extension = "avi"
+    #         else:
+    #             validFormats = [u'qt']
+    #             validCodecs = [u'png']
+    #             extension = "mov"
+    #
+    #     else:
+    #         validFormats = cmds.playblast(format=True, q=True)
+    #         validCodecs = cmds.playblast(c=True, q=True)
+    #
+    #         if not pbSettings["Format"] in validFormats:
+    #             msg = ("Format specified in project settings is not supported. Install {0}".format(pbSettings["Format"]))
+    #             self._exception(360, msg)
+    #             return
+    #
+    #         if not pbSettings["Codec"] in validCodecs:
+    #             msg = ("Codec specified in project settings is not supported. Install {0}".format(pbSettings["Codec"]))
+    #             self._exception(360, msg)
+    #             return
+    #
+    #         extension = "mov" if pbSettings["Format"] == "qt" else "avi"
+    #
+    #     selection = self._getSelection()
+    #     cmds.select(d=pbSettings["ClearSelection"])
+    #     jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
+    #
+    #     ## ------------------------
+    #     ## GET CAMERA and SEQUENCER
+    #     ## ------------------------
+    #     if previewCam:
+    #         currentCam = previewCam
+    #         validName = previewCam
+    #         sequenceTime = False
+    #     elif forceSequencer:
+    #         currentCam = "persp"
+    #         validName = "Sequencer"
+    #         sequenceTime = True
+    #     else:
+    #         try:
+    #             currentCam = cmds.modelPanel(cmds.getPanel(wf=True), q=True, cam=True)
+    #             validName = currentCam
+    #             sequenceTime = False
+    #         except RuntimeError:
+    #             panel = cmds.getPanel(wf=True)
+    #             if "sequenceEditorPanel" in panel:
+    #                 currentCam = "persp"
+    #                 validName = "Sequence"
+    #                 sequenceTime = True
+    #             else:
+    #                 msg = "Highlighted Pane is not a camera view"
+    #                 self._exception(360, msg)
+    #                 return
+    #     # RENAME
+    #     replaceDict = {"|":"__",
+    #                    " ":"_",
+    #                    ":":"_"}
+    #     for item in replaceDict.items():
+    #         validName = validName.replace(item[0], item[1])
+    #
+    #     if not self.nameCheck(validName):
+    #         msg = "A scene view must be highlighted"
+    #         self._exception(360, msg)
+    #         return
+    #
+    #     versionName = self.getSceneFile()
+    #     relVersionName = os.path.relpath(versionName, start=openSceneInfo["projectPath"])
+    #     playBlastFile = os.path.join(openSceneInfo["previewPath"], "{0}_{1}_PB.{2}".format(self.niceName(versionName), validName, extension))
+    #
+    #     if os.path.isfile(playBlastFile):
+    #         try:
+    #             os.remove(playBlastFile)
+    #         except WindowsError:
+    #             msg = "The file is open somewhere else"
+    #             self._exception(202, msg)
+    #             return
+    #
+    #     ## ---------------------
+    #     ## CREATE A CUSTOM PANEL
+    #     ## ---------------------
+    #     tempWindow = cmds.window(title="SM_Playblast",
+    #                            widthHeight=(pbSettings["Resolution"][0] * 1.1, pbSettings["Resolution"][1] * 1.1),
+    #                            tlc=(0, 0))
+    #     cmds.paneLayout()
+    #
+    #     pbPanel = cmds.modelPanel(camera=currentCam)
+    #     cmds.showWindow(tempWindow)
+    #     cmds.setFocus(pbPanel)
+    #
+    #     cmds.modelEditor(pbPanel, e=1,
+    #                    allObjects=not pbSettings["PolygonOnly"],
+    #                    da="smoothShaded",
+    #                    displayTextures=pbSettings["DisplayTextures"],
+    #                    wireframeOnShaded=pbSettings["WireOnShaded"],
+    #                    grid=pbSettings["ShowGrid"],
+    #                    useDefaultMaterial=pbSettings["UseDefaultMaterial"],
+    #                    polymeshes=True,
+    #                    imagePlane=True,
+    #                    hud=True
+    #                    )
+    #
+    #     cmds.camera(currentCam, e=True, overscan=True, displayFilmGate=False, displayResolution=False)
+
+
     def createPreview(self, previewCam=None, forceSequencer=False, *args, **kwargs):
         """Creates a Playblast preview from currently open scene"""
         logger.debug("Func: createPreview")
