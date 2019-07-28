@@ -35,7 +35,7 @@
 # ---------------
 # GET ENVIRONMENT
 # ---------------
-import os
+import os, sys
 import _version
 from copy import deepcopy
 import re
@@ -48,7 +48,7 @@ BoilerDict = {"Environment":"Standalone",
               "SceneFormats":None
               }
 
-FORCE_QT4 = False
+FORCE_QT5 = False
 # Get Environment and edit the dictionary according to the Environment
 try:
     from maya import OpenMayaUI as omui
@@ -92,7 +92,7 @@ except ImportError:
 
 try:
     from PyQt5 import QtWidgets, QtCore, QtGui
-    FORCE_QT4 = True
+    FORCE_QT5 = True
     if bool(os.getenv("PS_APP")):  # if the request is coming from the SmPhotoshop
         BoilerDict["Environment"] = "Standalone"  # technically it is still standalone...
         BoilerDict["WindowTitle"] = "Tik Manager Photoshop v%s" % _version.__version__
@@ -126,7 +126,8 @@ __status__ = "Development"
 
 logging.basicConfig()
 logger = logging.getLogger('smUIRoot')
-logger.setLevel(logging.WARNING)
+# logger.setLevel(logging.WARNING)
+logger.setLevel(logging.DEBUG)
 
 def getMainWindow():
     """This function should be overriden"""
@@ -187,8 +188,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.headerBFont = QtGui.QFont("Segoe UI Symbol", 10, QtGui.QFont.Bold)
         self.displayFont = QtGui.QFont("Segoe UI Symbol", 8, QtGui.QFont.Bold)
         self.infoFont = QtGui.QFont("", 8, QtGui.QFont.Helvetica)
-        self.Pixmap = QtGui.QPixmap
-        self.QIcon = QtGui.QIcon
+        # self.Pixmap = QtGui.QPixmap
+        # self.QIcon = QtGui.QIcon
 
         self.superUser = False
 
@@ -237,7 +238,7 @@ class MainUI(QtWidgets.QMainWindow):
         except AttributeError: pass
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
-        headerBitmap = self.Pixmap(":/icons/CSS/rc/tmMain.png")
+        headerBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmMain.png")
 
         tikIcon_label.setPixmap(headerBitmap)
 
@@ -322,7 +323,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.addSubProject_pushButton = QtWidgets.QPushButton(self.centralwidget, size=QtCore.QSize(30, 30), font=self.iconFont)
         self.addSubProject_pushButton.setToolTip("Adds a new sub-project level")
-        self.addSubProject_pushButton.setIcon(self.QIcon(":/icons/CSS/rc/plus.png"))
+        self.addSubProject_pushButton.setIcon(QtGui.QIcon(":/icons/CSS/rc/plus.png"))
 
         self.r2_gridLayout.addWidget(self.addSubProject_pushButton, 0, 4, 1, 1)
 
@@ -375,7 +376,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.notes_textEdit = QtWidgets.QTextEdit(self.frame, readOnly=True)
         self.verticalLayout.addWidget(self.notes_textEdit)
 
-        self.E_tPixmap = self.Pixmap(":/icons/CSS/rc/empty_thumbnail.png")
+        self.E_tPixmap = QtGui.QPixmap(":/icons/CSS/rc/empty_thumbnail.png")
         self.thumbnail_label = ImageWidget(self.frame)
         self.thumbnail_label.setProperty("image", True)
         self.thumbnail_label.setPixmap(self.E_tPixmap)
@@ -437,10 +438,10 @@ class MainUI(QtWidgets.QMainWindow):
 
         loadReferenceScene_fm = QtWidgets.QAction("&Load/Reference Scene", self)
 
-        settings_fm = QtWidgets.QAction(self.QIcon(":/icons/CSS/rc/settings.png"), "&Settings", self)
+        settings_fm = QtWidgets.QAction(QtGui.QIcon(":/icons/CSS/rc/settings.png"), "&Settings", self)
 
-        deleteFile_fm = QtWidgets.QAction(self.QIcon(":/icons/CSS/rc/delete.png"), "&Delete Selected Base Scene", self)
-        deleteReference_fm = QtWidgets.QAction(self.QIcon(":/icons/CSS/rc/delete.png"), "&Delete Reference of Selected Scene", self)
+        deleteFile_fm = QtWidgets.QAction(QtGui.QIcon(":/icons/CSS/rc/delete.png"), "&Delete Selected Base Scene", self)
+        deleteReference_fm = QtWidgets.QAction(QtGui.QIcon(":/icons/CSS/rc/delete.png"), "&Delete Reference of Selected Scene", self)
         projectReport_fm = QtWidgets.QAction("&Project Report", self)
         projectReport_fm.setEnabled(False)
         checkReferences_fm = QtWidgets.QAction("&Check References", self)
@@ -790,17 +791,17 @@ class MainUI(QtWidgets.QMainWindow):
         M1_horizontalLayout.addWidget(browse_pushButton)
 
         self.back_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
-        self.back_pushButton.setIcon(self.QIcon(":/icons/CSS/rc/arrow_left.png"))
+        self.back_pushButton.setIcon(QtGui.QIcon(":/icons/CSS/rc/arrow_left.png"))
 
         M1_horizontalLayout.addWidget(self.back_pushButton)
 
         self.forward_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
-        self.forward_pushButton.setIcon(self.QIcon(":/icons/CSS/rc/arrow_right.png"))
+        self.forward_pushButton.setIcon(QtGui.QIcon(":/icons/CSS/rc/arrow_right.png"))
 
         M1_horizontalLayout.addWidget(self.forward_pushButton)
 
         up_pushButton = QtWidgets.QPushButton(self.setProject_Dialog)
-        up_pushButton.setIcon(self.QIcon(":/icons/CSS/rc/arrow_up.png"))
+        up_pushButton.setIcon(QtGui.QIcon(":/icons/CSS/rc/arrow_up.png"))
         up_pushButton.setShortcut((""))
 
         M1_horizontalLayout.addWidget(up_pushButton)
@@ -837,12 +838,12 @@ class MainUI(QtWidgets.QMainWindow):
         M2_S2_horizontalLayout.addItem(spacerItem)
 
         remove_pushButton = QtWidgets.QPushButton(verticalLayoutWidget)
-        remove_pushButton.setIcon(self.QIcon(":/icons/CSS/rc/minus.png"))
+        remove_pushButton.setIcon(QtGui.QIcon(":/icons/CSS/rc/minus.png"))
 
         M2_S2_horizontalLayout.addWidget(remove_pushButton)
 
         add_pushButton = QtWidgets.QPushButton(verticalLayoutWidget)
-        add_pushButton.setIcon(self.QIcon(":/icons/CSS/rc/plus.png"))
+        add_pushButton.setIcon(QtGui.QIcon(":/icons/CSS/rc/plus.png"))
 
         M2_S2_horizontalLayout.addWidget(add_pushButton)
 
@@ -1077,7 +1078,7 @@ class MainUI(QtWidgets.QMainWindow):
         tikIcon_label.setMaximumWidth(125)
         try: tikIcon_label.setMargin(margin)
         except AttributeError: pass
-        headerBitmap = self.Pixmap(":/icons/CSS/rc/tmTransfer.png")
+        headerBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmTransfer.png")
         tikIcon_label.setPixmap(headerBitmap)
 
         headerLayout.addWidget(tikIcon_label)
@@ -3617,7 +3618,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         ### THIS MAY BE CAUSING THE CRASH ###
         # header = users_treeWidget.header()
-        # if FORCE_QT4:
+        # if FORCE_QT5:
         #     header.setResizeMode(QtWidgets.QHeaderView.Stretch)
         # else:
         #     header.setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
@@ -4124,11 +4125,11 @@ class MainUI(QtWidgets.QMainWindow):
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
         # saveBaseHeaderBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmBaseScene.png"))
-        # if FORCE_QT4:
+        # if FORCE_QT5:
         #     saveBaseHeaderBitmap = QtWidgets.QPixmap(":/icons/CSS/rc/tmBaseScene.png")
         # else:
         #     saveBaseHeaderBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmBaseScene.png")
-        saveBaseHeaderBitmap = self.Pixmap(":/icons/CSS/rc/tmBaseScene.png")
+        saveBaseHeaderBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmBaseScene.png")
         tikIcon_label.setPixmap(saveBaseHeaderBitmap)
 
         headerLayout.addWidget(tikIcon_label)
@@ -4139,10 +4140,8 @@ class MainUI(QtWidgets.QMainWindow):
         except AttributeError: pass
         resolvedPath_label.setIndent(12)
         # resolvedPath_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-        if FORCE_QT4:
-            resolvedPath_label.setFont(QtWidgets.QFont("Times", 10, QtWidgets.QFont.Bold))
-        else:
-            resolvedPath_label.setFont(QtGui.QFont("Times", 10, QtGui.QFont.Bold))
+
+        resolvedPath_label.setFont(QtGui.QFont("Times", 10, QtGui.QFont.Bold))
 
         resolvedPath_label.setWordWrap(True)
 
@@ -4380,11 +4379,11 @@ class MainUI(QtWidgets.QMainWindow):
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
         # saveVersionHeaderBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmVersion.png"))
-        # if FORCE_QT4:
+        # if FORCE_QT5:
         #     saveVersionHeaderBitmap = QtWidgets.QPixmap(":/icons/CSS/rc/tmVersion.png")
         # else:
         #     saveVersionHeaderBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmVersion.png")
-        saveVersionHeaderBitmap = self.Pixmap(":/icons/CSS/rc/tmVersion.png")
+        saveVersionHeaderBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmVersion.png")
         tikIcon_label.setPixmap(saveVersionHeaderBitmap)
 
         headerLayout.addWidget(tikIcon_label)
@@ -4394,11 +4393,8 @@ class MainUI(QtWidgets.QMainWindow):
         try: resolvedPath_label.setMargin(margin)
         except AttributeError: pass
         resolvedPath_label.setIndent(2)
-        # resolvedPath_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-        if FORCE_QT4:
-            resolvedPath_label.setFont(QtWidgets.QFont("Times", 7, QtWidgets.QFont.Bold))
-        else:
-            resolvedPath_label.setFont(QtGui.QFont("Times", 7, QtGui.QFont.Bold))
+
+        resolvedPath_label.setFont(QtGui.QFont("Times", 7, QtGui.QFont.Bold))
         resolvedPath_label.setWordWrap(True)
 
         headerLayout.addWidget(resolvedPath_label)
@@ -4863,12 +4859,14 @@ class MainUI(QtWidgets.QMainWindow):
         # update notes
         self.notes_textEdit.setPlainText(manager.getNotes())
 
-        self.tPixmap = self.Pixmap(manager.getThumbnail())
+        self.tPixmap = QtGui.QPixmap(manager.getThumbnail())
 
         if self.tPixmap.isNull():
             self.thumbnail_label.setPixmap(self.E_tPixmap)
         else:
             self.thumbnail_label.setPixmap(self.tPixmap)
+
+
 
         if manager.currentVersionIndex != len(manager.getVersions()) and manager.currentVersionIndex != -1:
             self.version_comboBox.setProperty("preVersion", True)
@@ -5313,13 +5311,14 @@ class ImageWidget(QtWidgets.QLabel):
 
 class DropListWidget(QtWidgets.QListWidget):
     """Custom List Widget which accepts drops"""
-    # dropped = Qt.QtCore.Signal(str)
-    # dropped = QtCore.Signal(str)
+
     # PyInstaller and Standalone version compatibility
-    if FORCE_QT4:
+    if FORCE_QT5:
         dropped = QtCore.pyqtSignal(str)
     else:
         dropped = QtCore.Signal(str)
+
+    # dropped = QtCore.Signal(str)
 
     def __init__(self, type, parent=None):
         super(DropListWidget, self).__init__(parent)

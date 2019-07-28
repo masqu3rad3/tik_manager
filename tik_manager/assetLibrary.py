@@ -76,11 +76,11 @@ BoilerDict = {"Environment": "Standalone",
               "SceneFormats":None
               }
 
-FORCE_QT4 = False
+FORCE_QT5 = False
 
 try:
     from PyQt5 import QtWidgets, QtGui, QtCore
-    FORCE_QT4 = True
+    FORCE_QT5 = True
     BoilerDict["Environment"] = "Standalone"
     BoilerDict["WindowTitle"] = "Asset Library Standalone v%s" % _version.__version__
 except ImportError:
@@ -152,13 +152,13 @@ import datetime
 
 from SmRoot import RootManager
 import iconsSource as icons
-# FORCE_QT4 = bool(os.getenv("FORCE_QT4"))
-# FORCE_QT4 = bool(int(os.environ["FORCE_QT4"]))
+# FORCE_QT5 = bool(os.getenv("FORCE_QT5"))
+# FORCE_QT5 = bool(int(os.environ["FORCE_QT5"]))
 
-# Enabele FORCE_QT4 for compiling with pyinstaller
-# FORCE_QT4 = True
+# Enabele FORCE_QT5 for compiling with pyinstaller
+# FORCE_QT5 = True
 #
-# if FORCE_QT4:
+# if FORCE_QT5:
 #     from PyQt4 import QtCore, Qt
 #     from PyQt4 import QtGui as QtWidgets
 # else:
@@ -1511,10 +1511,8 @@ class LibraryTab(QtWidgets.QWidget):
                 item = QtWidgets.QListWidgetItem(itemName)
                 thumbPath = self.library.getAssetThumbnail(itemName)
 
-                if FORCE_QT4:
-                    icon = QtWidgets.QIcon(thumbPath)
-                else:
-                    icon = QtGui.QIcon(thumbPath)
+
+                icon = QtGui.QIcon(thumbPath)
 
                 item.setIcon(icon)
 
@@ -1735,12 +1733,16 @@ class ImageWidget(QtWidgets.QLabel):
     """Custom class for thumbnail section. Keeps the aspect ratio when resized."""
     # Mouse button signals emit image scene (x, y) coordinates.
     # !!! For image (row, column) matrix indexing, row = y and column = x.
-    if FORCE_QT4:
+    if FORCE_QT5:
         leftClicked = QtCore.pyqtSignal(float)
         rightClicked = QtCore.pyqtSignal(float)
     else:
         leftClicked = QtCore.Signal(float)
         rightClicked = QtCore.Signal(float)
+
+
+    # leftClicked = QtCore.Signal(float)
+    # rightClicked = QtCore.Signal(float)
 
 
     def __init__(self, parent=None):
@@ -1777,7 +1779,7 @@ class QtImageViewer(QtWidgets.QGraphicsView):
 
     # Mouse button signals emit image scene (x, y) coordinates.
     # !!! For image (row, column) matrix indexing, row = y and column = x.
-    if FORCE_QT4:
+    if FORCE_QT5:
         leftMouseButtonPressed = QtCore.pyqtSignal(float, float)
         rightMouseButtonPressed = QtCore.pyqtSignal(float, float)
         leftMouseButtonReleased = QtCore.pyqtSignal(float, float)
@@ -1858,20 +1860,13 @@ class QtImageViewer(QtWidgets.QGraphicsView):
         Raises a RuntimeError if the input image has type other than QImage or QPixmap.
         :type image: QImage | QPixmap
         """
-        if FORCE_QT4:
-            if type(image) is QtWidgets.QPixmap:
-                pixmap = image
-            elif type(image) is QtWidgets.QImage:
-                pixmap = QtWidgets.QPixmap.fromImage(image)
-            else:
-                raise RuntimeError("ImageViewer.setImage: Argument must be a QImage or QPixmap.")
+
+        if type(image) is QtGui.QPixmap:
+            pixmap = image
+        elif type(image) is QtGui.QImage:
+            pixmap = QtGui.QPixmap.fromImage(image)
         else:
-            if type(image) is QtGui.QPixmap:
-                pixmap = image
-            elif type(image) is QtGui.QImage:
-                pixmap = QtGui.QPixmap.fromImage(image)
-            else:
-                raise RuntimeError("ImageViewer.setImage: Argument must be a QImage or QPixmap.")
+            raise RuntimeError("ImageViewer.setImage: Argument must be a QImage or QPixmap.")
 
         if self.hasImage():
             self._pixmapHandle.setPixmap(pixmap)
@@ -1964,7 +1959,7 @@ class QtImageViewer(QtWidgets.QGraphicsView):
 
 
 if __name__ == '__main__':
-    os.environ["FORCE_QT4"] = "1"
+    os.environ["FORCE_QT5"] = "1"
     app = QtWidgets.QApplication(sys.argv)
     selfLoc = os.path.dirname(os.path.abspath(__file__))
     stylesheetFile = os.path.join(selfLoc, "CSS", "tikManager.qss")

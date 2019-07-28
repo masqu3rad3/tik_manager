@@ -33,9 +33,8 @@
 import sys, os
 
 # Set the force pyqt environment variable to tell the other modulea not to use Qt.py module
-os.environ["FORCE_QT4"]="1"
+os.environ["FORCE_QT5"]="1"
 
-print("tost")
 from PyQt5 import QtWidgets, QtCore
 
 from SmRoot import RootManager

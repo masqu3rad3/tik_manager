@@ -91,9 +91,9 @@ try:
     CoreFunctions = object
     BoilerDict["Environment"] = "Standalone"
     BoilerDict["WindowTitle"] = "Project Materials Standalone v%s" % _version.__version__
-    FORCE_QT4 = True
+    FORCE_QT5 = True
 except ImportError:
-    FORCE_QT4 = False
+    FORCE_QT5 = False
 
 import os
 import sys
@@ -102,12 +102,12 @@ from glob import glob
 
 
 
-# FORCE_QT4 = bool(int(os.environ["FORCE_QT4"]))
+# FORCE_QT5 = bool(int(os.environ["FORCE_QT5"]))
 
-# Enabele FORCE_QT4 for compiling with pyinstaller
-# FORCE_QT4 = True
+# Enabele FORCE_QT5 for compiling with pyinstaller
+# FORCE_QT5 = True
 
-# if FORCE_QT4:
+# if FORCE_QT5:
 #     from PyQt4 import QtCore, Qt
 #     from PyQt4 import QtGui as QtWidgets
 # else:
@@ -261,7 +261,7 @@ class QtImageViewer(QtWidgets.QGraphicsView):
 
     # Mouse button signals emit image scene (x, y) coordinates.
     # !!! For image (row, column) matrix indexing, row = y and column = x.
-    if FORCE_QT4:
+    if FORCE_QT5:
         leftMouseButtonPressed = QtCore.pyqtSignal(float, float)
         rightMouseButtonPressed = QtCore.pyqtSignal(float, float)
         leftMouseButtonReleased = QtCore.pyqtSignal(float, float)
@@ -340,25 +340,18 @@ class QtImageViewer(QtWidgets.QGraphicsView):
         Raises a RuntimeError if the input image has type other than QImage or QPixmap.
         :type image: QImage | QPixmap
         """
-        if FORCE_QT4:
-            if type(image) is QtWidgets.QPixmap:
-                pixmap = image
-            elif type(image) is QtWidgets.QImage:
-                pixmap = QtWidgets.QPixmap.fromImage(image)
-            else:
-                raise RuntimeError("ImageViewer.setImage: Argument must be a QImage or QPixmap.")
+        if type(image) is QtGui.QPixmap:
+            pixmap = image
+        elif type(image) is QtGui.QImage:
+            pixmap = QtGui.QPixmap.fromImage(image)
         else:
-            if type(image) is QtGui.QPixmap:
-                pixmap = image
-            elif type(image) is QtGui.QImage:
-                pixmap = QtGui.QPixmap.fromImage(image)
-            else:
-                raise RuntimeError("ImageViewer.setImage: Argument must be a QImage or QPixmap.")
+            raise RuntimeError("ImageViewer.setImage: Argument must be a QImage or QPixmap.")
 
         if self.hasImage():
             self._pixmapHandle.setPixmap(pixmap)
         else:
             self._pixmapHandle = self.scene.addPixmap(pixmap)
+
         self.setSceneRect(QtCore.QRectF(pixmap.rect()))  # Set scene size to image size.
         self.updateViewer()
 
@@ -419,7 +412,7 @@ class QtImageViewer(QtWidgets.QGraphicsView):
             if self.canZoom:
                 viewBBox = self.zoomStack[-1] if len(self.zoomStack) else self.sceneRect()
                 selectionBBox = self.scene.selectionArea().boundingRect().intersected(viewBBox)
-                self.scene.setSelectionArea(QtWidgets.QPainterPath())  # Clear current selection area.
+                self.scene.setSelectionArea(QtGui.QPainterPath())  # Clear current selection area.
                 if selectionBBox.isValid() and (selectionBBox != viewBBox):
                     self.zoomStack.append(selectionBBox)
                     self.updateViewer()
@@ -896,11 +889,11 @@ class ProjectMaterials(RootManager, CoreFunctions):
 
     def getMaterialPath(self):
         """Returns the absolute material path of currentMaterialInfo"""
-        return os.path.join(self.projectDir, self.currentMaterialInfo["relativePath"])
+        return os.path.join(self.projectDir, self.currentMaterialInfo["relativePath"].replace("\\", "/"))
 
     def getFileContent(self):
 
-        filePath = os.path.join(self.projectDir, self.currentMaterialInfo["relativePath"])
+        filePath = os.path.join(self.projectDir, self.currentMaterialInfo["relativePath"].replace("\\", "/"))
         validDocList = [".txt", ".rtf", ".doc", ".docx"]
         ext = os.path.splitext(filePath)[1]
 
@@ -1536,12 +1529,9 @@ class MainUI(QtWidgets.QMainWindow):
 
         if self.matCategory == "Storyboard":
             # print item
-            pic = self.promat.getMaterialPath()
+            pic = os.path.normpath(self.promat.getMaterialPath())
             # update thumb
-            if FORCE_QT4:
-                self.tPixmap = QtWidgets.QPixmap(pic)
-            else:
-                self.tPixmap = QtGui.QPixmap(pic)
+            self.tPixmap = QtGui.QPixmap(pic)
 
 
             self.stb_label.setImage(self.tPixmap)
@@ -1555,10 +1545,8 @@ class MainUI(QtWidgets.QMainWindow):
             self.promat._loadMaterialInfo(self.matDBpath)
             pic = self.promat.getMaterialPath()
             # update thumb
-            if FORCE_QT4:
-                self.tPixmap = QtWidgets.QPixmap(pic)
-            else:
-                self.tPixmap = QtGui.QPixmap(pic)
+
+            self.tPixmap = QtGui.QPixmap(pic)
 
             self.reference_label.setImage(self.tPixmap)
         else:
@@ -1628,7 +1616,7 @@ class MainUI(QtWidgets.QMainWindow):
 class DropPushButton(QtWidgets.QPushButton):
     """Custom LineEdit Class accepting drops"""
     # PyInstaller and Standalone version compatibility
-    if FORCE_QT4:
+    if FORCE_QT5:
         dropped = QtCore.pyqtSignal(list)
     else:
         dropped = Qt.QtCore.Signal(list)
@@ -1697,7 +1685,7 @@ class DropPushButton(QtWidgets.QPushButton):
 
 
 if __name__ == '__main__':
-    os.environ["FORCE_QT4"] = "1"
+    os.environ["FORCE_QT5"] = "1"
     app = QtWidgets.QApplication(sys.argv)
     selfLoc = os.path.dirname(os.path.abspath(__file__))
     stylesheetFile = os.path.join(selfLoc, "CSS", "tikManager.qss")

@@ -39,13 +39,13 @@ Double Clicking on warnings open up the related dialog.
 # # JUST FOR AUTO COMPLETION
 # # ------------------------
 # import os
-# FORCE_QT4 = bool(os.getenv("FORCE_QT4"))
+# FORCE_QT5 = bool(os.getenv("FORCE_QT5"))
 #
 # # Somehow Pyinstaller is not working with Qt.py module. Following lines forces to use PyQt4
 # # instead of Qt module to make it compatible with PyInstaller.
 #
 #
-# if FORCE_QT4:
+# if FORCE_QT5:
 #     from PyQt4 import QtCore, Qt
 #     from PyQt4 import QtGui as QtWidgets
 # else:
@@ -58,7 +58,7 @@ import _version
 # import pymel.core as pm
 import maya.cmds as cmds
 import os
-os.environ["FORCE_QT4"]="0"
+os.environ["FORCE_QT5"]="0"
 import maya.mel as mel
 
 from SmRoot import RootManager

@@ -94,9 +94,9 @@ try:
     CoreFunctions = object
     BoilerDict["Environment"] = "Standalone"
     BoilerDict["WindowTitle"] = "Image Viewer Standalone v%s" % _version.__version__
-    FORCE_QT4 = True
+    FORCE_QT5 = True
 except ImportError:
-    FORCE_QT4 = False
+    FORCE_QT5 = False
 
 import os
 import sys
@@ -109,8 +109,8 @@ import iconsSource as icons
 
 ## SAFE BLOCK
 ## ----------
-# FORCE_QT4 = bool(int(os.environ["FORCE_QT4"]))
-# if FORCE_QT4:
+# FORCE_QT5 = bool(int(os.environ["FORCE_QT5"]))
+# if FORCE_QT5:
 #     from PyQt4 import QtCore, Qt
 #     from PyQt4 import QtGui as QtWidgets
 # else:
@@ -119,7 +119,7 @@ import iconsSource as icons
 ## ----------
 
 # for standalone compatibility uncomment following 3 and disable safe block
-# FORCE_QT4 = True
+# FORCE_QT5 = True
 # from PyQt4 import QtCore, Qt
 # from PyQt4 import QtGui as QtWidgets
 
@@ -966,7 +966,7 @@ class MainUI(QtWidgets.QMainWindow):
 class DropLineEdit(QtWidgets.QLineEdit):
     """Custom LineEdit Class accepting drops"""
     # PyInstaller and Standalone version compatibility
-    if FORCE_QT4:
+    if FORCE_QT5:
         dropped = QtCore.pyqtSignal(str)
     else:
         dropped = Qt.QtCore.Signal(str)
@@ -998,7 +998,7 @@ class DropLineEdit(QtWidgets.QLineEdit):
 class DeselectableTreeView(QtWidgets.QTreeView):
     """Custom Deselectable TreeView Class"""
     # PyInstaller and Standalone version compatibility
-    if FORCE_QT4:
+    if FORCE_QT5:
         deselected = QtCore.pyqtSignal(bool)
     else:
         deselected = QtCore.Signal(bool)
@@ -1213,7 +1213,7 @@ class SeqCopyProgress(QtWidgets.QWidget, RootManager):
             i.close()
 
 if __name__ == '__main__':
-    # os.environ["FORCE_QT4"] = "True"
+    # os.environ["FORCE_QT5"] = "True"
     app = QtWidgets.QApplication(sys.argv)
     selfLoc = os.path.dirname(os.path.abspath(__file__))
     stylesheetFile = os.path.join(selfLoc, "CSS", "tikManager.qss")

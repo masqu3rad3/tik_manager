@@ -31,7 +31,7 @@
 # -----------------------------------------------------------------------------
 
 import os
-os.environ["FORCE_QT4"]="0"
+os.environ["FORCE_QT5"]="0"
 
 from SmUIRoot import MainUI as baseUI
 from SmRoot import RootManager
