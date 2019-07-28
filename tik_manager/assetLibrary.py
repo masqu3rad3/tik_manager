@@ -79,8 +79,7 @@ BoilerDict = {"Environment": "Standalone",
 FORCE_QT4 = False
 
 try:
-    from PyQt4 import QtCore, Qt
-    from PyQt4 import QtGui as QtWidgets
+    from PyQt5 import QtWidgets, QtGui, QtCore
     FORCE_QT4 = True
     BoilerDict["Environment"] = "Standalone"
     BoilerDict["WindowTitle"] = "Asset Library Standalone v%s" % _version.__version__
@@ -555,10 +554,8 @@ class MainUI(QtWidgets.QMainWindow):
         except AttributeError: pass
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
-        if FORCE_QT4:
-            headerBitmap = QtWidgets.QPixmap(":/icons/CSS/rc/tmAssetLibrary.png")
-        else:
-            headerBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmAssetLibrary.png")
+
+        headerBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmAssetLibrary.png")
         tikIcon_label.setPixmap(headerBitmap)
 
         headerLayout.addWidget(tikIcon_label)
@@ -569,10 +566,8 @@ class MainUI(QtWidgets.QMainWindow):
         try: self.currentProject_label.setMargin(margin)
         except AttributeError: pass
         self.currentProject_label.setIndent(2)
-        if FORCE_QT4:
-            self.currentProject_label.setFont(QtWidgets.QFont("Segoe UI Symbol", 8, QtWidgets.QFont.Bold))
-        else:
-            self.currentProject_label.setFont(QtGui.QFont("Segoe UI Symbol", 8, QtGui.QFont.Bold))
+
+        self.currentProject_label.setFont(QtGui.QFont("Segoe UI Symbol", 8, QtGui.QFont.Bold))
         self.currentProject_label.setWordWrap(True)
         headerLayout.addWidget(self.currentProject_label)
 
@@ -963,10 +958,8 @@ class LibraryTab(QtWidgets.QWidget):
 
         # ImageWidget
         # -----------
-        if FORCE_QT4:
-            self.tPixmap = QtWidgets.QPixmap("")
-        else:
-            self.tPixmap = QtGui.QPixmap("")
+
+        self.tPixmap = QtGui.QPixmap("")
         self.screenshot_label = ImageWidget(self.frame_right)
         self.screenshot_label.setPixmap(self.tPixmap)
 
@@ -1173,10 +1166,8 @@ class LibraryTab(QtWidgets.QWidget):
         ## ---------
 
         # PyInstaller and Standalone version compatibility
-        if FORCE_QT4:
-            shortcutRefresh = Qt.QShortcut(QtWidgets.QKeySequence("F5"), self, self.populate)
-        else:
-            shortcutRefresh = QtWidgets.QShortcut(QtGui.QKeySequence("F5"), self, self.populate)
+
+        shortcutRefresh = QtWidgets.QShortcut(QtGui.QKeySequence("F5"), self, self.populate)
 
         # self.populate()
 
@@ -1403,16 +1394,9 @@ class LibraryTab(QtWidgets.QWidget):
         # print screenshotPath
 
         # update preview image
-        if FORCE_QT4:
-            self.tPixmap = QtWidgets.QPixmap(screenshotPath)
-            # msg = "debug_3 %s" % self.tPixmap
-            # infoPop(msg)
-            # print msg
-        else:
-            self.tPixmap = QtGui.QPixmap(screenshotPath)
-            # msg = "debug_4 %s" % self.tPixmap
-            # infoPop(msg)
-            # print msg
+
+        self.tPixmap = QtGui.QPixmap(screenshotPath)
+
 
         self.screenshot_label.setPixmap(self.tPixmap)
         # self.screenshot_label.setText(msg)
@@ -1604,7 +1588,6 @@ class LibraryTab(QtWidgets.QWidget):
     def multiExecute(self, assetData, format):
         if format == "Obj":
             fPath = os.path.join(self.directory, assetData["assetName"], assetData["objPath"])
-            print "fpath: ", fPath
             self.library.executeFile(fPath)
         elif format == "Fbx":
             fPath = os.path.join(self.directory, assetData["assetName"], assetData["fbxPath"])

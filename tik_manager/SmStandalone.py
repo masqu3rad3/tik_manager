@@ -35,20 +35,17 @@ import sys, os
 # Set the force pyqt environment variable to tell the other modulea not to use Qt.py module
 os.environ["FORCE_QT4"]="1"
 
-from PyQt4 import QtCore, Qt
-from PyQt4 import QtGui as QtWidgets
+print("tost")
+from PyQt5 import QtWidgets, QtCore
 
-import SmUIRoot
-reload(SmUIRoot)
 from SmRoot import RootManager
 from SmUIRoot import MainUI as baseUI
 
 import _version
 import subprocess
 
-import pprint
+# import pprint
 import logging
-
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Scene Manager for Maya Project"
 __credits__ = []

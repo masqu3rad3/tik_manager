@@ -1958,8 +1958,10 @@ Elapsed Time:{6}
 
     def _dumpJson(self, data, file):
         """Saves the data to the json file"""
-        name, ext = os.path.splitext(unicode(file).encode("utf-8"))
-        tempFile = ("{0}.tmp".format(name)).decode("utf-8")
+        # name, ext = os.path.splitext(unicode(file).encode("utf-8"))
+        name, ext = os.path.splitext(file)
+        # tempFile = ("{0}.tmp".format(name)).decode("utf-8")
+        tempFile = ("{0}.tmp".format(name))
         with open(tempFile, "w") as f:
             json.dump(data, f, indent=4)
         shutil.copyfile(tempFile, file)
@@ -2335,8 +2337,8 @@ Elapsed Time:{6}
         #     return vMsg, None, None
 
         majorV, minorV, patch = map(lambda x: int(x) ,_version.__version__.split("."))
-        print majorV, minorV, patch
-        print majorV_remote, minorV_remote, patch_remote
+        print(majorV, minorV, patch)
+        print(majorV_remote, minorV_remote, patch_remote)
 
         if majorV_remote > majorV:
             vMsg = "New major version!\nTik Manager v{0} is now available".format(versionStr_remote)
@@ -2541,20 +2543,39 @@ Elapsed Time:{6}
                     shutil.copy2(srcname, dstname)
             # catch the Error from the recursive copytree so that we can
             # continue with other files
-            except shutil.Error, err:
+        #     except shutil.Error, err:
+        #         errors.extend(err.args[0])
+        #     except EnvironmentError, why:
+        #         errors.append((srcname, dstname, str(why)))
+        # try:
+        #     shutil.copystat(src, dst)
+        # except OSError, why:
+        #     if WindowsError is not None and isinstance(why, WindowsError):
+        #         # Copying file access times may fail on Windows
+        #         pass
+        #     else:
+        #         errors.extend((src, dst, str(why)))
+        # if errors:
+        #     raise shutil.Error, errors
+            ##############
+
+            except shutil.Error as err:
                 errors.extend(err.args[0])
-            except EnvironmentError, why:
+            except EnvironmentError as why:
                 errors.append((srcname, dstname, str(why)))
         try:
             shutil.copystat(src, dst)
-        except OSError, why:
+        except OSError as why:
             if WindowsError is not None and isinstance(why, WindowsError):
                 # Copying file access times may fail on Windows
                 pass
             else:
                 errors.extend((src, dst, str(why)))
         if errors:
-            raise shutil.Error, errors
+            raise shutil.Error(errors)
+
+        ###############################
+
 
 
 

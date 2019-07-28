@@ -38,8 +38,7 @@ import sys, os
 os.environ["FORCE_QT4"]="1"
 os.environ["PS_APP"]="1"
 
-from PyQt4 import QtCore, Qt
-from PyQt4 import QtGui as QtWidgets
+from PyQt5 import QtWidgets, QtCore, QtGui
 
 from SmRoot import RootManager
 from tik_manager.coreFunctions.coreFunctions_PS import PsCoreFunctions
@@ -753,7 +752,7 @@ class MainUI(baseUI):
         self.export_pushButton.clicked.connect(self.exportSourceUI)
 
         # self.mIconPixmap = QtWidgets.QPixmap(os.path.join(self.manager.getIconsDir(), "iconPS.png"))
-        self.mIconPixmap = QtWidgets.QPixmap(":/icons/CSS/rc/iconPS.png")
+        self.mIconPixmap = QtGui.QPixmap(":/icons/CSS/rc/iconPS.png")
         self.managerIcon_label.setPixmap(self.mIconPixmap)
         #
         # self.baseScene_label.setVisible(False)

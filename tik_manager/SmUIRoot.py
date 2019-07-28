@@ -91,8 +91,7 @@ except ImportError:
     pass
 
 try:
-    from PyQt4 import QtCore, Qt
-    from PyQt4 import QtGui as QtWidgets
+    from PyQt5 import QtWidgets, QtCore, QtGui
     FORCE_QT4 = True
     if bool(os.getenv("PS_APP")):  # if the request is coming from the SmPhotoshop
         BoilerDict["Environment"] = "Standalone"  # technically it is still standalone...
@@ -182,22 +181,14 @@ class MainUI(QtWidgets.QMainWindow):
             self.setStyleSheet(fh.read())
 
         ## fonts:
-        if FORCE_QT4:
-            self.iconFont = QtWidgets.QFont("Segoe UI Symbol", 12, QtWidgets.QFont.Bold)
-            self.headerAFont = QtWidgets.QFont("Segoe UI Symbol", 14, QtWidgets.QFont.Bold)
-            self.headerBFont = QtWidgets.QFont("Segoe UI Symbol", 10, QtWidgets.QFont.Bold)
-            self.displayFont = QtWidgets.QFont("Segoe UI Symbol", 8, QtWidgets.QFont.Bold)
-            self.infoFont = QtWidgets.QFont("", 8, QtWidgets.QFont.Helvetica)
-            self.Pixmap = QtWidgets.QPixmap
-            self.QIcon = QtWidgets.QIcon
-        else:
-            self.iconFont = QtGui.QFont("Segoe UI Symbol", 12, QtGui.QFont.Bold)
-            self.headerAFont = QtGui.QFont("Segoe UI Symbol", 14, QtGui.QFont.Bold)
-            self.headerBFont = QtGui.QFont("Segoe UI Symbol", 10, QtGui.QFont.Bold)
-            self.displayFont = QtGui.QFont("Segoe UI Symbol", 8, QtGui.QFont.Bold)
-            self.infoFont = QtGui.QFont("", 8, QtGui.QFont.Helvetica)
-            self.Pixmap = QtGui.QPixmap
-            self.QIcon = QtGui.QIcon
+
+        self.iconFont = QtGui.QFont("Segoe UI Symbol", 12, QtGui.QFont.Bold)
+        self.headerAFont = QtGui.QFont("Segoe UI Symbol", 14, QtGui.QFont.Bold)
+        self.headerBFont = QtGui.QFont("Segoe UI Symbol", 10, QtGui.QFont.Bold)
+        self.displayFont = QtGui.QFont("Segoe UI Symbol", 8, QtGui.QFont.Bold)
+        self.infoFont = QtGui.QFont("", 8, QtGui.QFont.Helvetica)
+        self.Pixmap = QtGui.QPixmap
+        self.QIcon = QtGui.QIcon
 
         self.superUser = False
 
@@ -555,10 +546,8 @@ class MainUI(QtWidgets.QMainWindow):
         # ---------
 
         # PyInstaller and Standalone version compatibility
-        if FORCE_QT4:
-            shortcutRefresh = Qt.QShortcut(QtWidgets.QKeySequence("F5"), self, self.refresh)
-        else:
-            shortcutRefresh = QtWidgets.QShortcut(QtGui.QKeySequence("F5"), self, self.refresh)
+
+        shortcutRefresh = QtWidgets.QShortcut(QtGui.QKeySequence("F5"), self, self.refresh)
 
         # SIGNAL CONNECTIONS
         # ------------------
@@ -4906,12 +4895,9 @@ class MainUI(QtWidgets.QMainWindow):
                     item = QtWidgets.QTreeWidgetItem(self.scenes_listWidget, [key, str(timestampFormatted)])
 
         else:
-            if BoilerDict["Environment"] == "Standalone":
-                codeDict = {-1: QtWidgets.QColor(255, 0, 0, 255), 1: QtWidgets.QColor(0, 255, 0, 255),
-                            0: QtWidgets.QColor(255, 255, 0, 255), -2: QtWidgets.QColor(20, 20, 20, 255)}
-            else:
-                codeDict = {-1: QtGui.QColor(255, 0, 0, 255), 1: QtGui.QColor(0, 255, 0, 255),
-                            0: QtGui.QColor(255, 255, 0, 255), -2: QtGui.QColor(20, 20, 20, 255)}  # dictionary for color codes red, green, yellow
+
+            codeDict = {-1: QtGui.QColor(255, 0, 0, 255), 1: QtGui.QColor(0, 255, 0, 255),
+                        0: QtGui.QColor(255, 255, 0, 255), -2: QtGui.QColor(20, 20, 20, 255)}  # dictionary for color codes red, green, yellow
 
             for key in baseScenesDict:
                 retCode = manager.checkReference(baseScenesDict[key], deepCheck=deepCheck) # returns -1, 0 or 1 for color ref

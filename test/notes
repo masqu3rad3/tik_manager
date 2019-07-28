@@ -14,6 +14,8 @@ Compile Standalone
 ------------------
 
 python -OO -m PyInstaller SmStandalone.py -w -i "icons/osicon_scenemanager_EM0_icon.ico"
+python -OO -m PyInstaller SmStandalone.py -i "icons/osicon_scenemanager_EM0_icon.ico" --win-private-assemblies
+python -OO -m PyInstaller SmStandalone.py -w -i "icons/osicon_scenemanager_EM0_icon.ico" --win-private-assemblies
 
 ### DONT FORGET TO COPY THESE FILES MANUALLY:
 /CSS/darkorange.stylesheet

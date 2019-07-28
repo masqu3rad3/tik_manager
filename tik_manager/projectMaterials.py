@@ -87,8 +87,7 @@ except ImportError:
     pass
 
 try:
-    from PyQt4 import QtCore, Qt
-    from PyQt4 import QtGui as QtWidgets
+    from PyQt5 import QtWidgets, QtCore, QtGui
     CoreFunctions = object
     BoilerDict["Environment"] = "Standalone"
     BoilerDict["WindowTitle"] = "Project Materials Standalone v%s" % _version.__version__
@@ -1066,10 +1065,8 @@ class MainUI(QtWidgets.QMainWindow):
         tikIcon_label.setMargin(margin)
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
-        if FORCE_QT4:
-            headerBitmap = QtWidgets.QPixmap(":/icons/CSS/rc/tmProjectMaterials.png")
-        else:
-            headerBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmProjectMaterials.png")
+
+        headerBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmProjectMaterials.png")
         tikIcon_label.setPixmap(headerBitmap)
 
 
@@ -1081,10 +1078,8 @@ class MainUI(QtWidgets.QMainWindow):
         try: resolvedPath_label.setMargin(margin)
         except AttributeError: pass
         resolvedPath_label.setIndent(2)
-        if FORCE_QT4:
-            resolvedPath_label.setFont(QtWidgets.QFont("Times", 7, QtWidgets.QFont.Bold))
-        else:
-            resolvedPath_label.setFont(QtGui.QFont("Times", 7, QtGui.QFont.Bold))
+
+        resolvedPath_label.setFont(QtGui.QFont("Times", 7, QtGui.QFont.Bold))
         resolvedPath_label.setWordWrap(True)
 
         headerLayout.addWidget(resolvedPath_label)
@@ -1515,7 +1510,7 @@ class MainUI(QtWidgets.QMainWindow):
         elif self.matCategory == "Other":
             treewidget = self.other_treeWidget
         else:
-            print "cannot get category"
+            print("cannot get category")
             return
 
         treewidget.clear()

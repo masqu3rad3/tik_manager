@@ -90,8 +90,7 @@ except ImportError:
     pass
 
 try:
-    from PyQt4 import QtCore, Qt
-    from PyQt4 import QtGui as QtWidgets
+    from PyQt5 import QtWidgets, QtCore, QtGui
     CoreFunctions = object
     BoilerDict["Environment"] = "Standalone"
     BoilerDict["WindowTitle"] = "Image Viewer Standalone v%s" % _version.__version__
@@ -410,12 +409,8 @@ class MainUI(QtWidgets.QMainWindow):
         except AttributeError: pass
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
-        if FORCE_QT4:
-            # headerBitmap = QtWidgets.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
-            headerBitmap = QtWidgets.QPixmap(":/icons/CSS/rc/tmImageViewer.png")
-        else:
-            # headerBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmMain.png"))
-            headerBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmImageViewer.png")
+
+        headerBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmImageViewer.png")
         tikIcon_label.setPixmap(headerBitmap)
 
         headerLayout.addWidget(tikIcon_label)
@@ -426,10 +421,8 @@ class MainUI(QtWidgets.QMainWindow):
         try: self.baseScene_label.setMargin(margin)
         except AttributeError: pass
         self.baseScene_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-        if FORCE_QT4:
-            self.baseScene_label.setFont(QtWidgets.QFont("Times", 10, QtWidgets.QFont.Bold))
-        else:
-            self.baseScene_label.setFont(QtGui.QFont("Times", 10, QtGui.QFont.Bold))
+
+        self.baseScene_label.setFont(QtGui.QFont("Times", 10, QtGui.QFont.Bold))
 
         # self.baseScene_label.setFont(self.displayFont)
         headerLayout.addWidget(self.baseScene_label)
@@ -667,10 +660,8 @@ class MainUI(QtWidgets.QMainWindow):
         # ---------
 
         # PyInstaller and Standalone version compatibility
-        if FORCE_QT4:
-            shortcutRefresh = Qt.QShortcut(QtWidgets.QKeySequence("F5"), self, self.populate)
-        else:
-            shortcutRefresh = QtWidgets.QShortcut(QtGui.QKeySequence("F5"), self, self.populate)
+
+        shortcutRefresh = QtWidgets.QShortcut(QtGui.QKeySequence("F5"), self, self.populate)
 
         self.populate()
 

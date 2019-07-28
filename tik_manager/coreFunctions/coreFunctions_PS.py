@@ -1,7 +1,6 @@
 import os
 from win32com.client import Dispatch
 
-
 class PsCoreFunctions(object):
     def __init__(self):
         super(PsCoreFunctions, self).__init__()
