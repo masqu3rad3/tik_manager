@@ -92,3 +92,39 @@ which is incompatible with software versions.
 - copy/paste contents into iconSource.py excluding imports. (use iconSource.py imports)
 
 
+
+------------------
+PyQt5 ADAPTATIONS
+------------------
+
+pyrcc4 -o TEMPORARY.py tikManager.qrc
+==>
+pyrcc5 -o TEMPORARY.py tikManager.qrc
+
+
+versions:
+---------
+
+pyqt=5.9.2
+PyInstaller = 3.5
+conda 4.6.14
+
+
+Freeze Commands
+---------------
+
+PyInstaller setup.py --onefile
+PyInstaller SmStandalone.py -w -i "icons/osicon_scenemanager_EM0_icon.ico" --win-private-assemblies
+PyInstaller SmPhotoshop.py -w -i "icons/osicon_smPhotoshop_icon.ico" --win-private-assemblies
+
+Two folders must be copied inside the executable folder with all its contents:
+CSS Folder (contains tikManager.qss)
+
+And
+
+platforms folder (contains 3 dll files)
+'platforms' folder can be found in the building environment.
+For example:
+C:\Users\kutlu\Anaconda2\Library\plugins\platforms
+or
+C:\Users\kutlu\Anaconda2\envs\tik_manager37\Library\plugins\platforms
