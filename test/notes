@@ -105,7 +105,7 @@ pyrcc5 -o TEMPORARY.py tikManager.qrc
 versions:
 ---------
 
-pyqt=5.9.2
+pyqt=5.6.0
 PyInstaller = 3.5
 conda 4.6.14
 
