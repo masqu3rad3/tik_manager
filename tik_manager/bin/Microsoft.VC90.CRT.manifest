@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">
   <noInheritable/>
-  <assemblyIdentity name="Microsoft.VC90.CRT" processorArchitecture="amd64" publicKeyToken="1fc8b3b9a1e18e3b" type="win32" version="9.0.30729.9619"/>
-  <file hash="60de419f2add98fdd6f129bb92708634943b05dc" hashalg="SHA1" name="msvcr90.dll"/>
-  <file hash="3d8ddd11c424eca9fee1ee3c7cb2a72b66cafe3d" hashalg="SHA1" name="msvcp90.dll"/>
-  <file hash="0e60002bc70fc4520367e01da1f0bc543e33d104" hashalg="SHA1" name="msvcm90.dll"/>
+  <assemblyIdentity name="Microsoft.VC90.CRT" processorArchitecture="amd64" publicKeyToken="1fc8b3b9a1e18e3b" type="win32" version="9.0.30729.9518"/>
+  <file hash="fc309cdf47f1e39cd615e3f41e569e42c49cbb3c" hashalg="SHA1" name="msvcr90.dll"/>
+  <file hash="561cb6e9cd8b7da64089e87312b642386b949d89" hashalg="SHA1" name="msvcp90.dll"/>
+  <file hash="d4bfa46115eb16205d43520e418b72a1203fcc6a" hashalg="SHA1" name="msvcm90.dll"/>
   <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
     <application>
       <supportedOS Id="{1f676c76-80e1-4239-95bb-83d0f6d0da78}"/>
