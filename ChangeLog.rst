@@ -24,6 +24,7 @@ Tik Manager Version History
 * **Update.27** Linux compatibility issues (path and ffmpeg)
 * **Fix.28** Project Materials - Drag/Drop foolcheck
 * **Update.28** Project Materials - statusbar updates
+* **Update.4** Standalone and Photoshop modules using PyQt5 now.
 
 2.5
 ---
