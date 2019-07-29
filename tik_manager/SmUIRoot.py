@@ -3877,7 +3877,7 @@ class MainUI(QtWidgets.QMainWindow):
         # manager = self._getManager()
         settings = self.allSettingsDict.get("nameConventions")
 
-        validFileNameTokens = ["<date>", "<baseName>", "<categoryName>", "<userInitials>"]
+        validFileNameTokens = ["<date>", "<subproject>", "<baseName>", "<categoryName>", "<userInitials>"]
 
         namingConv_Layout = QtWidgets.QVBoxLayout(self.namingConventions_vis)
         namingConv_Layout.setSpacing(0)
@@ -4321,6 +4321,7 @@ class MainUI(QtWidgets.QMainWindow):
                 "baseName": name,
                 "categoryName": category,
                 "userInitials": userInitials,
+                "subproject": self.manager.subProject,
                 "date": "" # date is unnecessary since it will be calculated in SmRoot->resolveSaveName
             }
             sceneName = self.manager.resolveSaveName(nameDict, 1)
@@ -4570,6 +4571,7 @@ class MainUI(QtWidgets.QMainWindow):
                 "baseName": jsonInfo["Name"],
                 "categoryName": jsonInfo["Category"],
                 "userInitials": self.manager.currentUserInitials,
+                "subproject": self.manager.subProject,
                 "date": "" # date is unnecessary since it will be calculated in SmRoot->resolveSaveName
             }
             sceneName = self.manager.resolveSaveName(nameDict, currentVersion)

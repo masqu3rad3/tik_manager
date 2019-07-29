@@ -26,6 +26,7 @@ Tik Manager Version History
 * **Update.28** Project Materials - statusbar updates
 * **Update.4** Standalone and Photoshop modules using PyQt5 now.
 * **Update.42** Maya Playblast - "As it is" options
+* **Update.43** Naming Conventions - <subproject> added
 
 2.5
 ---
