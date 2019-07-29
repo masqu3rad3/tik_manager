@@ -19,7 +19,9 @@
     "WireOnShaded": false,
     "UseDefaultMaterial": false,
     "ConvertMP4": true,
-    "CrfValue": 23
+    "CrfValue": 23,
+    "ViewportAsItIs": false,
+    "HudsAsItIs": false
   },
   "defaultTikConvention": {
     "templateFolder": "",

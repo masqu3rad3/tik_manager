@@ -107,5 +107,13 @@
     <file>CSS/rc/star.png</file>
     <file>CSS/rc/save.png</file>
     <file>CSS/rc/delete.png</file>
+    <file>CSS/rc/osicon_asset_library_SLC_icon.ico</file>
+    <file>CSS/rc/osicon_imagemanager_08k_icon.ico</file>
+    <file>CSS/rc/osicon_imageviewer_0Aa_icon.ico</file>
+    <file>CSS/rc/osicon_project_materials_JpK_icon.ico</file>
+    <file>CSS/rc/osicon_saveversion_4Ii_icon.ico</file>
+    <file>CSS/rc/osicon_scenemanager_EM0_icon.ico</file>
+    <file>CSS/rc/osicon_smPhotoshop_icon.ico</file>
+    <file>CSS/rc/osicon_take_preview_SLC_icon.ico</file>
   </qresource>
 </RCC>

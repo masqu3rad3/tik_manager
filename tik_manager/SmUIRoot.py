@@ -181,6 +181,9 @@ class MainUI(QtWidgets.QMainWindow):
         with open(stylesheetFile, "r") as fh:
             self.setStyleSheet(fh.read())
 
+        # Set WindowIcon
+        # self.setWindowIcon(QtGui.QIcon(":/icons/CSS/rc/osicon_scenemanager_EM0_icon.ico"))
+
         ## fonts:
 
         self.iconFont = QtGui.QFont("Segoe UI Symbol", 12, QtGui.QFont.Bold)
@@ -1595,6 +1598,14 @@ class MainUI(QtWidgets.QMainWindow):
                 currentMayaSettings["ConvertMP4"] = True
                 currentMayaSettings["CrfValue"] = 23
 
+            try:
+                currentMayaSettings["ViewportAsItIs"]
+                currentMayaSettings["HudsAsItIs"]
+            except KeyError:
+                currentMayaSettings["ViewportAsItIs"] = False
+                currentMayaSettings["HudsAsItIs"] = False
+
+
             # update the settings dictionary
             self.allSettingsDict.add("preview_maya", currentMayaSettings, settingsFilePathMaya)
 
@@ -1610,6 +1621,13 @@ class MainUI(QtWidgets.QMainWindow):
                 currentMaxSettings["ConvertMP4"] = True
                 currentMaxSettings["CrfValue"] = 23
 
+            try:
+                currentMaxSettings["ViewportAsItIs"]
+                currentMaxSettings["HudsAsItIs"]
+            except KeyError:
+                currentMaxSettings["ViewportAsItIs"] = False
+                currentMaxSettings["HudsAsItIs"] = False
+
             # update the settings dictionary
             self.allSettingsDict.add("preview_max", currentMaxSettings, settingsFilePathMax)
 
@@ -1624,6 +1642,13 @@ class MainUI(QtWidgets.QMainWindow):
             except KeyError:
                 currentHoudiniSettings["ConvertMP4"] = True
                 currentHoudiniSettings["CrfValue"] = 23
+
+            try:
+                currentHoudiniSettings["ViewportAsItIs"]
+                currentHoudiniSettings["HudsAsItIs"]
+            except KeyError:
+                currentHoudiniSettings["ViewportAsItIs"] = False
+                currentHoudiniSettings["HudsAsItIs"] = False
 
             # update the settings dictionary
             self.allSettingsDict.add("preview_houdini", currentHoudiniSettings, settingsFilePathHou)
@@ -2097,6 +2122,8 @@ class MainUI(QtWidgets.QMainWindow):
             settings["ShowSceneName"] = self.sceneName_Maya_chb.isChecked()
             settings["ShowFPS"] = self.fps_Maya_chb.isChecked()
             settings["ShowFrameRange"] = self.frameRange_Maya_chb.isChecked()
+            settings["ViewportAsItIs"] = self.viewportAsItIs_chb.isChecked()
+            settings["HudsAsItIs"] = self.hudsAsItIs_chb.isChecked()
 
             self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
 
@@ -2212,23 +2239,26 @@ class MainUI(QtWidgets.QMainWindow):
         viewportOptions_gridLayout = QtWidgets.QGridLayout()
         h1_s4_horizontalLayout.addLayout(viewportOptions_gridLayout)
 
+        self.viewportAsItIs_chb = QtWidgets.QCheckBox(text="Use Active Viewport Settings", checked=settings["ViewportAsItIs"])
+        viewportOptions_gridLayout.addWidget(self.viewportAsItIs_chb, 0, 0)
+
         self.polygonOnly_Maya_chb = QtWidgets.QCheckBox(text="Polygon Only", checked=settings["PolygonOnly"])
-        viewportOptions_gridLayout.addWidget(self.polygonOnly_Maya_chb, 0, 0)
+        viewportOptions_gridLayout.addWidget(self.polygonOnly_Maya_chb, 1, 0)
 
         self.showGrid_Maya_chb = QtWidgets.QCheckBox(text="Show Grid", checked=settings["ShowGrid"])
-        viewportOptions_gridLayout.addWidget(self.showGrid_Maya_chb, 0, 1)
+        viewportOptions_gridLayout.addWidget(self.showGrid_Maya_chb, 1, 1)
 
         self.clearSelection_Maya_chb = QtWidgets.QCheckBox(text="Clear Selection", checked=settings["ClearSelection"])
-        viewportOptions_gridLayout.addWidget(self.clearSelection_Maya_chb, 1, 0)
+        viewportOptions_gridLayout.addWidget(self.clearSelection_Maya_chb, 2, 0)
 
         self.displayTextures_Maya_chb = QtWidgets.QCheckBox(text="Display Textures", checked=settings["DisplayTextures"])
-        viewportOptions_gridLayout.addWidget(self.displayTextures_Maya_chb, 1, 1)
+        viewportOptions_gridLayout.addWidget(self.displayTextures_Maya_chb, 2, 1)
 
         self.wireOnShaded_Maya_chb = QtWidgets.QCheckBox(text="Wire On Shaded", checked=settings["WireOnShaded"])
-        viewportOptions_gridLayout.addWidget(self.wireOnShaded_Maya_chb, 2, 0)
+        viewportOptions_gridLayout.addWidget(self.wireOnShaded_Maya_chb, 3, 0)
 
         self.useDefaultMaterial_Maya_chb = QtWidgets.QCheckBox(text="Use Default Material", checked=settings["UseDefaultMaterial"])
-        viewportOptions_gridLayout.addWidget(self.useDefaultMaterial_Maya_chb, 2, 1)
+        viewportOptions_gridLayout.addWidget(self.useDefaultMaterial_Maya_chb, 3, 1)
 
         previewSettings_MAYA_Layout.addLayout(h1_s4_horizontalLayout)
 
@@ -2254,20 +2284,23 @@ class MainUI(QtWidgets.QMainWindow):
         hudOptions_gridLayout = QtWidgets.QGridLayout()
         h1_s6_horizontalLayout.addLayout(hudOptions_gridLayout)
 
+        self.hudsAsItIs_chb = QtWidgets.QCheckBox(text="Use Active Huds", checked=settings["HudsAsItIs"])
+        hudOptions_gridLayout.addWidget(self.hudsAsItIs_chb, 0, 0)
+
         self.frameNumber_Maya_chb = QtWidgets.QCheckBox(text="Frame Number", checked=settings["ShowFrameNumber"])
-        hudOptions_gridLayout.addWidget(self.frameNumber_Maya_chb, 0, 0)
+        hudOptions_gridLayout.addWidget(self.frameNumber_Maya_chb, 1, 0)
 
         self.category_Maya_chb = QtWidgets.QCheckBox(text="Category", checked=settings["ShowCategory"])
-        hudOptions_gridLayout.addWidget(self.category_Maya_chb, 0, 1)
+        hudOptions_gridLayout.addWidget(self.category_Maya_chb, 1, 1)
 
         self.sceneName_Maya_chb = QtWidgets.QCheckBox(text="Scene Name", checked=settings["ShowSceneName"])
-        hudOptions_gridLayout.addWidget(self.sceneName_Maya_chb, 1, 0)
+        hudOptions_gridLayout.addWidget(self.sceneName_Maya_chb, 2, 0)
 
         self.fps_Maya_chb = QtWidgets.QCheckBox(text="FPS", checked=settings["ShowFPS"])
-        hudOptions_gridLayout.addWidget(self.fps_Maya_chb, 1, 1)
+        hudOptions_gridLayout.addWidget(self.fps_Maya_chb, 2, 1)
 
         self.frameRange_Maya_chb = QtWidgets.QCheckBox(text="Frame Range", checked=settings["ShowFrameRange"])
-        hudOptions_gridLayout.addWidget(self.frameRange_Maya_chb, 2, 0)
+        hudOptions_gridLayout.addWidget(self.frameRange_Maya_chb, 3, 0)
 
         previewSettings_MAYA_Layout.addLayout(h1_s6_horizontalLayout)
 
@@ -2287,12 +2320,16 @@ class MainUI(QtWidgets.QMainWindow):
         self.quality_Maya_spinBox.valueChanged.connect(updateDictionary)
         self.resX_Maya_spinBox.valueChanged.connect(updateDictionary)
         self.resY_Maya_spinBox.valueChanged.connect(updateDictionary)
+
+        self.viewportAsItIs_chb.stateChanged.connect(updateDictionary)
         self.polygonOnly_Maya_chb.stateChanged.connect(updateDictionary)
         self.showGrid_Maya_chb.stateChanged.connect(updateDictionary)
         self.clearSelection_Maya_chb.stateChanged.connect(updateDictionary)
         self.displayTextures_Maya_chb.stateChanged.connect(updateDictionary)
         self.wireOnShaded_Maya_chb.stateChanged.connect(updateDictionary)
         self.useDefaultMaterial_Maya_chb.stateChanged.connect(updateDictionary)
+
+        self.hudsAsItIs_chb.stateChanged.connect(updateDictionary)
         self.frameNumber_Maya_chb.stateChanged.connect(updateDictionary)
         self.category_Maya_chb.stateChanged.connect(updateDictionary)
         self.sceneName_Maya_chb.stateChanged.connect(updateDictionary)

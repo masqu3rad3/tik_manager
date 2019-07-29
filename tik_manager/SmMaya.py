@@ -461,6 +461,70 @@ class MayaManager(RootManager, MayaCoreFunctions):
     #
     #     cmds.camera(currentCam, e=True, overscan=True, displayFilmGate=False, displayResolution=False)
 
+    def tearOffPanel(self, panel=None, camera=None, resolution=[1280, 720], overrideDict={}):
+        if not panel:
+            currentPanel = cmds.getPanel(wf=True)
+        else:
+            currentPanel = panel
+
+        if not camera:
+            camera = cmds.modelPanel(currentPanel, q=True, cam=True)
+
+        properties = ["activeComponentsXray", "activeCustomGeometry", "activeCustomLighSet",
+                      "activeCustomOverrideGeometry", "activeCustomRenderer", "activeOnly",
+                      "activeShadingGraph", "activeView", "allObjects", "backfaceCulling",
+                      "bufferMode", "bumpResolution", "camera", "cameras", "clipGhosts",
+                      "cmEnabled", "colorResolution", "controlVertices", "cullingOverride",
+                      "deformers", "dimensions", "displayAppearance", "displayLights", "displayTextures",
+                      "dynamicConstraints", "dynamics", "exposure", "filter", "fluids", "fogColor",
+                      "fogDensity", "fogEnd", "fogMode", "fogSource", "fogStart", "fogging", "follicles",
+                      "gamma", "greasePencils", "grid", "hairSystems", "handles", "headsUpDisplay",
+                      "highlightConnection", "hulls", "ignorePanZoom", "ikHandles", "imagePlane",
+                      "interactive", "interactiveBackFaceCull", "interactiveDisableShadows", "jointXray",
+                      "joints", "lights", "lineWidth", "locators", "lowQualityLighting", "mainListConnection",
+                      "manipulators", "maxConstantTransparency", "maximumNumHardwareLights", "motionTrails",
+                      "nCloths", "nParticles", "nRigids", "nurbsCurves", "nurbsSurfaces", "objectFilter",
+                      "objectFilterShowInHUD", "occlusionCulling", "particleInstancers", "pivots",
+                      "planes", "pluginShapes", "polymeshes", "rendererName",
+                      "rendererOverrideName", "sceneRenderFilter", "selectionConnection",
+                      "selectionHiliteDisplay", "shadingModel", "shadows", "smallObjectCulling",
+                      "smoothWireframe", "sortTransparent", "stereoDrawMode",
+                      "strokes", "subdivSurfaces", "textureAnisotropic", "textureCompression",
+                      "textureDisplay", "textureEnvironmentMap", "textureHilight", "textureMaxSize",
+                      "textureSampling", "textures", "transpInShadows", "transparencyAlgorithm",
+                      "twoSidedLighting", "useBaseRenderer", "useColorIndex", "useDefaultMaterial",
+                      "useInteractiveMode", "useRGBImagePlane", "useReducedRenderer", "viewSelected",
+                      "viewTransformName", "wireframeBackingStore", "wireframeOnShaded", "xray"]
+
+        originalDict = {}
+        for p in properties:
+            try:
+                cmd = "cmds.modelEditor(currentPanel, q=True, %s=True)" %(p)
+                val = eval(cmd)
+                if val == None or val == "":
+                    val = False
+                originalDict[p] = val
+            except TypeError:
+                pass
+
+        tempWindow = cmds.window(title="SM_Playblast", widthHeight=(resolution[0] * 1.1, resolution[1] * 1.1),
+                                 tlc=(0, 0))
+        cmds.paneLayout()
+        pbPanel = cmds.modelPanel(camera=camera)
+
+        for item in originalDict.items():
+            key = item[0]
+            if key in overrideDict.keys():
+                value = overrideDict[key]
+            else:
+                value = item[1]
+            if type(value) == unicode or type(value) == str:
+                eval ("cmds.modelEditor(pbPanel, e=True, %s='%s')" % (key, value))
+            else:
+                eval ("cmds.modelEditor(pbPanel, e=True, %s=%s)" % (key, value))
+        cmds.showWindow(tempWindow)
+        return tempWindow
+
 
     def createPreview(self, previewCam=None, forceSequencer=False, *args, **kwargs):
         """Creates a Playblast preview from currently open scene"""
@@ -565,77 +629,145 @@ class MayaManager(RootManager, MayaCoreFunctions):
                 self._exception(202, msg)
                 return
 
-        ## CREATE A CUSTOM PANEL WITH DESIRED SETTINGS
+        ## EDIT STARTS
+        try: # starting from v3.0.42
+            viewportAsItIs =  pbSettings["ViewportAsItIs"]
+            hudsAsItIs =   pbSettings["HudsAsItIs"]
+        except KeyError:   # older version of Tik Manager compatibility
+            viewportAsItIs = False
+            hudsAsItIs = False
 
-        tempWindow = cmds.window(title="SM_Playblast",
-                               widthHeight=(pbSettings["Resolution"][0] * 1.1, pbSettings["Resolution"][1] * 1.1),
-                               tlc=(0, 0))
-        # panel = pm.getPanel(wf=True)
+        viewportExc = {}
+        if not viewportAsItIs: # build the override dictionary
+            viewportExc["allObjects"] = not pbSettings["PolygonOnly"]
+            viewportExc["displayAppearance"] = "smoothShaded"
+            viewportExc["displayTextures"] = pbSettings["DisplayTextures"]
+            viewportExc["grid"] = pbSettings["ShowGrid"]
+            viewportExc["useDefaultMaterial"] = pbSettings["UseDefaultMaterial"]
+            viewportExc["polymeshes"] = True
+            viewportExc["imagePlane"] = True
+            viewportExc["hud"] = True
 
-        cmds.paneLayout()
-
-        pbPanel = cmds.modelPanel(camera=currentCam)
-        cmds.showWindow(tempWindow)
-        cmds.setFocus(pbPanel)
-
-        cmds.modelEditor(pbPanel, e=1,
-                       allObjects=not pbSettings["PolygonOnly"],
-                       da="smoothShaded",
-                       displayTextures=pbSettings["DisplayTextures"],
-                       wireframeOnShaded=pbSettings["WireOnShaded"],
-                       grid=pbSettings["ShowGrid"],
-                       useDefaultMaterial=pbSettings["UseDefaultMaterial"],
-                       polymeshes=True,
-                       imagePlane=True,
-                       hud=True
-                       )
-
-        cmds.camera(currentCam, e=True, overscan=True, displayFilmGate=False, displayResolution=False)
-
-        ## get previous HUD States and turn them all off
         hudPreStates = {}
-        HUDS = cmds.headsUpDisplay(lh=True)
-        for hud in HUDS:
-            hudPreStates[hud] = cmds.headsUpDisplay(hud, q=True, vis=True)
-            cmds.headsUpDisplay(hud, e=True, vis=False)
+        if not hudsAsItIs:
 
-        ## clear the custom HUDS
-        customHuds = ['SMFrame', 'SMScene', 'SMCategory', 'SMFPS', 'SMCameraName', 'SMFrange']
-        for hud in customHuds:
-            if cmds.headsUpDisplay(hud, ex=True):
-                cmds.headsUpDisplay(hud, rem=True)
+            ## get previous HUD States and turn them all off
+            HUDS = cmds.headsUpDisplay(lh=True)
+            for hud in HUDS:
+                hudPreStates[hud] = cmds.headsUpDisplay(hud, q=True, vis=True)
+                cmds.headsUpDisplay(hud, e=True, vis=False)
+            ## clear the custom HUDS
+            customHuds = ['SMFrame', 'SMScene', 'SMCategory', 'SMFPS', 'SMCameraName', 'SMFrange']
+            for hud in customHuds:
+                if cmds.headsUpDisplay(hud, ex=True):
+                    cmds.headsUpDisplay(hud, rem=True)
 
-        if pbSettings["ShowFrameNumber"]:
-            freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-            cmds.headsUpDisplay('SMFrame', s=5, b=freeBl, label="Frame", preset="currentFrame", dfs="large",
-                              lfs="large")
-        if pbSettings["ShowSceneName"]:
-            freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-            cmds.headsUpDisplay('SMScene', s=5, b=freeBl, label="Scene: %s" % (self.niceName(versionName)),
-                                lfs="large")
-        if pbSettings["ShowCategory"]:
-            freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-            cmds.headsUpDisplay('SMCategory', s=5, b=freeBl, label="Category: %s" % (jsonInfo["Category"]),
-                              lfs="large")
-        if pbSettings["ShowFPS"]:
-            freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-            cmds.headsUpDisplay('SMFPS', s=5, b=freeBl, label="Time Unit: %s" % (cmds.currentUnit(q=True, time=True)),
-                              lfs="large")
-
-        # v1.1 SPECIFIC
-        try:
-            if pbSettings["ShowFrameRange"]:
+            if pbSettings["ShowFrameNumber"]:
                 freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-                cmds.headsUpDisplay('SMFrange', s=5, b=freeBl,
-                                  label="Frame Range: {} - {}".format(int(cmds.playbackOptions(q=True, minTime=True)),
-                                                                      int(cmds.playbackOptions(q=True,
-                                                                                             maxTime=True))),
-                                  lfs="large")
-        except KeyError:
-            pass
+                cmds.headsUpDisplay('SMFrame', s=5, b=freeBl, label="Frame", preset="currentFrame", dfs="large", lfs="large")
+            if pbSettings["ShowSceneName"]:
+                freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
+                cmds.headsUpDisplay('SMScene', s=5, b=freeBl, label="Scene: %s" % (self.niceName(versionName)), lfs="large")
+            if pbSettings["ShowCategory"]:
+                freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
+                cmds.headsUpDisplay('SMCategory', s=5, b=freeBl, label="Category: %s" % (jsonInfo["Category"]), lfs="large")
+            if pbSettings["ShowFPS"]:
+                freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
+                cmds.headsUpDisplay('SMFPS', s=5, b=freeBl, label="Time Unit: %s" % (cmds.currentUnit(q=True, time=True)), lfs="large")
 
-        freeBl = cmds.headsUpDisplay(nfb=2)
-        cmds.headsUpDisplay('SMCameraName', s=2, b=freeBl, ba='center', dw=50, pre='cameraNames')
+            # v1.1 SPECIFIC
+            try:
+                if pbSettings["ShowFrameRange"]:
+                    freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
+                    cmds.headsUpDisplay('SMFrange', s=5, b=freeBl, label="Frame Range: {} - {}".format(int(cmds.playbackOptions(q=True, minTime=True)),
+                                                                          int(cmds.playbackOptions(q=True, maxTime=True))), lfs="large")
+            except KeyError:
+                pass
+
+            freeBl = cmds.headsUpDisplay(nfb=2)
+            cmds.headsUpDisplay('SMCameraName', s=2, b=freeBl, ba='center', dw=50, pre='cameraNames')
+
+        tempWindow = self.tearOffPanel(camera=currentCam, resolution=pbSettings["Resolution"], overrideDict=viewportExc)
+
+        # ## CREATE A CUSTOM PANEL WITH DESIRED SETTINGS
+        #
+        # tempWindow = cmds.window(title="SM_Playblast",
+        #                        widthHeight=(pbSettings["Resolution"][0] * 1.1, pbSettings["Resolution"][1] * 1.1),
+        #                        tlc=(0, 0))
+        # # panel = pm.getPanel(wf=True)
+        #
+        # cmds.paneLayout()
+        #
+        # pbPanel = cmds.modelPanel(camera=currentCam)
+        # cmds.showWindow(tempWindow)
+        # cmds.setFocus(pbPanel)
+        #
+        # cmds.modelEditor(pbPanel, e=1,
+        #                allObjects=not pbSettings["PolygonOnly"],
+        #                da="smoothShaded",
+        #                displayTextures=pbSettings["DisplayTextures"],
+        #                wireframeOnShaded=pbSettings["WireOnShaded"],
+        #                grid=pbSettings["ShowGrid"],
+        #                useDefaultMaterial=pbSettings["UseDefaultMaterial"],
+        #                polymeshes=True,
+        #                imagePlane=True,
+        #                hud=True
+        #                )
+        #
+        # cmds.camera(currentCam, e=True, overscan=True, displayFilmGate=False, displayResolution=False)
+        #
+        # ## get previous HUD States and turn them all off
+        # hudPreStates = {}
+        # HUDS = cmds.headsUpDisplay(lh=True)
+        # for hud in HUDS:
+        #     hudPreStates[hud] = cmds.headsUpDisplay(hud, q=True, vis=True)
+        #     cmds.headsUpDisplay(hud, e=True, vis=False)
+        #
+        # ## clear the custom HUDS
+        # customHuds = ['SMFrame', 'SMScene', 'SMCategory', 'SMFPS', 'SMCameraName', 'SMFrange']
+        # for hud in customHuds:
+        #     if cmds.headsUpDisplay(hud, ex=True):
+        #         cmds.headsUpDisplay(hud, rem=True)
+        #
+        # if pbSettings["ShowFrameNumber"]:
+        #     freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
+        #     cmds.headsUpDisplay('SMFrame', s=5, b=freeBl, label="Frame", preset="currentFrame", dfs="large",
+        #                       lfs="large")
+        # if pbSettings["ShowSceneName"]:
+        #     freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
+        #     cmds.headsUpDisplay('SMScene', s=5, b=freeBl, label="Scene: %s" % (self.niceName(versionName)),
+        #                         lfs="large")
+        # if pbSettings["ShowCategory"]:
+        #     freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
+        #     cmds.headsUpDisplay('SMCategory', s=5, b=freeBl, label="Category: %s" % (jsonInfo["Category"]),
+        #                       lfs="large")
+        # if pbSettings["ShowFPS"]:
+        #     freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
+        #     cmds.headsUpDisplay('SMFPS', s=5, b=freeBl, label="Time Unit: %s" % (cmds.currentUnit(q=True, time=True)),
+        #                       lfs="large")
+        #
+        # # v1.1 SPECIFIC
+        # try:
+        #     if pbSettings["ShowFrameRange"]:
+        #         freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
+        #         cmds.headsUpDisplay('SMFrange', s=5, b=freeBl,
+        #                           label="Frame Range: {} - {}".format(int(cmds.playbackOptions(q=True, minTime=True)),
+        #                                                               int(cmds.playbackOptions(q=True,
+        #                                                                                      maxTime=True))),
+        #                           lfs="large")
+        # except KeyError:
+        #     pass
+        #
+        # freeBl = cmds.headsUpDisplay(nfb=2)
+        # cmds.headsUpDisplay('SMCameraName', s=2, b=freeBl, ba='center', dw=50, pre='cameraNames')
+
+
+
+
+
+#####################################################################
+
+
 
         ## Get the active sound
 
@@ -665,31 +797,32 @@ class MayaManager(RootManager, MayaCoreFunctions):
         #     cmds.playbackOptions(maxTime=maxTime)
         #     cmds.playbackOptions(animationEndTime=endTime)
 
-        ## remove the custom HUdS
-        if pbSettings["ShowFrameNumber"]:
-            cmds.headsUpDisplay('SMFrame', rem=True)
-        if pbSettings["ShowSceneName"]:
-            cmds.headsUpDisplay('SMScene', rem=True)
-        if pbSettings["ShowCategory"]:
-            cmds.headsUpDisplay('SMCategory', rem=True)
-        if pbSettings["ShowFPS"]:
-            cmds.headsUpDisplay('SMFPS', rem=True)
-        try:
-            if pbSettings["ShowFrameRange"]:
-                cmds.headsUpDisplay('SMFrange', rem=True)
-        except KeyError:
-            pass
+        if not hudsAsItIs:
+            ## remove the custom HUdS
+            if pbSettings["ShowFrameNumber"]:
+                cmds.headsUpDisplay('SMFrame', rem=True)
+            if pbSettings["ShowSceneName"]:
+                cmds.headsUpDisplay('SMScene', rem=True)
+            if pbSettings["ShowCategory"]:
+                cmds.headsUpDisplay('SMCategory', rem=True)
+            if pbSettings["ShowFPS"]:
+                cmds.headsUpDisplay('SMFPS', rem=True)
+            try:
+                if pbSettings["ShowFrameRange"]:
+                    cmds.headsUpDisplay('SMFrange', rem=True)
+            except KeyError:
+                pass
 
-            cmds.headsUpDisplay('SMCameraName', rem=True)
+                cmds.headsUpDisplay('SMCameraName', rem=True)
 
-        ## get back the previous state of HUDS
-        for hud in hudPreStates.keys():
-            cmds.headsUpDisplay(hud, e=True, vis=hudPreStates[hud])
-        # pm.select(selection)
-        try:
-            cmds.select(selection)
-        except TypeError: # in case nothing selected
-            pass
+            ## get back the previous state of HUDS
+            for hud in hudPreStates.keys():
+                cmds.headsUpDisplay(hud, e=True, vis=hudPreStates[hud])
+            # pm.select(selection)
+            try:
+                cmds.select(selection)
+            except TypeError: # in case nothing selected
+                pass
 
         if pbSettings["ConvertMP4"]:
             convertedFile = self._convertPreview(playBlastFile, overwrite=True, deleteAfter=True, crf=pbSettings["CrfValue"])

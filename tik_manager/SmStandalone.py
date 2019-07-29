@@ -715,11 +715,7 @@ class MainUI(baseUI):
         super(MainUI, self).__init__()
 
         self.manager = StandaloneManager()
-        # self.manager = self._getManager()
-        # problem, msg = self.manager._checkRequirements()
-        # if problem:
-        #     self.close()
-        #     self.deleteLater()
+
 
         self.buildUI()
         self.extraMenus()

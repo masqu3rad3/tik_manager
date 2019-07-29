@@ -25,6 +25,7 @@ Tik Manager Version History
 * **Fix.28** Project Materials - Drag/Drop foolcheck
 * **Update.28** Project Materials - statusbar updates
 * **Update.4** Standalone and Photoshop modules using PyQt5 now.
+* **Update.42** Maya Playblast - "As it is" options
 
 2.5
 ---
