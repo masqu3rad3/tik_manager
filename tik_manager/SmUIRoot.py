@@ -42,10 +42,10 @@ import re
 import datetime
 
 # Below is the standard dictionary for Scene Manager Standalone
-BoilerDict = {"Environment":"Standalone",
-              "MainWindow":None,
-              "WindowTitle":"Scene Manager Standalone v%s" %_version.__version__,
-              "SceneFormats":None
+BoilerDict = {"Environment": "Standalone",
+              "MainWindow": None,
+              "WindowTitle": "Scene Manager Standalone v%s" % _version.__version__,
+              "SceneFormats": None
               }
 
 FORCE_QT5 = False
@@ -54,8 +54,9 @@ try:
     from maya import OpenMayaUI as omui
     import Qt
     from Qt import QtWidgets, QtCore, QtGui
+
     BoilerDict["Environment"] = "Maya"
-    BoilerDict["WindowTitle"] = "Tik Manager Maya v%s" %_version.__version__
+    BoilerDict["WindowTitle"] = "Tik Manager Maya v%s" % _version.__version__
     BoilerDict["SceneFormats"] = ["mb", "ma"]
 except ImportError:
     pass
@@ -64,8 +65,9 @@ try:
     import MaxPlus
     import Qt
     from Qt import QtWidgets, QtCore, QtGui
+
     BoilerDict["Environment"] = "3dsMax"
-    BoilerDict["WindowTitle"] = "Tik Manager 3ds Max v%s" %_version.__version__
+    BoilerDict["WindowTitle"] = "Tik Manager 3ds Max v%s" % _version.__version__
     BoilerDict["SceneFormats"] = ["max"]
 except ImportError:
     pass
@@ -74,8 +76,9 @@ try:
     import hou
     import Qt
     from Qt import QtWidgets, QtCore, QtGui
+
     BoilerDict["Environment"] = "Houdini"
-    BoilerDict["WindowTitle"] = "Tik Manager Houdini v%s" %_version.__version__
+    BoilerDict["WindowTitle"] = "Tik Manager Houdini v%s" % _version.__version__
     BoilerDict["SceneFormats"] = ["hip", "hiplc"]
 except ImportError:
     pass
@@ -84,6 +87,7 @@ try:
     import nuke
     import Qt
     from Qt import QtWidgets, QtCore, QtGui
+
     BoilerDict["Environment"] = "Nuke"
     BoilerDict["WindowTitle"] = "Tik Manager Nuke v%s" % _version.__version__
     BoilerDict["SceneFormats"] = ["nk"]
@@ -92,6 +96,7 @@ except ImportError:
 
 try:
     from PyQt5 import QtWidgets, QtCore, QtGui
+
     FORCE_QT5 = True
     if bool(os.getenv("PS_APP")):  # if the request is coming from the SmPhotoshop
         BoilerDict["Environment"] = "Standalone"  # technically it is still standalone...
@@ -129,6 +134,7 @@ logger = logging.getLogger('smUIRoot')
 # logger.setLevel(logging.WARNING)
 logger.setLevel(logging.DEBUG)
 
+
 def getMainWindow():
     """This function should be overriden"""
     if BoilerDict["Environment"] == "Maya":
@@ -143,8 +149,10 @@ def getMainWindow():
         return ptr
 
     elif BoilerDict["Environment"] == "3dsMax":
-        try: mainWindow = MaxPlus.GetQMaxWindow()
-        except AttributeError: mainWindow = MaxPlus.GetQMaxMainWindow()
+        try:
+            mainWindow = MaxPlus.GetQMaxWindow()
+        except AttributeError:
+            mainWindow = MaxPlus.GetQMaxMainWindow()
         return mainWindow
 
     elif BoilerDict["Environment"] == "Houdini":
@@ -160,8 +168,10 @@ def getMainWindow():
     else:
         return None
 
+
 class MainUI(QtWidgets.QMainWindow):
     """Main UI Class for Tik Scene Manager"""
+
     def __init__(self, callback=None):
         self.isCallback = callback
         self.windowName = BoilerDict["WindowTitle"]
@@ -209,8 +219,10 @@ class MainUI(QtWidgets.QMainWindow):
         self.setCentralWidget(self.centralwidget)
 
         mainLayout = QtWidgets.QVBoxLayout(self.centralwidget)
-        try: mainLayout.setMargin(0)
-        except AttributeError: pass
+        try:
+            mainLayout.setMargin(0)
+        except AttributeError:
+            pass
 
         mainLayout.setContentsMargins(10, 10, 10, 10)
 
@@ -220,11 +232,13 @@ class MainUI(QtWidgets.QMainWindow):
         margin = 5
         self.colorBar = QtWidgets.QLabel()
         headerColor = self.manager.getColorCoding(self.manager.swName)
-        self.colorBar.setStyleSheet("background-color: %s;" %headerColor)
+        self.colorBar.setStyleSheet("background-color: %s;" % headerColor)
         mainLayout.addWidget(self.colorBar)
         # pyside does not have setMargin attribute
-        try: self.colorBar.setMargin(0)
-        except AttributeError: pass
+        try:
+            self.colorBar.setMargin(0)
+        except AttributeError:
+            pass
         self.colorBar.setIndent(0)
         self.colorBar.setMaximumHeight(1)
 
@@ -232,13 +246,17 @@ class MainUI(QtWidgets.QMainWindow):
         colorWidget.setProperty("header", True)
         headerLayout = QtWidgets.QHBoxLayout(colorWidget)
         headerLayout.setSpacing(0)
-        try: headerLayout.setMargin(0)
-        except AttributeError: pass
+        try:
+            headerLayout.setMargin(0)
+        except AttributeError:
+            pass
 
         tikIcon_label = QtWidgets.QLabel(self.centralwidget)
         tikIcon_label.setProperty("header", True)
-        try: tikIcon_label.setMargin(margin)
-        except AttributeError: pass
+        try:
+            tikIcon_label.setMargin(margin)
+        except AttributeError:
+            pass
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
         headerBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmMain.png")
@@ -249,8 +267,10 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.baseScene_label = QtWidgets.QLabel(self.centralwidget)
         self.baseScene_label.setProperty("header", True)
-        try: self.baseScene_label.setMargin(margin)
-        except AttributeError: pass
+        try:
+            self.baseScene_label.setMargin(margin)
+        except AttributeError:
+            pass
         self.baseScene_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
 
         self.baseScene_label.setFont(self.displayFont)
@@ -258,8 +278,10 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.managerIcon_label = QtWidgets.QLabel(self.centralwidget)
         self.managerIcon_label.setProperty("header", True)
-        try: self.managerIcon_label.setMargin(margin)
-        except AttributeError: pass
+        try:
+            self.managerIcon_label.setMargin(margin)
+        except AttributeError:
+            pass
         self.managerIcon_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self.managerIcon_label.setScaledContents(False)
 
@@ -272,18 +294,19 @@ class MainUI(QtWidgets.QMainWindow):
         self.main_gridLayout = QtWidgets.QGridLayout()
         mainLayout.addLayout(self.main_gridLayout)
 
-
         self.main_horizontalLayout = QtWidgets.QHBoxLayout()
         self.main_horizontalLayout.setContentsMargins(-1, -1, 0, -1)
         self.main_horizontalLayout.setSpacing(6)
         # self.main_horizontalLayout.setStretch(0, 1)
 
-        self.saveBaseScene_pushButton = QtWidgets.QPushButton(self.centralwidget, text="Save Base Scene", font=self.iconFont)
+        self.saveBaseScene_pushButton = QtWidgets.QPushButton(self.centralwidget, text="Save Base Scene",
+                                                              font=self.iconFont)
         self.saveBaseScene_pushButton.setProperty("menuButton", True)
         self.saveBaseScene_pushButton.setToolTip("Saves the currently open scene as a Base Scene ")
         self.main_horizontalLayout.addWidget(self.saveBaseScene_pushButton)
 
-        self.saveVersion_pushButton = QtWidgets.QPushButton(self.centralwidget, text="Save As Version", font=self.iconFont)
+        self.saveVersion_pushButton = QtWidgets.QPushButton(self.centralwidget, text="Save As Version",
+                                                            font=self.iconFont)
         self.saveVersion_pushButton.setProperty("menuButton", True)
         self.saveVersion_pushButton.setToolTip("Saves a new version from the currently open Base Scene ")
 
@@ -320,29 +343,33 @@ class MainUI(QtWidgets.QMainWindow):
         self.subProject_label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.r2_gridLayout.addWidget(self.subProject_label, 0, 2, 1, 1)
 
-        self.subProject_comboBox = QtWidgets.QComboBox(self.centralwidget, minimumSize=QtCore.QSize(150, 30), maximumSize=QtCore.QSize(16777215, 30))
+        self.subProject_comboBox = QtWidgets.QComboBox(self.centralwidget, minimumSize=QtCore.QSize(150, 30),
+                                                       maximumSize=QtCore.QSize(16777215, 30))
         self.subProject_comboBox.setToolTip("Changes sub-project level")
         self.r2_gridLayout.addWidget(self.subProject_comboBox, 0, 3, 1, 1)
 
-        self.addSubProject_pushButton = QtWidgets.QPushButton(self.centralwidget, size=QtCore.QSize(30, 30), font=self.iconFont)
+        self.addSubProject_pushButton = QtWidgets.QPushButton(self.centralwidget, size=QtCore.QSize(30, 30),
+                                                              font=self.iconFont)
         self.addSubProject_pushButton.setToolTip("Adds a new sub-project level")
         self.addSubProject_pushButton.setIcon(QtGui.QIcon(":/icons/CSS/rc/plus.png"))
 
         self.r2_gridLayout.addWidget(self.addSubProject_pushButton, 0, 4, 1, 1)
 
-        self.user_label = QtWidgets.QLabel(self.centralwidget, text="User:", alignment=(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter))
+        self.user_label = QtWidgets.QLabel(self.centralwidget, text="User:", alignment=(
+                    QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter))
         self.user_label.setToolTip("Changes the current user")
         self.r2_gridLayout.addWidget(self.user_label, 0, 5, 1, 1)
 
-        self.user_comboBox = QtWidgets.QComboBox(self.centralwidget, minimumSize=QtCore.QSize(130, 30), maximumSize=QtCore.QSize(16777215, 30))
+        self.user_comboBox = QtWidgets.QComboBox(self.centralwidget, minimumSize=QtCore.QSize(130, 30),
+                                                 maximumSize=QtCore.QSize(16777215, 30))
         self.user_comboBox.setToolTip("Changes the current user")
         self.r2_gridLayout.addWidget(self.user_comboBox, 0, 6, 1, 1)
 
         self.main_gridLayout.addLayout(self.r2_gridLayout, 1, 0, 1, 1)
         self.r1_gridLayout = QtWidgets.QGridLayout()
 
-
-        self.project_label = QtWidgets.QLabel(self.centralwidget, text="Project:", alignment=(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter))
+        self.project_label = QtWidgets.QLabel(self.centralwidget, text="Project:", alignment=(
+                    QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter))
         self.r1_gridLayout.addWidget(self.project_label, 1, 0, 1, 1)
 
         self.project_lineEdit = QtWidgets.QLineEdit(self.centralwidget)
@@ -355,25 +382,32 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.main_gridLayout.addLayout(self.r1_gridLayout, 0, 0, 1, 1)
 
-        self.category_tabWidget = QtWidgets.QTabWidget(self.centralwidget, maximumSize=QtCore.QSize(16777215, 20), tabPosition=QtWidgets.QTabWidget.North, elideMode=QtCore.Qt.ElideNone, usesScrollButtons=False)
+        self.category_tabWidget = QtWidgets.QTabWidget(self.centralwidget, maximumSize=QtCore.QSize(16777215, 20),
+                                                       tabPosition=QtWidgets.QTabWidget.North,
+                                                       elideMode=QtCore.Qt.ElideNone, usesScrollButtons=False)
 
         self.main_gridLayout.addWidget(self.category_tabWidget, 2, 0, 1, 1)
 
         self.splitter = QtWidgets.QSplitter(self.centralwidget, orientation=QtCore.Qt.Horizontal)
 
-        self.scenes_listWidget = QtWidgets.QTreeWidget(self.splitter, sortingEnabled=True, selectionMode=QtWidgets.QAbstractItemView.SingleSelection, rootIsDecorated=False)
+        self.scenes_listWidget = QtWidgets.QTreeWidget(self.splitter, sortingEnabled=True,
+                                                       selectionMode=QtWidgets.QAbstractItemView.SingleSelection,
+                                                       rootIsDecorated=False)
         header = QtWidgets.QTreeWidgetItem(["Name", "Date"])
         self.scenes_listWidget.setHeaderItem(header)
         self.scenes_listWidget.setColumnWidth(0, 250)
 
-        self.frame = QtWidgets.QFrame(self.splitter, frameShape=QtWidgets.QFrame.StyledPanel, frameShadow=QtWidgets.QFrame.Raised)
+        self.frame = QtWidgets.QFrame(self.splitter, frameShape=QtWidgets.QFrame.StyledPanel,
+                                      frameShadow=QtWidgets.QFrame.Raised)
 
         self.gridLayout_6 = QtWidgets.QGridLayout(self.frame)
         self.gridLayout_6.setContentsMargins(-1, -1, 0, 0)
 
         self.verticalLayout = QtWidgets.QVBoxLayout()
 
-        self.notes_label = QtWidgets.QLabel(self.frame, text="Version Notes:", layoutDirection=QtCore.Qt.LeftToRight, alignment=(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter))
+        self.notes_label = QtWidgets.QLabel(self.frame, text="Version Notes:", layoutDirection=QtCore.Qt.LeftToRight,
+                                            alignment=(
+                                                        QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter))
         self.verticalLayout.addWidget(self.notes_label)
 
         self.notes_textEdit = QtWidgets.QTextEdit(self.frame, readOnly=True)
@@ -395,24 +429,32 @@ class MainUI(QtWidgets.QMainWindow):
         self.gridLayout_7 = QtWidgets.QGridLayout()
         self.gridLayout_7.setContentsMargins(-1, -1, 10, 10)
 
-        self.showPreview_pushButton = QtWidgets.QPushButton(self.frame, text="Show Preview", minimumSize=QtCore.QSize(100, 30), maximumSize=QtCore.QSize(150, 30))
+        self.showPreview_pushButton = QtWidgets.QPushButton(self.frame, text="Show Preview",
+                                                            minimumSize=QtCore.QSize(100, 30),
+                                                            maximumSize=QtCore.QSize(150, 30))
         self.gridLayout_7.addWidget(self.showPreview_pushButton, 0, 3, 1, 1)
 
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_4.setSpacing(1)
 
-        self.version_label = QtWidgets.QLabel(self.frame, text="Version:", minimumSize=QtCore.QSize(60, 30), maximumSize=QtCore.QSize(60, 30), frameShape=QtWidgets.QFrame.Box, alignment=QtCore.Qt.AlignCenter)
+        self.version_label = QtWidgets.QLabel(self.frame, text="Version:", minimumSize=QtCore.QSize(60, 30),
+                                              maximumSize=QtCore.QSize(60, 30), frameShape=QtWidgets.QFrame.Box,
+                                              alignment=QtCore.Qt.AlignCenter)
         self.horizontalLayout_4.addWidget(self.version_label)
 
-        self.version_comboBox = QtWidgets.QComboBox(self.frame, minimumSize=QtCore.QSize(60, 30), maximumSize=QtCore.QSize(100, 30))
+        self.version_comboBox = QtWidgets.QComboBox(self.frame, minimumSize=QtCore.QSize(60, 30),
+                                                    maximumSize=QtCore.QSize(100, 30))
         self.horizontalLayout_4.addWidget(self.version_comboBox)
 
         self.gridLayout_7.addLayout(self.horizontalLayout_4, 0, 0, 1, 1)
 
-        self.makeReference_pushButton = QtWidgets.QPushButton(self.frame, text="Make Reference", minimumSize=QtCore.QSize(100, 30), maximumSize=QtCore.QSize(300, 30))
+        self.makeReference_pushButton = QtWidgets.QPushButton(self.frame, text="Make Reference",
+                                                              minimumSize=QtCore.QSize(100, 30),
+                                                              maximumSize=QtCore.QSize(300, 30))
         self.gridLayout_7.addWidget(self.makeReference_pushButton, 1, 0, 1, 1)
 
-        self.addNote_pushButton = QtWidgets.QPushButton(self.frame,  text="Add Note", minimumSize=QtCore.QSize(100, 30), maximumSize=QtCore.QSize(150, 30))
+        self.addNote_pushButton = QtWidgets.QPushButton(self.frame, text="Add Note", minimumSize=QtCore.QSize(100, 30),
+                                                        maximumSize=QtCore.QSize(150, 30))
         self.gridLayout_7.addWidget(self.addNote_pushButton, 1, 3, 1, 1)
 
         self.gridLayout_6.addLayout(self.gridLayout_7, 0, 0, 1, 1)
@@ -444,32 +486,33 @@ class MainUI(QtWidgets.QMainWindow):
         settings_fm = QtWidgets.QAction(QtGui.QIcon(":/icons/CSS/rc/settings.png"), "&Settings", self)
 
         deleteFile_fm = QtWidgets.QAction(QtGui.QIcon(":/icons/CSS/rc/delete.png"), "&Delete Selected Base Scene", self)
-        deleteReference_fm = QtWidgets.QAction(QtGui.QIcon(":/icons/CSS/rc/delete.png"), "&Delete Reference of Selected Scene", self)
+        deleteReference_fm = QtWidgets.QAction(QtGui.QIcon(":/icons/CSS/rc/delete.png"),
+                                               "&Delete Reference of Selected Scene", self)
         projectReport_fm = QtWidgets.QAction("&Project Report", self)
         projectReport_fm.setEnabled(False)
         checkReferences_fm = QtWidgets.QAction("&Check References", self)
 
-        #save
+        # save
         self.fileMenu.addAction(createProject_fm)
         self.fileMenu.addAction(self.saveVersion_fm)
         self.fileMenu.addAction(self.saveBaseScene_fm)
         self.fileMenu.addSeparator()
 
-        #load
+        # load
         self.fileMenu.addAction(loadReferenceScene_fm)
         self.fileMenu.addSeparator()
 
-        #settings
+        # settings
         self.fileMenu.addAction(settings_fm)
         self.fileMenu.addSeparator()
 
-        #delete
+        # delete
         self.fileMenu.addAction(deleteFile_fm)
         self.fileMenu.addAction(deleteReference_fm)
 
         self.fileMenu.addSeparator()
 
-        #misc
+        # misc
         self.fileMenu.addAction(projectReport_fm)
         self.fileMenu.addAction(checkReferences_fm)
 
@@ -529,8 +572,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.popMenu_scenes.addAction(self.scenes_rcItem_5)
         self.scenes_rcItem_5.triggered.connect(lambda: self.rcAction_scenes("viewRender"))
 
-
-
         # Thumbnail Right Click Menu
         self.thumbnail_label.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.thumbnail_label.customContextMenuRequested.connect(self.onContextMenu_thumbnail)
@@ -540,11 +581,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.popMenu_thumbnail.addAction(rcAction_thumb_0)
         rcAction_thumb_0.triggered.connect(lambda: self.rcAction_thumb("currentView"))
 
-
         rcAction_thumb_1 = QtWidgets.QAction('Replace with external file', self)
         self.popMenu_thumbnail.addAction(rcAction_thumb_1)
         rcAction_thumb_1.triggered.connect(lambda: self.rcAction_thumb("file"))
-
 
         # SHORTCUTS
         # ---------
@@ -571,7 +610,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.assetLibrary_mi.triggered.connect(self.onAssetLibrary)
         self.createPB.triggered.connect(self.onCreatePreview)
 
-        onlineHelp_mi.triggered.connect(lambda: webbrowser.open_new("http://www.ardakutlu.com/tik-manager-documentation/"))
+        onlineHelp_mi.triggered.connect(
+            lambda: webbrowser.open_new("http://www.ardakutlu.com/tik-manager-documentation/"))
         checkVersion_mi.triggered.connect(self.onCheckNewVersion)
 
         self.statusBar().showMessage("Status | Idle")
@@ -626,13 +666,13 @@ class MainUI(QtWidgets.QMainWindow):
 
     def createProjectUI(self):
         createProject_Dialog = QtWidgets.QDialog(parent=self, windowTitle="Create New Project")
-        createProject_Dialog.resize(420,220)
+        createProject_Dialog.resize(420, 220)
 
         masterLayout = QtWidgets.QVBoxLayout(createProject_Dialog)
 
-        formLayout = QtWidgets.QFormLayout(spacing=15, labelAlignment=(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter))
+        formLayout = QtWidgets.QFormLayout(spacing=15, labelAlignment=(
+                    QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter))
         masterLayout.addLayout(formLayout)
-
 
         resolvedPath_lbl = QtWidgets.QLabel(createProject_Dialog, text="Fill the mandatory fields")
         formLayout.addRow(resolvedPath_lbl)
@@ -673,8 +713,10 @@ class MainUI(QtWidgets.QMainWindow):
 
         resolution_lbl = QtWidgets.QLabel(text="Resolution")
         resolution_hLay = QtWidgets.QHBoxLayout(spacing=4)
-        resolutionX_spinBox = QtWidgets.QSpinBox(minimum=1, maximum=99999, value=1920, minimumWidth=(65), maximumWidth=(65), buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons)
-        resolutionY_spinBox = QtWidgets.QSpinBox(minimum=1, maximum=99999, value=1080, minimumWidth=(65), maximumWidth=(65), buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons)
+        resolutionX_spinBox = QtWidgets.QSpinBox(minimum=1, maximum=99999, value=1920, minimumWidth=(65),
+                                                 maximumWidth=(65), buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons)
+        resolutionY_spinBox = QtWidgets.QSpinBox(minimum=1, maximum=99999, value=1080, minimumWidth=(65),
+                                                 maximumWidth=(65), buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons)
         resolution_hLay.addWidget(resolutionX_spinBox)
         resolution_hLay.addWidget(resolutionY_spinBox)
         formLayout.addRow(resolution_lbl, resolution_hLay)
@@ -706,7 +748,6 @@ class MainUI(QtWidgets.QMainWindow):
                 projectRoot_le.setText(selectedroot)
                 resolve()
 
-
         def onCreateNewProject():
             root = os.path.normpath(unicode(projectRoot_le.text()).decode("utf-8"))
             if not self.manager.nameCheck(root, allowSpaces=True, directory=True):
@@ -721,7 +762,7 @@ class MainUI(QtWidgets.QMainWindow):
             bName = unicode(brandName_le.text()).decode("utf-8")
             cName = unicode(client_le.text()).decode("utf-8")
             projectSettingsDB = {"Resolution": [resolutionX_spinBox.value(), resolutionY_spinBox.value()],
-                                   "FPS": int(fps_combo.currentText())}
+                                 "FPS": int(fps_combo.currentText())}
 
             pPath = self.manager.createNewProject(root, pName, bName, cName, settingsData=projectSettingsDB)
             if pPath:
@@ -763,7 +804,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         createProject_Dialog.show()
 
-
     def setProjectUI(self):
 
         # This method is NOT Software Specific
@@ -787,7 +827,6 @@ class MainUI(QtWidgets.QMainWindow):
         # a fake button which actually does nothing
         # fakeButton = QtWidgets.QPushButton(self.setProject_Dialog)
         # fakeButton.setVisible(False)
-
 
         browse_pushButton = QtWidgets.QPushButton(self.setProject_Dialog, text="Browse")
 
@@ -816,9 +855,10 @@ class MainUI(QtWidgets.QMainWindow):
         M2_splitter = QtWidgets.QSplitter(self.setProject_Dialog)
         M2_splitter.setHandleWidth(10)
 
-
-        self.folders_treeView = QtWidgets.QTreeView(M2_splitter, minimumSize=QtCore.QSize(0,0), dragEnabled=True, dragDropMode=QtWidgets.QAbstractItemView.DragOnly,
-                                                    selectionMode=QtWidgets.QAbstractItemView.SingleSelection, itemsExpandable=False, rootIsDecorated=False,
+        self.folders_treeView = QtWidgets.QTreeView(M2_splitter, minimumSize=QtCore.QSize(0, 0), dragEnabled=True,
+                                                    dragDropMode=QtWidgets.QAbstractItemView.DragOnly,
+                                                    selectionMode=QtWidgets.QAbstractItemView.SingleSelection,
+                                                    itemsExpandable=False, rootIsDecorated=False,
                                                     sortingEnabled=True, frameShape=QtWidgets.QFrame.NoFrame)
 
         verticalLayoutWidget = QtWidgets.QWidget(M2_splitter)
@@ -886,7 +926,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         verticalLayoutWidget.raise_()
 
-        M2_splitter.setStretchFactor(0,1)
+        M2_splitter.setStretchFactor(0, 1)
 
         ## Initial Stuff
         self.projectsRoot = os.path.abspath(os.path.join(self.manager.projectDir, os.pardir))
@@ -903,9 +943,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.folders_treeView.setModel(self.sourceModel)
         self.folders_treeView.setRootIndex(self.sourceModel.index(self.projectsRoot))
 
-        self.folders_treeView.setColumnWidth(0,400)
-        self.folders_treeView.setColumnWidth(1,0)
-        self.folders_treeView.setColumnWidth(2,0)
+        self.folders_treeView.setColumnWidth(0, 400)
+        self.folders_treeView.setColumnWidth(1, 0)
+        self.folders_treeView.setColumnWidth(2, 0)
 
         self.favList = self.manager.loadFavorites()
         self.favorites_listWidget.addItems([x[0] for x in self.favList])
@@ -1001,18 +1041,18 @@ class MainUI(QtWidgets.QMainWindow):
             index = self.folders_treeView.currentIndex()
             self.spActiveProjectPath = os.path.normpath(unicode(self.sourceModel.filePath(index)).encode("utf-8"))
 
-
             # clear the selection in favorites view
             self.favorites_listWidget.setCurrentRow(-1)
             self.favorites_listWidget.blockSignals(False)
 
         def setProject():
             if not self.manager.nameCheck(self.spActiveProjectPath, allowSpaces=True, directory=True):
-                self.infoPop(textTitle="Invalid Path", textHeader="There are invalid (non-ascii) characters in the selected path.",
+                self.infoPop(textTitle="Invalid Path",
+                             textHeader="There are invalid (non-ascii) characters in the selected path.",
                              textInfo="This Path cannot be used", type="C")
                 return
             if self.manager.currentPlatform == "Linux":
-                pPath = "/%s" %self.spActiveProjectPath
+                pPath = "/%s" % self.spActiveProjectPath
             else:
                 pPath = self.spActiveProjectPath
             self.manager.setProject(pPath)
@@ -1035,8 +1075,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.lookIn_lineEdit.returnPressed.connect(lambda: navigate("lineEnter"))
         # self.folders_treeView.doubleClicked.connect(lambda index: navigate("folder", index=index))
 
-
-
         self.favorites_listWidget.currentItemChanged.connect(favoritesActivated)
         # self.folders_tableView.selectionModel().currentRowChanged.connect(foldersViewActivated)
         # There is a bug in here. If following two lines are run in a single line, a segmentation fault occurs and crashes 3ds max immediately
@@ -1054,11 +1092,12 @@ class MainUI(QtWidgets.QMainWindow):
 
     def transferCentralUI(self):
 
-        try: self.transferCentral_Dialog.close()
-        except AttributeError: pass
+        try:
+            self.transferCentral_Dialog.close()
+        except AttributeError:
+            pass
 
         sceneInfo = self.manager.getOpenSceneInfo()
-
 
         self.transferCentral_Dialog = QtWidgets.QDialog(parent=self, windowTitle="Transfer Central")
         self.transferCentral_Dialog.resize(460, 320)
@@ -1073,14 +1112,19 @@ class MainUI(QtWidgets.QMainWindow):
         colorWidget = QtWidgets.QWidget(self.transferCentral_Dialog)
         headerLayout = QtWidgets.QHBoxLayout(colorWidget)
         headerLayout.setSpacing(0)
-        try: headerLayout.setMargin(0)
-        except AttributeError: pass
+        try:
+            headerLayout.setMargin(0)
+        except AttributeError:
+            pass
 
-        tikIcon_label = QtWidgets.QLabel(self.centralwidget, alignment=(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter), scaledContents=False)
+        tikIcon_label = QtWidgets.QLabel(self.centralwidget, alignment=(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter),
+                                         scaledContents=False)
         tikIcon_label.setProperty("header", True)
         tikIcon_label.setMaximumWidth(125)
-        try: tikIcon_label.setMargin(margin)
-        except AttributeError: pass
+        try:
+            tikIcon_label.setMargin(margin)
+        except AttributeError:
+            pass
         headerBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmTransfer.png")
         tikIcon_label.setPixmap(headerBitmap)
 
@@ -1088,8 +1132,10 @@ class MainUI(QtWidgets.QMainWindow):
 
         resolvedPath_label = QtWidgets.QLabel()
         resolvedPath_label.setProperty("header", True)
-        try: resolvedPath_label.setMargin(margin)
-        except AttributeError: pass
+        try:
+            resolvedPath_label.setMargin(margin)
+        except AttributeError:
+            pass
         resolvedPath_label.setIndent(2)
         resolvedPath_label.setFont(self.displayFont)
         resolvedPath_label.setWordWrap(True)
@@ -1199,7 +1245,9 @@ class MainUI(QtWidgets.QMainWindow):
 
         timeRange_horizontalLayout2.addWidget(frameStart_label)
 
-        frameStart_doubleSpinBox = QtWidgets.QDoubleSpinBox(exportTab, wrapping=False, frame=True, buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons, keyboardTracking=True)
+        frameStart_doubleSpinBox = QtWidgets.QDoubleSpinBox(exportTab, wrapping=False, frame=True,
+                                                            buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons,
+                                                            keyboardTracking=True)
         timeRange_horizontalLayout2.addWidget(frameStart_doubleSpinBox)
         spacerItem4 = QtWidgets.QSpacerItem(10, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
         timeRange_horizontalLayout2.addItem(spacerItem4)
@@ -1207,7 +1255,9 @@ class MainUI(QtWidgets.QMainWindow):
         frameEnd_label = QtWidgets.QLabel(exportTab, text="End")
         timeRange_horizontalLayout2.addWidget(frameEnd_label)
 
-        frameEnd_doubleSpinBox = QtWidgets.QDoubleSpinBox(exportTab, wrapping=False, frame=True, buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons, keyboardTracking=True, value=10.0)
+        frameEnd_doubleSpinBox = QtWidgets.QDoubleSpinBox(exportTab, wrapping=False, frame=True,
+                                                          buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons,
+                                                          keyboardTracking=True, value=10.0)
         timeRange_horizontalLayout2.addWidget(frameEnd_doubleSpinBox)
 
         spacerItem5 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
@@ -1244,6 +1294,7 @@ class MainUI(QtWidgets.QMainWindow):
         impButtons_horizontalLayout.addWidget(cancel_pushButton_2)
         tabWidget.addTab(importTab, ("Import"))
         tc_verticalLayout.addWidget(tabWidget)
+
         #
 
         def populateImports():
@@ -1279,7 +1330,6 @@ class MainUI(QtWidgets.QMainWindow):
                 treeItem.setForeground(0, QtGui.QBrush(QtGui.QColor("magenta")))
                 alembic_topLevel.addChild(treeItem)
 
-
         tabWidget.setCurrentIndex(0)
 
         def formatProof():
@@ -1299,7 +1349,7 @@ class MainUI(QtWidgets.QMainWindow):
             # resolve name
             if not sceneInfo:
                 customName_lineEdit.setProperty("error", True)
-                customName_lineEdit.setStyleSheet("") # refresh
+                customName_lineEdit.setStyleSheet("")  # refresh
                 customName_lineEdit.setText("Scene Needs to be saved as Base Scene")
                 return
             customName_lineEdit.setProperty("error", False)
@@ -1330,9 +1380,7 @@ class MainUI(QtWidgets.QMainWindow):
 
             return name
 
-
         resolveName()
-
 
         def executeExport():
             if not sceneInfo:
@@ -1371,7 +1419,7 @@ class MainUI(QtWidgets.QMainWindow):
                 self.manager.importTransfers(absPath)
 
         def onContextMenu_transfers(point):
-            if transfers_treeWidget.selectedItems()[0].text(1): # if there is a path info on the widget item
+            if transfers_treeWidget.selectedItems()[0].text(1):  # if there is a path info on the widget item
                 popMenu_transfers.exec_(transfers_treeWidget.mapToGlobal(point))
 
         def importRc_actions(action):
@@ -1381,6 +1429,7 @@ class MainUI(QtWidgets.QMainWindow):
             if action == "execute":
                 manager = self._getManager()
                 manager.executeFile(transfers_treeWidget.selectedItems()[0].text(1))
+
         ## -----------------
         ## RIGHT CLICK MENUS
         ## -----------------
@@ -1401,7 +1450,9 @@ class MainUI(QtWidgets.QMainWindow):
         ## ------------------
 
         # Export Signals
-        customName_lineEdit.textChanged.connect(lambda x: self._checkValidity(customName_lineEdit.text(), export_pushButton, customName_lineEdit, directory=True))
+        customName_lineEdit.textChanged.connect(
+            lambda x: self._checkValidity(customName_lineEdit.text(), export_pushButton, customName_lineEdit,
+                                          directory=True))
         obj_checkBox.toggled.connect(formatProof)
         alembic_checkBox.toggled.connect(formatProof)
         fbx_checkBox.toggled.connect(formatProof)
@@ -1426,11 +1477,11 @@ class MainUI(QtWidgets.QMainWindow):
 
     def _filterDirectories(self):
         filterWord = self.dirFilter_lineEdit.text()
-        self.DirFilter = [(unicode("*%s*" %filterWord))]
+        self.DirFilter = [(unicode("*%s*" % filterWord))]
         self.sourceModel.setNameFilters(self.DirFilter)
 
     def settingsUI(self):
-        self.allSettingsDict=Settings()
+        self.allSettingsDict = Settings()
 
         self.minSPBSize = (70, 25)
 
@@ -1439,9 +1490,11 @@ class MainUI(QtWidgets.QMainWindow):
 
         verticalLayout_2 = QtWidgets.QVBoxLayout(settings_Dialog)
 
-        try: verticalLayout_2.setMargin(0)
-        except AttributeError: pass
-        verticalLayout_2.setContentsMargins(10, 10 ,10 ,10)
+        try:
+            verticalLayout_2.setMargin(0)
+        except AttributeError:
+            pass
+        verticalLayout_2.setContentsMargins(10, 10, 10, 10)
 
         verticalLayout = QtWidgets.QVBoxLayout()
         verticalLayout.setSpacing(6)
@@ -1452,7 +1505,8 @@ class MainUI(QtWidgets.QMainWindow):
         splitter.setLineWidth(0)
         splitter.setOrientation(QtCore.Qt.Horizontal)
 
-        left_frame = QtWidgets.QFrame(splitter, minimumSize=QtCore.QSize(150, 0), frameShape=QtWidgets.QFrame.NoFrame, frameShadow=QtWidgets.QFrame.Plain, lineWidth=0)
+        left_frame = QtWidgets.QFrame(splitter, minimumSize=QtCore.QSize(150, 0), frameShape=QtWidgets.QFrame.NoFrame,
+                                      frameShadow=QtWidgets.QFrame.Plain, lineWidth=0)
 
         verticalLayout_4 = QtWidgets.QVBoxLayout(left_frame)
         verticalLayout_4.setSpacing(0)
@@ -1461,9 +1515,9 @@ class MainUI(QtWidgets.QMainWindow):
         leftFrame_verticalLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
         leftFrame_verticalLayout.setSpacing(6)
 
-        self.settingsMenu_treeWidget = QtWidgets.QTreeWidget(left_frame, lineWidth=1, rootIsDecorated=True, headerHidden=True)
+        self.settingsMenu_treeWidget = QtWidgets.QTreeWidget(left_frame, lineWidth=1, rootIsDecorated=True,
+                                                             headerHidden=True)
         self.settingsMenu_treeWidget.setFont(self.headerBFont)
-
 
         self.userSettings_item = QtWidgets.QTreeWidgetItem(["User Settings"])
         self.settingsMenu_treeWidget.addTopLevelItem(self.userSettings_item)
@@ -1502,7 +1556,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.contents_frame = QtWidgets.QFrame(splitter)
         self.contents_frame.setEnabled(True)
 
-
         self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.contents_frame)
         self.contents_Layout = QtWidgets.QVBoxLayout()
         self.contents_Layout.setSpacing(0)
@@ -1536,11 +1589,11 @@ class MainUI(QtWidgets.QMainWindow):
         self.passwords_vis = QtWidgets.QWidget()
         self.namingConventions_vis = QtWidgets.QWidget()
 
-
         def pageUpdate():
             if self.settingsMenu_treeWidget.currentItem().text(0) != "User Settings" and not self.superUser:
                 passw, ok = QtWidgets.QInputDialog.getText(self, "Password Query",
-                                                           "This Section requires Admin Password:", QtWidgets.QLineEdit.Password)
+                                                           "This Section requires Admin Password:",
+                                                           QtWidgets.QLineEdit.Password)
 
                 if ok:
                     if self.manager.checkPassword(passw):
@@ -1570,7 +1623,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.softwareDB = self.manager.loadSoftwareDatabase()
 
-
         ## USER SETTINGS
         currentUserSettings = self.manager.loadUserSettings()
         self.allSettingsDict.add("userSettings", currentUserSettings, self.manager._pathsDict["userSettingsFile"])
@@ -1580,7 +1632,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         ## PROJECT SETTINGS
         currentProjectSettings = self.manager.loadProjectSettings()
-        self.allSettingsDict.add("projectSettings", currentProjectSettings, self.manager._pathsDict["projectSettingsFile"])
+        self.allSettingsDict.add("projectSettings", currentProjectSettings,
+                                 self.manager._pathsDict["projectSettingsFile"])
         self._projectSettingsContent()
 
         ## PREVIEW SETTINGS
@@ -1588,7 +1641,8 @@ class MainUI(QtWidgets.QMainWindow):
         sw = BoilerDict["Environment"].lower()
 
         if sw == "maya" or sw == "standalone":
-            settingsFilePathMaya = os.path.join(self.manager._pathsDict["previewsRoot"], self.softwareDB["Maya"]["pbSettingsFile"])
+            settingsFilePathMaya = os.path.join(self.manager._pathsDict["previewsRoot"],
+                                                self.softwareDB["Maya"]["pbSettingsFile"])
             currentMayaSettings = self.manager.loadPBSettings(filePath=settingsFilePathMaya)
             # backward compatibility:
             try:
@@ -1605,13 +1659,13 @@ class MainUI(QtWidgets.QMainWindow):
                 currentMayaSettings["ViewportAsItIs"] = False
                 currentMayaSettings["HudsAsItIs"] = False
 
-
             # update the settings dictionary
             self.allSettingsDict.add("preview_maya", currentMayaSettings, settingsFilePathMaya)
 
             self._previewSettingsContent_maya()
         if sw == "3dsmax" or sw == "standalone":
-            settingsFilePathMax = os.path.join(self.manager._pathsDict["previewsRoot"], self.softwareDB["3dsMax"]["pbSettingsFile"])
+            settingsFilePathMax = os.path.join(self.manager._pathsDict["previewsRoot"],
+                                               self.softwareDB["3dsMax"]["pbSettingsFile"])
             currentMaxSettings = self.manager.loadPBSettings(filePath=settingsFilePathMax)
             # backward compatibility:
             try:
@@ -1633,7 +1687,8 @@ class MainUI(QtWidgets.QMainWindow):
 
             self._previewSettingsContent_max()
         if sw == "houdini" or sw == "standalone":
-            settingsFilePathHou = os.path.join(self.manager._pathsDict["previewsRoot"], self.softwareDB["Houdini"]["pbSettingsFile"])
+            settingsFilePathHou = os.path.join(self.manager._pathsDict["previewsRoot"],
+                                               self.softwareDB["Houdini"]["pbSettingsFile"])
             currentHoudiniSettings = self.manager.loadPBSettings(filePath=settingsFilePathHou)
             # backward compatibility:
             try:
@@ -1670,10 +1725,11 @@ class MainUI(QtWidgets.QMainWindow):
 
                 filePath = os.path.normpath(os.path.join(folderPath, value["categoriesFile"]))
                 categoryData = self.manager.loadCategories(filePath=filePath, swName=niceName)
-                self.allSettingsDict.add("categories_%s" %niceName, categoryData, filePath)
+                self.allSettingsDict.add("categories_%s" % niceName, categoryData, filePath)
         else:
             currentCategories = self.manager.loadCategories()
-            self.allSettingsDict.add("categories_%s" %self.manager.swName, currentCategories, self.manager._pathsDict["categoriesFile"])
+            self.allSettingsDict.add("categories_%s" % self.manager.swName, currentCategories,
+                                     self.manager._pathsDict["categoriesFile"])
 
         self._categoriesContent()
 
@@ -1700,7 +1756,8 @@ class MainUI(QtWidgets.QMainWindow):
         self._namingConventions()
 
         self.settingsButtonBox = QtWidgets.QDialogButtonBox(settings_Dialog)
-        self.settingsButtonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Apply|QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.settingsButtonBox.setStandardButtons(
+            QtWidgets.QDialogButtonBox.Apply | QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
         self.settingsButtonBox.button(QtWidgets.QDialogButtonBox.Ok).setMinimumSize(QtCore.QSize(100, 30))
         self.settingsButtonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
         self.settingsButtonBox.button(QtWidgets.QDialogButtonBox.Apply).setMinimumSize(QtCore.QSize(100, 30))
@@ -1811,71 +1868,87 @@ class MainUI(QtWidgets.QMainWindow):
         executables_lbl = QtWidgets.QLabel(font=self.headerBFont, text="Executable Paths")
         userSettings_formLayout.addRow(executables_lbl)
 
-        executablesInfo_lbl = QtWidgets.QLabel(font=self.infoFont, text="Defined executables will be used to run corresponding items. "
-                                    "When left blank, system defaults will be used.\n\n"
-                                    "If arguments want to be passed <itemPath> token can be used", wordWrap=True)
+        executablesInfo_lbl = QtWidgets.QLabel(font=self.infoFont,
+                                               text="Defined executables will be used to run corresponding items. "
+                                                    "When left blank, system defaults will be used.\n\n"
+                                                    "If arguments want to be passed <itemPath> token can be used",
+                                               wordWrap=True)
         userSettings_formLayout.addRow(executablesInfo_lbl)
-        #images
+        # images
         exeImages_lbl = QtWidgets.QLabel(text="Image viewer: ")
         exeImages_hlay = QtWidgets.QHBoxLayout(spacing=2)
-        exeImages_le = QtWidgets.QLineEdit(minimumWidth=350, placeholderText="Define an executable for images (Optional) ")
-        try: exeImages_le.setText(userSettings["executables"]["image_exec"])
-        except KeyError: pass
+        exeImages_le = QtWidgets.QLineEdit(minimumWidth=350,
+                                           placeholderText="Define an executable for images (Optional) ")
+        try:
+            exeImages_le.setText(userSettings["executables"]["image_exec"])
+        except KeyError:
+            pass
         exeImages_hlay.addWidget(exeImages_le)
         exeImages_btn = QtWidgets.QPushButton(text="...")
         exeImages_hlay.addWidget(exeImages_btn)
         userSettings_formLayout.addRow(exeImages_lbl, exeImages_hlay)
-        #imageSeq
+        # imageSeq
         exeImageSeq_lbl = QtWidgets.QLabel(text="Sequence viewer: ")
         exeImageSeq_hlay = QtWidgets.QHBoxLayout(spacing=2)
-        exeImageSeq_le = QtWidgets.QLineEdit(minimumWidth=350, placeholderText="Define an executable for imageSeq (Optional) ")
-        try: exeImageSeq_le.setText(userSettings["executables"]["imageSeq_exec"])
-        except KeyError: pass
+        exeImageSeq_le = QtWidgets.QLineEdit(minimumWidth=350,
+                                             placeholderText="Define an executable for imageSeq (Optional) ")
+        try:
+            exeImageSeq_le.setText(userSettings["executables"]["imageSeq_exec"])
+        except KeyError:
+            pass
         exeImageSeq_hlay.addWidget(exeImageSeq_le)
         exeImageSeq_btn = QtWidgets.QPushButton(text="...")
         exeImageSeq_hlay.addWidget(exeImageSeq_btn)
         userSettings_formLayout.addRow(exeImageSeq_lbl, exeImageSeq_hlay)
-        #Video Files
+        # Video Files
         exeVideo_lbl = QtWidgets.QLabel(text="Video viewer: ")
         exeVideo_hlay = QtWidgets.QHBoxLayout(spacing=2)
-        exeVideo_le = QtWidgets.QLineEdit(minimumWidth=350, placeholderText="Define an executable for Video (Optional) ")
-        try: exeVideo_le.setText(userSettings["executables"]["video_exec"])
-        except KeyError: pass
+        exeVideo_le = QtWidgets.QLineEdit(minimumWidth=350,
+                                          placeholderText="Define an executable for Video (Optional) ")
+        try:
+            exeVideo_le.setText(userSettings["executables"]["video_exec"])
+        except KeyError:
+            pass
         exeVideo_hlay.addWidget(exeVideo_le)
         exeVideo_btn = QtWidgets.QPushButton(text="...")
         exeVideo_hlay.addWidget(exeVideo_btn)
         userSettings_formLayout.addRow(exeVideo_lbl, exeVideo_hlay)
-        #Obj
+        # Obj
         exeObj_lbl = QtWidgets.QLabel(text="Obj viewer: ")
         exeObj_hlay = QtWidgets.QHBoxLayout(spacing=2)
         exeObj_le = QtWidgets.QLineEdit(minimumWidth=350, placeholderText="Define an executable for obj (Optional) ")
-        try: exeObj_le.setText(userSettings["executables"]["obj_exec"])
-        except KeyError: pass
+        try:
+            exeObj_le.setText(userSettings["executables"]["obj_exec"])
+        except KeyError:
+            pass
         exeObj_hlay.addWidget(exeObj_le)
         exeObj_btn = QtWidgets.QPushButton(text="...")
         exeObj_hlay.addWidget(exeObj_btn)
         userSettings_formLayout.addRow(exeObj_lbl, exeObj_hlay)
-        #Fbx
+        # Fbx
         exeFbx_lbl = QtWidgets.QLabel(text="Fbx viewer: ")
         exeFbx_hlay = QtWidgets.QHBoxLayout(spacing=2)
         exeFbx_le = QtWidgets.QLineEdit(minimumWidth=350, placeholderText="Define an executable for fbx (Optional) ")
-        try: exeFbx_le.setText(userSettings["executables"]["fbx_exec"])
-        except KeyError: pass
+        try:
+            exeFbx_le.setText(userSettings["executables"]["fbx_exec"])
+        except KeyError:
+            pass
         exeFbx_hlay.addWidget(exeFbx_le)
         exeFbx_btn = QtWidgets.QPushButton(text="...")
         exeFbx_hlay.addWidget(exeFbx_btn)
         userSettings_formLayout.addRow(exeFbx_lbl, exeFbx_hlay)
-        #Abc
+        # Abc
         exeAbc_lbl = QtWidgets.QLabel(text="Alembic viewer: ")
         exeAbc_hlay = QtWidgets.QHBoxLayout(spacing=2)
         exeAbc_le = QtWidgets.QLineEdit(minimumWidth=350, placeholderText="Define an executable for abc (Optional) ")
-        try: exeAbc_le.setText(userSettings["executables"]["alembic_exec"])
-        except KeyError: pass
+        try:
+            exeAbc_le.setText(userSettings["executables"]["alembic_exec"])
+        except KeyError:
+            pass
         exeAbc_hlay.addWidget(exeAbc_le)
         exeAbc_btn = QtWidgets.QPushButton(text="...")
         exeAbc_hlay.addWidget(exeAbc_btn)
         userSettings_formLayout.addRow(exeAbc_lbl, exeAbc_hlay)
-
 
         def colorSet(button, niceName):
             color = QtWidgets.QColorDialog.getColor()
@@ -1920,12 +1993,12 @@ class MainUI(QtWidgets.QMainWindow):
             try:
                 userSettings["executables"][str(lineEdit.objectName())] = dbItem
             except KeyError:
-                userSettings["executables"]={"image_exec": "",
-                                             "imageSeq_exec": "",
-                                             "video_exec": "",
-                                             "obj_exec": "",
-                                             "fbx_exec": "",
-                                             "alembic_exec": ""}
+                userSettings["executables"] = {"image_exec": "",
+                                               "imageSeq_exec": "",
+                                               "video_exec": "",
+                                               "obj_exec": "",
+                                               "fbx_exec": "",
+                                               "alembic_exec": ""}
                 userSettings["executables"][str(lineEdit.objectName())] = dbItem
             self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
             return
@@ -1941,12 +2014,12 @@ class MainUI(QtWidgets.QMainWindow):
                 try:
                     userSettings["executables"][str(lineEdit.objectName())] = dbItem
                 except KeyError:
-                    userSettings["executables"]={"image_exec": "",
-                                                 "imageSeq_exec": "",
-                                                 "video_exec": "",
-                                                 "obj_exec": "",
-                                                 "fbx_exec": "",
-                                                 "alembic_exec": ""}
+                    userSettings["executables"] = {"image_exec": "",
+                                                   "imageSeq_exec": "",
+                                                   "video_exec": "",
+                                                   "obj_exec": "",
+                                                   "fbx_exec": "",
+                                                   "alembic_exec": ""}
                     userSettings["executables"][str(lineEdit.objectName())] = dbItem
             self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
             return
@@ -1963,13 +2036,14 @@ class MainUI(QtWidgets.QMainWindow):
             ccpushbutton.setMinimumSize(80, 20)
 
             colorCoding_formlayout.addRow(cclabel, ccpushbutton)
-            ccpushbutton.clicked.connect(lambda ignore=item[0], button=ccpushbutton, item=item[0]: colorSet(button, item))
-
+            ccpushbutton.clicked.connect(
+                lambda ignore=item[0], button=ccpushbutton, item=item[0]: colorSet(button, item))
 
         ccReset_button = QtWidgets.QPushButton()
         ccReset_button.setText("Reset Colors")
         ccReset_button.setMinimumSize(80, 30)
-        colorCoding_formlayout.setWidget((len(userSettings["colorCoding"].items())) + 1, QtWidgets.QFormLayout.FieldRole, ccReset_button)
+        colorCoding_formlayout.setWidget((len(userSettings["colorCoding"].items())) + 1,
+                                         QtWidgets.QFormLayout.FieldRole, ccReset_button)
 
         # end of form
 
@@ -2032,21 +2106,27 @@ class MainUI(QtWidgets.QMainWindow):
 
         projectSettings_formLayout.addRow(currentProject_lbl, project_hLayout)
 
-        resolution_label = QtWidgets.QLabel(self.projectSettings_vis, text="Resolution: ", minimumWidth=70, minimumHeight=25)
+        resolution_label = QtWidgets.QLabel(self.projectSettings_vis, text="Resolution: ", minimumWidth=70,
+                                            minimumHeight=25)
 
         resolution_hLay = QtWidgets.QHBoxLayout()
         resolution_hLay.setSpacing(5)
 
-        resolutionX_spinBox = QtWidgets.QSpinBox(self.projectSettings_vis, buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons, minimumWidth=self.minSPBSize[0], minimumHeight=self.minSPBSize[1],
+        resolutionX_spinBox = QtWidgets.QSpinBox(self.projectSettings_vis,
+                                                 buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons,
+                                                 minimumWidth=self.minSPBSize[0], minimumHeight=self.minSPBSize[1],
                                                  minimum=1, maximum=99999, value=settings["Resolution"][0])
         resolution_hLay.addWidget(resolutionX_spinBox)
-        resolutionY_spinBox = QtWidgets.QSpinBox(self.projectSettings_vis, buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons, minimumWidth=self.minSPBSize[0], minimumHeight=self.minSPBSize[1],
+        resolutionY_spinBox = QtWidgets.QSpinBox(self.projectSettings_vis,
+                                                 buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons,
+                                                 minimumWidth=self.minSPBSize[0], minimumHeight=self.minSPBSize[1],
                                                  minimum=1, maximum=99999, value=settings["Resolution"][1])
         resolution_hLay.addWidget(resolutionY_spinBox)
 
         projectSettings_formLayout.addRow(resolution_label, resolution_hLay)
 
-        fps_label = QtWidgets.QLabel(self.projectSettings_vis, text="FPS: ", alignment=(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter))
+        fps_label = QtWidgets.QLabel(self.projectSettings_vis, text="FPS: ", alignment=(
+                    QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter))
 
         fps_comboBox = QtWidgets.QComboBox(self.projectSettings_vis)
         fps_comboBox.addItems(self.manager.fpsList)
@@ -2082,12 +2162,15 @@ class MainUI(QtWidgets.QMainWindow):
         resolutionY_spinBox.valueChanged.connect(updateDictionary)
         fps_comboBox.currentIndexChanged.connect(updateDictionary)
 
-        previewSettings_cmdButton.clicked.connect(lambda: self.settingsMenu_treeWidget.setCurrentItem(self.previewSettings_item))
+        previewSettings_cmdButton.clicked.connect(
+            lambda: self.settingsMenu_treeWidget.setCurrentItem(self.previewSettings_item))
         categories_cmdButton.clicked.connect(lambda: self.settingsMenu_treeWidget.setCurrentItem(self.categories_item))
-        importExportOptions_cmdButton.clicked.connect(lambda: self.settingsMenu_treeWidget.setCurrentItem(self.importExport_item))
+        importExportOptions_cmdButton.clicked.connect(
+            lambda: self.settingsMenu_treeWidget.setCurrentItem(self.importExport_item))
 
     def _previewSettingsContent_maya(self):
         settings = self.allSettingsDict.get("preview_maya")
+
         def updateMayaCodecs():
             codecList = self.manager.getFormatsAndCodecs()[self.format_Maya_comboBox.currentText()]
             self.codec_Maya_comboBox.clear()
@@ -2127,7 +2210,6 @@ class MainUI(QtWidgets.QMainWindow):
 
             self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
 
-
         ## HEADER
         h1_horizontalLayout = QtWidgets.QHBoxLayout()
         h1_label = QtWidgets.QLabel(font=self.headerAFont, text="Maya Playblast Settings")
@@ -2146,18 +2228,22 @@ class MainUI(QtWidgets.QMainWindow):
         h1_s1_line.setSizePolicy(sizePolicy)
         h1_s1_line.setProperty("seperator", True)
         h1_s1_horizontalLayout.addWidget(h1_s1_line)
-        try: h1_s1_line.setMargin(0)
-        except AttributeError: pass
+        try:
+            h1_s1_line.setMargin(0)
+        except AttributeError:
+            pass
         previewSettings_MAYA_Layout.addLayout(h1_s1_horizontalLayout)
 
         h1_s2_horizontalLayout = QtWidgets.QHBoxLayout()
         h1_s2_horizontalLayout.setContentsMargins(20, 10, -1, -1)
         h1_s2_horizontalLayout.setSpacing(6)
 
-        videoProperties_formLayout = QtWidgets.QFormLayout(horizontalSpacing=15, verticalSpacing=10, fieldGrowthPolicy=(QtWidgets.QFormLayout.FieldsStayAtSizeHint))
+        videoProperties_formLayout = QtWidgets.QFormLayout(horizontalSpacing=15, verticalSpacing=10, fieldGrowthPolicy=(
+            QtWidgets.QFormLayout.FieldsStayAtSizeHint))
         h1_s2_horizontalLayout.addLayout(videoProperties_formLayout)
 
-        self.convertMP4_Maya_chb = QtWidgets.QCheckBox(text="Convert To MP4", minimumWidth=100, layoutDirection=QtCore.Qt.LeftToRight)
+        self.convertMP4_Maya_chb = QtWidgets.QCheckBox(text="Convert To MP4", minimumWidth=100,
+                                                       layoutDirection=QtCore.Qt.LeftToRight)
         videoProperties_formLayout.addRow(self.convertMP4_Maya_chb)
 
         if not self.manager.checkFFMPEG():
@@ -2171,7 +2257,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         crf_Maya_label = QtWidgets.QLabel(text="Compression (0-51)")
 
-        self.crf_Maya_spinBox = QtWidgets.QSpinBox(minimumWidth=self.minSPBSize[0], minimumHeight=self.minSPBSize[1], minimum=0, maximum=51, value=settings["CrfValue"])
+        self.crf_Maya_spinBox = QtWidgets.QSpinBox(minimumWidth=self.minSPBSize[0], minimumHeight=self.minSPBSize[1],
+                                                   minimum=0, maximum=51, value=settings["CrfValue"])
         videoProperties_formLayout.addRow(crf_Maya_label, self.crf_Maya_spinBox)
 
         format_label = QtWidgets.QLabel(text="Format: ")
@@ -2203,15 +2290,21 @@ class MainUI(QtWidgets.QMainWindow):
         self.format_Maya_comboBox.currentIndexChanged.connect(updateMayaCodecs)
 
         quality_label = QtWidgets.QLabel(text="Quality: ")
-        self.quality_Maya_spinBox = QtWidgets.QSpinBox(minimumWidth=self.minSPBSize[0], minimumHeight=self.minSPBSize[1], minimum=1, maximum=100, value=settings["Quality"])
+        self.quality_Maya_spinBox = QtWidgets.QSpinBox(minimumWidth=self.minSPBSize[0],
+                                                       minimumHeight=self.minSPBSize[1], minimum=1, maximum=100,
+                                                       value=settings["Quality"])
         videoProperties_formLayout.addRow(quality_label, self.quality_Maya_spinBox)
 
         resolution_label = QtWidgets.QLabel(text="Resolution: ")
         resolution_horizontalLayout = QtWidgets.QHBoxLayout()
         resolution_horizontalLayout.setSpacing(5)
-        self.resX_Maya_spinBox = QtWidgets.QSpinBox(minimumWidth=self.minSPBSize[0], minimumHeight=self.minSPBSize[1], minimum=1, maximum=99999, value=settings["Resolution"][0], buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons)
+        self.resX_Maya_spinBox = QtWidgets.QSpinBox(minimumWidth=self.minSPBSize[0], minimumHeight=self.minSPBSize[1],
+                                                    minimum=1, maximum=99999, value=settings["Resolution"][0],
+                                                    buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons)
         resolution_horizontalLayout.addWidget(self.resX_Maya_spinBox)
-        self.resY_Maya_spinBox = QtWidgets.QSpinBox(minimumWidth=self.minSPBSize[0], minimumHeight=self.minSPBSize[1], minimum=1, maximum=99999, value=settings["Resolution"][1], buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons)
+        self.resY_Maya_spinBox = QtWidgets.QSpinBox(minimumWidth=self.minSPBSize[0], minimumHeight=self.minSPBSize[1],
+                                                    minimum=1, maximum=99999, value=settings["Resolution"][1],
+                                                    buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons)
         resolution_horizontalLayout.addWidget(self.resY_Maya_spinBox)
         videoProperties_formLayout.addRow(resolution_label, resolution_horizontalLayout)
 
@@ -2229,8 +2322,10 @@ class MainUI(QtWidgets.QMainWindow):
         h1_s3_line.setSizePolicy(sizePolicy)
         h1_s3_line.setProperty("seperator", True)
         h1_s3_horizontalLayout.addWidget(h1_s3_line)
-        try: h1_s3_line.setMargin(0)
-        except AttributeError: pass
+        try:
+            h1_s3_line.setMargin(0)
+        except AttributeError:
+            pass
         previewSettings_MAYA_Layout.addLayout(h1_s3_horizontalLayout)
 
         h1_s4_horizontalLayout = QtWidgets.QHBoxLayout()
@@ -2239,7 +2334,8 @@ class MainUI(QtWidgets.QMainWindow):
         viewportOptions_gridLayout = QtWidgets.QGridLayout()
         h1_s4_horizontalLayout.addLayout(viewportOptions_gridLayout)
 
-        self.viewportAsItIs_chb = QtWidgets.QCheckBox(text="Use Active Viewport Settings", checked=settings["ViewportAsItIs"])
+        self.viewportAsItIs_chb = QtWidgets.QCheckBox(text="Use Active Viewport Settings",
+                                                      checked=settings["ViewportAsItIs"])
         viewportOptions_gridLayout.addWidget(self.viewportAsItIs_chb, 0, 0)
 
         self.polygonOnly_Maya_chb = QtWidgets.QCheckBox(text="Polygon Only", checked=settings["PolygonOnly"])
@@ -2251,13 +2347,15 @@ class MainUI(QtWidgets.QMainWindow):
         self.clearSelection_Maya_chb = QtWidgets.QCheckBox(text="Clear Selection", checked=settings["ClearSelection"])
         viewportOptions_gridLayout.addWidget(self.clearSelection_Maya_chb, 2, 0)
 
-        self.displayTextures_Maya_chb = QtWidgets.QCheckBox(text="Display Textures", checked=settings["DisplayTextures"])
+        self.displayTextures_Maya_chb = QtWidgets.QCheckBox(text="Display Textures",
+                                                            checked=settings["DisplayTextures"])
         viewportOptions_gridLayout.addWidget(self.displayTextures_Maya_chb, 2, 1)
 
         self.wireOnShaded_Maya_chb = QtWidgets.QCheckBox(text="Wire On Shaded", checked=settings["WireOnShaded"])
         viewportOptions_gridLayout.addWidget(self.wireOnShaded_Maya_chb, 3, 0)
 
-        self.useDefaultMaterial_Maya_chb = QtWidgets.QCheckBox(text="Use Default Material", checked=settings["UseDefaultMaterial"])
+        self.useDefaultMaterial_Maya_chb = QtWidgets.QCheckBox(text="Use Default Material",
+                                                               checked=settings["UseDefaultMaterial"])
         viewportOptions_gridLayout.addWidget(self.useDefaultMaterial_Maya_chb, 3, 1)
 
         previewSettings_MAYA_Layout.addLayout(h1_s4_horizontalLayout)
@@ -2274,8 +2372,10 @@ class MainUI(QtWidgets.QMainWindow):
         h1_s5_line.setSizePolicy(sizePolicy)
         h1_s5_line.setProperty("seperator", True)
         h1_s5_horizontalLayout.addWidget(h1_s5_line)
-        try: h1_s5_line.setMargin(0)
-        except AttributeError: pass
+        try:
+            h1_s5_line.setMargin(0)
+        except AttributeError:
+            pass
         previewSettings_MAYA_Layout.addLayout(h1_s5_horizontalLayout)
 
         h1_s6_horizontalLayout = QtWidgets.QHBoxLayout()
@@ -2356,7 +2456,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         ## HEADER
         h1_horizontalLayout = QtWidgets.QHBoxLayout()
-        h1_label = QtWidgets.QLabel(self.previewSettings_vis, font=self.headerAFont, text="3ds Max Preview Animation Settings")
+        h1_label = QtWidgets.QLabel(self.previewSettings_vis, font=self.headerAFont,
+                                    text="3ds Max Preview Animation Settings")
         h1_horizontalLayout.addWidget(h1_label)
         previewSettings_MAX_Layout.addLayout(h1_horizontalLayout)
 
@@ -2372,20 +2473,23 @@ class MainUI(QtWidgets.QMainWindow):
         h1_s1_line.setSizePolicy(sizePolicy)
         h1_s1_line.setProperty("seperator", True)
         h1_s1_horizontalLayout.addWidget(h1_s1_line)
-        try: h1_s1_line.setMargin(0)
-        except AttributeError: pass
+        try:
+            h1_s1_line.setMargin(0)
+        except AttributeError:
+            pass
         previewSettings_MAX_Layout.addLayout(h1_s1_horizontalLayout)
 
         h1_s2_horizontalLayout = QtWidgets.QHBoxLayout()
         h1_s2_horizontalLayout.setContentsMargins(20, 10, -1, -1)
         h1_s2_horizontalLayout.setSpacing(6)
 
-        videoProperties_formLayout = QtWidgets.QFormLayout(horizontalSpacing=15, verticalSpacing=10, fieldGrowthPolicy=QtWidgets.QFormLayout.FieldsStayAtSizeHint)
+        videoProperties_formLayout = QtWidgets.QFormLayout(horizontalSpacing=15, verticalSpacing=10,
+                                                           fieldGrowthPolicy=QtWidgets.QFormLayout.FieldsStayAtSizeHint)
         h1_s2_horizontalLayout.addLayout(videoProperties_formLayout)
 
-        self.convertMP4_Max_chb = QtWidgets.QCheckBox(text="Convert To MP4", minimumWidth=100, layoutDirection=QtCore.Qt.LeftToRight)
+        self.convertMP4_Max_chb = QtWidgets.QCheckBox(text="Convert To MP4", minimumWidth=100,
+                                                      layoutDirection=QtCore.Qt.LeftToRight)
         videoProperties_formLayout.addRow(self.convertMP4_Max_chb)
-
 
         if not self.manager.checkFFMPEG():
             self.convertMP4_Max_chb.setChecked(False)
@@ -2408,9 +2512,13 @@ class MainUI(QtWidgets.QMainWindow):
         resolution_label = QtWidgets.QLabel()
         resolution_label.setText("Resolution: ")
         resolution_horizontalLayout = QtWidgets.QHBoxLayout()
-        self.resX_Max_spinBox = QtWidgets.QSpinBox(minimumWidth=self.minSPBSize[0], minimumHeight=self.minSPBSize[1], minimum=1, maximum=99999, value=settings["Resolution"][0], buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons)
+        self.resX_Max_spinBox = QtWidgets.QSpinBox(minimumWidth=self.minSPBSize[0], minimumHeight=self.minSPBSize[1],
+                                                   minimum=1, maximum=99999, value=settings["Resolution"][0],
+                                                   buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons)
         resolution_horizontalLayout.addWidget(self.resX_Max_spinBox)
-        self.resY_Max_spinBox = QtWidgets.QSpinBox(minimumWidth=self.minSPBSize[0], minimumHeight=self.minSPBSize[1], minimum=1, maximum=99999, value=settings["Resolution"][1], buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons)
+        self.resY_Max_spinBox = QtWidgets.QSpinBox(minimumWidth=self.minSPBSize[0], minimumHeight=self.minSPBSize[1],
+                                                   minimum=1, maximum=99999, value=settings["Resolution"][1],
+                                                   buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons)
         resolution_horizontalLayout.addWidget(self.resY_Max_spinBox)
         videoProperties_formLayout.addRow(resolution_label, resolution_horizontalLayout)
 
@@ -2430,8 +2538,10 @@ class MainUI(QtWidgets.QMainWindow):
         h1_s3_line.setSizePolicy(sizePolicy)
         h1_s3_line.setProperty("seperator", True)
         h1_s3_horizontalLayout.addWidget(h1_s3_line)
-        try: h1_s3_line.setMargin(0)
-        except AttributeError: pass
+        try:
+            h1_s3_line.setMargin(0)
+        except AttributeError:
+            pass
         h1_s3_line.setIndent(0)
         h1_s3_line.setMaximumHeight(1)
         previewSettings_MAX_Layout.addLayout(h1_s3_horizontalLayout)
@@ -2478,8 +2588,10 @@ class MainUI(QtWidgets.QMainWindow):
         h1_s5_line.setSizePolicy(sizePolicy)
         h1_s5_line.setProperty("seperator", True)
         h1_s5_horizontalLayout.addWidget(h1_s5_line)
-        try: h1_s5_line.setMargin(0)
-        except AttributeError: pass
+        try:
+            h1_s5_line.setMargin(0)
+        except AttributeError:
+            pass
         h1_s5_line.setIndent(0)
         h1_s5_line.setMaximumHeight(1)
         previewSettings_MAX_Layout.addLayout(h1_s5_horizontalLayout)
@@ -2503,7 +2615,8 @@ class MainUI(QtWidgets.QMainWindow):
         ## -------
 
         self.convertMP4_Max_chb.stateChanged.connect(updateDictionary)
-        self.convertMP4_Max_chb.stateChanged.connect(lambda: self.crf_Max_spinBox.setEnabled(self.convertMP4_Max_chb.isChecked()))
+        self.convertMP4_Max_chb.stateChanged.connect(
+            lambda: self.crf_Max_spinBox.setEnabled(self.convertMP4_Max_chb.isChecked()))
 
         self.crf_Max_spinBox.valueChanged.connect(updateDictionary)
         self.resX_Max_spinBox.valueChanged.connect(updateDictionary)
@@ -2526,7 +2639,6 @@ class MainUI(QtWidgets.QMainWindow):
 
         previewSettings_HOU_Layout = QtWidgets.QVBoxLayout()
         previewSettings_HOU_Layout.setSpacing(0)
-
 
         def updateDictionary():
             settings["ConvertMP4"] = self.convertMP4_Houdini_chb.isChecked()
@@ -2559,8 +2671,10 @@ class MainUI(QtWidgets.QMainWindow):
         h1_s1_line.setSizePolicy(sizePolicy)
         h1_s1_line.setProperty("seperator", True)
         h1_s1_horizontalLayout.addWidget(h1_s1_line)
-        try: h1_s1_line.setMargin(0)
-        except AttributeError: pass
+        try:
+            h1_s1_line.setMargin(0)
+        except AttributeError:
+            pass
         h1_s1_line.setIndent(0)
         h1_s1_line.setMaximumHeight(1)
         previewSettings_HOU_Layout.addLayout(h1_s1_horizontalLayout)
@@ -2629,7 +2743,8 @@ class MainUI(QtWidgets.QMainWindow):
         ## -------
 
         self.convertMP4_Houdini_chb.stateChanged.connect(updateDictionary)
-        self.convertMP4_Houdini_chb.stateChanged.connect(lambda: self.crf_Houdini_spinBox.setEnabled(self.convertMP4_Houdini_chb.isChecked()))
+        self.convertMP4_Houdini_chb.stateChanged.connect(
+            lambda: self.crf_Houdini_spinBox.setEnabled(self.convertMP4_Houdini_chb.isChecked()))
 
         self.crf_Houdini_spinBox.valueChanged.connect(updateDictionary)
         self.resX_Houdini_spinBox.valueChanged.connect(updateDictionary)
@@ -2670,8 +2785,9 @@ class MainUI(QtWidgets.QMainWindow):
                              textHeader="Last Category cannot be removed")
 
             ## Check if this category is REALLY trash
-            niceName=settingKey.replace("categories_", "")
-            dbPath = os.path.normpath(os.path.join(self.manager._pathsDict["masterDir"], self.softwareDB[niceName]["databaseDir"]))
+            niceName = settingKey.replace("categories_", "")
+            dbPath = os.path.normpath(
+                os.path.join(self.manager._pathsDict["masterDir"], self.softwareDB[niceName]["databaseDir"]))
 
             if self.manager.isCategoryTrash(trashCategory, dbPath=dbPath):
                 categories.remove(trashCategory)
@@ -2681,7 +2797,6 @@ class MainUI(QtWidgets.QMainWindow):
                 self.infoPop(textTitle="Cannot Remove Category",
                              textHeader="%s Category is not empty. Aborting..." % trashCategory)
             self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
-
 
         def onAdd(settingKey, listWidget):
             addCategory_Dialog = QtWidgets.QDialog(parent=self)
@@ -2725,7 +2840,6 @@ class MainUI(QtWidgets.QMainWindow):
                 addCategory_Dialog.accept()
                 self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
 
-
             buttonBox.accepted.connect(addCategory)
             buttonBox.rejected.connect(addCategory_Dialog.reject)
 
@@ -2754,15 +2868,15 @@ class MainUI(QtWidgets.QMainWindow):
             swTabs.addTab(tabWidget, cat.replace("categories_", ""))
 
             categories_listWidget.addItems(self.allSettingsDict[cat]["newSettings"])
-            add_pushButton.clicked.connect(lambda ignore=1, settingKey=cat, listWidget=categories_listWidget: onAdd(settingKey, listWidget))
+            add_pushButton.clicked.connect(
+                lambda ignore=1, settingKey=cat, listWidget=categories_listWidget: onAdd(settingKey, listWidget))
             # add_pushButton.clicked.connect(lambda: onAdd(cat, categories_listWidget))
-            remove_pushButton.clicked.connect(lambda ignore=1, settingKey=cat, listWidget=categories_listWidget: onRemove(settingKey, listWidget))
+            remove_pushButton.clicked.connect(
+                lambda ignore=1, settingKey=cat, listWidget=categories_listWidget: onRemove(settingKey, listWidget))
             # remove_pushButton.clicked.connect(lambda: onRemove(cat, categories_listWidget))
-
 
         h1_s1_layout.addWidget(swTabs)
         categories_Layout.addLayout(h1_s1_layout)
-
 
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         categories_Layout.addItem(spacerItem)
@@ -2775,7 +2889,7 @@ class MainUI(QtWidgets.QMainWindow):
         importSettings = self.allSettingsDict.get("importSettings")
 
         def updateImportDictionary(sw, key, value):
-            importSettings[sw][key]=value
+            importSettings[sw][key] = value
             self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
 
         def updateExportDictionary(sw, key, value):
@@ -2847,14 +2961,14 @@ class MainUI(QtWidgets.QMainWindow):
                 obj_import_formlayout.setVerticalSpacing(10)
                 obj_import_formlayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldsStayAtSizeHint)
                 obj_import_layout.addLayout(obj_import_formlayout)
-                
+
                 mayaObjImpCreateDict = [
-                    {"NiceName": "Legacy Vertex Ordering", "DictName": "LegacyVertexOrdering", "Type": "chb", "asFlag": "lo="},
+                    {"NiceName": "Legacy Vertex Ordering", "DictName": "LegacyVertexOrdering", "Type": "chb",
+                     "asFlag": "lo="},
                     {"NiceName": "Multiple Objects", "DictName": "MultipleObjects", "Type": "chb", "asFlag": "mo="},
                 ]
                 self._createFormWidgets(mayaObjImpCreateDict, importSettings, "objImportMaya",
                                         obj_import_formlayout, updateImportDictionary)
-
 
                 spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
                                                    QtWidgets.QSizePolicy.Expanding)
@@ -2882,7 +2996,6 @@ class MainUI(QtWidgets.QMainWindow):
                 ]
                 self._createFormWidgets(mayaObjExpCreateDict, exportSettings, "objExportMaya",
                                         obj_export_formlayout, updateExportDictionary)
-
 
                 spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
                                                    QtWidgets.QSizePolicy.Expanding)
@@ -2916,32 +3029,47 @@ class MainUI(QtWidgets.QMainWindow):
                 fbx_import_layout.addLayout(fbx_import_formlayout)
 
                 mayaFbxImpCreateDict = [
-                    {"NiceName": "Up Axis: ", "DictName": "FBXImportUpAxis", "Type": "combo", "items": ["y", "z"], "asFlag": ""},
-                    {"NiceName": "Import Mode: ", "DictName": "FBXImportMode", "Type": "combo", "items": ["add", "merge", "exmerge"], "asFlag": "-v "},
-                    {"NiceName": "Scale Factor: ", "DictName": "FBXImportScaleFactor", "Type": "spbDouble", "asFlag": ""},
-                    {"NiceName": "Treat Quaternions: ", "DictName": "FBXImportQuaternion", "Type": "combo", "items":["quaternion", "euler", "resample"], "asFlag": "-v "},
-                    {"NiceName": "Resampling Rate Source: ", "DictName": "FBXImportResamplingRateSource", "Type": "combo", "items":["Scene", "File"], "asFlag": "-v "},
-                    {"NiceName": "Merge Back Null Pivots: ", "DictName": "FBXImportMergeBackNullPivots", "Type": "chb", "asFlag": "-v "},
-                    {"NiceName": "Set Locked Attribute: ", "DictName": "FBXImportSetLockedAttribute", "Type": "chb", "asFlag": "-v "},
-                    {"NiceName": "Unlock Normals: ", "DictName": "FBXImportUnlockNormals", "Type": "chb", "asFlag": "-v "},
-                    {"NiceName": "Protect Driven Keys: ", "DictName": "FBXImportProtectDrivenKeys", "Type": "chb", "asFlag": "-v "},
+                    {"NiceName": "Up Axis: ", "DictName": "FBXImportUpAxis", "Type": "combo", "items": ["y", "z"],
+                     "asFlag": ""},
+                    {"NiceName": "Import Mode: ", "DictName": "FBXImportMode", "Type": "combo",
+                     "items": ["add", "merge", "exmerge"], "asFlag": "-v "},
+                    {"NiceName": "Scale Factor: ", "DictName": "FBXImportScaleFactor", "Type": "spbDouble",
+                     "asFlag": ""},
+                    {"NiceName": "Treat Quaternions: ", "DictName": "FBXImportQuaternion", "Type": "combo",
+                     "items": ["quaternion", "euler", "resample"], "asFlag": "-v "},
+                    {"NiceName": "Resampling Rate Source: ", "DictName": "FBXImportResamplingRateSource",
+                     "Type": "combo", "items": ["Scene", "File"], "asFlag": "-v "},
+                    {"NiceName": "Merge Back Null Pivots: ", "DictName": "FBXImportMergeBackNullPivots", "Type": "chb",
+                     "asFlag": "-v "},
+                    {"NiceName": "Set Locked Attribute: ", "DictName": "FBXImportSetLockedAttribute", "Type": "chb",
+                     "asFlag": "-v "},
+                    {"NiceName": "Unlock Normals: ", "DictName": "FBXImportUnlockNormals", "Type": "chb",
+                     "asFlag": "-v "},
+                    {"NiceName": "Protect Driven Keys: ", "DictName": "FBXImportProtectDrivenKeys", "Type": "chb",
+                     "asFlag": "-v "},
                     {"NiceName": "Shapes: ", "DictName": "FBXImportShapes", "Type": "chb", "asFlag": "-v "},
                     {"NiceName": "Cameras: ", "DictName": "FBXImportCameras", "Type": "chb", "asFlag": "-v "},
-                    {"NiceName": "Set Maya Frame Rate: ", "DictName": "FBXImportSetMayaFrameRate", "Type": "chb", "asFlag": "-v "},
+                    {"NiceName": "Set Maya Frame Rate: ", "DictName": "FBXImportSetMayaFrameRate", "Type": "chb",
+                     "asFlag": "-v "},
                     {"NiceName": "Generate Log: ", "DictName": "FBXImportGenerateLog", "Type": "chb", "asFlag": "-v "},
                     {"NiceName": "Constraints: ", "DictName": "FBXImportConstraints", "Type": "chb", "asFlag": "-v "},
                     {"NiceName": "Lights: ", "DictName": "FBXImportLights", "Type": "chb", "asFlag": "-v "},
-                    {"NiceName": "Convert Nulls to Joints: ", "DictName": "FBXImportConvertDeformingNullsToJoint", "Type": "chb", "asFlag": "-v "},
-                    {"NiceName": "Fill Timeline: ", "DictName": "FBXImportFillTimeline", "Type": "chb", "asFlag": "-v "},
-                    {"NiceName": "Merge Animation Layers: ", "DictName": "FBXImportMergeAnimationLayers", "Type": "chb", "asFlag": "-v "},
+                    {"NiceName": "Convert Nulls to Joints: ", "DictName": "FBXImportConvertDeformingNullsToJoint",
+                     "Type": "chb", "asFlag": "-v "},
+                    {"NiceName": "Fill Timeline: ", "DictName": "FBXImportFillTimeline", "Type": "chb",
+                     "asFlag": "-v "},
+                    {"NiceName": "Merge Animation Layers: ", "DictName": "FBXImportMergeAnimationLayers", "Type": "chb",
+                     "asFlag": "-v "},
                     {"NiceName": "Hard Edges: ", "DictName": "FBXImportHardEdges", "Type": "chb", "asFlag": "-v "},
-                    {"NiceName": "Axis Conversion Enable: ", "DictName": "FBXImportAxisConversionEnable", "Type": "chb", "asFlag": "-v "},
+                    {"NiceName": "Axis Conversion Enable: ", "DictName": "FBXImportAxisConversionEnable", "Type": "chb",
+                     "asFlag": "-v "},
                     {"NiceName": "Cache File: ", "DictName": "FBXImportCacheFile", "Type": "chb", "asFlag": "-v "},
                     {"NiceName": "Skins: ", "DictName": "FBXImportSkins", "Type": "chb", "asFlag": "-v "},
-                    {"NiceName": "Convert Unit String: ", "DictName": "FBXImportConvertUnitString", "Type": "chb", "asFlag": "-v "},
+                    {"NiceName": "Convert Unit String: ", "DictName": "FBXImportConvertUnitString", "Type": "chb",
+                     "asFlag": "-v "},
                 ]
-                self._createFormWidgets(mayaFbxImpCreateDict, importSettings, "fbxImportMaya", fbx_import_formlayout, updateImportDictionary)
-
+                self._createFormWidgets(mayaFbxImpCreateDict, importSettings, "fbxImportMaya", fbx_import_formlayout,
+                                        updateImportDictionary)
 
                 spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
                                                    QtWidgets.QSizePolicy.Expanding)
@@ -2961,36 +3089,53 @@ class MainUI(QtWidgets.QMainWindow):
                 fbx_export_layout.addLayout(fbx_export_formlayout)
 
                 mayaFbxExpCreateDict = [
-                    {"NiceName": "Up Axis: ", "DictName": "FBXExportUpAxis", "Type": "combo", "items": ["y", "z"], "asFlag": ""},
-                    {"NiceName": "Axis Conversion Method: ", "DictName": "FBXExportAxisConversionMethod", "Type": "combo", "items": ["none", "convertAnimation", "addFbxRoot"], "asFlag": ""},
-                    {"NiceName": "Bake Step: ", "DictName": "FBXExportBakeComplexStep", "Type": "spbInt", "asFlag": "-v "},
-                    {"NiceName": "Convert Units: ", "DictName": "FBXExportConvertUnitString", "Type": "combo", "items": ["mm", "dm", "cm", "m", "km", "In", "ft", "yd", "mi"], "asFlag": ""},
-                    {"NiceName": "Treat Quaternion: ", "DictName": "FBXExportQuaternion", "Type": "combo", "items": ["quaternion", "euler", "resample"], "asFlag": "-v "},
+                    {"NiceName": "Up Axis: ", "DictName": "FBXExportUpAxis", "Type": "combo", "items": ["y", "z"],
+                     "asFlag": ""},
+                    {"NiceName": "Axis Conversion Method: ", "DictName": "FBXExportAxisConversionMethod",
+                     "Type": "combo", "items": ["none", "convertAnimation", "addFbxRoot"], "asFlag": ""},
+                    {"NiceName": "Bake Step: ", "DictName": "FBXExportBakeComplexStep", "Type": "spbInt",
+                     "asFlag": "-v "},
+                    {"NiceName": "Convert Units: ", "DictName": "FBXExportConvertUnitString", "Type": "combo",
+                     "items": ["mm", "dm", "cm", "m", "km", "In", "ft", "yd", "mi"], "asFlag": ""},
+                    {"NiceName": "Treat Quaternion: ", "DictName": "FBXExportQuaternion", "Type": "combo",
+                     "items": ["quaternion", "euler", "resample"], "asFlag": "-v "},
                     {"NiceName": "FBX Version: ", "DictName": "FBXExportFileVersion", "Type": "str", "asFlag": "-v "},
-                    {"NiceName": "Scale Factor: ", "DictName": "FBXExportScaleFactor", "Type": "spbDouble", "asFlag": ""},
-                    {"NiceName": "Apply Constant Key Reducer: ", "DictName": "FBXExportApplyConstantKeyReducer", "Type": "chb", "asFlag": "-v "},
+                    {"NiceName": "Scale Factor: ", "DictName": "FBXExportScaleFactor", "Type": "spbDouble",
+                     "asFlag": ""},
+                    {"NiceName": "Apply Constant Key Reducer: ", "DictName": "FBXExportApplyConstantKeyReducer",
+                     "Type": "chb", "asFlag": "-v "},
                     {"NiceName": "Shapes: ", "DictName": "FBXExportShapes", "Type": "chb", "asFlag": "-v "},
-                    {"NiceName": "Use Scene Name: ", "DictName": "FBXExportUseSceneName", "Type": "chb", "asFlag": "-v "},
-                    {"NiceName": "Skeleton Definitions: ", "DictName": "FBXExportSkeletonDefinitions", "Type": "chb", "asFlag": "-v "},
+                    {"NiceName": "Use Scene Name: ", "DictName": "FBXExportUseSceneName", "Type": "chb",
+                     "asFlag": "-v "},
+                    {"NiceName": "Skeleton Definitions: ", "DictName": "FBXExportSkeletonDefinitions", "Type": "chb",
+                     "asFlag": "-v "},
                     {"NiceName": "Instances: ", "DictName": "FBXExportInstances", "Type": "chb", "asFlag": "-v "},
                     {"NiceName": "Cameras: ", "DictName": "FBXExportCameras", "Type": "chb", "asFlag": "-v "},
-                    {"NiceName": "FBXExportTangents: ", "DictName": "FBXExportTangents", "Type": "chb", "asFlag": "-v "},
+                    {"NiceName": "FBXExportTangents: ", "DictName": "FBXExportTangents", "Type": "chb",
+                     "asFlag": "-v "},
                     {"NiceName": "Ascii: ", "DictName": "FBXExportInAscii", "Type": "chb", "asFlag": "-v "},
                     {"NiceName": "Lights: ", "DictName": "FBXExportLights", "Type": "chb", "asFlag": "-v "},
-                    {"NiceName": "Referenced Assets: ", "DictName": "FBXExportReferencedAssetsContent", "Type": "chb", "asFlag": "-v "},
+                    {"NiceName": "Referenced Assets: ", "DictName": "FBXExportReferencedAssetsContent", "Type": "chb",
+                     "asFlag": "-v "},
                     {"NiceName": "Constraints: ", "DictName": "FBXExportConstraints", "Type": "chb", "asFlag": "-v "},
                     {"NiceName": "Smooth Mesh: ", "DictName": "FBXExportSmoothMesh", "Type": "chb", "asFlag": "-v "},
                     {"NiceName": "Hard Edges: ", "DictName": "FBXExportHardEdges", "Type": "chb", "asFlag": "-v "},
-                    {"NiceName": "Input Connections: ", "DictName": "FBXExportInputConnections", "Type": "chb", "asFlag": "-v "},
-                    {"NiceName": "Embed Textures: ", "DictName": "FBXExportEmbeddedTextures", "Type": "chb", "asFlag": "-v "},
-                    {"NiceName": "Bake Animation: ", "DictName": "FBXExportBakeComplexAnimation", "Type": "chb", "asFlag": "-v "},
+                    {"NiceName": "Input Connections: ", "DictName": "FBXExportInputConnections", "Type": "chb",
+                     "asFlag": "-v "},
+                    {"NiceName": "Embed Textures: ", "DictName": "FBXExportEmbeddedTextures", "Type": "chb",
+                     "asFlag": "-v "},
+                    {"NiceName": "Bake Animation: ", "DictName": "FBXExportBakeComplexAnimation", "Type": "chb",
+                     "asFlag": "-v "},
                     {"NiceName": "Cache File: ", "DictName": "FBXExportCacheFile", "Type": "chb", "asFlag": "-v "},
-                    {"NiceName": "Smoothing Groups: ", "DictName": "FBXExportSmoothingGroups", "Type": "chb", "asFlag": "-v "},
-                    {"NiceName": "Resample Animation: ", "DictName": "FBXExportBakeResampleAnimation", "Type": "chb", "asFlag": "-v "},
+                    {"NiceName": "Smoothing Groups: ", "DictName": "FBXExportSmoothingGroups", "Type": "chb",
+                     "asFlag": "-v "},
+                    {"NiceName": "Resample Animation: ", "DictName": "FBXExportBakeResampleAnimation", "Type": "chb",
+                     "asFlag": "-v "},
                     {"NiceName": "Triangulate: ", "DictName": "FBXExportTriangulate", "Type": "chb", "asFlag": "-v "},
                     {"NiceName": "Skins: ", "DictName": "FBXExportSkins", "Type": "chb", "asFlag": "-v "},
                 ]
-                self._createFormWidgets(mayaFbxExpCreateDict, exportSettings, "fbxExportMaya", fbx_export_formlayout, updateExportDictionary)
+                self._createFormWidgets(mayaFbxExpCreateDict, exportSettings, "fbxExportMaya", fbx_export_formlayout,
+                                        updateExportDictionary)
 
                 spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
                                                    QtWidgets.QSizePolicy.Expanding)
@@ -3027,7 +3172,8 @@ class MainUI(QtWidgets.QMainWindow):
                     {"NiceName": "Fit Time Range: ", "DictName": "fitTimeRange", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Set To Start Frame: ", "DictName": "setToStartFrame", "Type": "chb", "asFlag": ""},
                 ]
-                self._createFormWidgets(mayaAlembicImpCreateDict, importSettings, "alembicImportMaya", alembic_import_formlayout, updateImportDictionary)
+                self._createFormWidgets(mayaAlembicImpCreateDict, importSettings, "alembicImportMaya",
+                                        alembic_import_formlayout, updateImportDictionary)
 
                 spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
                                                    QtWidgets.QSizePolicy.Expanding)
@@ -3048,7 +3194,8 @@ class MainUI(QtWidgets.QMainWindow):
 
                 mayaAlembicExpCreateDict = [
                     {"NiceName": "Step: ", "DictName": "step", "Type": "spbDouble", "asFlag": ""},
-                    {"NiceName": "Data Format: ", "DictName": "dataFormat", "Type": "combo", "items":["Ogawa", "HDF5"], "asFlag": ""},
+                    {"NiceName": "Data Format: ", "DictName": "dataFormat", "Type": "combo", "items": ["Ogawa", "HDF5"],
+                     "asFlag": ""},
                     {"NiceName": "Face Sets: ", "DictName": "writeFaceSets", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Uv Sets: ", "DictName": "writeUVSets", "Type": "chb", "asFlag": ""},
                     {"NiceName": "No Normals: ", "DictName": "noNormals", "Type": "chb", "asFlag": ""},
@@ -3062,7 +3209,8 @@ class MainUI(QtWidgets.QMainWindow):
                     {"NiceName": "Color Sets: ", "DictName": "writeColorSets", "Type": "chb", "asFlag": ""},
                     {"NiceName": "UV: ", "DictName": "uvWrite", "Type": "chb", "asFlag": ""},
                 ]
-                self._createFormWidgets(mayaAlembicExpCreateDict, exportSettings, "alembicExportMaya", alembic_export_formlayout, updateExportDictionary)
+                self._createFormWidgets(mayaAlembicExpCreateDict, exportSettings, "alembicExportMaya",
+                                        alembic_export_formlayout, updateExportDictionary)
 
                 spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
                                                    QtWidgets.QSizePolicy.Expanding)
@@ -3091,7 +3239,6 @@ class MainUI(QtWidgets.QMainWindow):
             ## MAX OBJ
             ## --------
             def _max_obj():
-
                 obj_horizontal_layout = QtWidgets.QHBoxLayout(objTab)
                 obj_import_layout = QtWidgets.QVBoxLayout()
                 obj_seperator = QtWidgets.QLabel()
@@ -3130,23 +3277,27 @@ class MainUI(QtWidgets.QMainWindow):
                     {"NiceName": "Shapes/Lines", "DictName": "Shapes", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Texture coordinates", "DictName": "TextureCoords", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Smoothing groups", "DictName": "SmoothingGroups", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Normals Type: ", "DictName": "NormalsType", "Type": "combo", "items": ["Import from file", "From SM group", "Auto Smooth", "Faceted"], "asFlag": ""},
+                    {"NiceName": "Normals Type: ", "DictName": "NormalsType", "Type": "combo",
+                     "items": ["Import from file", "From SM group", "Auto Smooth", "Faceted"], "asFlag": ""},
                     {"NiceName": "Smooth Angle: ", "DictName": "SmoothAngle", "Type": "spbDouble", "asFlag": ""},
                     {"NiceName": "Flip Normals: ", "DictName": "FlipNormals", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Units/Scale", "DictName": "Units/Scale", "Type": "inf", "asFlag": ""},
                     {"NiceName": "Convert", "DictName": "Convert", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Convert From: ", "DictName": "ConvertFrom", "Type": "combo", "items": ["Inches", "Feet", "Miles", "Millimeters", "Centimeters", "Meters", "Kilometers"], "asFlag": ""},
+                    {"NiceName": "Convert From: ", "DictName": "ConvertFrom", "Type": "combo",
+                     "items": ["Inches", "Feet", "Miles", "Millimeters", "Centimeters", "Meters", "Kilometers"],
+                     "asFlag": ""},
                     {"NiceName": "Object Scale: ", "DictName": "ObjScale", "Type": "spbDouble", "asFlag": ""},
                     {"NiceName": "Material", "DictName": "Material", "Type": "inf", "asFlag": ""},
                     {"NiceName": "Unique Wire Color", "DictName": "UniqueWireColor", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Import Materials", "DictName": "ImportMaterials", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Default Bump: ", "DictName": "DefaultBump", "Type": "spbDouble", "asFlag": ""},
                     {"NiceName": "Force Black Ambient", "DictName": "ForceBlackAmbient", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Import Into Mat-Editor", "DictName": "ImportIntoMatEditor", "Type": "chb", "asFlag": ""},
+                    {"NiceName": "Import Into Mat-Editor", "DictName": "ImportIntoMatEditor", "Type": "chb",
+                     "asFlag": ""},
                     {"NiceName": "Show maps in viewport", "DictName": "ShowMapsInViewport", "Type": "chb", "asFlag": ""}
                 ]
-                self._createFormWidgets(maxObjImpCreateDict, importSettings, "objImportMax", obj_import_formlayout, updateImportDictionary)
-
+                self._createFormWidgets(maxObjImpCreateDict, importSettings, "objImportMax", obj_import_formlayout,
+                                        updateImportDictionary)
 
                 spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
                                                    QtWidgets.QSizePolicy.Expanding)
@@ -3171,22 +3322,25 @@ class MainUI(QtWidgets.QMainWindow):
                     {"NiceName": "Flip ZY-axis", "DictName": "FlipZyAxis", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Shapes/Lines", "DictName": "Shapes", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Hidden Objects", "DictName": "ExportHiddenObjects", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Faces: ", "DictName": "FaceType", "Type": "combo", "items": ["Triangles", "Quads", "Polygons"], "asFlag": ""},
+                    {"NiceName": "Faces: ", "DictName": "FaceType", "Type": "combo",
+                     "items": ["Triangles", "Quads", "Polygons"], "asFlag": ""},
                     {"NiceName": "Texture Coordinates", "DictName": "TextureCoords", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Normals", "DictName": "Normals", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Smoothing Groups", "DictName": "SmoothingGroups", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Object Scale: ", "DictName": "ObjScale", "Type": "spbDouble", "asFlag": ""},
                     {"NiceName": "Output", "DictName": "Output", "Type": "inf", "asFlag": ""},
                     {"NiceName": "Relative Numbers", "DictName": "RelativeIndex", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Target: ", "DictName": "Target", "Type": "combo", "items": ["PC/Win", "Unix", "Mac"],"asFlag": ""},
+                    {"NiceName": "Target: ", "DictName": "Target", "Type": "combo", "items": ["PC/Win", "Unix", "Mac"],
+                     "asFlag": ""},
                     {"NiceName": "Precision: ", "DictName": "Precision", "Type": "spbDouble", "asFlag": ""},
                     {"NiceName": "Optimize", "DictName": "Optimize", "Type": "inf", "asFlag": ""},
                     {"NiceName": "Optimize Vertex", "DictName": "optVertex", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Optimize Normals", "DictName": "optNormals", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Optimize Texture Coordinates", "DictName": "optTextureCoords", "Type": "chb", "asFlag": ""},
+                    {"NiceName": "Optimize Texture Coordinates", "DictName": "optTextureCoords", "Type": "chb",
+                     "asFlag": ""},
                 ]
-                self._createFormWidgets(maxObjExpCreateDict, exportSettings, "objExportMax", obj_export_formlayout, updateExportDictionary)
-
+                self._createFormWidgets(maxObjExpCreateDict, exportSettings, "objExportMax", obj_export_formlayout,
+                                        updateExportDictionary)
 
                 spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
                                                    QtWidgets.QSizePolicy.Expanding)
@@ -3220,11 +3374,14 @@ class MainUI(QtWidgets.QMainWindow):
                 fbx_import_layout.addLayout(fbx_import_formlayout)
 
                 maxFbxImpCreateDict = [
-                    {"NiceName": "Mode", "DictName": "Mode", "Type": "combo", "items": ["create", "exmerge", "merge"] ,"asFlag": ""},
+                    {"NiceName": "Mode", "DictName": "Mode", "Type": "combo", "items": ["create", "exmerge", "merge"],
+                     "asFlag": ""},
                     {"NiceName": "Skin", "DictName": "Skin", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Convert Unit", "DictName": "ConvertUnit", "Type": "combo", "items": ["mm", "cm", "dm", "m", "km", "in", "ft", "yd"], "asFlag": ""},
+                    {"NiceName": "Convert Unit", "DictName": "ConvertUnit", "Type": "combo",
+                     "items": ["mm", "cm", "dm", "m", "km", "in", "ft", "yd"], "asFlag": ""},
                     {"NiceName": "Markers", "DictName": "Markers", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Bake Animation Layers", "DictName": "BakeAnimationLayers", "Type": "chb", "asFlag": ""},
+                    {"NiceName": "Bake Animation Layers", "DictName": "BakeAnimationLayers", "Type": "chb",
+                     "asFlag": ""},
                     {"NiceName": "Filter Key Reducer", "DictName": "FilterKeyReducer", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Fill Timeline", "DictName": "FillTimeline", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Cameras", "DictName": "Cameras", "Type": "chb", "asFlag": ""},
@@ -3234,14 +3391,16 @@ class MainUI(QtWidgets.QMainWindow):
                     {"NiceName": "Lights: ", "DictName": "Lights", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Shape: ", "DictName": "Shape", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Axis Conversion: ", "DictName": "AxisConversion", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Import Bone As Dummy: ", "DictName": "ImportBoneAsDummy", "Type": "chb", "asFlag": ""},
+                    {"NiceName": "Import Bone As Dummy: ", "DictName": "ImportBoneAsDummy", "Type": "chb",
+                     "asFlag": ""},
                     {"NiceName": "Scale Conversion: ", "DictName": "ScaleConversion", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Smoothing Groups: ", "DictName": "SmoothingGroups", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Point Cache: ", "DictName": "PointCache", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Scale Factor: ", "DictName": "ScaleFactor", "Type": "spbDouble", "asFlag": ""},
                     {"NiceName": "Keep Frame Rate: ", "DictName": "KeepFrameRate", "Type": "chb", "asFlag": ""},
                 ]
-                self._createFormWidgets(maxFbxImpCreateDict, importSettings, "fbxImportMax", fbx_import_formlayout, updateImportDictionary)
+                self._createFormWidgets(maxFbxImpCreateDict, importSettings, "fbxImportMax", fbx_import_formlayout,
+                                        updateImportDictionary)
 
                 spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
                                                    QtWidgets.QSizePolicy.Expanding)
@@ -3267,7 +3426,8 @@ class MainUI(QtWidgets.QMainWindow):
                     {"NiceName": "Lights", "DictName": "Lights", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Use Scene Name", "DictName": "UseSceneName", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Smoothing Groups", "DictName": "SmoothingGroups", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Axis Conversion Method", "DictName": "AxisConversionMethod", "Type": "combo", "items":["None", "Animation", "Fbx_Root"], "asFlag": ""},
+                    {"NiceName": "Axis Conversion Method", "DictName": "AxisConversionMethod", "Type": "combo",
+                     "items": ["None", "Animation", "Fbx_Root"], "asFlag": ""},
                     {"NiceName": "Bake Frame Step", "DictName": "BakeFrameStep", "Type": "spbInt", "asFlag": ""},
                     {"NiceName": "FBX Version", "DictName": "FileVersion", "Type": "str", "asFlag": ""},
                     {"NiceName": "Remove single keys", "DictName": "Removesinglekeys", "Type": "chb", "asFlag": ""},
@@ -3282,8 +3442,10 @@ class MainUI(QtWidgets.QMainWindow):
                     {"NiceName": "Triangulate", "DictName": "Triangulate", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Normals Per Poly", "DictName": "NormalsPerPoly", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Smooth Mesh Export", "DictName": "SmoothMeshExport", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Collada Single Matrix", "DictName": "ColladaSingleMatrix", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Convert Unit", "DictName": "ConvertUnit", "Type": "combo", "items":["mm", "cm", "dm", "m", "km", "in", "ft", "mi", "yd"], "asFlag": ""},
+                    {"NiceName": "Collada Single Matrix", "DictName": "ColladaSingleMatrix", "Type": "chb",
+                     "asFlag": ""},
+                    {"NiceName": "Convert Unit", "DictName": "ConvertUnit", "Type": "combo",
+                     "items": ["mm", "cm", "dm", "m", "km", "in", "ft", "mi", "yd"], "asFlag": ""},
                     {"NiceName": "ASCII", "DictName": "ASCII", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Geometry As Bone", "DictName": "GeomAsBone", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Shape", "DictName": "Shape", "Type": "chb", "asFlag": ""},
@@ -3291,11 +3453,12 @@ class MainUI(QtWidgets.QMainWindow):
                     {"NiceName": "Point Cache", "DictName": "PointCache", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Skin", "DictName": "Skin", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Scale Factor", "DictName": "ScaleFactor", "Type": "spbDouble", "asFlag": ""},
-                    {"NiceName": "Resample Animation Factor", "DictName": "BakeResampleAnimation", "Type": "chb", "asFlag": ""},
+                    {"NiceName": "Resample Animation Factor", "DictName": "BakeResampleAnimation", "Type": "chb",
+                     "asFlag": ""},
                 ]
 
-                self._createFormWidgets(maxFbxExpCreateDict, exportSettings, "fbxExportMax", fbx_export_formlayout, updateExportDictionary)
-
+                self._createFormWidgets(maxFbxExpCreateDict, exportSettings, "fbxExportMax", fbx_export_formlayout,
+                                        updateExportDictionary)
 
                 spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
                                                    QtWidgets.QSizePolicy.Expanding)
@@ -3315,7 +3478,6 @@ class MainUI(QtWidgets.QMainWindow):
                 alembic_horizontal_layout.addWidget(alembic_seperator)
                 alembic_horizontal_layout.addLayout(alembic_export_layout)
 
-
                 ## MAX ALEMBIC IMPORT WIDGETS
                 alembic_import_label = QtWidgets.QLabel()
                 alembic_import_label.setText("Alembic Import Settings")
@@ -3334,7 +3496,8 @@ class MainUI(QtWidgets.QMainWindow):
                     {"NiceName": "Object ID", "DictName": "ObjectID", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Vertex Colors", "DictName": "VertexColors", "Type": "chb", "asFlag": ""},
                     {"NiceName": "UV's", "DictName": "UVs", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Coordinate System", "DictName": "CoordinateSystem", "Type": "combo", "items": ["YUp", "ZUp"], "asFlag": ""},
+                    {"NiceName": "Coordinate System", "DictName": "CoordinateSystem", "Type": "combo",
+                     "items": ["YUp", "ZUp"], "asFlag": ""},
                     {"NiceName": "Visibility", "DictName": "Visibility", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Custom Attributes", "DictName": "CustomAttributes", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Set Start Time", "DictName": "SetStartTime", "Type": "chb", "asFlag": ""},
@@ -3349,8 +3512,8 @@ class MainUI(QtWidgets.QMainWindow):
                     {"NiceName": "Samples Per Frame", "DictName": "SamplesPerFrame", "Type": "spbInt", "asFlag": ""},
                     {"NiceName": "Extra Channels", "DictName": "ExtraChannels", "Type": "spbInt", "asFlag": ""},
                 ]
-                self._createFormWidgets(maxAlembicImpCreateDict, importSettings, "alembicImportMax", alembic_import_formlayout, updateImportDictionary)
-
+                self._createFormWidgets(maxAlembicImpCreateDict, importSettings, "alembicImportMax",
+                                        alembic_import_formlayout, updateImportDictionary)
 
                 spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
                                                    QtWidgets.QSizePolicy.Expanding)
@@ -3374,9 +3537,11 @@ class MainUI(QtWidgets.QMainWindow):
                     {"NiceName": "Object ID", "DictName": "ObjectID", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Vertex Colors", "DictName": "VertexColors", "Type": "chb", "asFlag": ""},
                     {"NiceName": "UV's", "DictName": "UVs", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Coordinate System", "DictName": "CoordinateSystem", "Type": "combo", "items": ["YUp", "ZUp"], "asFlag": ""},
+                    {"NiceName": "Coordinate System", "DictName": "CoordinateSystem", "Type": "combo",
+                     "items": ["YUp", "ZUp"], "asFlag": ""},
                     {"NiceName": "Visibility", "DictName": "Visibility", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Archive Type", "DictName": "ArchiveType", "Type": "combo", "items": ["Ogawa", "HDF5"], "asFlag": ""},
+                    {"NiceName": "Archive Type", "DictName": "ArchiveType", "Type": "combo", "items": ["Ogawa", "HDF5"],
+                     "asFlag": ""},
                     {"NiceName": "Custom Attributes", "DictName": "CustomAttributes", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Shape Suffix", "DictName": "ShapeSuffix", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Material ID's", "DictName": "MaterialIDs", "Type": "chb", "asFlag": ""},
@@ -3389,10 +3554,8 @@ class MainUI(QtWidgets.QMainWindow):
                     {"NiceName": "Samples Per Frame", "DictName": "SamplesPerFrame", "Type": "spbInt", "asFlag": ""},
                     {"NiceName": "Extra Channels", "DictName": "ExtraChannels", "Type": "spbInt", "asFlag": ""},
                 ]
-                self._createFormWidgets(maxAlembicExpCreateDict, exportSettings, "alembicExportMax", alembic_export_formlayout, updateExportDictionary)
-
-
-
+                self._createFormWidgets(maxAlembicExpCreateDict, exportSettings, "alembicExportMax",
+                                        alembic_export_formlayout, updateExportDictionary)
 
                 spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
                                                    QtWidgets.QSizePolicy.Expanding)
@@ -3417,7 +3580,6 @@ class MainUI(QtWidgets.QMainWindow):
             formatsTabWidget.addTab(fbxTab, "FBX")
             formatsTabWidget.addTab(alembicTab, "Alembic")
             houdini_verticalLayout.addWidget(formatsTabWidget)
-
 
             ## HOUDINI FBX
             ## --------
@@ -3448,30 +3610,43 @@ class MainUI(QtWidgets.QMainWindow):
 
                 houdiniFbxImpCreateDict = [
                     {"NiceName": "Import Lights", "DictName": "import_lights", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Resample Interval Lights", "DictName": "resample_interval", "Type": "spbDouble", "asFlag": ""},
-                    {"NiceName": "Import Global Ambient Light", "DictName": "import_global_ambient_light", "Type": "chb", "asFlag": ""},
+                    {"NiceName": "Resample Interval Lights", "DictName": "resample_interval", "Type": "spbDouble",
+                     "asFlag": ""},
+                    {"NiceName": "Import Global Ambient Light", "DictName": "import_global_ambient_light",
+                     "Type": "chb", "asFlag": ""},
                     {"NiceName": "Import Geometry", "DictName": "import_geometry", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Triangulate Patches", "DictName": "triangulate_patches", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Convert File Paths to Relative", "DictName": "convert_file_paths_to_relative", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Single Precision Vertex Caches", "DictName": "single_precision_vertex_caches", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Import Joints and Skin", "DictName": "import_joints_and_skin", "Type": "chb", "asFlag": ""},
+                    {"NiceName": "Convert File Paths to Relative", "DictName": "convert_file_paths_to_relative",
+                     "Type": "chb", "asFlag": ""},
+                    {"NiceName": "Single Precision Vertex Caches", "DictName": "single_precision_vertex_caches",
+                     "Type": "chb", "asFlag": ""},
+                    {"NiceName": "Import Joints and Skin", "DictName": "import_joints_and_skin", "Type": "chb",
+                     "asFlag": ""},
                     {"NiceName": "Resample Animation", "DictName": "resample_animation", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Override Framerate", "DictName": "override_framerate", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Import Animation", "DictName": "import_animation", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Import Cameras", "DictName": "import_cameras", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Segment Scale Already Baked-in", "DictName": "segment_scale_already_baked_in", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Convert Y Up", "DictName": "convert_into_y_up_coordinate_system", "Type": "chb", "asFlag": ""},
+                    {"NiceName": "Segment Scale Already Baked-in", "DictName": "segment_scale_already_baked_in",
+                     "Type": "chb", "asFlag": ""},
+                    {"NiceName": "Convert Y Up", "DictName": "convert_into_y_up_coordinate_system", "Type": "chb",
+                     "asFlag": ""},
                     {"NiceName": "Import Materials", "DictName": "import_materials", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Unlock Geometry", "DictName": "unlock_geometry", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Import into object subnet", "DictName": "import_into_object_subnet", "Type": "chb", "asFlag": ""},
+                    {"NiceName": "Import into object subnet", "DictName": "import_into_object_subnet", "Type": "chb",
+                     "asFlag": ""},
                     {"NiceName": "Triangulate Nurbs", "DictName": "triangulate_nurbs", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Import Nulls as subnets", "DictName": "import_nulls_as_subnets", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Blend deformers as blend sops", "DictName": "import_blend_deformers_as_blend_sops", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Hide attached Joints", "DictName": "hide_joints_attached_to_skin", "Type": "chb", "asFlag": ""},
+                    {"NiceName": "Import Nulls as subnets", "DictName": "import_nulls_as_subnets", "Type": "chb",
+                     "asFlag": ""},
+                    {"NiceName": "Blend deformers as blend sops", "DictName": "import_blend_deformers_as_blend_sops",
+                     "Type": "chb", "asFlag": ""},
+                    {"NiceName": "Hide attached Joints", "DictName": "hide_joints_attached_to_skin", "Type": "chb",
+                     "asFlag": ""},
                     {"NiceName": "Unlock Deformations", "DictName": "unlock_deformations", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Convert joints to zyx rotation order", "DictName": "convert_joints_to_zyx_rotation_order", "Type": "chb", "asFlag": ""}
+                    {"NiceName": "Convert joints to zyx rotation order",
+                     "DictName": "convert_joints_to_zyx_rotation_order", "Type": "chb", "asFlag": ""}
                 ]
-                self._createFormWidgets(houdiniFbxImpCreateDict, importSettings, "fbxImportHoudini", fbx_import_formlayout,
+                self._createFormWidgets(houdiniFbxImpCreateDict, importSettings, "fbxImportHoudini",
+                                        fbx_import_formlayout,
                                         updateImportDictionary)
 
                 spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
@@ -3493,18 +3668,24 @@ class MainUI(QtWidgets.QMainWindow):
 
                 houdiniFbxExpCreateDict = [
                     {"NiceName": "FBX Version", "DictName": "sdkversion", "Type": "str", "asFlag": ""},
-                    {"NiceName": "Export Invisible Objects as: ", "DictName": "invisobj", "Type": "combo", "items":["nullnodes", "fullnodes"], "asFlag": ""},
-                    {"NiceName": "Detect Constant Point Cloud Dynamic Objects", "DictName": "detectconstpointobjs", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Export Deforms as Vertex Caches", "DictName": "deformsasvcs", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Vertex Cache Format", "DictName": "vcformat", "Type": "combo", "items": ["mayaformat", "maxformat"], "asFlag": ""},
+                    {"NiceName": "Export Invisible Objects as: ", "DictName": "invisobj", "Type": "combo",
+                     "items": ["nullnodes", "fullnodes"], "asFlag": ""},
+                    {"NiceName": "Detect Constant Point Cloud Dynamic Objects", "DictName": "detectconstpointobjs",
+                     "Type": "chb", "asFlag": ""},
+                    {"NiceName": "Export Deforms as Vertex Caches", "DictName": "deformsasvcs", "Type": "chb",
+                     "asFlag": ""},
+                    {"NiceName": "Vertex Cache Format", "DictName": "vcformat", "Type": "combo",
+                     "items": ["mayaformat", "maxformat"], "asFlag": ""},
                     {"NiceName": "Force Skin Deform", "DictName": "forceskindeform", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Convert Surfaces", "DictName": "convertsurfaces", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Force Blend Shape Export", "DictName": "forceblendshape", "Type": "chb", "asFlag": ""},
+                    {"NiceName": "Force Blend Shape Export", "DictName": "forceblendshape", "Type": "chb",
+                     "asFlag": ""},
                     {"NiceName": "Export End Effectors", "DictName": "exportendeffectors", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Conserve memory", "DictName": "conservemem", "Type": "chb", "asFlag": ""},
                 ]
 
-                self._createFormWidgets(houdiniFbxExpCreateDict, exportSettings, "fbxExportHoudini", fbx_export_formlayout,
+                self._createFormWidgets(houdiniFbxExpCreateDict, exportSettings, "fbxExportHoudini",
+                                        fbx_export_formlayout,
                                         updateExportDictionary)
 
                 spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
@@ -3539,12 +3720,17 @@ class MainUI(QtWidgets.QMainWindow):
                 alembic_import_layout.addLayout(alembic_import_formlayout)
 
                 houdiniAlembicImpCreateDict = [
-                    {"NiceName": "Display As", "DictName": "viewportlod", "Type": "combo", "items": ["full", "points", "box", "centroid", "hidden"], "asFlag": ""},
-                    {"NiceName": "Flatten Visibility Evaluation", "DictName": "flattenVisibility", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Hierarchy with Channel References", "DictName": "channelRef", "Type": "chb", "asFlag": ""},
+                    {"NiceName": "Display As", "DictName": "viewportlod", "Type": "combo",
+                     "items": ["full", "points", "box", "centroid", "hidden"], "asFlag": ""},
+                    {"NiceName": "Flatten Visibility Evaluation", "DictName": "flattenVisibility", "Type": "chb",
+                     "asFlag": ""},
+                    {"NiceName": "Hierarchy with Channel References", "DictName": "channelRef", "Type": "chb",
+                     "asFlag": ""},
                     {"NiceName": "Single Geometry", "DictName": "buildSingleGeoNode", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "User Properties", "DictName": "loadUserProps", "Type": "combo", "items":["none", "data", "both"], "asFlag": ""},
-                    {"NiceName": "Load As", "DictName": "loadmode", "Type": "combo", "items":["alembic", "houdini", "hpoints", "hboxes"], "asFlag": ""},
+                    {"NiceName": "User Properties", "DictName": "loadUserProps", "Type": "combo",
+                     "items": ["none", "data", "both"], "asFlag": ""},
+                    {"NiceName": "Load As", "DictName": "loadmode", "Type": "combo",
+                     "items": ["alembic", "houdini", "hpoints", "hboxes"], "asFlag": ""},
                     {"NiceName": "Hierarchy using Subnetworks", "DictName": "buildSubnet", "Type": "chb", "asFlag": ""},
                 ]
                 self._createFormWidgets(houdiniAlembicImpCreateDict, importSettings, "alembicImportHoudini",
@@ -3569,10 +3755,13 @@ class MainUI(QtWidgets.QMainWindow):
 
                 houdiniAlembicExpCreateDict = [
                     {"NiceName": "Create Shape Nodes", "DictName": "shape_nodes", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Format", "DictName": "format", "Type": "combo", "items": ["default", "hdf5", "ogawa"], "asFlag": ""},
-                    {"NiceName": "Face Sets", "DictName": "facesets", "Type": "combo", "items": ["no", "nonempty", "all"], "asFlag": ""},
+                    {"NiceName": "Format", "DictName": "format", "Type": "combo", "items": ["default", "hdf5", "ogawa"],
+                     "asFlag": ""},
+                    {"NiceName": "Face Sets", "DictName": "facesets", "Type": "combo",
+                     "items": ["no", "nonempty", "all"], "asFlag": ""},
                     {"NiceName": "Use Instancing", "DictName": "use_instancing", "Type": "chb", "asFlag": ""},
-                    {"NiceName": "Save Attributes Instancing", "DictName": "save_attributes", "Type": "chb", "asFlag": ""},
+                    {"NiceName": "Save Attributes Instancing", "DictName": "save_attributes", "Type": "chb",
+                     "asFlag": ""},
                     {"NiceName": "Motion Blur", "DictName": "motionBlur", "Type": "chb", "asFlag": ""},
                     {"NiceName": "Samples", "DictName": "samples", "Type": "spbInt", "asFlag": ""},
                     {"NiceName": "Shutter Open", "DictName": "shutter1", "Type": "spbInt", "asFlag": ""},
@@ -3626,7 +3815,8 @@ class MainUI(QtWidgets.QMainWindow):
         # SIGNALS
         users_cmdButton.clicked.connect(lambda: self.settingsMenu_treeWidget.setCurrentItem(self.users_item))
         passwords_cmdButton.clicked.connect(lambda: self.settingsMenu_treeWidget.setCurrentItem(self.passwords_item))
-        namingConventions_cmdButton.clicked.connect(lambda: self.settingsMenu_treeWidget.setCurrentItem(self.namingConventions_item))
+        namingConventions_cmdButton.clicked.connect(
+            lambda: self.settingsMenu_treeWidget.setCurrentItem(self.namingConventions_item))
 
     def _usersContent(self):
         # manager = self._getManager()
@@ -3668,9 +3858,7 @@ class MainUI(QtWidgets.QMainWindow):
         users_treeWidget.sortItems(1, QtCore.Qt.AscendingOrder)  # 1 is Date Column, 0 is Ascending order
         users_hLayout.addWidget(users_treeWidget)
 
-        users_treeWidget.setColumnWidth(1000,10)
-
-
+        users_treeWidget.setColumnWidth(1000, 10)
 
         users_vLayout = QtWidgets.QVBoxLayout()
         users_vLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
@@ -3746,7 +3934,6 @@ class MainUI(QtWidgets.QMainWindow):
             buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
             verticalLayout.addWidget(buttonBox)
             addUser_Dialog.show()
-
 
             # sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
             # sizePolicy.setHorizontalStretch(0)
@@ -3837,8 +4024,7 @@ class MainUI(QtWidgets.QMainWindow):
         changePass_btn.setMinimumWidth(200)
         changePass_btn.setMaximumWidth(200)
         # formLayout.addRow(changePass_btn)
-        formLayout.setWidget(3,QtWidgets.QFormLayout.FieldRole, changePass_btn)
-
+        formLayout.setWidget(3, QtWidgets.QFormLayout.FieldRole, changePass_btn)
 
         ################################################
 
@@ -3849,7 +4035,6 @@ class MainUI(QtWidgets.QMainWindow):
         # h1_s1_layout.addWidget(changePass_btn)
         #
         passwords_Layout.addLayout(h1_s1_layout)
-
 
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         passwords_Layout.addItem(spacerItem)
@@ -3907,7 +4092,7 @@ class MainUI(QtWidgets.QMainWindow):
         formLayout.addRow(fileNameConv_lbl, fileNameConv_le)
 
         infoLabel = QtWidgets.QLabel()
-        infoLabel.setText("Valid tokens are %s" %(",".join(validFileNameTokens)))
+        infoLabel.setText("Valid tokens are %s" % (",".join(validFileNameTokens)))
         infoLabel.setWordWrap(True)
         formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, infoLabel)
 
@@ -3923,10 +4108,10 @@ class MainUI(QtWidgets.QMainWindow):
         templateFolder_hLayout.addWidget(templateFolderBrowse_pb)
         formLayout.addRow(templateFolder_lbl, templateFolder_hLayout)
         infoLabel = QtWidgets.QLabel()
-        infoLabel.setText("While creating a new project, all contents of the template folder will be copied into the project folder")
+        infoLabel.setText(
+            "While creating a new project, all contents of the template folder will be copied into the project folder")
         infoLabel.setWordWrap(True)
         formLayout.setWidget(3, QtWidgets.QFormLayout.FieldRole, infoLabel)
-
 
         h1_s1_layout.addLayout(formLayout)
 
@@ -3939,9 +4124,9 @@ class MainUI(QtWidgets.QMainWindow):
             if dlg.exec_():
                 # selectedroot = os.path.normpath(unicode(dlg.selectedFiles()[0]))
                 selectedroot = os.path.normpath(unicode(dlg.selectedFiles()[0])).encode("utf-8")
-                folderSize_inMB = get_size(selectedroot)/(1024*1024)
+                folderSize_inMB = get_size(selectedroot) / (1024 * 1024)
                 if folderSize_inMB > settings["warningSizeLimit"]:
-                    msg = "Selected Folder size is %s\n\nFrom now on this data will be copied EACH new project created with Tik Manager.\n\n Do you want to continue?" %folderSize_inMB
+                    msg = "Selected Folder size is %s\n\nFrom now on this data will be copied EACH new project created with Tik Manager.\n\n Do you want to continue?" % folderSize_inMB
                     q = self.queryPop(type="yesNo", textTitle="Large Folder Size", textHeader=msg)
                     if q == "no":
                         return
@@ -3961,13 +4146,12 @@ class MainUI(QtWidgets.QMainWindow):
                 settings["templateFolder"] = folder
                 self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
 
-
         def updateFileName():
             template = unicode(fileNameConv_le.text()).encode("utf-8")
             items = re.findall(r'<(.*?)\>', template)
             for x in items:
-                if ("<%s>" %x) not in validFileNameTokens:
-                    msg = "%s token is invalid\nValid tokens are: %s" %(x, ",".join(validFileNameTokens))
+                if ("<%s>" % x) not in validFileNameTokens:
+                    msg = "%s token is invalid\nValid tokens are: %s" % (x, ",".join(validFileNameTokens))
                     self.infoPop(textTitle="Invalid Token", textHeader=msg)
                     fileNameConv_le.setText(settings["fileName"])
                     return
@@ -3992,7 +4176,6 @@ class MainUI(QtWidgets.QMainWindow):
         templateFolderBrowse_pb.clicked.connect(browseTemplateFolder)
         templateFolder_le.editingFinished.connect(updateTemplateFolder)
         fileNameConv_le.editingFinished.connect(updateFileName)
-
 
     def _createFormWidgets(self, loopList, settingsDict, formattingType, formlayout, dictUpdateMethod):
         """Creates widgets for the given form layout"""
@@ -4034,19 +4217,23 @@ class MainUI(QtWidgets.QMainWindow):
                 chb.setObjectName(widget["DictName"])
                 formlayout.addRow(chb)
                 if databaseType == "String":
-                    chb.setChecked(convertDict[settingsDict[formattingType][widget["DictName"]].replace(widget["asFlag"],"")])
+                    chb.setChecked(
+                        convertDict[settingsDict[formattingType][widget["DictName"]].replace(widget["asFlag"], "")])
                     if formattingType == "fbxImportMaya" or formattingType == "fbxExportMaya":
                         chb.stateChanged.connect(
-                            lambda state, dict=widget["DictName"], flag=widget["asFlag"]: dictUpdateMethod(formattingType, dict, "%s%s" % (flag,str(bool(state)).lower()))
+                            lambda state, dict=widget["DictName"], flag=widget["asFlag"]: dictUpdateMethod(
+                                formattingType, dict, "%s%s" % (flag, str(bool(state)).lower()))
                         )
                     else:
                         chb.stateChanged.connect(
-                            lambda state, dict=widget["DictName"], flag=widget["asFlag"]: dictUpdateMethod(formattingType, dict, "%s%s" % (flag,int(bool(state))))
+                            lambda state, dict=widget["DictName"], flag=widget["asFlag"]: dictUpdateMethod(
+                                formattingType, dict, "%s%s" % (flag, int(bool(state))))
                         )
                 else:
                     chb.setChecked(settingsDict[formattingType][widget["DictName"]])
                     chb.stateChanged.connect(
-                        lambda state, dict=widget["DictName"]: dictUpdateMethod(formattingType, dict, bool(int((state))))
+                        lambda state, dict=widget["DictName"]: dictUpdateMethod(formattingType, dict,
+                                                                                bool(int((state))))
                     )
 
             elif widget["Type"] == "combo":
@@ -4060,25 +4247,30 @@ class MainUI(QtWidgets.QMainWindow):
                 if databaseType == "String":
 
                     if formattingType == "fbxImportMaya" or formattingType == "fbxExportMaya":
-                        ffindex = combo.findText(settingsDict[formattingType][widget["DictName"]].replace(widget["asFlag"], ""), QtCore.Qt.MatchFixedString)
+                        ffindex = combo.findText(
+                            settingsDict[formattingType][widget["DictName"]].replace(widget["asFlag"], ""),
+                            QtCore.Qt.MatchFixedString)
                         combo.setCurrentIndex(ffindex)
                         combo.currentIndexChanged[str].connect(
-                            lambda arg, dict=widget["DictName"], flag=widget["asFlag"] : dictUpdateMethod(formattingType, dict,
-                                                           "%s%s" %(flag, arg))
+                            lambda arg, dict=widget["DictName"], flag=widget["asFlag"]: dictUpdateMethod(formattingType,
+                                                                                                         dict,
+                                                                                                         "%s%s" % (
+                                                                                                         flag, arg))
                         )
                     else:
-                        combo.setCurrentIndex(int(settingsDict[formattingType][widget["DictName"]].replace(widget["asFlag"], "")))
+                        combo.setCurrentIndex(
+                            int(settingsDict[formattingType][widget["DictName"]].replace(widget["asFlag"], "")))
                         combo.currentIndexChanged.connect(
                             lambda index, dict=widget["DictName"]: dictUpdateMethod(formattingType, dict,
-                                                           unicode(index).encode("utf-8"))
+                                                                                    unicode(index).encode("utf-8"))
                         )
                 else:
                     ffindex = combo.findText(settingsDict[formattingType][widget["DictName"]],
-                                                        QtCore.Qt.MatchFixedString)
+                                             QtCore.Qt.MatchFixedString)
                     combo.setCurrentIndex(ffindex)
                     combo.currentIndexChanged[str].connect(
                         lambda text, dict=widget["DictName"]: dictUpdateMethod(formattingType, dict,
-                                                       unicode(text).encode("utf-8"))
+                                                                               unicode(text).encode("utf-8"))
                     )
 
             elif widget["Type"] == "spbDouble":
@@ -4091,10 +4283,12 @@ class MainUI(QtWidgets.QMainWindow):
                 spb.setObjectName(widget["DictName"])
                 formlayout.addRow(lbl, spb)
                 if databaseType == "String":
-                    spb.setValue(float(settingsDict[formattingType][widget["DictName"]].replace(widget["asFlag"],"")))
+                    spb.setValue(float(settingsDict[formattingType][widget["DictName"]].replace(widget["asFlag"], "")))
                     spb.valueChanged.connect(
-                        lambda value, dict=widget["DictName"], flag=widget["asFlag"]: dictUpdateMethod(formattingType, dict,
-                                                       "%s%s" %(flag, value))
+                        lambda value, dict=widget["DictName"], flag=widget["asFlag"]: dictUpdateMethod(formattingType,
+                                                                                                       dict,
+                                                                                                       "%s%s" % (
+                                                                                                       flag, value))
                     )
                 else:
                     spb.setValue(settingsDict[formattingType][widget["DictName"]])
@@ -4112,9 +4306,11 @@ class MainUI(QtWidgets.QMainWindow):
                 spb.setObjectName(widget["DictName"])
                 formlayout.addRow(lbl, spb)
                 if databaseType == "String":
-                    spb.setValue(int(settingsDict[formattingType][widget["DictName"]].replace(widget["asFlag"],"")))
+                    spb.setValue(int(settingsDict[formattingType][widget["DictName"]].replace(widget["asFlag"], "")))
                     spb.valueChanged.connect(
-                        lambda value, dict=widget["DictName"], flag=widget["asFlag"]: dictUpdateMethod(formattingType, dict, "%s%s" % (flag, value))
+                        lambda value, dict=widget["DictName"], flag=widget["asFlag"]: dictUpdateMethod(formattingType,
+                                                                                                       dict, "%s%s" % (
+                                                                                                       flag, value))
                     )
                 else:
                     spb.setValue(settingsDict[formattingType][widget["DictName"]])
@@ -4128,11 +4324,11 @@ class MainUI(QtWidgets.QMainWindow):
                 le = QtWidgets.QLineEdit()
                 le.setObjectName(widget["DictName"])
                 formlayout.addRow(lbl, le)
-                le.setText(settingsDict[formattingType][widget["DictName"]].replace(widget["asFlag"],""))
+                le.setText(settingsDict[formattingType][widget["DictName"]].replace(widget["asFlag"], ""))
                 le.textEdited.connect(
-                    lambda text, dict=widget["DictName"], flag=widget["asFlag"]: dictUpdateMethod(formattingType, dict, "%s%s" %(flag, text))
+                    lambda text, dict=widget["DictName"], flag=widget["asFlag"]: dictUpdateMethod(formattingType, dict,
+                                                                                                  "%s%s" % (flag, text))
                 )
-
 
     def saveBaseSceneDialog(self):
         # This method IS Software Specific
@@ -4151,14 +4347,18 @@ class MainUI(QtWidgets.QMainWindow):
         colorWidget = QtWidgets.QWidget(saveBaseScene_Dialog)
         headerLayout = QtWidgets.QHBoxLayout(colorWidget)
         headerLayout.setSpacing(0)
-        try: headerLayout.setMargin(0)
-        except AttributeError: pass
+        try:
+            headerLayout.setMargin(0)
+        except AttributeError:
+            pass
 
         tikIcon_label = QtWidgets.QLabel(self.centralwidget)
         tikIcon_label.setProperty("header", True)
         tikIcon_label.setMaximumWidth(150)
-        try: tikIcon_label.setMargin(margin)
-        except AttributeError: pass
+        try:
+            tikIcon_label.setMargin(margin)
+        except AttributeError:
+            pass
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
         # saveBaseHeaderBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmBaseScene.png"))
@@ -4173,8 +4373,10 @@ class MainUI(QtWidgets.QMainWindow):
 
         resolvedPath_label = QtWidgets.QLabel()
         resolvedPath_label.setProperty("header", True)
-        try:resolvedPath_label.setMargin(margin)
-        except AttributeError: pass
+        try:
+            resolvedPath_label.setMargin(margin)
+        except AttributeError:
+            pass
         resolvedPath_label.setIndent(12)
         # resolvedPath_label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
 
@@ -4184,12 +4386,9 @@ class MainUI(QtWidgets.QMainWindow):
 
         headerLayout.addWidget(resolvedPath_label)
 
-
         sbs_masterLayout.addWidget(colorWidget)
         # ----------
         # ----------
-
-
 
         splitter = QtWidgets.QSplitter(saveBaseScene_Dialog)
         splitter.setFrameShape(QtWidgets.QFrame.NoFrame)
@@ -4250,11 +4449,10 @@ class MainUI(QtWidgets.QMainWindow):
         makeReference_checkBox.setText("Make Reference")
         formLayout.setWidget(4, QtWidgets.QFormLayout.FieldRole, makeReference_checkBox)
 
-        if BoilerDict["Environment"] == "Houdini" or\
+        if BoilerDict["Environment"] == "Houdini" or \
                 BoilerDict["Environment"] == "Nuke" or \
                 BoilerDict["Environment"] == "Standalone":
             makeReference_checkBox.setVisible(False)
-
 
         formats_horizontalLayout = QtWidgets.QHBoxLayout()
 
@@ -4263,7 +4461,7 @@ class MainUI(QtWidgets.QMainWindow):
         for format in BoilerDict["SceneFormats"]:
             radioButton = QtWidgets.QRadioButton(verticalLayoutWidget_2)
             radioButton.setText(format)
-            radioButton.setMinimumSize(50,10)
+            radioButton.setMinimumSize(50, 10)
             formats_horizontalLayout.addWidget(radioButton)
             radioButtonList.append(radioButton)
 
@@ -4310,6 +4508,7 @@ class MainUI(QtWidgets.QMainWindow):
         scenesDir = self.manager.scenesDir
         projectDir = self.manager.projectDir
         relScenesDir = os.path.relpath(scenesDir, projectDir)
+
         def getResolvedPath():
 
             category = category_comboBox.currentText()
@@ -4322,19 +4521,20 @@ class MainUI(QtWidgets.QMainWindow):
                 "categoryName": category,
                 "userInitials": userInitials,
                 "subproject": self.manager.subProject,
-                "date": "" # date is unnecessary since it will be calculated in SmRoot->resolveSaveName
+                "date": ""  # date is unnecessary since it will be calculated in SmRoot->resolveSaveName
             }
             sceneName = self.manager.resolveSaveName(nameDict, 1)
 
             if self._checkValidity(lineEdit.text(), buttonBox, lineEdit):
-                subP=subProject_comboBox.currentText()
+                subP = subProject_comboBox.currentText()
                 subProject = "" if subP == "None" else subP
                 sceneFormat = ""
                 for button in radioButtonList:
                     if button.isChecked():
                         sceneFormat = button.text()
                         break
-                resolvedText = "{0}\{1}\{2}\{3}\{4}.{5}".format(relScenesDir, category, subProject, name, sceneName, sceneFormat)
+                resolvedText = "{0}\{1}\{2}\{3}\{4}.{5}".format(relScenesDir, category, subProject, name, sceneName,
+                                                                sceneFormat)
                 resolvedText = resolvedText.replace("\\\\", "\\")
             else:
                 resolvedText = ""
@@ -4347,7 +4547,7 @@ class MainUI(QtWidgets.QMainWindow):
                 if q == "no":
                     return
                 else:
-                    self.manager.errorLogger(title = "Disregarded warning" , errorMessage=msg)
+                    self.manager.errorLogger(title="Disregarded warning", errorMessage=msg)
             category = category_comboBox.currentText()
             name = lineEdit.text()
             subIndex = subProject_comboBox.currentIndex()
@@ -4372,12 +4572,10 @@ class MainUI(QtWidgets.QMainWindow):
         lineEdit.textChanged.connect(getResolvedPath)
         # lineEdit.textChanged.connect(lambda: self._checkValidity(lineEdit.text(), buttonBox, lineEdit))
 
-
         buttonBox.accepted.connect(saveCommand)
 
         for rb in radioButtonList:
             rb.toggled.connect(getResolvedPath)
-
 
         # self.sd_buttonBox.accepted.connect(self.save_Dialog.accept)
         buttonBox.rejected.connect(saveBaseScene_Dialog.reject)
@@ -4405,15 +4603,19 @@ class MainUI(QtWidgets.QMainWindow):
         colorWidget = QtWidgets.QWidget(saveV_Dialog)
         headerLayout = QtWidgets.QHBoxLayout(colorWidget)
         headerLayout.setSpacing(0)
-        try: headerLayout.setMargin(0)
-        except AttributeError: pass
+        try:
+            headerLayout.setMargin(0)
+        except AttributeError:
+            pass
 
         tikIcon_label = QtWidgets.QLabel(self.centralwidget)
         # tikIcon_label.setFixedSize(115, 30)
         tikIcon_label.setProperty("header", True)
         tikIcon_label.setMaximumWidth(114)
-        try: tikIcon_label.setMargin(margin)
-        except AttributeError: pass
+        try:
+            tikIcon_label.setMargin(margin)
+        except AttributeError:
+            pass
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
         # saveVersionHeaderBitmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "tmVersion.png"))
@@ -4428,8 +4630,10 @@ class MainUI(QtWidgets.QMainWindow):
 
         resolvedPath_label = QtWidgets.QLabel()
         resolvedPath_label.setProperty("header", True)
-        try: resolvedPath_label.setMargin(margin)
-        except AttributeError: pass
+        try:
+            resolvedPath_label.setMargin(margin)
+        except AttributeError:
+            pass
         resolvedPath_label.setIndent(2)
 
         resolvedPath_label.setFont(QtGui.QFont("Times", 7, QtGui.QFont.Bold))
@@ -4437,11 +4641,9 @@ class MainUI(QtWidgets.QMainWindow):
 
         headerLayout.addWidget(resolvedPath_label)
 
-
         sv_masterLayout.addWidget(colorWidget)
         # ----------
         # ----------
-
 
         right_verticalLayout = QtWidgets.QVBoxLayout()
         right_verticalLayout.setContentsMargins(-1, -1, 10, 10)
@@ -4453,7 +4655,6 @@ class MainUI(QtWidgets.QMainWindow):
         # resolvedPath_label.setWordWrap(True)
         # # resolvedPath_label.setFont(QtGui.QFont("Time", 7, QtGui.QFont.Bold))
         # right_verticalLayout.addWidget(resolvedPath_label)
-
 
         notes_label = QtWidgets.QLabel(saveV_Dialog)
         notes_label.setText(("Notes"))
@@ -4495,7 +4696,7 @@ class MainUI(QtWidgets.QMainWindow):
         makeReference_checkBox.setText("Make Reference")
         makeReference_checkBox.setCheckable(True)
 
-        if BoilerDict["Environment"] == "Houdini" or\
+        if BoilerDict["Environment"] == "Houdini" or \
                 BoilerDict["Environment"] == "Nuke" or \
                 BoilerDict["Environment"] == "Standalone":
             makeReference_checkBox.setVisible(False)
@@ -4505,10 +4706,9 @@ class MainUI(QtWidgets.QMainWindow):
 
         sv_buttonBox = QtWidgets.QDialogButtonBox(saveV_Dialog)
         sv_buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        sv_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        sv_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
         right_verticalLayout.addWidget(sv_buttonBox)
         sv_masterLayout.addLayout(right_verticalLayout)
-
 
         buttonS = sv_buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
         buttonS.setText('Save As Version')
@@ -4525,7 +4725,7 @@ class MainUI(QtWidgets.QMainWindow):
                 if q == "no":
                     return
                 else:
-                    self.manager.errorLogger(title = "Disregarded warning" , errorMessage=msg)
+                    self.manager.errorLogger(title="Disregarded warning", errorMessage=msg)
 
             for button in radioButtonList:
                 if button.isChecked():
@@ -4543,7 +4743,6 @@ class MainUI(QtWidgets.QMainWindow):
 
             # currentRow = self.scenes_listWidget.currentRow()
             # currentIndex = self.scenes_listWidget.currentIndex()
-
 
             self.populateBaseScenes()
             self.onBaseSceneChange()
@@ -4572,7 +4771,7 @@ class MainUI(QtWidgets.QMainWindow):
                 "categoryName": jsonInfo["Category"],
                 "userInitials": self.manager.currentUserInitials,
                 "subproject": self.manager.subProject,
-                "date": "" # date is unnecessary since it will be calculated in SmRoot->resolveSaveName
+                "date": ""  # date is unnecessary since it will be calculated in SmRoot->resolveSaveName
             }
             sceneName = self.manager.resolveSaveName(nameDict, currentVersion)
 
@@ -4580,7 +4779,7 @@ class MainUI(QtWidgets.QMainWindow):
             #                                       self.manager.currentUserInitials,
             #                                       str(currentVersion).zfill(3))
             relSceneFile = os.path.join(jsonInfo["Path"], "{0}.{1}".format(sceneName, sceneFormat))
-            resolvedPath_label.setText("\\%s" %relSceneFile)
+            resolvedPath_label.setText("\\%s" % relSceneFile)
 
         getResolvedPath()
 
@@ -4596,9 +4795,11 @@ class MainUI(QtWidgets.QMainWindow):
         if sceneInfo:
             saveV_Dialog.show()
         else:
-            self.manager.errorLogger(title="Misuse Error", errorMessage="A version tried to be saved without base scene")
+            self.manager.errorLogger(title="Misuse Error",
+                                     errorMessage="A version tried to be saved without base scene")
             self.infoPop(textInfo="Version Saving not possible",
-                         textHeader="Current Scene is not a Base Scene. Only versions of Base Scenes can be saved", textTitle="Not a Base File", type="C")
+                         textHeader="Current Scene is not a Base Scene. Only versions of Base Scenes can be saved",
+                         textTitle="Not a Base File", type="C")
 
     def addNoteDialog(self):
         # This method IS Software Specific
@@ -4608,7 +4809,7 @@ class MainUI(QtWidgets.QMainWindow):
         # else:
         #     manager = self.manager
 
-        row =  self.scenes_listWidget.currentIndex().row()
+        row = self.scenes_listWidget.currentIndex().row()
         if row == -1:
             return
 
@@ -4692,7 +4893,6 @@ class MainUI(QtWidgets.QMainWindow):
         # init base scenes
         self.populateBaseScenes()
 
-
         self._initUsers()
 
         # disable the version related stuff
@@ -4754,8 +4954,9 @@ class MainUI(QtWidgets.QMainWindow):
         # This method IS Software Specific
         manager = self._getManager()
         if command == "file":
-            fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', manager.projectDir,"Image files (*.jpg *.gif)")[0]
-            if not fname: # if dialog is canceled
+            fname = \
+            QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', manager.projectDir, "Image files (*.jpg *.gif)")[0]
+            if not fname:  # if dialog is canceled
                 return
 
         elif command == "currentView":
@@ -4853,7 +5054,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.loadScene_pushButton.setText("Reference Scene")
             self.scenes_listWidget.setProperty("reference", True)
 
-        self.scenes_listWidget.setStyleSheet("") #refresh
+        self.scenes_listWidget.setStyleSheet("")  # refresh
         self.manager.currentMode = self.load_radioButton.isChecked()
         self.populateBaseScenes()
 
@@ -4861,7 +5062,7 @@ class MainUI(QtWidgets.QMainWindow):
         # This method IS Software Specific
         manager = self._getManager()
         self.version_comboBox.blockSignals(True)
-        #clear version_combobox
+        # clear version_combobox
         self.version_comboBox.clear()
 
         # row = self.scenes_listWidget.currentRow()
@@ -4873,11 +5074,11 @@ class MainUI(QtWidgets.QMainWindow):
             manager.currentBaseSceneName = str(self.scenes_listWidget.currentItem().text(0))
 
         self._vEnableDisable()
-        #get versions and add it to the combobox
+        # get versions and add it to the combobox
         versionData = manager.getVersions()
         for num in range(len(versionData)):
             self.version_comboBox.addItem("v{0}".format(str(num + 1).zfill(3)))
-        self.version_comboBox.setCurrentIndex(manager.currentVersionIndex-1)
+        self.version_comboBox.setCurrentIndex(manager.currentVersionIndex - 1)
         self.onVersionChange()
 
         self.version_comboBox.blockSignals(False)
@@ -4885,7 +5086,6 @@ class MainUI(QtWidgets.QMainWindow):
     def onVersionChange(self):
         # This method IS Software Specific
         manager = self._getManager()
-
 
         if self.version_comboBox.currentIndex() is not -1:
             manager.currentVersionIndex = self.version_comboBox.currentIndex() + 1
@@ -4904,8 +5104,6 @@ class MainUI(QtWidgets.QMainWindow):
             self.thumbnail_label.setPixmap(self.E_tPixmap)
         else:
             self.thumbnail_label.setPixmap(self.tPixmap)
-
-
 
         if manager.currentVersionIndex != len(manager.getVersions()) and manager.currentVersionIndex != -1:
             self.version_comboBox.setProperty("preVersion", True)
@@ -4934,16 +5132,17 @@ class MainUI(QtWidgets.QMainWindow):
         else:
 
             codeDict = {-1: QtGui.QColor(255, 0, 0, 255), 1: QtGui.QColor(0, 255, 0, 255),
-                        0: QtGui.QColor(255, 255, 0, 255), -2: QtGui.QColor(20, 20, 20, 255)}  # dictionary for color codes red, green, yellow
+                        0: QtGui.QColor(255, 255, 0, 255),
+                        -2: QtGui.QColor(20, 20, 20, 255)}  # dictionary for color codes red, green, yellow
 
             for key in baseScenesDict:
-                retCode = manager.checkReference(baseScenesDict[key], deepCheck=deepCheck) # returns -1, 0 or 1 for color ref
+                retCode = manager.checkReference(baseScenesDict[key],
+                                                 deepCheck=deepCheck)  # returns -1, 0 or 1 for color ref
                 color = codeDict[retCode]
                 timestamp = os.path.getmtime(baseScenesDict[key])
                 timestampFormatted = datetime.datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
                 item = QtWidgets.QTreeWidgetItem(self.scenes_listWidget, [key, str(timestampFormatted)])
                 item.setForeground(0, color)
-
 
         self.scenes_listWidget.blockSignals(False)
 
@@ -4975,7 +5174,7 @@ class MainUI(QtWidgets.QMainWindow):
                     pass
 
 
-            else: # if current scene saved and secure
+            else:  # if current scene saved and secure
                 self.manager.loadBaseScene(force=True)
                 self.manager.getOpenSceneInfo()
                 self._initOpenScene()
@@ -4996,7 +5195,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.onVersionChange()
         self.statusBar().showMessage(
-            "Status | Version {1} is the new reference of {0}".format(manager.currentBaseSceneName, manager.currentVersionIndex))
+            "Status | Version {1} is the new reference of {0}".format(manager.currentBaseSceneName,
+                                                                      manager.currentVersionIndex))
         # currentRow = self.scenes_listWidget.currentIndex().row()
 
         # currentIndex = self.scenes_listWidget.currentIndex()
@@ -5034,7 +5234,8 @@ class MainUI(QtWidgets.QMainWindow):
     def onDeleteBaseScene(self):
         # This method IS Software Specific.
 
-        passw, ok = QtWidgets.QInputDialog.getText(self, "!!!DELETING BASE SCENE!!! %s\n\nAre you absolutely sure?", "Enter Admin Password:", QtWidgets.QLineEdit.Password)
+        passw, ok = QtWidgets.QInputDialog.getText(self, "!!!DELETING BASE SCENE!!! %s\n\nAre you absolutely sure?",
+                                                   "Enter Admin Password:", QtWidgets.QLineEdit.Password)
 
         if ok:
             if self.manager.checkPassword(passw):
@@ -5058,7 +5259,8 @@ class MainUI(QtWidgets.QMainWindow):
     def onDeleteReference(self):
         # This method IS Software Specific.
 
-        passw, ok = QtWidgets.QInputDialog.getText(self, "DELETING Reference File of %s\n\nAre you sure?", "Enter Admin Password:", QtWidgets.QLineEdit.Password)
+        passw, ok = QtWidgets.QInputDialog.getText(self, "DELETING Reference File of %s\n\nAre you sure?",
+                                                   "Enter Admin Password:", QtWidgets.QLineEdit.Password)
 
         if ok:
             if self.manager.checkPassword(passw):
@@ -5165,18 +5367,18 @@ class MainUI(QtWidgets.QMainWindow):
     def _checkValidity(self, text, button, lineEdit, allowSpaces=False, directory=False):
         if text == "":
             lineEdit.setProperty("error", False)
-            lineEdit.setStyleSheet("") #update
+            lineEdit.setStyleSheet("")  # update
             return False
         if self.manager.nameCheck(text, allowSpaces=allowSpaces, directory=directory):
             # lineEdit.setStyleSheet("background-color: rgb(40,40,40); color: white")
             lineEdit.setProperty("error", False)
-            lineEdit.setStyleSheet("") #update
+            lineEdit.setStyleSheet("")  # update
             button.setEnabled(True)
             return True
         else:
             # lineEdit.setStyleSheet("background-color: red; color: black")
             lineEdit.setProperty("error", True)
-            lineEdit.setStyleSheet("") #update
+            lineEdit.setStyleSheet("")  # update
             button.setEnabled(False)
             return False
         # print lineEdit.styleSheet()
@@ -5218,7 +5420,8 @@ class MainUI(QtWidgets.QMainWindow):
             # whatsNewBtn = vCheck_mBox.addButton(QtWidgets.QPushButton('Whats new'), QtWidgets.QMessageBox.HelpRole)
             # cancelBtn = vCheck_mBox.addButton(QtWidgets.QPushButton('Cancel'), QtWidgets.QMessageBox.RejectRole)
 
-            vCheck_mBox.setStandardButtons(QtWidgets.QMessageBox.Save | QtWidgets.QMessageBox.Help | QtWidgets.QMessageBox.Cancel)
+            vCheck_mBox.setStandardButtons(
+                QtWidgets.QMessageBox.Save | QtWidgets.QMessageBox.Help | QtWidgets.QMessageBox.Cancel)
             # vCheck_mBox.button(QtWidgets.QMessageBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
             # vCheck_mBox.button(QtWidgets.QMessageBox.Save).setMinimumSize(QtCore.QSize(100, 30))
             # vCheck_mBox.button(QtWidgets.QMessageBox.Help).setMinimumSize(QtCore.QSize(100, 30))
@@ -5334,8 +5537,10 @@ class MainUI(QtWidgets.QMainWindow):
             elif ret == QtWidgets.QMessageBox.No:
                 return "no"
 
+
 class ImageWidget(QtWidgets.QLabel):
     """Custom class for thumbnail section. Keeps the aspect ratio when resized."""
+
     def __init__(self, parent=None):
         super(ImageWidget, self).__init__()
         self.aspectRatio = 1.78
@@ -5345,8 +5550,9 @@ class ImageWidget(QtWidgets.QLabel):
 
     def resizeEvent(self, r):
         h = self.width()
-        self.setMinimumHeight(h/self.aspectRatio)
-        self.setMaximumHeight(h/self.aspectRatio)
+        self.setMinimumHeight(h / self.aspectRatio)
+        self.setMaximumHeight(h / self.aspectRatio)
+
 
 class DropListWidget(QtWidgets.QListWidget):
     """Custom List Widget which accepts drops"""
@@ -5381,8 +5587,10 @@ class DropListWidget(QtWidgets.QListWidget):
         path = rawPath.replace("file:///", "").splitlines()[0]
         self.dropped.emit(path)
 
+
 class Browse(object):
     """Browsing class with history"""
+
     def __init__(self):
         super(Browse, self).__init__()
         self.history = []
@@ -5394,11 +5602,13 @@ class Browse(object):
             self.index += 1
         else:
             pass
+
     def backward(self):
         if not self.isBackwardLocked():
             self.index -= 1
         else:
             pass
+
     def addData(self, data):
         # if the incoming data is identical with the current, do nothing
         try:
@@ -5408,24 +5618,28 @@ class Browse(object):
         except IndexError:
             pass
         # delete history after index
-        del self.history[self.index+1:]
+        del self.history[self.index + 1:]
         self.history.append(data)
         if len(self.history) > self.undoCount:
             self.history.pop(0)
-        self.index = len(self.history)-1
+        self.index = len(self.history) - 1
         # the new data writes the history, so there is no future
         self.forwardLimit = True
         # but there is past
         self.backwardLimit = False
+
     def getData(self, index=None):
         if index:
             return self.history[index]
         else:
             return self.history[self.index]
+
     def isBackwardLocked(self):
         return self.index == 0
+
     def isForwardLocked(self):
-        return self.index == (len(self.history)-1)
+        return self.index == (len(self.history) - 1)
+
 
 class Settings(dict):
     def __init__(self):
@@ -5440,14 +5654,14 @@ class Settings(dict):
 
     def apply(self):
         """Equals original settings to the new settings"""
-        applyList=[]
+        applyList = []
         for key in self.listNames():
             newSettings = self[key]["newSettings"]
             oldSettings = self[key]["oldSettings"]
             if newSettings != oldSettings:
                 self[key]["oldSettings"] = deepcopy(newSettings)
                 applyInfo = {"data": newSettings,
-                               "filepath": self[key]["databaseFilePath"]}
+                             "filepath": self[key]["databaseFilePath"]}
                 applyList.append(applyInfo)
         return applyList
 
@@ -5460,7 +5674,6 @@ class Settings(dict):
                       "newSettings": deepcopy(data),
                       "databaseFilePath": filePath}
         return True
-
 
     def listNames(self):
         """Returns all setting names"""

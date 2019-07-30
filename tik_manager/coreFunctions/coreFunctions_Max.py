@@ -2,6 +2,11 @@ import os
 from MaxPlus import FileManager as fManager
 from MaxPlus import PathManager as pManager
 from pymxs import runtime as rt
+import logging
+
+logging.basicConfig()
+logger = logging.getLogger('coreFunctions_Max')
+logger.setLevel(logging.WARNING)
 
 class MaxCoreFunctions(object):
     def __init__(self):
@@ -26,6 +31,9 @@ class MaxCoreFunctions(object):
         else:
             command = 'mergeMAXFile "%s"' %filePath.replace(os.sep, "/")
             rt.execute(command)
+
+    def _importSequence(self, pySeq_sequence, *args, **kwargs):
+        logger.warning("This function is not yet implemented")
 
     def _importObj(self, filePath, importSettings, *args, **kwargs):
         if rt.pluginManager.loadclass(rt.ObjExp):

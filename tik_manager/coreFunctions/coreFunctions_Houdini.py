@@ -1,5 +1,10 @@
 import os
 import hou
+import logging
+
+logging.basicConfig()
+logger = logging.getLogger('coreFunctions_Houdini')
+logger.setLevel(logging.WARNING)
 
 class HoudiniCoreFunctions(object):
     def __init__(self):
@@ -20,6 +25,9 @@ class HoudiniCoreFunctions(object):
 
     def _import(self, filePath, *args, **kwargs):
         hou.hipFile.merge(filePath, node_pattern="*", overwrite_on_conflict=False, ignore_load_warnings=False)
+
+    def _importSequence(self, pySeq_sequence, *args, **kwargs):
+        logger.warning("This function is not yet implemented")
 
     def _importObj(self, filePath, importSettings, *args, **kwargs):
         houdiniImp_obj = importSettings["objImportHoudini"]

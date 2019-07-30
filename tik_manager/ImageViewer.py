@@ -39,6 +39,9 @@ recursively.
 Double clicking on the seguence will execute the file on the defined application
 """
 
+import os
+import sys
+
 # ---------------
 # GET ENVIRONMENT
 # ---------------
@@ -98,8 +101,21 @@ try:
 except ImportError:
     FORCE_QT5 = False
 
-import os
-import sys
+try:
+    from PyQt5 import QtWidgets, QtCore, QtGui
+    FORCE_QT5 = True
+    if bool(os.getenv("PS_APP")):  # if the request is coming from the SmPhotoshop
+        from tik_manager.coreFunctions.coreFunctions_PS import PsCoreFunctions as CoreFunctions
+        BoilerDict["Environment"] = "Photoshop"  # technically it is still standalone...
+        BoilerDict["WindowTitle"] = "Image Viewer Photoshop v%s" % _version.__version__
+    else:
+        CoreFunctions = object
+        BoilerDict["Environment"] = "Standalone"
+        BoilerDict["WindowTitle"] = "Image Viewer Standalone v%s" % _version.__version__
+except ImportError:
+    FORCE_QT5 = False
+
+
 
 ## DO NOT REMOVE THIS:
 import iconsSource as icons
@@ -141,30 +157,6 @@ __license__ = "GPL"
 __maintainer__ = "Arda Kutlu"
 __email__ = "ardakutlu@gmail.com"
 __status__ = "Development"
-
-
-
-
-
-
-# def importSequence(pySeq_sequence):
-#     if BoilerDict["Environment"] == "Nuke":
-#         # format the sequence for <name>.<padding>.<extension>
-#         seqFormatted = "{0}{1}{2}".format(pySeq_sequence.head(), pySeq_sequence._get_padding(), pySeq_sequence.tail())
-#         seqPath = os.path.join(pySeq_sequence.dirname, seqFormatted)
-#
-#         firstFrame = pySeq_sequence.start()
-#         lastFrame = pySeq_sequence.end()
-#
-#         readNode = nuke.createNode('Read')
-#         readNode.knob('file').fromUserText(seqPath)
-#         readNode.knob('first').setValue(firstFrame)
-#         readNode.knob('last').setValue(lastFrame)
-#         readNode.knob('origfirst').setValue(firstFrame)
-#         readNode.knob('origlast').setValue(lastFrame)
-#     else:
-#         pass
-
 
 
 def getMainWindow():
@@ -269,25 +261,6 @@ class ImageViewer(RootManager, CoreFunctions):
     def init_database(self):
         self._sceneManagerDefaults = self.loadManagerDefaults()
         self._userSettings = self.loadUserSettings()
-
-    def importSequence(self, pySeq_sequence):
-        if BoilerDict["Environment"] == "Nuke":
-            # format the sequence for <name>.<padding>.<extension>
-            seqFormatted = "{0}{1}{2}".format(pySeq_sequence.head(), pySeq_sequence._get_padding(),
-                                              pySeq_sequence.tail())
-            seqPath = os.path.join(pySeq_sequence.dirname, seqFormatted)
-
-            firstFrame = pySeq_sequence.start()
-            lastFrame = pySeq_sequence.end()
-
-            readNode = nuke.createNode('Read')
-            readNode.knob('file').fromUserText(seqPath)
-            readNode.knob('first').setValue(firstFrame)
-            readNode.knob('last').setValue(lastFrame)
-            readNode.knob('origfirst').setValue(firstFrame)
-            readNode.knob('origlast').setValue(lastFrame)
-        else:
-            pass
 
 
 class MainUI(QtWidgets.QMainWindow):
@@ -617,6 +590,8 @@ class MainUI(QtWidgets.QMainWindow):
         rcAction_0 = QtWidgets.QAction('Show in Explorer', self)
         rcAction_1 = QtWidgets.QAction('Transfer Files to Raid', self)
         rcAction_4 = QtWidgets.QAction('Import Sequences', self)
+        if BoilerDict["Environment"] == "Standalone":
+            rcAction_4.setDisabled(True)
         self.popMenu.addAction(rcAction_0)
         self.popMenu.addAction(rcAction_1)
         self.popMenu.addAction(rcAction_4)
@@ -635,9 +610,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.popMenuLabels.addAction(rcAction_3)
 
         ## SIGNAL CONNECTIONS
-        rcAction_0.triggered.connect(lambda: self.onShowInExplorer())
-        rcAction_1.triggered.connect(lambda: self.onTransferFiles())
-        rcAction_4.triggered.connect(lambda: self.onImportSequence())
+        rcAction_0.triggered.connect(self.onShowInExplorer)
+        rcAction_1.triggered.connect(self.onTransferFiles)
+        rcAction_4.triggered.connect(self.onImportSequence)
 
 
         rcAction_2.triggered.connect(lambda: self.onShowInExplorer(path=unicode(self.rootFolder_lineEdit.text())))
@@ -798,7 +773,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         for itemName in selectedItemNames:
             seq = self.sequenceData[str(itemName)]
-            self.imageViewer.importSequence(seq)
+            self.imageViewer._importSequence(seq)
 
 
     def onShowInExplorer(self, path=None):

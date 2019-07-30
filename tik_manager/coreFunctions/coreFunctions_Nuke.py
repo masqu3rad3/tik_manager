@@ -1,5 +1,10 @@
 import os
 import nuke
+import logging
+
+logging.basicConfig()
+logger = logging.getLogger('coreFunctions_Nuke')
+logger.setLevel(logging.WARNING)
 
 class NukeCoreFunctions(object):
     def __init__(self):
@@ -20,6 +25,21 @@ class NukeCoreFunctions(object):
 
     def _import(self, filePath, *args, **kwargs):
         nuke.nodePaste(filePath)
+
+    def _importSequence(self, pySeq_sequence, *args, **kwargs):
+        seqFormatted = "{0}{1}{2}".format(pySeq_sequence.head(), pySeq_sequence._get_padding(),
+                                          pySeq_sequence.tail())
+        seqPath = os.path.join(pySeq_sequence.dirname, seqFormatted)
+
+        firstFrame = pySeq_sequence.start()
+        lastFrame = pySeq_sequence.end()
+
+        readNode = nuke.createNode('Read')
+        readNode.knob('file').fromUserText(seqPath)
+        readNode.knob('first').setValue(firstFrame)
+        readNode.knob('last').setValue(lastFrame)
+        readNode.knob('origfirst').setValue(firstFrame)
+        readNode.knob('origlast').setValue(lastFrame)
 
     def _importObj(self, filePath, importSettings, *args, **kwargs):
         # TODO: May prove useful to implement this as well

@@ -65,7 +65,7 @@ SM_Version = "Scene Manager Nuke v%s" %_version.__version__
 
 logging.basicConfig()
 logger = logging.getLogger('smNuke')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 
 
 

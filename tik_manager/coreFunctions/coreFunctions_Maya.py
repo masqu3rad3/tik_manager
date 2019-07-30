@@ -1,6 +1,11 @@
 import os
 import maya.cmds as cmds
 import maya.mel as mel
+import logging
+
+logging.basicConfig()
+logger = logging.getLogger('coreFunctions_Maya')
+logger.setLevel(logging.WARNING)
 
 class MayaCoreFunctions(object):
     def __init__(self):
@@ -22,6 +27,9 @@ class MayaCoreFunctions(object):
 
     def _import(self, filePath, *args, **kwargs):
         cmds.file(filePath, i=True)
+
+    def _importSequence(self, pySeq_sequence, *args, **kwargs):
+        logger.warning("This function is not yet implemented")
 
     def _importObj(self, filePath, importSettings, *args, **kwargs):
         mayaImp_obj = importSettings["objImportMaya"]

@@ -1,5 +1,10 @@
 import os
 from win32com.client import Dispatch
+import logging
+
+logging.basicConfig()
+logger = logging.getLogger('coreFunctions_PS')
+logger.setLevel(logging.WARNING)
 
 class PsCoreFunctions(object):
     def __init__(self):
@@ -47,6 +52,9 @@ class PsCoreFunctions(object):
 
     def _import(self, filePath, *args, **kwargs):
         pass
+
+    def _importSequence(self, pySeq_sequence, *args, **kwargs):
+        logger.warning("This function is not yet implemented")
 
     def _importObj(self, filePath, importSettings, *args, **kwargs):
         pass

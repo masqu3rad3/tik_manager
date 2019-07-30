@@ -1575,8 +1575,6 @@ class MainUI(QtWidgets.QMainWindow):
             q.button(QtWidgets.QMessageBox.Cancel).setFixedWidth(100)
             ret = q.exec_()
             if ret == QtWidgets.QMessageBox.Ok:
-                # print("HedeHot")
-                # print(self.matDBpath)
                 self.promat.deleteMaterial(self.matDBpath)
                 self.initCategoryItems()
             elif ret == QtWidgets.QMessageBox.Cancel:
