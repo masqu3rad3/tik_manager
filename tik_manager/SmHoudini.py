@@ -223,6 +223,7 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
             "baseName": baseName,
             "categoryName": categoryName,
             "userInitials": self._usersDict[self.currentUser],
+            "subproject": self.subProject,
             "date": now
         }
         sceneName = self.resolveSaveName(nameDict, version)
@@ -317,6 +318,7 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
                 "baseName": jsonInfo["Name"],
                 "categoryName": jsonInfo["Category"],
                 "userInitials": self._usersDict[self.currentUser],
+                "subproject": self.subProject,
                 "date": now
             }
             sceneName = self.resolveSaveName(nameDict, currentVersion)

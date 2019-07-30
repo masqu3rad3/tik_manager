@@ -102,7 +102,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
 
         """
         logger.debug("Func: saveBaseScene")
-
+        print("here", baseName)
         now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
         completeNote = "[%s] on %s\n%s\n" % (self.currentUser, now, versionNotes)
 
@@ -175,6 +175,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
             "baseName": baseName,
             "categoryName": categoryName,
             "userInitials": self._usersDict[self.currentUser],
+            "subproject": self.subProject,
             "date": now
         }
         sceneName = self.resolveSaveName(nameDict, version)
@@ -297,6 +298,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
             "baseName": jsonInfo["Name"],
             "categoryName": jsonInfo["Category"],
             "userInitials": self._usersDict[self.currentUser],
+            "subproject": self.subProject,
             "date": now
         }
         sceneName = self.resolveSaveName(nameDict, currentVersion)
