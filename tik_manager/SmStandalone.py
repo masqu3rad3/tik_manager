@@ -376,6 +376,7 @@ class StandaloneManager(RootManager):
         self.init_database()
 
         self.initSoftwares()
+        print("swlist", self.swList)
 
     def init_paths(self, nicename):
         """Overriden function"""
@@ -501,6 +502,7 @@ class StandaloneManager(RootManager):
         self.init_database()
         self.initSoftwares()
 
+
     def initSoftwares(self):
         # We need to get which softwares are used in the current project
         self.swList = []
@@ -513,14 +515,18 @@ class StandaloneManager(RootManager):
         #     if os.path.isdir(searchPath):
         #         self.swList.append(SwViewer(swDict, self.projectDir))
         # for swDict in softwareDictionary.items():
-        for swDict in self.softwareDictionary.items():
-            searchPath = (os.path.join(self.projectDir, "smDatabase", swDict[1]["databaseDir"]))
+
+        for (key, value) in self.softwareDictionary.items():
+            print("V", value)
+            searchPath = (os.path.join(self.projectDir, "smDatabase", value["databaseDir"]))
             if os.path.isdir(searchPath):
+                print(searchPath)
                 filesInFolders = [filenames for (dirpath, dirnames, filenames) in os.walk(searchPath)]
-                if len(filesInFolders) > 3:
+                print("F", filesInFolders)
+                if len(filesInFolders) > 1:
                     # create a new software viewer object with the accessed project path
                     # and append it to the list of valid softwares for the current project
-                    self.swList.append(SwViewer(swDict[1], self.projectDir, self._pathsDict["sharedSettingsDir"]))
+                    self.swList.append(SwViewer(value, self.projectDir, self._pathsDict["sharedSettingsDir"]))
 
         return self.swList
 
@@ -703,7 +709,7 @@ class StandaloneManager(RootManager):
         else:
             settingsData = {"currentTabIndex": 0,
                             "currentSubIndex": 0,
-                            "currentUser": self._usersDict.keys()[0],
+                            "currentUser": list(self._usersDict)[0],
                             "currentSwIndex": -1, # added multi software switch
                             "currentMode": 1} # for compatibility issues
             self._dumpJson(settingsData, self._pathsDict["currentsFile"])

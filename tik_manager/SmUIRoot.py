@@ -1959,7 +1959,7 @@ class MainUI(QtWidgets.QMainWindow):
         def resetColors():
             try:
                 defaults = deepcopy(self.manager._sceneManagerDefaults["defaultColorCoding"])
-                for key in userSettings["colorCoding"].keys():
+                for key in list(userSettings["colorCoding"]):
                     userSettings["colorCoding"][key] = defaults[key]
             except KeyError:
                 self.infoPop(textTitle="Cannot get default database",
@@ -2270,7 +2270,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.format_Maya_comboBox.setEnabled(False)
         else:
             try:
-                self.format_Maya_comboBox.addItems(formatsAndCodecs.keys())
+                self.format_Maya_comboBox.addItems(list(formatsAndCodecs))
                 # get the index number from the name in the settings file and make that index active
                 ffindex = self.format_Maya_comboBox.findText(settings["Format"], QtCore.Qt.MatchFixedString)
                 if ffindex >= 0:
@@ -5677,7 +5677,7 @@ class Settings(dict):
 
     def listNames(self):
         """Returns all setting names"""
-        return self.keys()
+        return list(self)
 
     def getOriginal(self, settingName):
         return self[settingName]["oldSettings"]

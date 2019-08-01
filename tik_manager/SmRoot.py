@@ -465,7 +465,7 @@ class RootManager(object):
     def currentUser(self, name):
         """Sets the current user"""
         logger.debug("Func: currentUser/setter")
-        if name not in self._usersDict.keys():
+        if name not in list(self._usersDict):
             msg="%s is not in the user list" %name
             # raise Exception([101, msg])
             self._exception(101, msg)
@@ -519,7 +519,7 @@ class RootManager(object):
             self._currentBaseSceneName = ""
             self.currentVersionIndex = -1
             return
-        if sceneName not in self._baseScenesInCategory.keys():
+        if sceneName not in list(self._baseScenesInCategory):
 
             self.currentVersionIndex = -1
             # msg = "There is no scene called %s in current category" %sceneName
@@ -614,10 +614,10 @@ class RootManager(object):
         self._currentVersionIndex = indexData
         self._currentNotes = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["Note"]
         self._currentPreviewsDict = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["Preview"]
-        if not self._currentPreviewsDict.keys():
+        if not list(self._currentPreviewsDict):
             self._currentPreviewCamera = ""
         else:
-            self._currentPreviewCamera = sorted(self._currentPreviewsDict.keys())[0]
+            self._currentPreviewCamera = sorted(list(self._currentPreviewsDict))[0]
 
         self._currentThumbFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["Thumb"]
         self.cursorInfo()
@@ -684,7 +684,7 @@ class RootManager(object):
         """.format(
             self._categories[self.currentTabIndex],
             self._subProjectsList[self.currentSubIndex],
-            sorted(self._baseScenesInCategory.keys()),
+            sorted(list(self._baseScenesInCategory)),
             self._currentBaseSceneName,
             self._currentVersionIndex,
             self._currentPreviewCamera,
@@ -785,7 +785,7 @@ class RootManager(object):
         """Returns nice names of all users"""
         logger.debug("Func: getUsers")
 
-        return sorted(self._usersDict.keys())
+        return sorted(list(self._usersDict))
 
     def getBaseScenesInCategory(self):
         """Returns list of nice base scene names under the category at cursor position"""
@@ -815,7 +815,7 @@ class RootManager(object):
         logger.debug("Func: getPreviews")
         
         # return "ASDFASDF"
-        return sorted(self._currentPreviewsDict.keys())
+        return sorted(list(self._currentPreviewsDict))
 
     def getThumbnail(self):
         """returns (String) absolute thumbnail path of version on cursor position"""
@@ -1313,7 +1313,7 @@ class RootManager(object):
         # search entire database folder
 
         allDBfiles = []
-        for sw in softwareDictionary.keys():
+        for sw in list(softwareDictionary):
             dbDirName = softwareDictionary[sw]["databaseDir"]
             dbPath = os.path.join(self._pathsDict["masterDir"], dbDirName)
             if os.path.isdir(dbPath):
@@ -2058,7 +2058,7 @@ Elapsed Time:{6}
         items = re.findall(r'<(.*?)\>', template)
 
         for i in items:
-            if i in nameDict.keys():
+            if i in list(nameDict):
                 template = template.replace("<%s>" %i, nameDict[i])
 
         return template
@@ -2129,7 +2129,7 @@ Elapsed Time:{6}
             if settingsData == -2:
                 return -2
         else:
-            settingsData = {"currentTabIndex": 0, "currentSubIndex": 0, "currentUser": self._usersDict.keys()[0],
+            settingsData = {"currentTabIndex": 0, "currentSubIndex": 0, "currentUser": list(self._usersDict)[0],
                             "currentMode": True}
             self._dumpJson(settingsData, self._pathsDict["currentsFile"])
         return settingsData
