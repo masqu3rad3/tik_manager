@@ -54,22 +54,22 @@ Double Clicking on warnings open up the related dialog.
 # # ------------------------
 #
 
-import _version
+import tik_manager._version as _version
 # import pymel.core as pm
 import maya.cmds as cmds
 import os
 os.environ["FORCE_QT5"]="0"
 import maya.mel as mel
 
-from SmRoot import RootManager
+from tik_manager.SmRoot import RootManager
 # from SmMaya import MayaCoreFunctions as CoreFunctions
 from tik_manager.coreFunctions.coreFunctions_Maya import MayaCoreFunctions
 
 import logging
 
 
-import Qt
-from Qt import QtWidgets, QtCore, QtGui
+import tik_manager.Qt as Qt
+from tik_manager.Qt import QtWidgets, QtCore, QtGui
 from maya import OpenMayaUI as omui
 if Qt.__binding__ == "PySide":
     from shiboken import wrapInstance
@@ -121,10 +121,7 @@ class ImageManager(RootManager, MayaCoreFunctions):
             return
 
         self.renderFlag = True
-        # if not self.sceneInfo["category"] == "Render":
-        #     self.deadlineFlag = False
-        # else:
-        #     self.deadlineFlag = True
+
 
 
         # self.folderTemplate = "{4}/{0}/{1}/{3}/{2}/"
@@ -151,49 +148,6 @@ class ImageManager(RootManager, MayaCoreFunctions):
         softwareDatabaseFile = os.path.normpath(os.path.join(self.getSharedSettingsDir(), "softwareDatabase.json"))
         softwareDB = self._loadJson(softwareDatabaseFile)
         return softwareDB["Maya"]
-
-    # def getSoftwarePaths(self):
-    #     """Overriden function"""
-    #     # To tell the base class maya specific path names
-    #     return {"niceName": "Maya",
-    #             "databaseDir": "mayaDB",
-    #             "scenesDir": "scenes",
-    #             "pbSettingsFile": "pbSettings.json",
-    #             "categoriesFile": "categoriesMaya.json",
-    #             "userSettingsDir": "SceneManager\\Maya"}
-
-    # def getProjectDir(self):
-    #     """Overriden function"""
-    #     # This function gets the current maya project and informs the base class
-    #     # In addition it updates the projects file for (planned) interactivities with concurrent softwares
-    #     p_path = cmds.workspace(q=1, rd=1)
-    #     norm_p_path = os.path.normpath(p_path)
-    #     projectsDict = self.loadProjects()
-    #
-    #     if not projectsDict: # if there is no project database file at all
-    #         projectsDict = {"MayaProject": norm_p_path}
-    #         self.saveProjects(projectsDict)
-    #         return norm_p_path
-    #
-    #     # get the project defined in the database file
-    #     try:
-    #         dbProject = projectsDict["MayaProject"]
-    #     except KeyError:
-    #         dbProject = None
-    #
-    #     if dbProject == norm_p_path:
-    #         # do nothing to the database if it is the same project
-    #         return norm_p_path
-    #
-    #     if dbProject:
-    #         projectsDict["MayaProject"] = norm_p_path
-    #         self.saveProjects(projectsDict)
-    #         return norm_p_path
-    #     else:
-    #         projectsDict = {"MayaProject": norm_p_path}
-    #         self.saveProjects(projectsDict)
-    #         return norm_p_path
-
 
     def getSceneFile(self):
         """Overriden function"""
@@ -227,8 +181,6 @@ class ImageManager(RootManager, MayaCoreFunctions):
         self.folderTemplate = os.path.normpath(self.folderTemplate.format(subProject,shotName,renderlayer,version))
         self.nameTemplate = (self.nameTemplate.format(subProject,shotName,renderlayer,version)).lstrip("_")
 
-        # print "folderTemplate", self.folderTemplate
-        # print "nameTemplate", self.nameTemplate
         return os.path.join(self.folderTemplate, self.nameTemplate)
 
     def initRenderer(self):
@@ -367,19 +319,15 @@ class ImageManager(RootManager, MayaCoreFunctions):
 
     def getAttrInLayer(self, node, attr, layer, returnAnyWay=False):
         nodeAttr = "%s.%s" % (node, attr)
-        print nodeAttr
+        # print(nodeAttr)
         # connection_list = pm.listConnections(nodeAttr, plugs=True)
         connection_list = cmds.listConnections(nodeAttr, plugs=True)
-        # print "AAA", pm.listConnections(nodeAttr, plugs=True)
-        # print "BBB", cmds.listConnections(nodeAttr, plugs=True)
         if layer == "defaultRenderLayer":
-            # return pm.getAttr(nodeAttr)  # return
             return cmds.getAttr(nodeAttr)  # return
 
         # if len(connection_list) == 0:  # hicbir layerda olmasinin mumkunati yoksa
         if not connection_list:  # hicbir layerda olmasinin mumkunati yoksa
             if returnAnyWay:
-                # return pm.getAttr(nodeAttr)  # return
                 return cmds.getAttr(nodeAttr)  # return
             else:
                 return None
@@ -514,17 +462,14 @@ class ImageManager(RootManager, MayaCoreFunctions):
 
                 # matInfo = pm.listConnections(fileNode, s=False, d=True, type="materialInfo")[0]
                 matInfo = cmds.listConnections(fileNode, s=False, d=True, type="materialInfo")[0]
-                print "debug", matInfo
             except:
 
                 matInfo = None
 
             if not matInfo == None:
                 # sGroup = pm.getAttr(matInfo.shadingGroup)
-                print "Aa", matInfo
 
                 # sGroup = pm.getAttr("%s.shadingGroup" %matInfo)
-                # print sGroup
                 # sGroup = cmds.getAttr("%s.shadingGroup" %matInfo)
                 sGroup = cmds.listConnections(matInfo, type="shadingEngine")[0]
 
@@ -686,9 +631,6 @@ class ImageManager(RootManager, MayaCoreFunctions):
         warningLevel += self.foolCheckRenderSettings(self.allUsableRenderLayers)
         warningLevel += self.foolCheckPaths()
 
-        # print "MAJORS:\n", self.majorProblemNodes
-        # print "minors:\n", self.minorProblemNodes
-        # print "Warning Level:", warningLevel
 
     def callDeadlineScript(self):
         # scriptLocation = os.path.dirname(os.path.abspath(__file__))
@@ -698,7 +640,6 @@ class ImageManager(RootManager, MayaCoreFunctions):
         if os.path.isfile(scriptPath):
             scriptPath = scriptPath.replace("\\", "//") ## for compatibility with mel syntax.
             # mel.eval('source "%s//SubmitMayaToDeadlineCustom.mel";' % compatibility)
-            # print os.path.normpath(scriptPath)
             cmd = ('source "{0}";'.format(scriptPath))
             try:
                 mel.eval(cmd)

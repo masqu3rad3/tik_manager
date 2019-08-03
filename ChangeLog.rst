@@ -28,6 +28,7 @@ Tik Manager Version History
 * **Update.42** Maya Playblast - "As it is" options
 * **Update.43** Naming Conventions - <subproject> added
 * **Fix.44** Naming Conventions Bugfix
+* **Fix.45** Crash fixed when the set user cannot be find (because of a replaced users db)
 
 2.5
 ---

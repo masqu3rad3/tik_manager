@@ -1,12 +1,14 @@
 #!/usr/bin/python
-
+from builtins import input
 import sys, getopt
 import os
 import shutil
 import psutil
-import _version
+import tik_manager._version as _version
 import json
-import _winreg as reg
+try: import _winreg as reg
+except ModuleNotFoundError: import winreg as reg
+
 
 
 def checkRuninngInstances(sw):
@@ -46,22 +48,6 @@ def _loadContent(filePath):
     f.close()
     return contentList
 
-# def _dumpContent(filePath, contentList, backup=False):
-#     if backup:
-#         shutil.copyfile(filePath)
-#     name, ext = os.path.splitext(filePath)
-#     if backup:
-#         if os.path.isdir(filePath):
-#             backupFile = "{0}.bak".format(name)
-#             shutil.copyfile(filePath, backupFile)
-#             print "Backup complete\n%s => %s" %(filePath, backupFile)
-#     tempFile = "{0}_TMP{1}".format(name, ext)
-#     f = open(tempFile, "w+")
-#     f.writelines(contentList)
-#     f.close()
-#     shutil.copyfile(tempFile, filePath)
-#     os.remove(tempFile)
-
 def _dumpContent(filePath, contentList, backup=False):
     # if backup:
     #     shutil.copyfile(filePath)
@@ -70,7 +56,7 @@ def _dumpContent(filePath, contentList, backup=False):
         if os.path.isfile(filePath):
             backupFile = "{0}.bak".format(name)
             shutil.copyfile(filePath, backupFile)
-            print "Backup complete\n%s => %s" %(filePath, backupFile)
+            print("Backup complete\n%s => %s" %(filePath, backupFile))
     tempFile = "{0}_TMP{1}".format(name, ext)
     f = open(tempFile, "w+")
     f.writelines(contentList)
@@ -82,18 +68,13 @@ def inject(file, newContentList, between=None, after=None, before=None, matchMod
     if type(newContentList) == str:
         newContentList = [newContentList]
 
-    # try:
-    #     content = _loadContent(file)
-    # except IOError:
-    #     print "Error Writing to file %s aborting" %file
-    #     return None
     if not os.path.isfile(file):
         if force:
             _dumpContent(file, newContentList)
-            print "Created %s with new content" % file
+            print("Created %s with new content" % file)
             return True
         else:
-            print "File does not exist (%s)" %file
+            print("File does not exist (%s)" %file)
             return False
 
     contentList = _loadContent(file)
@@ -102,10 +83,10 @@ def inject(file, newContentList, between=None, after=None, before=None, matchMod
     if not contentList:
         if force:
             _dumpContent(file, newContentList)
-            print "New content added to empty %s" %file
+            print("New content added to empty %s" %file)
             return True
         else:
-            print "File is empty, nothing to change"
+            print("File is empty, nothing to change")
             return False
 
     # make sure last line ends with a break line
@@ -152,20 +133,20 @@ def inject(file, newContentList, between=None, after=None, before=None, matchMod
                 "Cannot find Start Line. Just appending to the file"
                 _dumpContent(file, (contentList + newContentList))
             else:
-                print "Cannot find Start Line. Skipping replace injection"
+                print("Cannot find Start Line. Skipping replace injection")
                 return
 
     elif after:
         startIndex = collectIndex(searchList, after, mode=matchMode)
         if not startIndex:
-            print "Cannot find After Line. Aborting"
+            print("Cannot find After Line. Aborting")
             return
         endIndex = startIndex+1
 
     elif before:
         startIndex = collectIndex(searchList, before, mode=matchMode)
         if not startIndex:
-            print "Cannot find After Line. Aborting"
+            print("Cannot find After Line. Aborting")
             return
         endIndex = startIndex-1
 
@@ -179,8 +160,8 @@ def inject(file, newContentList, between=None, after=None, before=None, matchMod
     return True
 
 def nukeSetup(prompt=True):
-    print "Starting Nuke Setup"
-    print "Checking files..."
+    print("Starting Nuke Setup")
+    print("Checking files...")
 
     networkDir = os.path.dirname(os.path.abspath(__file__))
     fileList = ["__init__.py",
@@ -198,18 +179,23 @@ def nukeSetup(prompt=True):
             # if the extension is pyc give it another chance
             if os.path.splitext(file)[1] == ".py":
                 if not os.path.isfile(os.path.join(networkDir, "%sc" %file)): # make the extension pyc
-                    print "Missing file:\nCannot find %s or %sc" % (file, file)
-                    raw_input("Press Enter to continue...")
+                    print("Missing file:\nCannot find %s or %sc" % (file, file))
+                    # raw_input("Press Enter to continue...")
+                    r = input("Press Enter to continue...")
+                    assert isinstance(r, str)
+
                     return
             else:
-                print "Missing file:\nCannot find %s" %file
-                raw_input("Press Enter to continue...")
+                print("Missing file:\nCannot find %s" %file)
+                # raw_input("Press Enter to continue...")
+                r = input("Press Enter to continue...")
+                assert isinstance(r, str)
                 return
 
     # check for running instances
     state = checkRuninngInstances("Nuke")
     if state == -1:
-        print "Installation Aborted by User"
+        print("Installation Aborted by User")
         return # user aborts
 
     upNetworkDir = os.path.abspath(os.path.join(networkDir, os.pardir))
@@ -219,9 +205,11 @@ def nukeSetup(prompt=True):
     menuFile = os.path.join(pluginDir, 'menu.py')
 
     if not os.path.isdir(pluginDir):
-        print "No Nuke version can be found, try manual installation"
+        print("No Nuke version can be found, try manual installation")
         if prompt:
-            raw_input("Press Enter to continue...")
+            # raw_input("Press Enter to continue...")
+            r = input("Press Enter to continue...")
+            assert isinstance(r, str)
         return
 
     managerIcon = os.path.join(networkDir, "icons", "manager_ICON.png").replace("\\", "\\\\")
@@ -253,7 +241,7 @@ def nukeSetup(prompt=True):
     ]
 
     inject(initFile, initContent, between=("# start Scene Manager\n", "# end Scene Manager\n"))
-    print "init.py file updated at: %s" %(initFile)
+    print("init.py file updated at: %s" %(initFile))
 
     menuContent = [
         "# start Scene Manager\n",
@@ -266,16 +254,19 @@ def nukeSetup(prompt=True):
         "# end Scene Manager\n"
     ]
     inject(menuFile, menuContent, between=("# start Scene Manager\n", "# end Scene Manager\n"))
-    print "menu.py updated at: %s" %(menuFile)
+    print("menu.py updated at: %s" %(menuFile))
 
-    print "Successfull => Nuke Setup"
+    print("Successfull => Nuke Setup")
     if prompt:
-        raw_input("Press Enter to continue...")
+        # raw_input("Press Enter to continue...")
+        r = input("Press Enter to continue...")
+        assert isinstance(r, str)
+
 
 def mayaSetup(prompt=True):
     # Check file integrity
-    print "Starting Maya Setup"
-    print "Checking files..."
+    print("Starting Maya Setup")
+    print("Checking files...")
     networkDir = os.path.dirname(os.path.abspath(__file__))
     fileList = ["__init__.py",
                 "_version.py",
@@ -295,18 +286,22 @@ def mayaSetup(prompt=True):
             # if the extension is pyc give it another chance
             if os.path.splitext(file)[1] == ".py":
                 if not os.path.isfile(os.path.join(networkDir, "%sc" %file)): # make the extension pyc
-                    print "Missing file:\nCannot find %s or %sc" % (file, file)
-                    raw_input("Press Enter to continue...")
+                    print("Missing file:\nCannot find %s or %sc" % (file, file))
+                    # raw_input("Press Enter to continue...")
+                    r = input("Press Enter to continue...")
+                    assert isinstance(r, str)
                     return
             else:
-                print "Missing file:\nCannot find %s" %file
-                raw_input("Press Enter to continue...")
+                print("Missing file:\nCannot find %s" %file)
+                # raw_input("Press Enter to continue...")
+                r = input("Press Enter to continue...")
+                assert isinstance(r, str)
                 return
 
     # check for running instances
     state = checkRuninngInstances("maya")
     if state == -1:
-        print "Installation Aborted by User"
+        print("Installation Aborted by User")
         return # user aborts
 
     upNetworkDir = os.path.abspath(os.path.join(networkDir, os.pardir))
@@ -316,13 +311,15 @@ def mayaSetup(prompt=True):
     userScriptsDir = os.path.join(userMayaDir, "scripts")
     userSetupFile = os.path.join(userScriptsDir, "userSetup.py")
 
-    print "Finding Maya Versions..."
+    print("Finding Maya Versions...")
     mayaVersions = [x for x in os.listdir(userMayaDir) if os.path.isdir(os.path.join(userMayaDir, x)) and x.startswith('20')]
     if mayaVersions:
-        print "Found Maya Versions: %s " % str(mayaVersions)
+        print("Found Maya Versions: %s " % str(mayaVersions))
     else:
-        print "No Maya version can be found, try manual installation"
-        raw_input("Press Enter to continue...")
+        print("No Maya version can be found, try manual installation")
+        # raw_input("Press Enter to continue...")
+        r = input("Press Enter to continue...")
+        assert isinstance(r, str)
         return
 
     newUserSetupContent = [
@@ -353,7 +350,7 @@ def mayaSetup(prompt=True):
     ]
     # createOrReplace(userSetupFile, newUserSetupContent)
     inject(userSetupFile, newUserSetupContent, between=("# start Scene Manager\n", "# end Scene Manager\n"))
-    print "userSetup updated at: %s" %(userSetupFile)
+    print("userSetup updated at: %s" %(userSetupFile))
 
     ## SHELF
 
@@ -565,19 +562,21 @@ def mayaSetup(prompt=True):
         except: pass
         newShelfFile = os.path.join(shelfDir, "shelf_TikManager.mel")
         _dumpContent(newShelfFile, shelfContent)
-        print "Shelf created for %s" %v
+        print("Shelf created for %s" %v)
 
-    print "Successfull => Maya Setup"
+    print("Successfull => Maya Setup")
     if prompt:
-        raw_input("Press Enter to continue...")
+        # raw_input("Press Enter to continue...")
+        r = input("Press Enter to continue...")
+        assert isinstance(r, str)
 
 def houdiniSetup(prompt=True):
 
     # TODO : implement workspace injection to XML
     # TODO : TEST IT
     # Check file integrity
-    print "Starting Houdini Setup"
-    print "Checking files..."
+    print("Starting Houdini Setup")
+    print("Checking files...")
     networkDir = os.path.dirname(os.path.abspath(__file__))
     fileList = ["__init__.py",
                 "_version.py",
@@ -593,32 +592,38 @@ def houdiniSetup(prompt=True):
             # if the extension is pyc give it another chance
             if os.path.splitext(file)[1] == ".py":
                 if not os.path.isfile(os.path.join(networkDir, "%sc" %file)): # make the extension pyc
-                    print "Missing file:\nCannot find %s or %sc" % (file, file)
-                    raw_input("Press Enter to continue...")
+                    print("Missing file:\nCannot find %s or %sc" % (file, file))
+                    # raw_input("Press Enter to continue...")
+                    r = input("Press Enter to continue...")
+                    assert isinstance(r, str)
                     return
             else:
-                print "Missing file:\nCannot find %s" %file
-                raw_input("Press Enter to continue...")
+                print("Missing file:\nCannot find %s" %file)
+                # raw_input("Press Enter to continue...")
+                r = input("Press Enter to continue...")
+                assert isinstance(r, str)
                 return
 
     # check for running instances
     state = checkRuninngInstances("houdini")
     if state == -1:
-        print "Aborted bt user"
+        print("Aborted bt user")
         return # user aborts
 
     upNetworkDir = os.path.abspath(os.path.join(networkDir, os.pardir))
     userHomeDir = os.path.normpath(os.path.join(os.path.expanduser("~")))
     userDocDir = os.path.join(userHomeDir, "Documents")
-    print "Finding Houdini Versions..."
+    print("Finding Houdini Versions...")
     houdiniVersions = [x for x in os.listdir(userDocDir) if
                     os.path.isdir(os.path.join(userDocDir, x)) and x.startswith('houdini')]
     if houdiniVersions:
-        print "Found Houdini Versions: %s " % str(houdiniVersions)
+        print("Found Houdini Versions: %s " % str(houdiniVersions))
     else:
-        print "No Houdini version can be found, try manual installation"
+        print("No Houdini version can be found, try manual installation")
         if prompt:
-            raw_input("Press Enter to continue...")
+            # raw_input("Press Enter to continue...")
+            r = input("Press Enter to continue...")
+            assert isinstance(r, str)
         return
     # ICON PATHS
     managerIcon = os.path.join(networkDir, "icons", "manager_ICON.png").replace("\\", "\\\\")
@@ -703,7 +708,7 @@ assetLibrary.MainUI().show()]]></script>
         # createOrReplace(sScriptFile, sScriptContent)
         inject(sScriptFile, sScriptContent, between=("# start Scene Manager\n", "# end Scene Manager\n"))
 
-        print "Path config appended to %s" %sScriptFile
+        print("Path config appended to %s" %sScriptFile)
 
         ## SHELF
         shelfDir = os.path.join(userDocDir, v, "toolbar")
@@ -712,20 +717,22 @@ assetLibrary.MainUI().show()]]></script>
         shelfFile = os.path.join(shelfDir, "tikManager.shelf")
         _dumpContent(shelfFile, shelfContent)
 
-        print "Tik Manager shelf created or updated at %s" % shelfFile
+        print("Tik Manager shelf created or updated at %s" % shelfFile)
 
-    print "\nInside Houdini, Tik Manager shelf should be enabled for the desired shelf set by clicking to '+' icon and selecting 'shelves' sub menu."
+    print("\nInside Houdini, Tik Manager shelf should be enabled for the desired shelf set by clicking to '+' icon and selecting 'shelves' sub menu.")
 
-    print "Successfull => Houdini Setup"
+    print("Successfull => Houdini Setup")
 
     if prompt:
-        raw_input("Press Enter to continue...")
+        # raw_input("Press Enter to continue...")
+        r = input("Press Enter to continue...")
+        assert isinstance(r, str)
 
 def maxSetup(prompt=True):
 
     # TODO Prevent installation for unsupported versions
-    print "Starting 3ds Max Setup"
-    print "Checking files..."
+    print("Starting 3ds Max Setup")
+    print("Checking files...")
     networkDir = os.path.dirname(os.path.abspath(__file__))
     upNetworkDir = os.path.abspath(os.path.join(networkDir, os.pardir))
     fileList = ["__init__.py",
@@ -745,18 +752,22 @@ def maxSetup(prompt=True):
             # if the extension is pyc give it another chance
             if os.path.splitext(file)[1] == ".py":
                 if not os.path.isfile(os.path.join(networkDir, "%sc" %file)): # make the extension pyc
-                    print "Missing file:\nCannot find %s or %sc" % (file, file)
-                    raw_input("Press Enter to continue...")
+                    print("Missing file:\nCannot find %s or %sc" % (file, file))
+                    # raw_input("Press Enter to continue...")
+                    r = input("Press Enter to continue...")
+                    assert isinstance(r, str)
                     return
             else:
-                print "Missing file:\nCannot find %s" %file
-                raw_input("Press Enter to continue...")
+                print("Missing file:\nCannot find %s" %file)
+                # raw_input("Press Enter to continue...")
+                r = input("Press Enter to continue...")
+                assert isinstance(r, str)
                 return
 
     # check for running instances
     state = checkRuninngInstances("3dsmax")
     if state == -1:
-        print "Installation Aborted by User"
+        print("Installation Aborted by User")
         return # user aborts
 
     userHomeDir = os.path.normpath(os.path.join(os.path.expanduser("~")))
@@ -783,27 +794,29 @@ def maxSetup(prompt=True):
             </Items>
         </Window>\n"""
 
-    print "Finding 3ds Max Versions..."
+    print("Finding 3ds Max Versions...")
     maxVersions = [x for x in os.listdir(userMaxDir)]
     if maxVersions:
-        print "Found 3ds Max Versions: %s " % str(maxVersions)
+        print("Found 3ds Max Versions: %s " % str(maxVersions))
     else:
-        print "No 3ds Max version can be found, try manual installation"
+        print("No 3ds Max version can be found, try manual installation")
         if prompt:
-            raw_input("Press Enter to continue...")
+            # raw_input("Press Enter to continue...")
+            r = input("Press Enter to continue...")
+            assert isinstance(r, str)
         return
 
 
     for v in maxVersions:
-        print "Setup for version %s" %v
+        print("Setup for version %s" %v)
         sScriptsDir = os.path.join(userMaxDir, v, "ENU", "scripts", "startup")
         folderCheck(sScriptsDir)
         iconsDir = os.path.join(userMaxDir, v, "ENU", "usericons")
         folderCheck(iconsDir)
         macrosDir = os.path.join(userMaxDir, v, "ENU", "usermacros")
         folderCheck(macrosDir)
-        print "Copying Icon sets..."
-        print iconsDir
+        print("Copying Icon sets...")
+        print(iconsDir)
         shutil.copy(pack_16a, os.path.normpath(os.path.join(iconsDir, "SceneManager_16a.bmp")))
         shutil.copy(pack_16i, os.path.normpath(os.path.join(iconsDir, "SceneManager_16i.bmp")))
         shutil.copy(pack_24a, os.path.normpath(os.path.join(iconsDir, "SceneManager_24a.bmp")))
@@ -815,7 +828,7 @@ def maxSetup(prompt=True):
 
         # workSpaceContentList = _loadContent(workspaceFile)
 
-        print "Creating Callback and path initialization startup script"
+        print("Creating Callback and path initialization startup script")
         startupScriptContent = """
 python.Execute "import sys"
 python.Execute "import os"
@@ -828,7 +841,7 @@ python.Execute "MaxPlus.NotificationManager.Register(14, smUpdate)"
         _dumpContent(os.path.join(sScriptsDir, "smManagerCallback.ms"), startupScriptContent)
 
 
-        print "Creating Macroscripts"
+        print("Creating Macroscripts")
         manager = """
 macroScript manager
 category: "Tik Works"
@@ -901,32 +914,34 @@ icon: #("SceneManager",7)
         _dumpContent(os.path.join(macrosDir, "tikManager-assetLibrary.mcr"), assetLibrary)
 
         searchLines = ['"Tik Manager"', "</Window>"]
-        print "Removing older versions of Manager (Scene Manager)"
+        print("Removing older versions of Manager (Scene Manager)")
         oldLines = ['"sceneManager"', "</Window>"]
         oldState = inject(workspaceFile, "", between=oldLines, matchMode="includes", force=False)
         if oldState:
-            print "Old version shelf (Scene Manager) removed"
+            print("Old version shelf (Scene Manager) removed")
 
-        print "Injecting the Tik Manager toolbar to the workspace"
+        print("Injecting the Tik Manager toolbar to the workspace")
         state = inject(workspaceFile, workSpaceInjection, between=searchLines , matchMode="includes", force=False)
         if not state: # fresh install
             state = inject(workspaceFile, workSpaceInjection, before="</CUIWindows>", matchMode="includes")
             if not state:
-                print "Toolbar cannot be injected to the workplace, you can set toolbar manually within 3ds max\nFailed => 3ds Max Setup\n"
+                print("Toolbar cannot be injected to the workplace, you can set toolbar manually within 3ds max\nFailed => 3ds Max Setup\n")
                 return
 
-    print "Successfull => 3ds Max Setup"
+    print("Successfull => 3ds Max Setup")
 
     if prompt:
-        raw_input("Press Enter to continue...")
+        # raw_input("Press Enter to continue...")
+        r = input("Press Enter to continue...")
+        assert isinstance(r, str)
 
 def photoshopSetup(prompt=True):
-    print "Starting Photoshop Setup"
-    print "Checking files..."
+    print("Starting Photoshop Setup")
+    print("Checking files...")
     # check for running instances
     state = checkRuninngInstances("Photoshop")
     if state == -1:
-        print "Installation Aborted by User"
+        print("Installation Aborted by User")
         return # user aborts
 
     def copy_and_overwrite(from_path, to_path):
@@ -938,8 +953,10 @@ def photoshopSetup(prompt=True):
     sourceDir = os.path.dirname(os.path.abspath(__file__))
     extensionSourceDir = os.path.join(sourceDir, "setupFiles", "Photoshop", "extensionFolder", "tikManager")
     if not os.path.isdir(extensionSourceDir):
-        print "Photoshop installation error.\nCannot locate the extension folder."
-        raw_input("Press Enter to continue")
+        print("Photoshop installation error.\nCannot locate the extension folder.")
+        # raw_input("Press Enter to continue")
+        r = input("Press Enter to continue...")
+        assert isinstance(r, str)
         return
 
     ## EDIT HTML FILE
@@ -999,8 +1016,6 @@ function tikSaveVersion(){
     userHomeDir = os.path.normpath(os.path.join(os.path.expanduser("~")))
     extensionTargetDir = os.path.join(userHomeDir, "AppData", "Roaming", "Adobe", "CEP", "extensions", "tikManager")
 
-    # print "extSource", extensionSourceDir
-    # print "extTarger", extensionTargetDir
     copy_and_overwrite(extensionSourceDir, extensionTargetDir)
 
     # edit registry
@@ -1017,7 +1032,9 @@ function tikSaveVersion(){
     map(lambda x: getCSXkey(x), range(20))
 
     if prompt:
-        raw_input("Press Enter to continue...")
+        # raw_input("Press Enter to continue...")
+        r = input("Press Enter to continue...")
+        assert isinstance(r, str)
 
 def installAll():
     mayaSetup(prompt=False)
@@ -1025,7 +1042,9 @@ def installAll():
     maxSetup(prompt=False)
     nukeSetup(prompt=False)
     photoshopSetup(prompt=False)
-    raw_input("Setup Completed. Press Enter to Exit...")
+    # raw_input("Setup Completed. Press Enter to Exit...")
+    r = input("Setup Completed. Press Enter to Exit...")
+    assert isinstance(r, str)
     sys.exit()
 
 def prepareCommonFolder(targetCommonFolderPath):
@@ -1066,8 +1085,10 @@ def prepareCommonFolder(targetCommonFolderPath):
             try:
                 shutil.copyfile(sourceFile, targetFile)
             except:
-                print "Cannot copy %s to %s" %(file[1], os.path.join(targetCommonFolderPath, file[0]))
-                raw_input("ABORTING")
+                print("Cannot copy %s to %s" %(file[1], os.path.join(targetCommonFolderPath, file[0])))
+                # raw_input("ABORTING")
+                r = input("ABORTING")
+                assert isinstance(r, str)
 
                 return False
     return True
@@ -1083,20 +1104,25 @@ def decideNetworkPath():
 
     currentCommonPath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "TikManager_Commons")
 
-    print """
+    print("""
 Select Common Folder
---------------------"""
-    print "Current file path is %s" %currentCommonPath
+--------------------""")
+    print("Current file path is %s" %currentCommonPath)
     msg = "Do you want to use this as common folder?  [y/n]"
-    choice = raw_input(msg).lower()
-    if choice in yes:
+    # choice = raw_input(msg).lower()
+    choice = input(msg)
+    assert isinstance(choice, str)
+
+    if choice.lower() in yes:
         return currentCommonPath
-    elif choice in no:
+    elif choice.lower() in no:
         cf_path = ""
         while not os.path.isdir(cf_path):
-            cf_path = raw_input("Enter the common folder path:")
+            # cf_path = raw_input("Enter the common folder path:")
+            cf_path = input("Enter the common folder path:")
+            assert isinstance(cf_path, str)
             if not os.path.isdir(cf_path):
-                print "invalid path. Try again"
+                print("invalid path. Try again")
             else:
                 return cf_path
         else:
@@ -1123,7 +1149,11 @@ menuItems = [
 
 
 def okCancel(msg):
-    reply = str(raw_input(msg+' (y/n): ')).lower().strip()
+    # reply = str(raw_input(msg+' (y/n): ')).lower().strip()
+    reply = input(msg+' (y/n): ')
+    assert isinstance(reply, str)
+    reply = reply.lower().strip()
+
     if reply[0] == 'y':
         return 1
     if reply[0] == 'n':
@@ -1132,11 +1162,11 @@ def okCancel(msg):
         return okCancel(msg)
 
 def cli():
-    print (header)
+    print(header)
     networkPath = ""
     while networkPath == "":
         networkPath = decideNetworkPath()
-    print "Preparing Common Folder"
+    print("Preparing Common Folder")
     prepareCommonFolder(networkPath)
     userHomeDir = os.path.normpath(os.path.join(os.path.expanduser("~")))
     localSettingsDir = os.path.join(userHomeDir, "Documents", "TikManager")
@@ -1145,12 +1175,15 @@ def cli():
     smFile = os.path.join(localSettingsDir, "smCommonFolder.json")
     _dumpJson(os.path.normpath(networkPath), smFile)
     while True:
-        print """
+        print("""
     Choose the software you want to setup Scene Manager:
-    ----------------------------------------------------"""
+    ----------------------------------------------------""")
         for item in menuItems:
-            print ("[" + str(menuItems.index(item)) + "] ") + item.keys()[0]
-        choice = raw_input(">> ")
+            print("[" + str(menuItems.index(item)) + "] ") + item.keys()[0]
+        # choice = raw_input(">> ")
+        choice = input(">> ")
+        assert isinstance(choice, str)
+
         try:
             if int(choice) < 0: raise ValueError
             # Call the matching function
@@ -1160,7 +1193,7 @@ def cli():
             pass
 
 def noCli(networkPath, softwareList):
-    print "Preparing Common Folder"
+    print("Preparing Common Folder")
     prepareCommonFolder(networkPath)
     userHomeDir = os.path.normpath(os.path.join(os.path.expanduser("~")))
     localSettingsDir = os.path.join(userHomeDir,"Documents","TikManager")
@@ -1179,13 +1212,15 @@ def noCli(networkPath, softwareList):
     }
 
     for sw in softwareList:
-        print sw
+        print(sw)
         if sw.lower() not in swDictionary.keys():
-            print "%s is not in the supported product list. Skipping" %sw
+            print("%s is not in the supported product list. Skipping" %sw)
             continue
 
         swDictionary[sw.lower()](prompt=False)
-    raw_input("Setup Completed. Press Enter to Exit...")
+    # raw_input("Setup Completed. Press Enter to Exit...")
+    r = input("Setup Completed. Press Enter to Exit...")
+    assert isinstance(r, str)
 
 
 def main(argv):
@@ -1196,7 +1231,7 @@ def main(argv):
         cli()
     else:
         if not opts and args:
-            print "You must enter -n argument"
+            print("You must enter -n argument")
             sys.exit()
 
         networkPath = ""
@@ -1205,13 +1240,16 @@ def main(argv):
                 networkPath = a
             else:
                 assert False, "unhandled option"
-                raw_input("Something went wrong.. Try manual installation")
+                # raw_input("Something went wrong.. Try manual installation")
+                r = input("Something went wrong.. Try manual installation")
+                assert isinstance(r, str)
+
         softwareList = args
 
 
         folderCheck(networkPath)
-        print "networkPath", networkPath
-        print "softwareList", softwareList
+        print("networkPath", networkPath)
+        print("softwareList", softwareList)
 
         noCli(networkPath, softwareList)
 

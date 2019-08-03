@@ -47,8 +47,9 @@ import re
 import socket
 
 import urllib
-import pyseq
-import _version
+import tik_manager.pyseq as pyseq
+import tik_manager._version as _version
+import tik_manager.compatibility as compat
 
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Tik Manager Root Functions"
@@ -476,8 +477,11 @@ class RootManager(object):
     def currentUserInitials(self):
         """Returns the current user initials"""
         logger.debug("Func: currentUserInitials/getter")
-        return self._usersDict[self.currentUser]
-
+        try:
+            return self._usersDict[self.currentUser]
+        except KeyError: # safety purposes
+            self.currentUser = list(self._usersDict)[0]
+            return self._usersDict[self.currentUser]
 
     @property
     def currentMode(self):
@@ -1959,7 +1963,7 @@ Elapsed Time:{6}
     def _dumpJson(self, data, file):
         """Saves the data to the json file"""
         # name, ext = os.path.splitext(unicode(file).encode("utf-8"))
-        name, ext = os.path.splitext(file)
+        name, ext = os.path.splitext(compat.encode(file))
         # tempFile = ("{0}.tmp".format(name)).decode("utf-8")
         tempFile = ("{0}.tmp".format(name))
         with open(tempFile, "w") as f:

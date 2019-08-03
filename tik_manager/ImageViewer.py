@@ -45,7 +45,9 @@ import sys
 # ---------------
 # GET ENVIRONMENT
 # ---------------
-import _version
+import tik_manager._version as _version
+import tik_manager.compatibility as compat
+
 BoilerDict = {"Environment": "Standalone",
               "MainWindow": None,
               "WindowTitle": "Image Viewer Standalone v%s" % _version.__version__,
@@ -118,7 +120,7 @@ except ImportError:
 
 
 ## DO NOT REMOVE THIS:
-import iconsSource as icons
+import tik_manager.iconsSource as icons
 ## DO NOT REMOVE THIS:
 
 # PyInstaller and Standalone version compatibility
@@ -139,11 +141,11 @@ import iconsSource as icons
 # from PyQt4 import QtCore, Qt
 # from PyQt4 import QtGui as QtWidgets
 
-import pyseq as seq
+import tik_manager.pyseq as seq
 
 import datetime
 from shutil import copyfile
-from SmRoot import RootManager
+from tik_manager.SmRoot import RootManager
 
 
 import logging
@@ -615,8 +617,10 @@ class MainUI(QtWidgets.QMainWindow):
         rcAction_4.triggered.connect(self.onImportSequence)
 
 
-        rcAction_2.triggered.connect(lambda: self.onShowInExplorer(path=unicode(self.rootFolder_lineEdit.text())))
-        rcAction_3.triggered.connect(lambda: self.onShowInExplorer(path=unicode(self.raidFolder_lineEdit.text())))
+        # rcAction_2.triggered.connect(lambda: self.onShowInExplorer(path=unicode(self.rootFolder_lineEdit.text())))
+        rcAction_2.triggered.connect(lambda: self.onShowInExplorer(path=compat.decode(self.rootFolder_lineEdit.text())))
+        # rcAction_3.triggered.connect(lambda: self.onShowInExplorer(path=unicode(self.raidFolder_lineEdit.text())))
+        rcAction_3.triggered.connect(lambda: self.onShowInExplorer(path=compat.decode(self.raidFolder_lineEdit.text())))
 
 
         self.rootFolder_lineEdit.dropped.connect(self.setRootPath)
@@ -683,7 +687,8 @@ class MainUI(QtWidgets.QMainWindow):
     def setRaidPath(self, dir):
         """Updates the Remote Location Folder database"""
         tLocationFile = os.path.normpath(os.path.join(self.databaseDir, "tLocation.json"))
-        self.tLocation = unicode(dir).encode("utf-8")
+        # self.tLocation = unicode(dir).encode("utf-8")
+        self.tLocation = compat.encode(dir)
         self.imageViewer._dumpJson(self.tLocation, tLocationFile)
         self.raidFolder_lineEdit.setText(self.tLocation)
 
@@ -707,7 +712,8 @@ class MainUI(QtWidgets.QMainWindow):
         self.popMenuLabels.exec_(self.centralwidget.mapToGlobal(point))
 
     def onEditRoot(self):
-        candidatePath = unicode(self.rootFolder_lineEdit.text()).encode("utf-8")
+        # candidatePath = unicode(self.rootFolder_lineEdit.text()).encode("utf-8")
+        candidatePath = compat.encode(self.rootFolder_lineEdit.text())
         if os.path.isdir(candidatePath):
             self.setRootPath(candidatePath)
         else:
@@ -716,7 +722,8 @@ class MainUI(QtWidgets.QMainWindow):
 
 
     def onEditRaid(self):
-        candidatePath = unicode(self.raidFolder_lineEdit.text()).encode("utf-8")
+        # candidatePath = unicode(self.raidFolder_lineEdit.text()).encode("utf-8")
+        candidatePath = compat.encode(self.raidFolder_lineEdit.text())
         if candidatePath == "" or candidatePath == "N/A":
             self.setRaidPath("N/A")
             self.transferTo.setEnabled(False)
@@ -1082,7 +1089,8 @@ class SeqCopyProgress(QtWidgets.QWidget, RootManager):
         # TODO // Make it compatible with Linux
         # os.startfile(str(os.path.normpath(path)))
 
-        self.showInExplorer(unicode(os.path.normpath(path)).decode("utf-8"))
+        # self.showInExplorer(unicode(os.path.normpath(path)).decode("utf-8"))
+        self.showInExplorer(compat.decode(os.path.normpath(path)))
         pass
 
     def closeEvent(self, *args, **kwargs):

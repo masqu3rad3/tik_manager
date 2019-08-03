@@ -36,10 +36,10 @@ os.environ["FORCE_QT5"]="0"
 # DELETE
 # ------
 
-from SmUIRoot import MainUI as baseUI
+from tik_manager.SmUIRoot import MainUI as baseUI
 # import SmRoot
 # reload(SmRoot)
-from SmRoot import RootManager
+from tik_manager.SmRoot import RootManager
 from tik_manager.coreFunctions.coreFunctions_Maya import MayaCoreFunctions
 
 import shutil
@@ -51,10 +51,10 @@ import socket
 import logging
 from glob import glob
 
-import ImMaya
+import tik_manager.ImMaya as ImMaya
 
 # import Qt
-from Qt import QtWidgets, QtGui
+from tik_manager.Qt import QtWidgets, QtGui
 
 ## DO NOT REMOVE THIS:
 ## DO NOT REMOVE THIS:
@@ -102,7 +102,6 @@ class MayaManager(RootManager, MayaCoreFunctions):
 
         """
         logger.debug("Func: saveBaseScene")
-        print("here", baseName)
         now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
         completeNote = "[%s] on %s\n%s\n" % (self.currentUser, now, versionNotes)
 

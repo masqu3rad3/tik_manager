@@ -36,10 +36,13 @@
 # GET ENVIRONMENT
 # ---------------
 import os, sys
-import _version
+# import _version
+import tik_manager._version as _version
 from copy import deepcopy
 import re
 import datetime
+import tik_manager.compatibility as compat
+
 
 # Below is the standard dictionary for Scene Manager Standalone
 BoilerDict = {"Environment": "Standalone",
@@ -112,12 +115,12 @@ except ImportError:
 import webbrowser
 
 ## DO NOT REMOVE THIS:
-import iconsSource as icons
+import tik_manager.iconsSource as icons
 ## DO NOT REMOVE THIS:
 
 import pprint
 
-import ImageViewer
+import tik_manager.ImageViewer
 
 import logging
 
@@ -743,8 +746,8 @@ class MainUI(QtWidgets.QMainWindow):
             dlg.setFileMode(QtWidgets.QFileDialog.Directory)
 
             if dlg.exec_():
-                # selectedroot = os.path.normpath(unicode(dlg.selectedFiles()[0]))
-                selectedroot = os.path.normpath(unicode(dlg.selectedFiles()[0])).encode("utf-8")
+                # selectedroot = os.path.normpath(unicode(dlg.selectedFiles()[0])).encode("utf-8")
+                selectedroot = os.path.normpath(compat.encode(dlg.selectedFiles()[0]))
                 projectRoot_le.setText(selectedroot)
                 resolve()
 
@@ -758,9 +761,12 @@ class MainUI(QtWidgets.QMainWindow):
                 self.infoPop(textTitle="Path Error", textHeader="Selected Project Root does not exist", type="C")
                 return
 
-            pName = unicode(projectName_le.text()).decode("utf-8")
-            bName = unicode(brandName_le.text()).decode("utf-8")
-            cName = unicode(client_le.text()).decode("utf-8")
+            # pName = unicode(projectName_le.text()).decode("utf-8")
+            pName = compat.decode(projectName_le.text())
+            # bName = unicode(brandName_le.text()).decode("utf-8")
+            bName = compat.decode(brandName_le.text())
+            # cName = unicode(client_le.text()).decode("utf-8")
+            cName = compat.decode(client_le.text())
             projectSettingsDB = {"Resolution": [resolutionX_spinBox.value(), resolutionY_spinBox.value()],
                                  "FPS": int(fps_combo.currentText())}
 
@@ -776,10 +782,15 @@ class MainUI(QtWidgets.QMainWindow):
             if projectName_le.text() == "" or client_le.text() == "" or projectRoot_le.text() == "":
                 resolvedPath_lbl.setText("Fill the mandatory fields")
                 return
-            resolvedPath = self.manager.resolveProjectPath(unicode(projectRoot_le.text()).decode("utf-8"),
-                                                           unicode(projectName_le.text()).decode("utf-8"),
-                                                           unicode(brandName_le.text()).decode("utf-8"),
-                                                           unicode(client_le.text()).decode("utf-8"))
+            # resolvedPath = self.manager.resolveProjectPath(unicode(projectRoot_le.text()).decode("utf-8"),
+            #                                                unicode(projectName_le.text()).decode("utf-8"),
+            #                                                unicode(brandName_le.text()).decode("utf-8"),
+            #                                                unicode(client_le.text()).decode("utf-8"))
+            resolvedPath = self.manager.resolveProjectPath(compat.decode(projectRoot_le.text()),
+                                                           compat.decode(projectName_le.text()),
+                                                           compat.decode(brandName_le.text()),
+                                                           compat.decode(client_le.text()))
+
             resolvedPath_lbl.setText(resolvedPath)
 
         resolve()
@@ -905,7 +916,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.dirFilter_lineEdit = QtWidgets.QLineEdit(self.setProject_Dialog, maximumWidth=175)
         self.dirFilter_lineEdit.setFont(self.iconFont)
-        self.dirFilter_lineEdit.setPlaceholderText("🔍".decode("utf-8"))
+        # self.dirFilter_lineEdit.setPlaceholderText("🔍".decode("utf-8"))
+        self.dirFilter_lineEdit.setPlaceholderText("🔍")
 
         M3_horizontalLayout.addWidget(dirFilter_label)
         M3_horizontalLayout.addWidget(self.dirFilter_lineEdit)
@@ -968,7 +980,8 @@ class MainUI(QtWidgets.QMainWindow):
                 self.browser.forward()
 
             if command == "browse":
-                dir = unicode(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory")).encode("utf-8")
+                # dir = unicode(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory")).encode("utf-8")
+                dir = compat.encode(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory"))
                 if dir:
                     self.projectsRoot = dir
                     self.browser.addData(self.projectsRoot)
@@ -978,7 +991,8 @@ class MainUI(QtWidgets.QMainWindow):
 
             if command == "folder":
                 index = self.folders_treeView.currentIndex()
-                self.projectsRoot = os.path.normpath(unicode(self.sourceModel.filePath(index)).encode("utf-8"))
+                # self.projectsRoot = os.path.normpath(unicode(self.sourceModel.filePath(index)).encode("utf-8"))
+                self.projectsRoot = os.path.normpath(compat.encode(self.sourceModel.filePath(index)))
                 self.browser.addData(self.projectsRoot)
 
             if command == "lineEnter":
@@ -1039,7 +1053,8 @@ class MainUI(QtWidgets.QMainWindow):
             # block the signal to prevent unwanted cycle
             self.favorites_listWidget.blockSignals(True)
             index = self.folders_treeView.currentIndex()
-            self.spActiveProjectPath = os.path.normpath(unicode(self.sourceModel.filePath(index)).encode("utf-8"))
+            # self.spActiveProjectPath = os.path.normpath(unicode(self.sourceModel.filePath(index)).encode("utf-8"))
+            self.spActiveProjectPath = os.path.normpath(compat.encode(self.sourceModel.filePath(index)))
 
             # clear the selection in favorites view
             self.favorites_listWidget.setCurrentRow(-1)
@@ -1477,7 +1492,8 @@ class MainUI(QtWidgets.QMainWindow):
 
     def _filterDirectories(self):
         filterWord = self.dirFilter_lineEdit.text()
-        self.DirFilter = [(unicode("*%s*" % filterWord))]
+        # self.DirFilter = [(unicode("*%s*" % filterWord))]
+        self.DirFilter = [(("*%s*" % filterWord))]
         self.sourceModel.setNameFilters(self.DirFilter)
 
     def settingsUI(self):
@@ -1801,7 +1817,8 @@ class MainUI(QtWidgets.QMainWindow):
         def updateDictionary():
             userSettings["globalFavorites"] = globalFavorites_radiobutton.isChecked()
 
-            enteredPath = os.path.normpath(unicode(commonDir_lineEdit.text()).encode("utf-8"))
+            # enteredPath = os.path.normpath(unicode(commonDir_lineEdit.text()).encode("utf-8"))
+            enteredPath = os.path.normpath(compat.encode(commonDir_lineEdit.text()))
             if self.manager._checkCommonFolder(enteredPath):
                 self.allSettingsDict["sharedSettingsDir"]["newSettings"] = enteredPath
             else:
@@ -1980,7 +1997,8 @@ class MainUI(QtWidgets.QMainWindow):
             dlg.setFileMode(QtWidgets.QFileDialog.Directory)
 
             if dlg.exec_():
-                selectedroot = os.path.normpath(unicode(dlg.selectedFiles()[0])).encode("utf-8")
+                # selectedroot = os.path.normpath(unicode(dlg.selectedFiles()[0])).encode("utf-8")
+                selectedroot = os.path.normpath(compat.encode(dlg.selectedFiles()[0]))
                 if self.manager._checkCommonFolder(selectedroot):
                     commonDir_lineEdit.setText(selectedroot)
                 else:
@@ -1989,7 +2007,8 @@ class MainUI(QtWidgets.QMainWindow):
             return
 
         def editExecutable(lineEdit):
-            dbItem = (unicode(lineEdit.text()).encode("utf-8"))
+            # dbItem = (unicode(lineEdit.text()).encode("utf-8"))
+            dbItem = (compat.encode(lineEdit.text()))
             try:
                 userSettings["executables"][str(lineEdit.objectName())] = dbItem
             except KeyError:
@@ -2008,8 +2027,10 @@ class MainUI(QtWidgets.QMainWindow):
             dlg.setFileMode(QtWidgets.QFileDialog.ExistingFile)
 
             if dlg.exec_():
-                selectedFile = os.path.normpath(unicode(dlg.selectedFiles()[0])).encode("utf-8")
-                dbItem = (unicode(selectedFile).encode("utf-8"))
+                # selectedFile = os.path.normpath(unicode(dlg.selectedFiles()[0])).encode("utf-8")
+                selectedFile = os.path.normpath(compat.encode(dlg.selectedFiles()[0]))
+                # dbItem = (unicode(selectedFile).encode("utf-8"))
+                dbItem = (compat.encode(selectedFile))
                 lineEdit.setText(dbItem)
                 try:
                     userSettings["executables"][str(lineEdit.objectName())] = dbItem
@@ -2777,7 +2798,8 @@ class MainUI(QtWidgets.QMainWindow):
             row = listWidget.currentRow()
             if row == -1:
                 return
-            trashCategory = unicode(listWidget.currentItem().text()).decode("utf-8")
+            # trashCategory = unicode(listWidget.currentItem().text()).decode("utf-8")
+            trashCategory = compat.decode(listWidget.currentItem().text())
             categories = self.allSettingsDict.get(settingKey)
             ## check if this is the last category
             if len(categories) == 1:
@@ -2826,7 +2848,8 @@ class MainUI(QtWidgets.QMainWindow):
             buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
 
             def addCategory():
-                newCategory = unicode(categoryName_lineEdit.text()).decode("utf-8")
+                # newCategory = unicode(categoryName_lineEdit.text()).decode("utf-8")
+                newCategory = compat.decode(categoryName_lineEdit.text())
                 categories = self.allSettingsDict.get(settingKey)
                 for x in categories:
                     if newCategory.lower() == x.lower():
@@ -3956,7 +3979,8 @@ class MainUI(QtWidgets.QMainWindow):
             if not getSelected:
                 return
             for item in getSelected:
-                del userList[unicode(item.text(0)).decode("utf-8")]
+                # del userList[unicode(item.text(0)).decode("utf-8")]
+                del userList[compat.decode(item.text(0))]
             updateUsers()
             self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
 
@@ -4122,8 +4146,8 @@ class MainUI(QtWidgets.QMainWindow):
             dlg.setFileMode(QtWidgets.QFileDialog.Directory)
 
             if dlg.exec_():
-                # selectedroot = os.path.normpath(unicode(dlg.selectedFiles()[0]))
-                selectedroot = os.path.normpath(unicode(dlg.selectedFiles()[0])).encode("utf-8")
+                # selectedroot = os.path.normpath(unicode(dlg.selectedFiles()[0])).encode("utf-8")
+                selectedroot = os.path.normpath(compat.encode(dlg.selectedFiles()[0]))
                 folderSize_inMB = get_size(selectedroot) / (1024 * 1024)
                 if folderSize_inMB > settings["warningSizeLimit"]:
                     msg = "Selected Folder size is %s\n\nFrom now on this data will be copied EACH new project created with Tik Manager.\n\n Do you want to continue?" % folderSize_inMB
@@ -4137,7 +4161,8 @@ class MainUI(QtWidgets.QMainWindow):
             return
 
         def updateTemplateFolder():
-            folder = unicode(templateFolder_le.text()).encode("utf-8")
+            # folder = unicode(templateFolder_le.text()).encode("utf-8")
+            folder = compat.encode(templateFolder_le.text())
             if not os.path.isdir(folder) and folder != "":
                 msg = "Entered path is invalid. Resetting to default"
                 self.infoPop(textTitle="Invalid Path", textHeader=msg)
@@ -4147,7 +4172,8 @@ class MainUI(QtWidgets.QMainWindow):
                 self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
 
         def updateFileName():
-            template = unicode(fileNameConv_le.text()).encode("utf-8")
+            # template = unicode(fileNameConv_le.text()).encode("utf-8")
+            template = compat.encode(fileNameConv_le.text())
             items = re.findall(r'<(.*?)\>', template)
             for x in items:
                 if ("<%s>" % x) not in validFileNameTokens:
@@ -4261,16 +4287,16 @@ class MainUI(QtWidgets.QMainWindow):
                         combo.setCurrentIndex(
                             int(settingsDict[formattingType][widget["DictName"]].replace(widget["asFlag"], "")))
                         combo.currentIndexChanged.connect(
-                            lambda index, dict=widget["DictName"]: dictUpdateMethod(formattingType, dict,
-                                                                                    unicode(index).encode("utf-8"))
+                            # lambda index, dict=widget["DictName"]: dictUpdateMethod(formattingType, dict, unicode(index).encode("utf-8"))
+                            lambda index, dict=widget["DictName"]: dictUpdateMethod(formattingType, dict, compat.encode(index))
                         )
                 else:
                     ffindex = combo.findText(settingsDict[formattingType][widget["DictName"]],
                                              QtCore.Qt.MatchFixedString)
                     combo.setCurrentIndex(ffindex)
                     combo.currentIndexChanged[str].connect(
-                        lambda text, dict=widget["DictName"]: dictUpdateMethod(formattingType, dict,
-                                                                               unicode(text).encode("utf-8"))
+                        # lambda text, dict=widget["DictName"]: dictUpdateMethod(formattingType, dict, unicode(text).encode("utf-8"))
+                        lambda text, dict=widget["DictName"]: dictUpdateMethod(formattingType, dict, compat.encode(text))
                     )
 
             elif widget["Type"] == "spbDouble":
@@ -4510,11 +4536,13 @@ class MainUI(QtWidgets.QMainWindow):
         relScenesDir = os.path.relpath(scenesDir, projectDir)
 
         def getResolvedPath():
-
+            print("here_1")
             category = category_comboBox.currentText()
+            print("here_2")
             name = lineEdit.text()
+            print("here_3")
             userInitials = self.manager.currentUserInitials
-
+            print("here_4")
             ## Naming Dictionary
             nameDict = {
                 "baseName": name,
@@ -4523,8 +4551,8 @@ class MainUI(QtWidgets.QMainWindow):
                 "subproject": self.manager.subProject,
                 "date": ""  # date is unnecessary since it will be calculated in SmRoot->resolveSaveName
             }
-            sceneName = self.manager.resolveSaveName(nameDict, 1)
 
+            sceneName = self.manager.resolveSaveName(nameDict, 1)
             if self._checkValidity(lineEdit.text(), buttonBox, lineEdit):
                 subP = subProject_comboBox.currentText()
                 subProject = "" if subP == "None" else subP

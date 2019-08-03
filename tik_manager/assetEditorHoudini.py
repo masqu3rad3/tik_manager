@@ -33,9 +33,9 @@
 # Asset save functions for Maya to be used with assetLibrary
 import os
 import hou
-from shutil import copyfile
+# from shutil import copyfile
 
-from coreFunctions.coreFunctions_Houdini import HoudiniCoreFunctions
+from tik_manager.coreFunctions.coreFunctions_Houdini import HoudiniCoreFunctions
 
 
 # TODO : Subclass MayaCoreFunctions
