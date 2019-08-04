@@ -396,27 +396,23 @@ class MaxManager(RootManager, MaxCoreFunctions):
         # else:
         #     previewname = "Untitled"
 
-        sourceClip = rt.GetDir(rt.execute("#preview")) + "\_scene.avi "
-
-        # destination = os.path.join(rt.maxFilePath, previewname)
+        # sourceClip = rt.GetDir(rt.execute("#preview")) + "\_scene.avi"
 
 
+        # if os.path.isfile(sourceClip):
+        #     try:
+        #         os.remove(sourceClip)
+        #     except WindowsError:
+        #         msg = "Cannot continue creating preview.\n Close '%s' and try again" %sourceClip
+        #         logger.error(msg)
+        #         return -1, msg
 
-        if os.path.isfile(sourceClip):
-            try:
-                os.remove(sourceClip)
-            except WindowsError:
-                msg = "Cannot continue creating preview.\n Close '%s' and try again" %sourceClip
-                logger.error(msg)
-                return -1, msg
-
-        rt.createPreview(percentSize=percentSize, dspGeometry=dspGeometry,
+        rt.createPreview(filename=playBlastFile, percentSize=percentSize, dspGeometry=dspGeometry,
                          dspShapes=dspShapes, dspLights=dspLights,
                          dspCameras=dspCameras, dspHelpers=dspHelpers,
                          dspParticles=dspParticles, dspBones=dspBones,
                          dspGrid=dspGrid, dspFrameNums=dspFrameNums,
                          rndLevel=rndLevel)
-
 
         # return the render width and height to original:
         rt.renderWidth = originalValues["width"]
@@ -424,7 +420,7 @@ class MaxManager(RootManager, MaxCoreFunctions):
 
         rt.select(originalSelection)
 
-        shutil.copy(sourceClip, playBlastFile)
+        # shutil.copy(sourceClip, playBlastFile)
 
         if pbSettings["ConvertMP4"]:
             convertedFile = self._convertPreview(playBlastFile, overwrite=True, deleteAfter=True, crf=pbSettings["CrfValue"])

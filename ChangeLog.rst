@@ -29,6 +29,8 @@ Tik Manager Version History
 * **Update.43** Naming Conventions - <subproject> added
 * **Fix.44** Naming Conventions Bugfix
 * **Fix.45** Crash fixed when the set user cannot be find (because of a replaced users db)
+* **Fix.46** 3ds Max 2020  playblast issue fixed
+* **Fix.46** Maya - Take Preview option selection bug fixed
 
 2.5
 ---

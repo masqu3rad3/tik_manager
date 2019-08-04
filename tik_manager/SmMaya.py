@@ -470,6 +470,12 @@ class MayaManager(RootManager, MayaCoreFunctions):
 
         if not camera:
             camera = cmds.modelPanel(currentPanel, q=True, cam=True)
+        else:
+            overrideDict["camera"] = camera
+            print("DEBUGGGG", camera)
+
+
+        print("aaDEBUGGGG", camera)
 
         properties = ["activeComponentsXray", "activeCustomGeometry", "activeCustomLighSet",
                       "activeCustomOverrideGeometry", "activeCustomRenderer", "activeOnly",
