@@ -1243,13 +1243,13 @@ class RootManager(object):
         importSettings = self.loadImportSettings()
         extension = os.path.splitext(itemAbsPath)[1]
 
-        if extension == ".obj":
+        if extension.lower() == ".obj":
             objSettings = importSettings
             self._importObj(itemAbsPath, objSettings)
-        elif extension == ".fbx":
+        elif extension.lower() == ".fbx":
             fbxSettings = importSettings
             self._importFbx(itemAbsPath, fbxSettings)
-        elif extension == ".abc":
+        elif extension.lower() == ".abc":
             alembicSettings = importSettings
             self._importAlembic(itemAbsPath, alembicSettings)
         else:

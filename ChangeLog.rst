@@ -31,6 +31,7 @@ Tik Manager Version History
 * **Fix.45** Crash fixed when the set user cannot be find (because of a replaced users db)
 * **Fix.46** 3ds Max 2020  playblast issue fixed
 * **Fix.46** Maya - Take Preview option selection bug fixed
+* **Fix.46** Maya/TransferCentral capital extenstion compatibility
 
 2.5
 ---
