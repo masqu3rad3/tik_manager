@@ -784,7 +784,6 @@ class MayaManager(RootManager, MayaCoreFunctions):
         ## Check here: http://download.autodesk.com/us/maya/2011help/pymel/generated/functions/pymel.core.windows/pymel.core.windows.headsUpDisplay.html
         # print "playBlastFile", playBlastFile
         normPB = os.path.normpath(playBlastFile)
-
         cmds.playblast(format=pbSettings["Format"],
                        sequenceTime=sequenceTime,
                        filename=playBlastFile,

@@ -2452,7 +2452,7 @@ Elapsed Time:{6}
                        [str(outputFile)]
 
         if self.currentPlatform == "Windows":
-            subprocess.check_call(fullFlagList, shell=True)
+            subprocess.check_call(fullFlagList, shell=False)
         else:
             subprocess.check_call(fullFlagList)
         # print command

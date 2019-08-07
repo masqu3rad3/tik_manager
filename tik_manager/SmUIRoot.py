@@ -115,12 +115,14 @@ except ImportError:
 import webbrowser
 
 ## DO NOT REMOVE THIS:
-import tik_manager.iconsSource as icons
+# import tik_manager.iconsSource as icons
+import iconsSource as icons
 ## DO NOT REMOVE THIS:
 
 import pprint
 
-import tik_manager.ImageViewer
+# import tik_manager.ImageViewer as ImageViewer
+import ImageViewer
 
 import logging
 
@@ -188,11 +190,15 @@ class MainUI(QtWidgets.QMainWindow):
         super(MainUI, self).__init__(parent=parent)
 
         # Set Stylesheet
+
         dirname = os.path.dirname(os.path.abspath(__file__))
         stylesheetFile = os.path.join(dirname, "CSS", "tikManager.qss")
 
-        with open(stylesheetFile, "r") as fh:
-            self.setStyleSheet(fh.read())
+        try:
+            with open(stylesheetFile, "r") as fh:
+                self.setStyleSheet(fh.read())
+        except IOError:
+            pass
 
         # Set WindowIcon
         # self.setWindowIcon(QtGui.QIcon(":/icons/CSS/rc/osicon_scenemanager_EM0_icon.ico"))
@@ -1033,9 +1039,7 @@ class MainUI(QtWidgets.QMainWindow):
         def onDragAndDrop(path):
             # normPath = os.path.normpath(str(path))
             normPath = os.path.normpath((path))
-            print("asdf", normPath)
             path, fName = os.path.split(normPath)
-            print("debugDD", path, fName)
             if [fName, normPath] in self.favList:
                 return
             self.favorites_listWidget.addItem(fName)
@@ -1064,27 +1068,21 @@ class MainUI(QtWidgets.QMainWindow):
 
         def setProject():
             pPath = os.path.normpath(compat.decode(self.spActiveProjectPath))
-            print("debug1", pPath)
             # if not self.manager.nameCheck(self.spActiveProjectPath, allowSpaces=True, directory=True):
             if not self.manager.nameCheck(pPath, allowSpaces=True, directory=True):
                 self.infoPop(textTitle="Invalid Path",
                              textHeader="There are invalid (non-ascii) characters in the selected path.",
                              textInfo="This Path cannot be used", type="C")
                 return
-            print("debug2")
             if self.manager.currentPlatform == "Linux":
-                print("debug3")
                 # pPath = "/%s" % self.spActiveProjectPath
                 pPath = "/%s" % pPath
             else:
-                print("debug4")
                 # pPath = self.spActiveProjectPath
                 pPath = pPath
-            print("debug5")
             self.manager.setProject(pPath)
             self.onProjectChange()
 
-            print("debug6")
             self.setProject_Dialog.close()
 
         navigate("init")
@@ -5624,9 +5622,10 @@ class DropListWidget(QtWidgets.QListWidget):
             event.ignore()
 
     def dropEvent(self, event):
-        rawPath = event.mimeData().data('text/uri-list').__str__()
+        # rawPath = event.mimeData().data('text/uri-list').__str__()
+        rawPath = event.mimeData().text()
         path = rawPath.replace("file:///", "").splitlines()[0]
-        path = path.replace("\\r\\n'", "")
+        # path = path.replace("\\r\\n'", "")
         self.dropped.emit(path)
 
 

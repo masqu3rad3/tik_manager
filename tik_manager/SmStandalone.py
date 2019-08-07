@@ -35,11 +35,13 @@ import sys, os
 # Set the force pyqt environment variable to tell the other modulea not to use Qt.py module
 os.environ["FORCE_QT5"]="1"
 
-import tik_manager.pyinstallerPathFix
+# import __pyinstallerPathFix
 from PyQt5 import QtWidgets, QtCore
 
-from tik_manager.SmRoot import RootManager
-from tik_manager.SmUIRoot import MainUI as baseUI
+# from tik_manager.SmRoot import RootManager
+from SmRoot import RootManager
+# from tik_manager.SmUIRoot import MainUI as baseUI
+from SmUIRoot import MainUI as baseUI
 
 import tik_manager._version as _version
 import subprocess

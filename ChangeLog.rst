@@ -32,6 +32,7 @@ Tik Manager Version History
 * **Fix.46** 3ds Max 2020  playblast issue fixed
 * **Fix.46** Maya - Take Preview option selection bug fixed
 * **Fix.46** Maya/TransferCentral capital extenstion compatibility
+* **Fix.46** Project Favorites - Python3 compatibility issue fixed
 
 2.5
 ---

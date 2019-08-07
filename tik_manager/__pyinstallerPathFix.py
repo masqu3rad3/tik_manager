@@ -22,7 +22,7 @@ def _append_run_path():
         # append to system path enviroment
         os.environ["PATH"] += os.pathsep + os.pathsep.join(pathlist)
 
-    logging.error("current PATH: %s", os.environ['PATH'])
+    # logging.error("current PATH: %s", os.environ['PATH'])
 
 
 _append_run_path()
