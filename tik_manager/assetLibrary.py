@@ -42,33 +42,34 @@ class AssetEditor(object):
         return ""
 
     # def _getProject(self):
-    #     return self.projectDir
-
-    # def mergeAsset(self, assetName):
-    #     logger.warning("merging Asset is not defined")
-    #
-    # def importAsset(self, assetName):
-    #     logger.warning("importing Asset is not defined")
-    #
-    # def importObj(self, assetName):
-    #     logger.warning("importing obj is not defined")
-    #
-    # def importAbc(self, assetName):
-    #     logger.warning("importing alembic is not defined")
-    #
-    # def importFbx(self, assetName):
-    #     logger.warning("importing fbx is not defined")
-    #
-    # def loadAsset(self, assetName):
-    #     logger.warning("loading Asset is not defined")
-    #
-    # def saveAsset(self, *args, **kwargs):
-    #     logger.warning("saving Asset is not defined")
+    #     #     return self.projectDir
+    # 
+    #     # def mergeAsset(self, assetName):
+    #     #     logger.warning("merging Asset is not defined")
+    #     #
+    #     # def importAsset(self, assetName):
+    #     #     logger.warning("importing Asset is not defined")
+    #     #
+    #     # def importObj(self, assetName):
+    #     #     logger.warning("importing obj is not defined")
+    #     #
+    #     # def importAbc(self, assetName):
+    #     #     logger.warning("importing alembic is not defined")
+    #     #
+    #     # def importFbx(self, assetName):
+    #     #     logger.warning("importing fbx is not defined")
+    #     #
+    #     # def loadAsset(self, assetName):
+    #     #     logger.warning("loading Asset is not defined")
+    #     #
+    #     # def saveAsset(self, *args, **kwargs):
+    #     #     logger.warning("saving Asset is not defined")
 
 # ---------------
 # GET ENVIRONMENT
 # ---------------
-import _version
+import tik_manager._version as _version
+import tik_manager.compatibility as compat
 
 BoilerDict = {"Environment": "Standalone",
               "MainWindow": None,
@@ -146,12 +147,13 @@ except ImportError:
 import os
 import sys
 import shutil
-import re
+# import re
 
 import datetime
 
-from SmRoot import RootManager
-import iconsSource as icons
+from tik_manager.SmRoot import RootManager
+import tik_manager.iconsSource as icons
+
 # FORCE_QT5 = bool(os.getenv("FORCE_QT5"))
 # FORCE_QT5 = bool(int(os.environ["FORCE_QT5"]))
 
@@ -1556,32 +1558,21 @@ class LibraryTab(QtWidgets.QWidget):
             tempAction = QtWidgets.QAction(z, self)
             zortMenu.addAction(tempAction)
             tempAction.triggered.connect(lambda item=z: self.multiImport(assetName, str(item)))
-        # if BoilerDict["Environment"] == "Standalone":
-        #     zortMenu.exec_((QtWidgets.QCursor.pos()))
-        # else:
-        #     zortMenu.exec_((QtGui.QCursor.pos()))
         zortMenu.exec_((QtGui.QCursor.pos()))
 
     def onExecute(self):
         assetName = self._getCurrentAssetName()
         if not assetName:
             return
-
-        assetData = self.library._getData(unicode(assetName).encode("utf-8"))
+        # assetData = self.library._getData(unicode(assetName).encode("utf-8"))
+        assetData = self.library._getData(compat.encode(assetName))
         otherFormats = self._getOtherFormats(assetData)
         zortMenu = QtWidgets.QMenu()
         for z in otherFormats:
             tempAction = QtWidgets.QAction(z, self)
             zortMenu.addAction(tempAction)
             tempAction.triggered.connect(lambda ignore=z, item=z: self.multiExecute(assetData, str(item)))
-        # if BoilerDict["Environment"] == "Standalone":
-        #     zortMenu.exec_((QtWidgets.QCursor.pos()))
-        # else:
-        #     zortMenu.exec_((QtGui.QCursor.pos()))
-        if BoilerDict["Environment"] == "Standalone":
-            zortMenu.exec_((QtWidgets.QCursor.pos()))
-        else:
-            zortMenu.exec_((QtGui.QCursor.pos()))
+        zortMenu.exec_((QtGui.QCursor.pos()))
 
     def multiExecute(self, assetData, format):
         if format == "Obj":

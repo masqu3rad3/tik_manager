@@ -39,7 +39,7 @@ from shutil import copyfile
 # import json
 # import logging
 # from SmMaya import MayaCoreFunctions
-from coreFunctions.coreFunctions_Maya import MayaCoreFunctions
+from tik_manager.coreFunctions.coreFunctions_Maya import MayaCoreFunctions
 
 
 # TODO : Subclass MayaCoreFunctions

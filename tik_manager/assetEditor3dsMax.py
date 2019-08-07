@@ -40,7 +40,7 @@ from shutil import copyfile
 # import json
 # import logging
 # from Sm3dsMax import MaxCoreFunctions
-from coreFunctions.coreFunctions_Max import MaxCoreFunctions
+from tik_manager.coreFunctions.coreFunctions_Max import MaxCoreFunctions
 
 
 class AssetEditor3dsMax(MaxCoreFunctions):

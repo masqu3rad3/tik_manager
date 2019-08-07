@@ -3,7 +3,7 @@
   <assemblyIdentity name="SmPhotoshop" processorArchitecture="amd64" type="win32" version="1.0.0.0"/>
   <dependency>
     <dependentAssembly>
-      <assemblyIdentity name="Microsoft.VC90.CRT" processorArchitecture="amd64" publicKeyToken="1fc8b3b9a1e18e3b" type="win32" version="9.0.30729.9518"/>
+      <assemblyIdentity name="Microsoft.VC90.CRT" processorArchitecture="amd64" publicKeyToken="1fc8b3b9a1e18e3b" type="win32" version="9.0.30729.9619"/>
       <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1"/>
     </dependentAssembly>
   </dependency>

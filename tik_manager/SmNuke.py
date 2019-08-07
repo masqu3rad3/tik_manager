@@ -33,12 +33,12 @@
 import os
 os.environ["FORCE_QT5"]="0"
 
-from SmUIRoot import MainUI as baseUI
-from SmRoot import RootManager
+from tik_manager.SmUIRoot import MainUI as baseUI
+from tik_manager.SmRoot import RootManager
 from tik_manager.coreFunctions.coreFunctions_Nuke import NukeCoreFunctions
 
 
-import _version
+import tik_manager._version as _version
 import shutil
 import nuke
 import datetime
@@ -47,10 +47,10 @@ import pprint
 import logging
 from glob import glob
 
-from Qt import QtWidgets, QtCore, QtGui
+from tik_manager.Qt import QtWidgets, QtCore, QtGui
 
 ## DO NOT REMOVE THIS:
-import iconsSource as icons
+import tik_manager.iconsSource as icons
 ## DO NOT REMOVE THIS:
 
 __author__ = "Arda Kutlu"

@@ -5,12 +5,12 @@ Works on PySeq objects
 
 import os
 from shutil import copyfile
-import pyseq
+# import pyseq
 import datetime
 import logging
 
-import Qt
-from Qt import QtWidgets, QtCore, QtGui
+import tik_manager.Qt as Qt
+from tik_manager.Qt import QtWidgets, QtCore, QtGui
 if Qt.__binding__ == "PySide":
     from shiboken import wrapInstance
     from Qt.QtCore import Signal

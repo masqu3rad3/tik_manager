@@ -40,12 +40,12 @@ os.environ["PS_APP"]="1"
 
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-from SmRoot import RootManager
+from tik_manager.SmRoot import RootManager
 from tik_manager.coreFunctions.coreFunctions_PS import PsCoreFunctions
 
-from SmUIRoot import MainUI as baseUI
+from tik_manager.SmUIRoot import MainUI as baseUI
 
-import _version
+import tik_manager._version as _version
 # import subprocess
 
 # from win32com.client import Dispatch
@@ -55,10 +55,8 @@ import _version
 # import pprint
 import logging
 
-import win32gui
-
 ## DO NOT REMOVE THIS:
-import iconsSource as icons
+import tik_manager.iconsSource as icons
 ## DO NOT REMOVE THIS:
 
 __author__ = "Arda Kutlu"
@@ -707,7 +705,6 @@ class PsManager(RootManager, PsCoreFunctions):
         inputDir = str(QtWidgets.QFileDialog.getExistingDirectory())
         return os.path.normpath(inputDir)
 
-import win32gui
 class MainUI(baseUI):
     """Main UI Class. Inherits SmUIRoot.py"""
     def __init__(self):

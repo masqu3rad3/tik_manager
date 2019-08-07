@@ -33,15 +33,15 @@
 import os
 os.environ["FORCE_QT5"]="0"
 
-from SmUIRoot import MainUI as baseUI
-import sys
-import SmRoot
-reload(SmRoot)
-from SmRoot import RootManager
+from tik_manager.SmUIRoot import MainUI as baseUI
+# import sys
+# import tik_manager.SmRoot
+# reload(SmRoot)
+from tik_manager.SmRoot import RootManager
 from tik_manager.coreFunctions.coreFunctions_Houdini import HoudiniCoreFunctions
 
 
-import _version
+import tik_manager._version as _version
 import shutil
 
 import datetime
@@ -55,10 +55,10 @@ from glob import glob
 import subprocess
 import platform
 
-from Qt import QtWidgets, QtCore, QtGui
+from tik_manager.Qt import QtWidgets, QtCore, QtGui
 
 ## DO NOT REMOVE THIS:
-import iconsSource as icons
+import tik_manager.iconsSource as icons
 ## DO NOT REMOVE THIS:
 
 
@@ -91,57 +91,8 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
             self._setEnvVariable("HOUDINI_ACCESS_METHOD", "1")
         self.setProject(self.projectDir)
 
-
-    # def getSoftwarePaths(self):
-    #     """Overriden function"""
-    #     logger.debug("Func: getSoftwarePaths")
-    #     softwareDatabaseFile = os.path.normpath(os.path.join(self.getSharedSettingsDir(), "softwareDatabase.json"))
-    #     softwareDB = self._loadJson(softwareDatabaseFile)
-    #     return softwareDB["Houdini"]
-    #     # To tell the base class maya specific path names
-    #     # return {"niceName": "Houdini",
-    #     #         "databaseDir": "houdiniDB",
-    #     #         "scenesDir": "scenes_houdini",
-    #     #         "pbSettingsFile": "pbSettings_houdini.json",
-    #     #         "categoriesFile": "categoriesHoudini.json",
-    #     #         "userSettingsDir": "SceneManager\\Houdini"}
-
-    # def getProjectDir(self):
-    #     """Overriden function"""
-    #     logger.debug("Func: getProjectDir")
-    #
-    #     projectsDict = self.loadProjects()
-    #
-    #     if not projectsDict:
-    #         # p_path = (hou.hscript('echo $JOB')[0])[:-1] # [:-1] is for the extra \n
-    #         # norm_p_path = os.path.normpath(p_path)
-    #         norm_p_path = self._getProject()
-    #         projectsDict = {"HoudiniProject": norm_p_path}
-    #         self.saveProjects(projectsDict)
-    #         return norm_p_path
-    #
-    #     # get the project defined in the database file
-    #     try:
-    #         norm_p_path = projectsDict["HoudiniProject"]
-    #         self.setProject(norm_p_path)
-    #         return norm_p_path
-    #     except KeyError:
-    #         p_path = (hou.hscript('echo $JOB')[0])[:-1] # [:-1] is for the extra \n
-    #         norm_p_path = os.path.normpath(p_path)
-    #         projectsDict = {"HoudiniProject": norm_p_path}
-    #         self.saveProjects(projectsDict)
-    #         return norm_p_path
-
     def getSceneFile(self):
         """Overriden function"""
-        # logger.debug("Func: getSceneFile")
-        # # # Gets the current scene path ("" if untitled)
-        # s_path = hou.hipFile.path()
-        # niceName = os.path.splitext(hou.hipFile.basename())[0]
-        # if niceName == "untitled":
-        #     s_path = ""
-        # norm_s_path = os.path.normpath(s_path)
-        # return norm_s_path
         return self._getSceneFile()
 
     def setProject(self, path):
@@ -230,7 +181,6 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
 
         # sceneName = "{0}_{1}_{2}_v{3}".format(baseName, categoryName, self._usersDict[self.currentUser], str(version).zfill(3))
         absSceneFile = os.path.join(shotPath, "{0}.{1}".format(sceneName, sceneFormat))
-        # print "absSceneFile", absSceneFile
         # houdini opens the scene with "\" paths but cannot resolve some inside paths. So convert them to "/"
         absSceneFile = absSceneFile.replace('\\', '/')
         ## relativity update
@@ -378,18 +328,6 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
 
         #
         pbSettings = self.loadPBSettings()
-        # validFormats = cmds.playblast(format=True, q=True)
-        # validCodecs = cmds.playblast(c=True, q=True)
-        #
-        # if not pbSettings["Format"] in validFormats:
-        #     msg = ("Format specified in project settings is not supported. Install {0}".format(pbSettings["Format"]))
-        #     cmds.warning(msg)
-        #     return -1, msg
-        #
-        # if not pbSettings["Codec"] in validCodecs:
-        #     msg = ("Codec specified in project settings is not supported. Install {0}".format(pbSettings["Codec"]))
-        #     cmds.warning(msg)
-        #     return -1, msg
         #
         extension = "jpg"
 
@@ -414,10 +352,6 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
 
         flip_options = scene_view.flipbookSettings().stash()
 
-        # flip_options.output("E:\\test\\{0}_$F4.{1}".format(camName, "tga"))
-        # flip_options.useResolution(True)
-        # flip_options.resolution((221, 124))
-        # scene_view.flipbook(viewport, flip_options)
 
 
         versionName = self.getSceneFile()
@@ -652,11 +586,6 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
     def getFormatsAndCodecs(self):
         """Returns the codecs which can be used in current workstation"""
         pass
-        # logger.debug("Func: getFormatsAndCodecs")
-        # formatList = cmds.playblast(query=True, format=True)
-        # codecsDictionary = dict(
-        #     (item, mel.eval('playblast -format "{0}" -q -compression;'.format(item))) for item in formatList)
-        # return codecsDictionary
 
     def preSaveChecklist(self):
         """Checks the scene for inconsistencies"""
@@ -708,34 +637,10 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
         #
     def _createCallbacks(self, handler):
         pass
-        # logger.debug("Func: _createCallbacks")
-        # callbackIDList=[]
-        # callbackIDList.append(cmds.scriptJob(e=["workspaceChanged", "%s.callbackRefresh()" % handler], replacePrevious=True, parent=SM_Version))
-        # return callbackIDList
+
 
     def _killCallbacks(self, callbackIDList):
         pass
-        # logger.debug("Func: _killCallbacks")
-        # for x in callbackIDList:
-        #     if cmds.scriptJob(ex=x):
-        #         cmds.scriptJob(kill=x)
-
-    # def _setEnvVariable(self, var, value):
-    #     """sets environment var
-    #     :param str var: The name of the var
-    #     :param value: The value of the variable
-    #     """
-    #     os.environ[var] = value
-    #     try:
-    #         hou.allowEnvironmentVariableToOverwriteVariable(var, True)
-    #     except AttributeError:
-    #         # should be Houdini 12
-    #         hou.allowEnvironmentToOverwriteVariable(var, True)
-    #
-    #     value = value.replace('\\', '/')
-    #     hscript_command = "set -g %s = '%s'" % (var, value)
-    #
-    #     hou.hscript(str(hscript_command))
 
     def _checkRequirements(self):
         """OVERRIDEN METHOD"""

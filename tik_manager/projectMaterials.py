@@ -35,7 +35,9 @@
 # ---------------
 # GET ENVIRONMENT
 # ---------------
-import _version
+import tik_manager._version as _version
+import tik_manager.compatibility as compat
+
 BoilerDict = {"Environment": "Standalone",
               "MainWindow": None,
               "WindowTitle": "Project Materials - Standalone v%s" % _version.__version__,
@@ -114,7 +116,7 @@ from glob import glob
 #     import Qt
 #     from Qt import QtWidgets, QtCore, QtGui
 
-from SmRoot import RootManager
+from tik_manager.SmRoot import RootManager
 
 # import pyseq as seq
 
@@ -125,7 +127,7 @@ import shutil
 import logging
 
 ## DO NOT REMOVE THIS:
-import iconsSource as icons
+import tik_manager.iconsSource as icons
 ## DO NOT REMOVE THIS:
 
 logging.basicConfig()
@@ -991,9 +993,6 @@ class ProjectMaterials(RootManager, CoreFunctions):
         """OVERRIDEN - function to return cursor position info for debugging purposes"""
         pass
 
-
-
-
 class MainUI(QtWidgets.QMainWindow):
     """Main UI function"""
 
@@ -1046,16 +1045,18 @@ class MainUI(QtWidgets.QMainWindow):
         # ----------
         margin = 5
         colorWidget = QtWidgets.QWidget()
-        colorWidget.setObjectName("header")
+        colorWidget.setProperty("header", True)
         headerLayout = QtWidgets.QHBoxLayout(colorWidget)
         headerLayout.setSpacing(0)
         try: headerLayout.setMargin(0)
         except AttributeError: pass
 
         tikIcon_label = QtWidgets.QLabel(self.centralwidget)
-        tikIcon_label.setObjectName("header")
+        # tikIcon_label.setObjectName("header")
+        tikIcon_label.setProperty("header", True)
         tikIcon_label.setMaximumWidth(135)
-        tikIcon_label.setMargin(margin)
+        try: tikIcon_label.setMargin(margin)
+        except AttributeError: pass
         tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         tikIcon_label.setScaledContents(False)
 
@@ -1066,8 +1067,8 @@ class MainUI(QtWidgets.QMainWindow):
         headerLayout.addWidget(tikIcon_label)
 
 
-        resolvedPath_label = QtWidgets.QLabel()
-        resolvedPath_label.setObjectName("header")
+        resolvedPath_label = QtWidgets.QLabel(self.centralwidget)
+        resolvedPath_label.setProperty("header", True)
         try: resolvedPath_label.setMargin(margin)
         except AttributeError: pass
         resolvedPath_label.setIndent(2)
@@ -1582,7 +1583,21 @@ class MainUI(QtWidgets.QMainWindow):
 
     def droppedPath(self, paths, material):
         self.statusBar().showMessage("Status | Idle")
-        paths = [os.path.normpath(unicode(path)) for path in paths if path != u'']
+        # try:
+        #     unicode = unicode
+        # except NameError:
+        #     str = str
+        #     unicode = str
+        #     bytes = bytes
+        #     basestring = (str, bytes)
+        # else:
+        #     str = str
+        #     unicode = unicode
+        #     bytes = str
+        #     basestring = basestring
+
+        # paths = [os.path.normpath(unicode(path)) for path in paths if path != u'']
+        paths = [os.path.normpath(compat.decode(path)) for path in paths if path != u'']
         if len(paths) == 0:
             self.statusBar().showMessage("Warning | There is no file path in dropped item")
             return

@@ -37,10 +37,10 @@ os.environ["FORCE_QT5"]="1"
 
 from PyQt5 import QtWidgets, QtCore
 
-from SmRoot import RootManager
-from SmUIRoot import MainUI as baseUI
+from tik_manager.SmRoot import RootManager
+from tik_manager.SmUIRoot import MainUI as baseUI
 
-import _version
+import tik_manager._version as _version
 import subprocess
 
 # import pprint
@@ -166,18 +166,6 @@ class SwViewer(RootManager):
 
         ID = self._currentSceneInfo["ID"]
 
-        # if ID.startswith("SmMaya"):
-        #     swID = "Maya"
-        # elif ID.startswith("Sm3dsMax"):
-        #     swID = "3dsMax"
-        # elif ID.startswith("SmHoudini"):
-        #     swID = "Houdini"
-        # elif ID.startswith("SmNuke"):
-        #     swID = "Nuke"
-        # else:
-        #     msg = "Cannot resolve software version from database"
-        #     self._exception(360, msg)
-        #     return
 
         swID = self.swDict["niceName"]
 
@@ -225,7 +213,13 @@ class SwViewer(RootManager):
                            20180200: "Maya2018",
                            20180300: "Maya2018",
                            20180400: "Maya2018",
-                           20180500: "Maya2018"
+                           20180500: "Maya2018",
+                           20190000: "Maya2019",
+                           20190100: "Maya2019",
+                           20190200: "Maya2019",
+                           20190300: "Maya2019",
+                           20190400: "Maya2019",
+                           20190500: "Maya2019",
                            }
             try:
                 versionName = versionDict[self._currentSceneInfo["MayaVersion"]]
@@ -418,37 +412,6 @@ class StandaloneManager(RootManager):
         # self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "exportSettings.json"))
         # self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "importSettings.json"))
         self._pathsDict["iconsDir"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "CSS", "rc")
-    # def init_paths(self, nicename):
-    #     """Overriden function"""
-    #
-    #
-    #     self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDir(), "TikManager", nicename))
-    #     self._folderCheck(self._pathsDict["userSettingsDir"])
-    #
-    #     self._pathsDict["bookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smBookmarks.json"))
-    #     self._pathsDict["currentsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smCurrents.json"))
-    #     self._pathsDict["projectsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smProjects.json"))
-    #
-    #     self._pathsDict["commonFolderDir"] = os.path.abspath(os.path.join(self._pathsDict["userSettingsDir"], os.pardir))
-    #     self._pathsDict["commonFolderFile"] = os.path.normpath(os.path.join(self._pathsDict["commonFolderDir"], "smCommonFolder.json"))
-    #
-    #     self._pathsDict["projectDir"] = self.getProjectDir()
-    #     self._pathsDict["sceneFile"] = ""
-    #
-    #     self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
-    #
-    #     self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
-    #
-    #     self._pathsDict["sharedSettingsDir"] = self._getCommonFolder()
-    #     if self._pathsDict["sharedSettingsDir"] == -1:
-    #         self._exception(201, "Cannot Continue Without Common Database")
-    #         return -1
-    #
-    #     self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerUsers.json"))
-    #
-    #     self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "softwareDatabase.json"))
-    #     self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerDefaults.json"))
-    #     self._pathsDict["adminPass"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "adminPass.psw"))
 
 
     def init_database(self):
@@ -545,10 +508,6 @@ class StandaloneManager(RootManager):
             self.swList[indexData].cursorInfo()
             return
         self._setCurrents("currentSwIndex", indexData)
-        # self.swList[indexData].scanBaseScenes()
-        # self.swList[indexData].currentBaseSceneName = ""
-        # self.swList[indexData]._currentPreviewCamera = ""
-        # self.swList[indexData].cursorInfo()
         pass
 
     # def getSoftwareList(self):
@@ -614,89 +573,6 @@ class StandaloneManager(RootManager):
         # Qt File dialog is preferred because it is faster
         inputDir = str(QtWidgets.QFileDialog.getExistingDirectory())
         return os.path.normpath(inputDir)
-
-    # def _checkCommonFolder(self, folder):
-    #     checkList = [os.path.join(folder, "sceneManagerDefaults.json"),
-    #                  os.path.join(folder, "sceneManagerUsers.json"),
-    #                  os.path.join(folder, "softwareDatabase.json")]
-    #     missingList = [os.path.basename(path) for path in checkList if not os.path.isfile(path)]
-    #     if len(missingList) > 0:
-    #
-    #         errorBox = QtWidgets.QMessageBox()
-    #         errorBox.setText("Common Database Folder missing some necessary files")
-    #         errorBox.setDetailedText("Following files are missing:\n %s" %pprint.pformat(missingList))
-    #         errorBox.exec_()
-    #         return False
-    #     else:
-    #         return True
-    #
-    # def _getCommonFolder(self):
-    #     """Standalone Specific function - Different from software modules,
-    #     Standalone version needs to know where common files exist"""
-    #     if os.path.isfile(self._pathsDict["commonFolderFile"]):
-    #         commonFolder = self._loadJson(self._pathsDict["commonFolderFile"])
-    #         if commonFolder == -2:
-    #             return -2
-    #
-    #     else:
-    #         # in case there is no file found (Initial Run)
-    #         q = QtWidgets.QMessageBox()
-    #         q.setIcon(QtWidgets.QMessageBox.Question)
-    #         q.setText("Please define the Common Database Folder which contains general database files\n\nPress Ok to continue")
-    #         # q.setInformativeText(textInfo)
-    #         q.setWindowTitle("Select the Common Database Folder")
-    #         q.setDetailedText(
-    #             "Common Database Folder is the one which has the common modules for all software modules. Common Database Folder must include:\n"
-    #             "sceneManagerDefaults.json\n"
-    #             "sceneManagerUsers.json\n"
-    #             "softwareDatabase.json")
-    #         q.setStandardButtons(
-    #             QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Abort)
-    #
-    #         # q.button(QtWidgets.QMessageBox.Ok).setFixedHeight(30)
-    #         q.button(QtWidgets.QMessageBox.Ok).setFixedWidth(100)
-    #         #
-    #         # q.button(QtWidgets.QMessageBox.Abort).setFixedHeight(30)
-    #         q.button(QtWidgets.QMessageBox.Abort).setFixedWidth(100)
-    #         ret = q.exec_()
-    #         if ret == QtWidgets.QMessageBox.Ok:
-    #             commonFolder = self._defineCommonFolder()
-    #
-    #         elif ret == QtWidgets.QMessageBox.Abort:
-    #             return -1
-    #
-    #     return commonFolder
-    #
-    # def _defineCommonFolder(self):
-    #     dlg = QtWidgets.QFileDialog.getExistingDirectory()
-    #     if dlg:
-    #         selectedDir = os.path.normpath(str(dlg))
-    #         if self._checkCommonFolder(selectedDir):
-    #             commonFolder = selectedDir
-    #             self._saveCommonFolder(commonFolder)
-    #
-    #             q = QtWidgets.QMessageBox()
-    #             q.setIcon(QtWidgets.QMessageBox.Information)
-    #             q.setText("Common Database Defined Successfully")
-    #             # q.setInformativeText(textInfo)
-    #             q.setWindowTitle("Success")
-    #             q.exec_()
-    #
-    #             return commonFolder
-    #         else:
-    #             return self._getCommonFolder()
-    #     else:
-    #         return self._getCommonFolder()
-    #         # self._getCommonFolder()
-    #
-    # def _saveCommonFolder(self, data):
-    #     try:
-    #         self._dumpJson(data, self._pathsDict["commonFolderFile"])
-    #         msg = ""
-    #         return 0, msg
-    #     except:
-    #         msg = "Cannot save common folder file"
-    #         return -1, msg
 
     def loadUserPrefs(self):
         """OVERRIDEN FUNCTION Load Last CategoryIndex, SubProject Index,
