@@ -35,6 +35,7 @@ import sys, os
 # Set the force pyqt environment variable to tell the other modulea not to use Qt.py module
 os.environ["FORCE_QT5"]="1"
 
+import tik_manager.pyinstallerPathFix
 from PyQt5 import QtWidgets, QtCore
 
 from tik_manager.SmRoot import RootManager
@@ -370,7 +371,6 @@ class StandaloneManager(RootManager):
         self.init_database()
 
         self.initSoftwares()
-        print("swlist", self.swList)
 
     def init_paths(self, nicename):
         """Overriden function"""
@@ -480,12 +480,9 @@ class StandaloneManager(RootManager):
         # for swDict in softwareDictionary.items():
 
         for (key, value) in self.softwareDictionary.items():
-            print("V", value)
             searchPath = (os.path.join(self.projectDir, "smDatabase", value["databaseDir"]))
             if os.path.isdir(searchPath):
-                print(searchPath)
                 filesInFolders = [filenames for (dirpath, dirnames, filenames) in os.walk(searchPath)]
-                print("F", filesInFolders)
                 if len(filesInFolders) > 1:
                     # create a new software viewer object with the accessed project path
                     # and append it to the list of valid softwares for the current project

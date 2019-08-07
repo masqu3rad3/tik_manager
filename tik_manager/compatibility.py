@@ -7,8 +7,13 @@ def encode(data):
 
 
 def decode(data):
+    print("ASDF", type(data))
     try: return unicode(data).decode("utf-8")
-    except NameError: return data
+    except NameError:
+        if type(data) == bytes:
+            return data.decode("utf-8")
+        else:
+            return data
 
 
 

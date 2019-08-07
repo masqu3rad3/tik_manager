@@ -1031,9 +1031,11 @@ class MainUI(QtWidgets.QMainWindow):
             onDragAndDrop(fullPath)
 
         def onDragAndDrop(path):
-            normPath = os.path.normpath(str(path))
-
+            # normPath = os.path.normpath(str(path))
+            normPath = os.path.normpath((path))
+            print("asdf", normPath)
             path, fName = os.path.split(normPath)
+            print("debugDD", path, fName)
             if [fName, normPath] in self.favList:
                 return
             self.favorites_listWidget.addItem(fName)
@@ -1061,17 +1063,28 @@ class MainUI(QtWidgets.QMainWindow):
             self.favorites_listWidget.blockSignals(False)
 
         def setProject():
-            if not self.manager.nameCheck(self.spActiveProjectPath, allowSpaces=True, directory=True):
+            pPath = os.path.normpath(compat.decode(self.spActiveProjectPath))
+            print("debug1", pPath)
+            # if not self.manager.nameCheck(self.spActiveProjectPath, allowSpaces=True, directory=True):
+            if not self.manager.nameCheck(pPath, allowSpaces=True, directory=True):
                 self.infoPop(textTitle="Invalid Path",
                              textHeader="There are invalid (non-ascii) characters in the selected path.",
                              textInfo="This Path cannot be used", type="C")
                 return
+            print("debug2")
             if self.manager.currentPlatform == "Linux":
-                pPath = "/%s" % self.spActiveProjectPath
+                print("debug3")
+                # pPath = "/%s" % self.spActiveProjectPath
+                pPath = "/%s" % pPath
             else:
-                pPath = self.spActiveProjectPath
+                print("debug4")
+                # pPath = self.spActiveProjectPath
+                pPath = pPath
+            print("debug5")
             self.manager.setProject(pPath)
             self.onProjectChange()
+
+            print("debug6")
             self.setProject_Dialog.close()
 
         navigate("init")
@@ -5613,6 +5626,7 @@ class DropListWidget(QtWidgets.QListWidget):
     def dropEvent(self, event):
         rawPath = event.mimeData().data('text/uri-list').__str__()
         path = rawPath.replace("file:///", "").splitlines()[0]
+        path = path.replace("\\r\\n'", "")
         self.dropped.emit(path)
 
 
