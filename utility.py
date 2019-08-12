@@ -54,7 +54,7 @@ class TMUtility(object):
         except: pass
 
         res = subprocess.check_output(freezePs, cwd=self.root_folder, shell=True)
-        print "PS Res",res
+        print("PS Res",res)
         copyList = [
             [os.path.join(ps_folder, "SmPhotoshop.exe"), self.bin_folder],
             [os.path.join(ps_folder, "SmPhotoshop.exe.manifest"), self.bin_folder]
@@ -72,7 +72,7 @@ class TMUtility(object):
 
 
         res = subprocess.check_output(freezeStandalone, cwd=self.root_folder, shell=True)
-        print "ST Res",res
+        print("ST Res",res)
         copyList = [
             [os.path.join(standalone_folder, "SmStandalone.exe"), self.bin_folder],
             [os.path.join(standalone_folder, "SmStandalone.exe.manifest"), self.bin_folder],
@@ -143,9 +143,9 @@ class TMUtility(object):
 
         # TODO // INNO SETUP Commandline
         print("Compiling... Please wait")
-        res = subprocess.check_output([compiler, innoSetupScript], cwd=self.root_folder, shell=False)
+        res = subprocess.check_output([compiler, innoSetupScript], cwd=self.root_folder, shell=True)
         if res == 0:
-            raw_input("inno setup compilation completed...")
+            input("inno setup compilation completed...")
         pass
 
     def _copyfile(self, src, dst):

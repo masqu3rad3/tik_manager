@@ -35,7 +35,7 @@ import sys, os
 # Set the force pyqt environment variable to tell the other modulea not to use Qt.py module
 os.environ["FORCE_QT5"]="1"
 
-# import __pyinstallerPathFix
+import __pyinstallerPathFix
 from PyQt5 import QtWidgets, QtCore
 
 # from tik_manager.SmRoot import RootManager
@@ -457,6 +457,7 @@ class StandaloneManager(RootManager):
 
     def setProject(self, path):
         """Sets the project"""
+        # print("d", type(path), path)
         projectsDict = self.loadProjects()
         if not projectsDict:
             projectsDict = {"Standalone": path}

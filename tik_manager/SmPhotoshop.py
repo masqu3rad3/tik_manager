@@ -34,6 +34,8 @@ import socket
 import sys, os
 # import shutil
 
+import __pyinstallerPathFix
+
 # Set the force pyqt environment variable to tell the other modulea not to use Qt.py module
 os.environ["FORCE_QT5"]="1"
 os.environ["PS_APP"]="1"

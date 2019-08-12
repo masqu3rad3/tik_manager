@@ -1054,7 +1054,8 @@ class MainUI(QtWidgets.QMainWindow):
             # block the signal to prevent unwanted cycle
             self.folders_treeView.selectionModel().blockSignals(True)
             row = self.favorites_listWidget.currentRow()
-            self.spActiveProjectPath = self.favList[row][1]
+            # self.spActiveProjectPath = self.favList[row][1]
+            self.spActiveProjectPath = os.path.normpath(compat.encode(self.favList[row][1]))
 
             # clear the selection in folders view
             self.folders_treeView.setCurrentIndex(self.sourceModel.index(self.projectsRoot))
@@ -1066,7 +1067,6 @@ class MainUI(QtWidgets.QMainWindow):
             index = self.folders_treeView.currentIndex()
             # self.spActiveProjectPath = os.path.normpath(unicode(self.sourceModel.filePath(index)).encode("utf-8"))
             self.spActiveProjectPath = os.path.normpath(compat.encode(self.sourceModel.filePath(index)))
-
             # clear the selection in favorites view
             self.favorites_listWidget.setCurrentRow(-1)
             self.favorites_listWidget.blockSignals(False)
@@ -1085,7 +1085,7 @@ class MainUI(QtWidgets.QMainWindow):
             zortMenu.exec_((QtGui.QCursor.pos()))
 
         def setProject(custompath=None):
-            if custompath:
+            if custompath == str:
                 pPath=custompath
             else:
                 if not self.spActiveProjectPath:
