@@ -1179,7 +1179,9 @@ def cli():
     Choose the software you want to setup Scene Manager:
     ----------------------------------------------------""")
         for item in menuItems:
-            print("[" + str(menuItems.index(item)) + "] ") + item.keys()[0]
+            # print("dbg",list(item)[0])
+            print("[{0}] {1}".format(str(menuItems.index(item)), list(item)[0]))
+            # print("[" + str(menuItems.index(item)) + "] ") + list(item)[0]
         # choice = raw_input(">> ")
         choice = input(">> ")
         assert isinstance(choice, str)
@@ -1187,7 +1189,13 @@ def cli():
         try:
             if int(choice) < 0: raise ValueError
             # Call the matching function
-            menuItems[int(choice)].values()[0]()
+
+            # menuItems[int(choice)].values()[0]() # only compatible with py2
+            # python3 compatibility
+            key = list(menuItems[int(choice)])[0]
+            cmd = menuItems[int(choice)][key]
+            cmd()
+
             os.system('cls')
         except (ValueError, IndexError):
             pass

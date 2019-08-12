@@ -33,6 +33,8 @@ Tik Manager Version History
 * **Fix.46** Maya - Take Preview option selection bug fixed
 * **Fix.46** Maya/TransferCentral capital extenstion compatibility
 * **Fix.46** Project Favorites - Python3 compatibility issue fixed
+* **Fix.47** Minor bug fixes with Set Project and  Setup.py
+* **New.47** Set Project / Recent projects added
 
 2.5
 ---

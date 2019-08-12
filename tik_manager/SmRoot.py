@@ -103,6 +103,7 @@ class RootManager(object):
 
         self._pathsDict["localBookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], nicename, "smBookmarks.json"))
         self._pathsDict["bookmarksFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smBookmarks.json"))
+        self._pathsDict["recentProjectsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smRecentProjects.json"))
         self._pathsDict["currentsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], nicename, "smCurrents.json"))
         self._pathsDict["projectsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "smProjects.json"))
 
@@ -281,6 +282,7 @@ class RootManager(object):
             projectsDict[self.swName] = path
         self.saveProjects(projectsDict)
         self.projectDir = path
+        # self.addToRecentProjects(path)
 
     # def getProjectDir(self, softwareName):
     #
@@ -2009,6 +2011,39 @@ Elapsed Time:{6}
                 return -2
             return userDB
 
+    def loadRecentProjects(self):
+        """Loads Recent Projects List"""
+        logger.debug("Func: loadRecentProjects")
+        recentProjectsFilePath = self._pathsDict["recentProjectsFile"]
+
+        if os.path.isfile(recentProjectsFilePath):
+            recentProjectsData = self._loadJson(recentProjectsFilePath)
+            if recentProjectsData == -2:
+                return -2
+        else: # no recent projects
+            recentProjectsData = []
+
+        return recentProjectsData
+
+    def addToRecentProjects(self, absPath):
+        """
+        Adds the given project info to the favorites database
+        :param shortName: (String) Name of the project
+        :param absPath: (String) Absolute path of the project folder
+        :return: (List) [Favorites Data]
+        """
+        logger.debug("Func: addToFavorites")
+
+        # old Name userFavoritesAdd
+        recentProjectsData = self.loadRecentProjects()
+
+        if absPath in recentProjectsData:
+            recentProjectsData.remove(absPath)
+        recentProjectsData.append(absPath)
+        if len(recentProjectsData) > 10:
+            recentProjectsData.pop(0)
+        self._dumpJson(recentProjectsData, self._pathsDict["recentProjectsFile"])
+        return recentProjectsData
 
     def loadFavorites(self):
         """Loads Bookmarked projects"""

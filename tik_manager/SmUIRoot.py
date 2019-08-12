@@ -758,7 +758,7 @@ class MainUI(QtWidgets.QMainWindow):
                 resolve()
 
         def onCreateNewProject():
-            root = os.path.normpath(unicode(projectRoot_le.text()).decode("utf-8"))
+            root = os.path.normpath(compat.encode(projectRoot_le.text()))
             if not self.manager.nameCheck(root, allowSpaces=True, directory=True):
                 self.infoPop(textTitle="Non-Ascii Character", textHeader="Selected Project Root cannot be used",
                              textInfo="There are non-ascii characters in the selected path.", type="C")
@@ -779,6 +779,7 @@ class MainUI(QtWidgets.QMainWindow):
             pPath = self.manager.createNewProject(root, pName, bName, cName, settingsData=projectSettingsDB)
             if pPath:
                 self.manager.setProject(pPath)
+                self.manager.addToRecentProjects(pPath) #moved to the SmRoot
             # self.onProjectChange()
 
             self.initMainUI()
@@ -842,8 +843,9 @@ class MainUI(QtWidgets.QMainWindow):
         M1_horizontalLayout.addWidget(self.lookIn_lineEdit)
 
         # a fake button which actually does nothing
-        # fakeButton = QtWidgets.QPushButton(self.setProject_Dialog)
-        # fakeButton.setVisible(False)
+        fakeButton = QtWidgets.QPushButton(self.setProject_Dialog)
+        fakeButton.setVisible(False)
+        fakeButton.setFocus()
 
         browse_pushButton = QtWidgets.QPushButton(self.setProject_Dialog, text="Browse")
 
@@ -864,6 +866,9 @@ class MainUI(QtWidgets.QMainWindow):
         up_pushButton.setShortcut((""))
 
         M1_horizontalLayout.addWidget(up_pushButton)
+
+        recent_pushButton = QtWidgets.QPushButton(self.setProject_Dialog, text="Recent")
+        M1_horizontalLayout.addWidget(recent_pushButton)
 
         gridLayout.addLayout(M1_horizontalLayout, 0, 0, 1, 1)
 
@@ -1066,21 +1071,45 @@ class MainUI(QtWidgets.QMainWindow):
             self.favorites_listWidget.setCurrentRow(-1)
             self.favorites_listWidget.blockSignals(False)
 
-        def setProject():
-            pPath = os.path.normpath(compat.decode(self.spActiveProjectPath))
-            # if not self.manager.nameCheck(self.spActiveProjectPath, allowSpaces=True, directory=True):
-            if not self.manager.nameCheck(pPath, allowSpaces=True, directory=True):
-                self.infoPop(textTitle="Invalid Path",
-                             textHeader="There are invalid (non-ascii) characters in the selected path.",
-                             textInfo="This Path cannot be used", type="C")
-                return
-            if self.manager.currentPlatform == "Linux":
-                # pPath = "/%s" % self.spActiveProjectPath
-                pPath = "/%s" % pPath
+        def recentMenu():
+            recentList = reversed(self.manager.loadRecentProjects())
+
+            zortMenu = QtWidgets.QMenu()
+            for p in recentList:
+                tempAction = QtWidgets.QAction(p, self)
+                zortMenu.addAction(tempAction)
+                ## Take note about the usage of lambda "item=z" makes it possible using the loop, ignore -> for discarding emitted value
+                tempAction.triggered.connect(lambda ignore=p, item=p: setProject(custompath=(item)))
+                # tempAction.triggered.connect(lambda item=z: manager.playPreview(str(item)))
+
+            zortMenu.exec_((QtGui.QCursor.pos()))
+
+        def setProject(custompath=None):
+            if custompath:
+                pPath=custompath
             else:
-                # pPath = self.spActiveProjectPath
-                pPath = pPath
+                if not self.spActiveProjectPath:
+                    self.infoPop(textTitle="Cannot set project", textHeader="Nothing Selected\nSelect the project from the list or bookmarks and hit 'set' again\nPress 'Ok' to continue")
+                    return
+                pPath = os.path.normpath(compat.decode(self.spActiveProjectPath))
+
+                # if not self.manager.nameCheck(self.spActiveProjectPath, allowSpaces=True, directory=True):
+                if not self.manager.nameCheck(pPath, allowSpaces=True, directory=True):
+                    self.infoPop(textTitle="Invalid Path",
+                                 textHeader="There are invalid (non-ascii) characters in the selected path.",
+                                 textInfo="This Path cannot be used", type="C")
+                    return
+                if self.manager.currentPlatform == "Linux":
+                    # pPath = "/%s" % self.spActiveProjectPath
+                    pPath = "/%s" % pPath
+                else:
+                    # pPath = self.spActiveProjectPath
+                    pPath = pPath
+
             self.manager.setProject(pPath)
+                # recentData
+            self.manager.addToRecentProjects(pPath) #moved to the SmRoot
+
             self.onProjectChange()
 
             self.setProject_Dialog.close()
@@ -1100,6 +1129,7 @@ class MainUI(QtWidgets.QMainWindow):
         browse_pushButton.clicked.connect(lambda: navigate("browse"))
         self.lookIn_lineEdit.returnPressed.connect(lambda: navigate("lineEnter"))
         # self.folders_treeView.doubleClicked.connect(lambda index: navigate("folder", index=index))
+        recent_pushButton.clicked.connect(recentMenu)
 
         self.favorites_listWidget.currentItemChanged.connect(favoritesActivated)
         # self.folders_tableView.selectionModel().currentRowChanged.connect(foldersViewActivated)
@@ -4547,13 +4577,9 @@ class MainUI(QtWidgets.QMainWindow):
         relScenesDir = os.path.relpath(scenesDir, projectDir)
 
         def getResolvedPath():
-            print("here_1")
             category = category_comboBox.currentText()
-            print("here_2")
             name = lineEdit.text()
-            print("here_3")
             userInitials = self.manager.currentUserInitials
-            print("here_4")
             ## Naming Dictionary
             nameDict = {
                 "baseName": name,
@@ -5265,10 +5291,11 @@ class MainUI(QtWidgets.QMainWindow):
                 tempAction.triggered.connect(lambda ignore=z, item=z: manager.playPreview(str(item)))
                 # tempAction.triggered.connect(lambda item=z: manager.playPreview(str(item)))
 
-            if BoilerDict["Environment"] == "Standalone":
-                zortMenu.exec_((QtWidgets.QCursor.pos()))
-            else:
-                zortMenu.exec_((QtGui.QCursor.pos()))
+            # if BoilerDict["Environment"] == "Standalone":
+            #     zortMenu.exec_((QtWidgets.QCursor.pos()))
+            # else:
+            #     zortMenu.exec_((QtGui.QCursor.pos()))
+            zortMenu.exec_((QtGui.QCursor.pos()))
 
     def onDeleteBaseScene(self):
         # This method IS Software Specific.
