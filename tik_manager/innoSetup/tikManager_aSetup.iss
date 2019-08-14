@@ -4,7 +4,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING .ISS SCRIPT FILES!
 
 #define appName "Tik Manager"
-#define appVersion "3.0.47"
+#define appVersion "3.0.48"
 
 [Setup]
 AppName={#appName}
@@ -29,28 +29,28 @@ DisableProgramGroupPage=yes
 InfoAfterFile="..\..\README.md"
 
 [Files]
-Source: "..\__init__.pyc"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\_version.pyc"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\assetEditor3dsMax.pyc"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\assetEditorMaya.pyc"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\assetEditorHoudini.pyc"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\assetLibrary.pyc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\__init__.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\_version.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\assetEditor3dsMax.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\assetEditorMaya.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\assetEditorHoudini.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\assetLibrary.py"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\ffmpeg.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\iconsSource.pyc"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\ImageViewer.pyc"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\ImMaya.pyc"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\projectMaterials.pyc"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\pyseq.pyc"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\Qt.pyc"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\seqCopyProgress.pyc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\iconsSource.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\ImageViewer.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\ImMaya.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\projectMaterials.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\pyseq.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\Qt.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\seqCopyProgress.py"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\setup.exe"; DestDir: "{app}"; Flags: ignoreversion;
-Source: "..\Sm3dsMax.pyc"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\SmHoudini.pyc"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\SmMaya.pyc"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\SmNuke.pyc"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\SmRoot.pyc"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\SmUIRoot.pyc"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\compatibility.pyc"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\Sm3dsMax.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\SmHoudini.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\SmMaya.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\SmNuke.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\SmRoot.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\SmUIRoot.py"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\compatibility.py"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\CSS\tikManager.qss"; DestDir: "{app}\CSS"; Flags: ignoreversion
 
 Source: "..\icons\*"; DestDir: "{app}\icons"; Flags: ignoreversion createallsubdirs recursesubdirs

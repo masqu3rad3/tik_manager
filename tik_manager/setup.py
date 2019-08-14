@@ -795,7 +795,10 @@ def maxSetup(prompt=True):
         </Window>\n"""
 
     print("Finding 3ds Max Versions...")
-    maxVersions = [x for x in os.listdir(userMaxDir)]
+
+    try: maxVersions = [x for x in os.listdir(userMaxDir)]
+    except: maxVersions = None
+
     if maxVersions:
         print("Found 3ds Max Versions: %s " % str(maxVersions))
     else:
@@ -1066,11 +1069,11 @@ def prepareCommonFolder(targetCommonFolderPath):
         ["", "alExportSettings.json"],
         ["", "alImportSettings.json"],
         ["", "conversionLUT.json"],
-        ["icons", "iconHoudini.png"],
-        ["icons", "iconMax.png"],
-        ["icons", "iconMaya.png"],
-        ["icons", "iconNuke.png"],
-        ["icons", "iconPS.png"],
+        # ["icons", "iconHoudini.png"],
+        # ["icons", "iconMax.png"],
+        # ["icons", "iconMaya.png"],
+        # ["icons", "iconNuke.png"],
+        # ["icons", "iconPS.png"],
     ]
 
     for file in files:
@@ -1082,8 +1085,10 @@ def prepareCommonFolder(targetCommonFolderPath):
             continue
         else:
             sourceFile = os.path.join(currentCommonPath, file[0], file[1])
+            shutil.copyfile(sourceFile, targetFile)
             try:
-                shutil.copyfile(sourceFile, targetFile)
+                print("debug:", sourceFile, targetFile)
+                # shutil.copyfile(sourceFile, targetFile)
             except:
                 print("Cannot copy %s to %s" %(file[1], os.path.join(targetCommonFolderPath, file[0])))
                 # raw_input("ABORTING")

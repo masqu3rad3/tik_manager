@@ -434,7 +434,7 @@ class AssetEditorMaya(MayaCoreFunctions):
     def _mergeAsset(self, assetName):
         assetData = self._getData(assetName)
         if not self._checkVersionMatch(assetData["version"]):
-            print "versionMatching"
+            print("versionMatching")
             return
         absSourcePath = os.path.join(self.directory, assetName, assetData["sourcePath"])
 

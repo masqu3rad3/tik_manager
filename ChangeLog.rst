@@ -35,6 +35,7 @@ Tik Manager Version History
 * **Fix.46** Project Favorites - Python3 compatibility issue fixed
 * **Fix.47** Minor bug fixes with Set Project and  Setup.py
 * **New.47** Set Project / Recent projects added
+* **Fix.48** setup.py fixed
 
 2.5
 ---

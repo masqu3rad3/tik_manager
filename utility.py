@@ -81,11 +81,15 @@ class TMUtility(object):
         map(lambda x: self._copyfile(x[0], x[1]), copyList)
 
 
-    def forceCompile(self):
-        """compiles every .py file under tik_manager folder"""
-        # get py files
-        pyFiles = [f for f in os.listdir(self.root_folder) if os.path.splitext(f)[1] == ".py"]
-        map(lambda x: py_compile.compile(os.path.join(self.root_folder, x)), pyFiles)
+    # def forceCompile(self):
+    #     """compiles every .py file under tik_manager folder"""
+    #     # get py files
+    #     pyFiles = [f for f in os.listdir(self.root_folder) if os.path.splitext(f)[1] == ".py"]
+    #     # print("debug", pyFiles)
+    #     for x in pyFiles:
+    #         print(x)
+    #         print(py_compile.compile(os.path.join(self.root_folder, x)))
+    #     # map(lambda x: py_compile.compile(os.path.join(self.root_folder, x), optimize=2), pyFiles)
 
     def _updateInnoSetupFile(self):
         filePath = os.path.join(self.root_folder, "innoSetup", "tikManager_aSetup.iss")
@@ -123,9 +127,10 @@ class TMUtility(object):
 
         print("Tik Manager v%s Auto Setup Creation Utility\n" %versionInfo.__version__)
         ## Preparations
-        print("Starting Force Compilation...")
-        self.forceCompile()
-        print("Force compilation DONE...\n")
+        # print("Starting Force Compilation...")
+        # self.forceCompile()
+        # print("Force compilation DONE...\n")
+
         print("Starting freezeSetup...")
         self.freezeSetup()
         print("freezeSetup DONE...\n")
@@ -143,10 +148,11 @@ class TMUtility(object):
 
         # TODO // INNO SETUP Commandline
         print("Compiling... Please wait")
-        res = subprocess.check_output([compiler, innoSetupScript], cwd=self.root_folder, shell=True)
-        if res == 0:
-            input("inno setup compilation completed...")
-        pass
+        # res = subprocess.check_output([compiler, innoSetupScript], cwd=self.root_folder, shell=True)
+        subprocess.call([compiler, innoSetupScript], cwd=self.root_folder, shell=True)
+        # if res == 0:
+        #     input("inno setup compilation completed...")
+        # pass
 
     def _copyfile(self, src, dst):
         targetPath = os.path.join(dst, os.path.basename(src))
