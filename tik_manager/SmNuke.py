@@ -178,7 +178,8 @@ class NukeManager(RootManager, NukeCoreFunctions):
             jsonInfo["ReferencedVersion"] = None
 
         jsonInfo["ID"] = "SmNukeV02_sceneFile"
-        jsonInfo["NukeVersion"] = self._getVersion
+        # jsonInfo["NukeVersion"] = self._getVersion
+        jsonInfo["NukeVersion"] = "test"
         jsonInfo["Name"] = baseName
         jsonInfo["Path"] = os.path.relpath(shotPath, start=projectPath)
         jsonInfo["Category"] = categoryName

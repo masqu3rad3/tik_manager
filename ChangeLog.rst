@@ -36,6 +36,7 @@ Tik Manager Version History
 * **Fix.47** Minor bug fixes with Set Project and  Setup.py
 * **New.47** Set Project / Recent projects added
 * **Fix.48** setup.py fixed
+* **Fix.49** SmNuke / Bug fixed when querying versions which also prevents saving base scenes (tested with Nuke v11)
 
 2.5
 ---

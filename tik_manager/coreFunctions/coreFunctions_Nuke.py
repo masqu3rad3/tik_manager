@@ -73,7 +73,7 @@ class NukeCoreFunctions(object):
         return norm_p_path
 
     def _getVersion(self):
-        return [nuke.NUKE_VERSION_MAJOR, nuke.NUKE_VERSION_MINOR]
+        return [int(nuke.NUKE_VERSION_MAJOR), int(nuke.NUKE_VERSION_MINOR)]
 
     def _getCurrentFrame(self):
         return nuke.frame()
