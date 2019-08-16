@@ -37,6 +37,8 @@ Tik Manager Version History
 * **New.47** Set Project / Recent projects added
 * **Fix.48** setup.py fixed
 * **Fix.49** SmNuke / Bug fixed when querying versions which also prevents saving base scenes (tested with Nuke v11)
+* **Fix.50** Playblast Linux/Windows path clash fixed
+* **Fix.50** Recent Projects / Unicode bug fixed
 
 2.5
 ---

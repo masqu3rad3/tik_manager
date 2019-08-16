@@ -1085,7 +1085,10 @@ class MainUI(QtWidgets.QMainWindow):
             zortMenu.exec_((QtGui.QCursor.pos()))
 
         def setProject(custompath=None):
-            if custompath == str:
+            # print(type(custompath))
+            try: passPy2 = True if type(custompath) == unicode else False
+            except: passPy2 = False
+            if type(custompath) == str or passPy2:
                 pPath=custompath
             else:
                 if not self.spActiveProjectPath:

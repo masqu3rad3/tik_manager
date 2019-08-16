@@ -43,7 +43,9 @@ class TMUtility(object):
         copyList = [
             [os.path.join(self.root_folder, "dist", "setup.exe"), os.path.join(self.root_folder)]
         ]
-        map(lambda x: self._copyfile(x[0], x[1]), copyList)
+        for x in copyList:
+            self._copyfile(x[0], x[1])
+        # map(lambda x: self._copyfile(x[0], x[1]), copyList)
 
     def freezePhotoshop(self):
         freezePs = os.path.join(self.root_folder, "freezePs.bat")
@@ -59,7 +61,9 @@ class TMUtility(object):
             [os.path.join(ps_folder, "SmPhotoshop.exe"), self.bin_folder],
             [os.path.join(ps_folder, "SmPhotoshop.exe.manifest"), self.bin_folder]
         ]
-        map(lambda x: self._copyfile(x[0], x[1]), copyList)
+        # map(lambda x: self._copyfile(x[0], x[1]), copyList)
+        for x in copyList:
+            self._copyfile(x[0], x[1])
 
     def freezeStandalone(self):
         freezeStandalone = os.path.join(self.root_folder, "freezeStandalone.bat")
@@ -78,7 +82,9 @@ class TMUtility(object):
             [os.path.join(standalone_folder, "SmStandalone.exe.manifest"), self.bin_folder],
             [os.path.join(self.root_folder, "CSS", "tikManager.qss"), os.path.join(self.bin_folder, "CSS")]
         ]
-        map(lambda x: self._copyfile(x[0], x[1]), copyList)
+        for x in copyList:
+            self._copyfile(x[0], x[1])
+        # map(lambda x: self._copyfile(x[0], x[1]), copyList)
 
 
     # def forceCompile(self):

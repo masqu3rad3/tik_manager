@@ -42,10 +42,10 @@ os.environ["PS_APP"]="1"
 
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-from tik_manager.SmRoot import RootManager
+from SmRoot import RootManager
 from tik_manager.coreFunctions.coreFunctions_PS import PsCoreFunctions
 
-from tik_manager.SmUIRoot import MainUI as baseUI
+from SmUIRoot import MainUI as baseUI
 
 import tik_manager._version as _version
 # import subprocess
