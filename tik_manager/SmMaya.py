@@ -472,10 +472,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
             camera = cmds.modelPanel(currentPanel, q=True, cam=True)
         else:
             overrideDict["camera"] = camera
-            print("DEBUGGGG", camera)
 
-
-        print("aaDEBUGGGG", camera)
 
         properties = ["activeComponentsXray", "activeCustomGeometry", "activeCustomLighSet",
                       "activeCustomOverrideGeometry", "activeCustomRenderer", "activeOnly",
@@ -832,21 +829,15 @@ class MayaManager(RootManager, MayaCoreFunctions):
 
         if pbSettings["ConvertMP4"]:
             convertedFile = self._convertPreview(playBlastFile, overwrite=True, deleteAfter=True, crf=pbSettings["CrfValue"])
-            print("DB", "convertedFile", convertedFile)
             relPlayBlastFile = os.path.relpath(convertedFile, start=openSceneInfo["projectPath"])
-            print("DB", "relPlayBlastFile", relPlayBlastFile)
             self.executeFile(convertedFile)
         else:
             relPlayBlastFile = os.path.relpath(playBlastFile, start=openSceneInfo["projectPath"])
 
         ## find this version in the json data
         for version in jsonInfo["Versions"]:
-            print("DB", "forloop", version["RelativePath"])
-            print("DB", "relVersionName", relVersionName)
             if relVersionName.replace("/", "\\") == version["RelativePath"]:
                 version["Preview"][validName] = relPlayBlastFile
-                print("DB", "Preview", version, relPlayBlastFile)
-                print("DB", "Saglama", version["Preview"][validName])
 
         self._dumpJson(jsonInfo, openSceneInfo["jsonFile"])
         return 0, ""

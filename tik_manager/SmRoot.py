@@ -2376,8 +2376,6 @@ Elapsed Time:{6}
         #     return vMsg, None, None
 
         majorV, minorV, patch = map(lambda x: int(x) ,_version.__version__.split("."))
-        print(majorV, minorV, patch)
-        print(majorV_remote, minorV_remote, patch_remote)
 
         if majorV_remote > majorV:
             vMsg = "New major version!\nTik Manager v{0} is now available".format(versionStr_remote)
