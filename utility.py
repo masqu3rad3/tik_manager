@@ -5,7 +5,26 @@ from shutil import copyfile, rmtree
 import subprocess
 import tik_manager._version as versionInfo
 import tarfile
+import ftplib
+import datetime
+import socket, io
+import configparser
 
+class FtpUploadTracker:
+    sizeWritten = 0
+    totalSize = 0
+    lastShownPercent = 0
+
+    def __init__(self, totalSize):
+        self.totalSize = totalSize
+
+    def handle(self, block):
+        self.sizeWritten += 1024
+        percentComplete = round((self.sizeWritten / self.totalSize) * 100)
+
+        if (self.lastShownPercent != percentComplete):
+            self.lastShownPercent = percentComplete
+            print(str(percentComplete) + " percent complete")
 
 class TMUtility(object):
     def __init__(self):
@@ -19,6 +38,44 @@ class TMUtility(object):
 
         # self.upx_folder = os.path.join(self.location, "upx")
 
+    def remoteUpload(self, filePathList=None, distributionType="beta"):
+
+        iniFile = 'pass.ini'
+        # pass file structure is:
+        # [ftpInfo]
+        # host = blabla.com
+        # username = foo@blabla.com
+        # pass = password
+
+        if not os.path.isfile(iniFile):
+            print("pass.ini file cannot be found. Remote upload aborting")
+            return
+
+        if not filePathList:
+            filePathList=["TikManager_v%s.exe" %versionInfo.__version__, "tikManager_%s_linux.tar.gz" %versionInfo.__version__]
+
+        config = configparser.ConfigParser()
+        config.read(iniFile)
+        host = config['ftpInfo']['host']
+        username = config['ftpInfo']['username']
+        password = config['ftpInfo']['pass']
+
+        print("Connecting to remote server...")
+
+        session = ftplib.FTP(host, username, password)
+        print("Connected")
+        # print("Uploading the compiled versions")
+        for filePath in filePathList:
+            print("Uploading %s as %s distribution" %(filePath, distributionType))
+            data = open(filePath, 'rb')
+            fileBaseName = os.path.basename(filePath)
+
+            session.cwd('/beta')
+            uploadTracker = FtpUploadTracker(int(os.path.getsize(filePath)))
+            session.storbinary('STOR %s' %fileBaseName, data, 1024, uploadTracker.handle)
+            data.close()
+        session.quit()
+        print("Upload Completed")
 
 
     def cliMenu(self):
@@ -242,8 +299,9 @@ class TMUtility(object):
 
 def main(argv):
     utility = TMUtility()
-    utility.innoSetupCompile()
-    utility.prepareLinuxTar()
+    # utility.innoSetupCompile()
+    # utility.prepareLinuxTar()
+    utility.remoteUpload()
 
 if __name__ == "__main__":
     main(sys.argv[1:])
