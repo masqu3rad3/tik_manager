@@ -45,8 +45,10 @@ import sys
 # ---------------
 # GET ENVIRONMENT
 # ---------------
-import tik_manager._version as _version
-import tik_manager.compatibility as compat
+# import tik_manager._version as _version
+import _version
+# import tik_manager.compatibility as compat
+import compatibility as compat
 
 BoilerDict = {"Environment": "Standalone",
               "MainWindow": None,
@@ -120,7 +122,8 @@ except ImportError:
 
 
 ## DO NOT REMOVE THIS:
-import tik_manager.iconsSource as icons
+# import tik_manager.iconsSource as icons
+import iconsSource as icons
 ## DO NOT REMOVE THIS:
 
 # PyInstaller and Standalone version compatibility
@@ -141,11 +144,13 @@ import tik_manager.iconsSource as icons
 # from PyQt4 import QtCore, Qt
 # from PyQt4 import QtGui as QtWidgets
 
-import tik_manager.pyseq as seq
+# import tik_manager.pyseq as seq
+import pyseq as seq
 
 import datetime
 from shutil import copyfile
-from tik_manager.SmRoot import RootManager
+# from tik_manager.SmRoot import RootManager
+from SmRoot import RootManager
 
 
 import logging

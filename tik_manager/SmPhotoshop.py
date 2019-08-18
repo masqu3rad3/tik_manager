@@ -43,11 +43,13 @@ os.environ["PS_APP"]="1"
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 from SmRoot import RootManager
-from tik_manager.coreFunctions.coreFunctions_PS import PsCoreFunctions
+# from tik_manager.coreFunctions.coreFunctions_PS import PsCoreFunctions
+from coreFunctions.coreFunctions_PS import PsCoreFunctions
 
 from SmUIRoot import MainUI as baseUI
 
-import tik_manager._version as _version
+# import tik_manager._version as _version
+import _version
 # import subprocess
 
 # from win32com.client import Dispatch
@@ -190,7 +192,6 @@ class PsManager(RootManager, PsCoreFunctions):
             activeDocument = self.psApp.Documents.Add(2048, 2048, 72)
         else:
             activeDocument = self.psApp.Application.ActiveDocument
-
         self._saveAs(sceneFile, format=sceneFormat)
         # openDocs = self.psApp.Application.Documents
         # if openDocs.Count == 0:

@@ -47,9 +47,12 @@ import re
 import socket
 
 import urllib
-import tik_manager.pyseq as pyseq
-import tik_manager._version as _version
-import tik_manager.compatibility as compat
+# import tik_manager.pyseq as pyseq
+import pyseq
+# import tik_manager._version as _version
+import _version
+# import tik_manager.compatibility as compat
+import compatibility as compat
 
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Tik Manager Root Functions"

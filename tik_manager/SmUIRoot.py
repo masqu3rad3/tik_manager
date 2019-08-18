@@ -36,12 +36,13 @@
 # GET ENVIRONMENT
 # ---------------
 import os, sys
-# import _version
-import tik_manager._version as _version
+# import tik_manager._version as _version
+import _version
 from copy import deepcopy
 import re
 import datetime
-import tik_manager.compatibility as compat
+# import tik_manager.compatibility as compat
+import compatibility as compat
 
 
 # Below is the standard dictionary for Scene Manager Standalone
@@ -332,6 +333,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.loadScene_pushButton = QtWidgets.QPushButton(self.centralwidget, text="Load Scene", font=self.iconFont)
         self.loadScene_pushButton.setProperty("menuButton", True)
         self.loadScene_pushButton.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.loadScene_pushButton.setToolTip("Loads or Reference the selected Base Scene depending on the mode")
         self.main_horizontalLayout.addWidget(self.loadScene_pushButton)
         #
         self.main_gridLayout.addLayout(self.main_horizontalLayout, 4, 0, 1, 1)
@@ -385,7 +387,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.r1_gridLayout.addWidget(self.project_lineEdit, 1, 1, 1, 1)
 
         self.setProject_pushButton = QtWidgets.QPushButton(self.centralwidget, text="SET")
-        self.setProject_pushButton.setToolTip("Changes the active project")
+        self.setProject_pushButton.setToolTip("Opens the Set Project window")
 
         self.r1_gridLayout.addWidget(self.setProject_pushButton, 1, 2, 1, 1)
 
@@ -586,9 +588,10 @@ class MainUI(QtWidgets.QMainWindow):
         self.thumbnail_label.customContextMenuRequested.connect(self.onContextMenu_thumbnail)
         self.popMenu_thumbnail = QtWidgets.QMenu()
 
-        rcAction_thumb_0 = QtWidgets.QAction('Replace with current view', self)
-        self.popMenu_thumbnail.addAction(rcAction_thumb_0)
-        rcAction_thumb_0.triggered.connect(lambda: self.rcAction_thumb("currentView"))
+        if BoilerDict["Environment"] != "Standalone":
+            rcAction_thumb_0 = QtWidgets.QAction('Replace with current view', self)
+            self.popMenu_thumbnail.addAction(rcAction_thumb_0)
+            rcAction_thumb_0.triggered.connect(lambda: self.rcAction_thumb("currentView"))
 
         rcAction_thumb_1 = QtWidgets.QAction('Replace with external file', self)
         self.popMenu_thumbnail.addAction(rcAction_thumb_1)

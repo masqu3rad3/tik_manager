@@ -131,3 +131,18 @@ C:\Users\kutlu\Anaconda2\envs\tik_manager37\Library\plugins\platforms
 
 Debugging build =>
 PyInstaller SmStandalone.py --onedir --noupx -i "icons/osicon_scenemanager_EM0_icon.ico" --win-private-assemblies --debug all --clean
+
+
+Crash Reports
+
+Standalone Settings:
+Remove Category
+Change Naming Convention
+Change Template Folder
+Change Password
+Add / Remove user
+RELATED WITH WRITE PERMISSIONS
+
+Photoshop
+Save Base Scene
+

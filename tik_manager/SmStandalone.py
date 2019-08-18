@@ -43,7 +43,8 @@ from SmRoot import RootManager
 # from tik_manager.SmUIRoot import MainUI as baseUI
 from SmUIRoot import MainUI as baseUI
 
-import tik_manager._version as _version
+# import tik_manager._version as _version
+import _version
 import subprocess
 
 # import pprint
