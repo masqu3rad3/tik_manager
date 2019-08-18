@@ -957,8 +957,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.spActiveProjectPath = None
         self.__flagView = True
 
-        print(Qt.__binding__)
-
         self.sourceModel = QtWidgets.QFileSystemModel(nameFilterDisables=False)
         self.sourceModel.setNameFilters(["*"])
 
