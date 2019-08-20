@@ -426,6 +426,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.E_tPixmap = QtGui.QPixmap(":/icons/CSS/rc/empty_thumbnail.png")
         self.thumbnail_label = ImageWidget(self.frame)
+        self.thumbnail_label.setToolTip("Right Click for replace options")
         self.thumbnail_label.setProperty("image", True)
         self.thumbnail_label.setPixmap(self.E_tPixmap)
 
@@ -443,6 +444,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.showPreview_pushButton = QtWidgets.QPushButton(self.frame, text="Show Preview",
                                                             minimumSize=QtCore.QSize(100, 30),
                                                             maximumSize=QtCore.QSize(150, 30))
+        self.showPreview_pushButton.setToolTip("Shows selected versions preview file(s)")
         self.gridLayout_7.addWidget(self.showPreview_pushButton, 0, 3, 1, 1)
 
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
@@ -455,6 +457,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.version_comboBox = QtWidgets.QComboBox(self.frame, minimumSize=QtCore.QSize(60, 30),
                                                     maximumSize=QtCore.QSize(100, 30))
+        self.version_comboBox.setToolTip("Changes between versions of thw selected Base Scene")
         self.horizontalLayout_4.addWidget(self.version_comboBox)
 
         self.gridLayout_7.addLayout(self.horizontalLayout_4, 0, 0, 1, 1)
@@ -462,10 +465,12 @@ class MainUI(QtWidgets.QMainWindow):
         self.makeReference_pushButton = QtWidgets.QPushButton(self.frame, text="Make Reference",
                                                               minimumSize=QtCore.QSize(100, 30),
                                                               maximumSize=QtCore.QSize(300, 30))
+        self.makeReference_pushButton.setToolTip("Promotes the selected Base Scene version as Reference")
         self.gridLayout_7.addWidget(self.makeReference_pushButton, 1, 0, 1, 1)
 
         self.addNote_pushButton = QtWidgets.QPushButton(self.frame, text="Add Note", minimumSize=QtCore.QSize(100, 30),
                                                         maximumSize=QtCore.QSize(150, 30))
+        self.addNote_pushButton.setToolTip("Opens the Add Version notes dialog")
         self.gridLayout_7.addWidget(self.addNote_pushButton, 1, 3, 1, 1)
 
         self.gridLayout_6.addLayout(self.gridLayout_7, 0, 0, 1, 1)
