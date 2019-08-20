@@ -780,7 +780,10 @@ class CopyProgress(QtWidgets.QWidget):
         """
 
         if type(s) == str:
-            s = unicode(s, "utf-8")
+            try:
+                s = unicode(s, "utf-8")
+            except:
+                pass
 
         newNameList = []
         for c in unicodedata.normalize('NFKD', s):

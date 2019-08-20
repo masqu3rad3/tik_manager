@@ -20,25 +20,17 @@ class PsCoreFunctions(object):
 
     def _saveAs(self, filePath, format=None, *args, **kwargs):
 
-        print("DD1", filePath)
         if format == "psd":
-
-            print("DD2")
             desc19 = Dispatch("Photoshop.ActionDescriptor")
             desc20 = Dispatch("Photoshop.ActionDescriptor")
             desc20.PutBoolean(self.psApp.StringIDToTypeID('maximizeCompatibility'), True)
-            print("DD3")
             desc19.PutObject(
                 self.psApp.CharIDToTypeID('As  '), self.psApp.CharIDToTypeID('Pht3'), desc20)
-            print("DD4")
             desc19.PutPath(self.psApp.CharIDToTypeID('In  '), filePath)
             desc19.PutBoolean(self.psApp.CharIDToTypeID('LwCs'), True)
-            print("DD5")
             self.psApp.ExecuteAction(self.psApp.CharIDToTypeID('save'), desc19, 3)
-            print("DD6")
 
         else:
-
             desc19 = Dispatch("Photoshop.ActionDescriptor")
             desc20 = Dispatch("Photoshop.ActionDescriptor")
             desc20.PutBoolean(self.psApp.StringIDToTypeID('maximizeCompatibility'), True)

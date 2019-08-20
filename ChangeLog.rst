@@ -39,6 +39,8 @@ Tik Manager Version History
 * **Fix.49** SmNuke / Bug fixed when querying versions which also prevents saving base scenes (tested with Nuke v11)
 * **Fix.50** Playblast Linux/Windows path clash fixed
 * **Fix.50** Recent Projects / Unicode bug fixed
+* **Fix.51** Project Materials / add content fix
+* **Update.51** Transfer Central / auto naming considers sub-projects
 
 2.5
 ---

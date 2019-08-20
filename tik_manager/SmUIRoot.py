@@ -1423,11 +1423,13 @@ class MainUI(QtWidgets.QMainWindow):
                 return
             else:
                 if selection_radioButton.isChecked():
+                    subProjectFolder = "" if sceneInfo["subProject"] == "None" else "{0}/".format(sceneInfo["subProject"])
+                    print("DB", subProjectFolder)
                     sel = self.manager._getSelection()
                     if len(sel) > 1:
-                        name = "{0}/{0}_{1}_{2}sel".format(sceneInfo["shotName"], sceneInfo["version"], len(sel))
+                        name = "{0}{1}/{1}_{2}_{3}sel".format(subProjectFolder, sceneInfo["shotName"], sceneInfo["version"], len(sel))
                     elif len(sel) == 1:
-                        name = "{0}/{0}_{1}_{2}".format(sceneInfo["shotName"], sceneInfo["version"], sel[0])
+                        name = "{0}{1}/{1}_{2}_{3}".format(subProjectFolder, sceneInfo["shotName"], sceneInfo["version"], sel[0])
                     else:
                         customName_lineEdit.setProperty("error", True)
                         customName_lineEdit.setStyleSheet("")  # refresh
@@ -1435,6 +1437,20 @@ class MainUI(QtWidgets.QMainWindow):
                         return
                 else:
                     name = "{0}/{0}_{1}".format(sceneInfo["shotName"], sceneInfo["version"])
+            # else:
+            #     if selection_radioButton.isChecked():
+            #         sel = self.manager._getSelection()
+            #         if len(sel) > 1:
+            #             name = "{0}/{0}_{1}_{2}sel".format(sceneInfo["shotName"], sceneInfo["version"], len(sel))
+            #         elif len(sel) == 1:
+            #             name = "{0}/{0}_{1}_{2}".format(sceneInfo["shotName"], sceneInfo["version"], sel[0])
+            #         else:
+            #             customName_lineEdit.setProperty("error", True)
+            #             customName_lineEdit.setStyleSheet("")  # refresh
+            #             customName_lineEdit.setText("No Object Selected")
+            #             return
+            #     else:
+            #         name = "{0}/{0}_{1}".format(sceneInfo["shotName"], sceneInfo["version"])
 
             customName_lineEdit.setReadOnly(True)
             customName_lineEdit.setText(name)

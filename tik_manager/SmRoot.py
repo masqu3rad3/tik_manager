@@ -1897,8 +1897,8 @@ Elapsed Time:{6}
     def nameCheck(self, text, allowSpaces=False, directory=False):
         """Checks the text for illegal characters, Returns:  corrected Text or -1 for Error """
         logger.debug("Func: nameCheck")
-        if allowSpaces:
-            aSpa = " "
+        # if allowSpaces:
+        #     aSpa = " "
         aSpa = " " if allowSpaces else ""
         dir = "\\\\:" if directory else ""
 
