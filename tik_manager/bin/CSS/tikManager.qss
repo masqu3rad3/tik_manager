@@ -1215,9 +1215,12 @@ https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qlistview
 https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qtableview
 
 --------------------------------------------------------------------------- */
+
+
 QTreeView:branch:selected, QTreeView:branch:hover {
   background: url(":/icons/CSS/rc/transparent.png");
 }
+
 
 QTreeView:branch:has-siblings:!adjoins-item {
   border-image: url(":/icons/CSS/rc/branch_line.png") 0;
@@ -1248,7 +1251,7 @@ QTreeView:branch:has-children:!has-siblings:closed:hover, QTreeView:branch:close
 QTreeView:branch:open:has-children:!has-siblings:hover, QTreeView:branch:open:has-children:has-siblings:hover {
   image: url(":/icons/CSS/rc/branch_open_focus.png");
 }
-
+/*
 QTreeView::indicator:checked,
 QListView::indicator:checked {
   image: url(":/icons/CSS/rc/checkbox_checked.png");
@@ -1284,7 +1287,7 @@ QListView::indicator:indeterminate:focus,
 QListView::indicator:indeterminate:pressed {
   image: url(":/icons/CSS/rc/checkbox_indeterminate_focus.png");
 }
-
+*/
 QTreeView,
 QListView,
 QTableView,
@@ -1296,6 +1299,8 @@ QColumnView {
   color: #F0F0F0;
   border-radius: 0px;
 }
+
+
 
 QTreeView:disabled,
 QListView:disabled,
@@ -1326,6 +1331,9 @@ QListView::item:pressed,
 QTableView::item:pressed,
 QColumnView::item:pressed {
   background-color: #ff8d1c;
+  border-style: solid;
+  border-color: #242424;
+  border-radius: 0px;
 }
 
 QTreeView::item:selected:hover,
@@ -1334,6 +1342,10 @@ QTableView::item:selected:hover,
 QColumnView::item:selected:hover {
   background: #ff8d1c;
   color: #000000;
+  background-color: #4b3e32;
+  border-style: solid;
+  border-color: #242424;
+  border-radius: 0px;
 }
 
 QTreeView::item:selected:active,
@@ -1341,15 +1353,20 @@ QListView::item:selected:active,
 QTableView::item:selected:active,
 QColumnView::item:selected:active {
   background-color: #ff8d1c;
+  border-style: solid;
+  border-color: #242424;
+  border-radius: 0px;
 }
 
 QTreeView::item:!selected:hover,
 QListView::item:!selected:hover,
 QTableView::item:!selected:hover,
 QColumnView::item:!selected:hover {
-  outline: 0;
-  /*color: #000000;*/
   background-color: #4b3e32;
+  border-style: solid;
+  border-color: #242424;
+  color: #F0F0F0;
+  border-radius: 0px;
 }
 
 QTableCornerButton::section {

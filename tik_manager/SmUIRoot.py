@@ -2873,16 +2873,19 @@ class MainUI(QtWidgets.QMainWindow):
             if len(categories) == 1:
                 self.infoPop(textTitle="Cannot Remove Category",
                              textHeader="Last Category cannot be removed")
-
             ## Check if this category is REALLY trash
             niceName = settingKey.replace("categories_", "")
             dbPath = os.path.normpath(
                 os.path.join(self.manager._pathsDict["masterDir"], self.softwareDB[niceName]["databaseDir"]))
-
-            if self.manager.isCategoryTrash(trashCategory, dbPath=dbPath):
+            manager = self._getManager()
+            if manager.isCategoryTrash(trashCategory, dbPath=dbPath):
                 categories.remove(trashCategory)
                 listWidget.clear()
                 listWidget.addItems(categories)
+            # if self.manager.isCategoryTrash(trashCategory, dbPath=dbPath):
+            #     categories.remove(trashCategory)
+            #     listWidget.clear()
+            #     listWidget.addItems(categories)
             else:
                 self.infoPop(textTitle="Cannot Remove Category",
                              textHeader="%s Category is not empty. Aborting..." % trashCategory)

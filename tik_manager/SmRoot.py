@@ -1516,9 +1516,16 @@ Elapsed Time:{6}
         return
 
     def isCategoryTrash(self, categoryName, dbPath=None):
+        print("DBbacin01")
+        print("self._subProjectsList")
+        print(self._subProjectsList)
+        print("dbPath", dbPath)
+        print("categoryName", categoryName)
         if not dbPath:
+            print("DBbacin02")
             dbPath = self._pathsDict["databaseDir"]
         for subP in self._subProjectsList:
+            print("DBbacin03")
             baseScenes = self.scanBaseScenes(categoryAs=categoryName, subProjectAs=subP, databaseDirAs=dbPath)
             if baseScenes:
                 return False #This category is NOT TRASH
