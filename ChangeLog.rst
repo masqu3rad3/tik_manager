@@ -41,6 +41,7 @@ Tik Manager Version History
 * **Fix.50** Recent Projects / Unicode bug fixed
 * **Fix.51** Project Materials / add content fix
 * **Update.51** Transfer Central / auto naming considers sub-projects
+* **Fix.511** Project Materials Python 3 Compatibility issue with material names
 
 2.5
 ---
