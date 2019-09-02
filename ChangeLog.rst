@@ -45,6 +45,7 @@ Tik Manager Version History
 * **Fix.512** Settings / Bug that prevents removing categories
 * **Fix.513** Maya/Preview minor bug fixes.
 * **Fix.513** Houdini-Transfer Central/ error prevented when trying to export alembic and fbx formats with apprentice edition
+* **Fix.513** Project Materials/ Unicode error when adding materials by browsing
 
 2.5
 ---

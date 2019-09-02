@@ -234,11 +234,25 @@ class QFileAndFolderDialog(QtWidgets.QFileDialog):
                 # print "varyant", i.data().toString()
                 dir = str(self.directory().absolutePath())
                 # file = str((i.data().toString()))
-                if not type(i.data()) == unicode:
-                    file = str(i.data().toString())
-                else:
-                    # PyQt4 differences...
+
+                try:
+                    unicode = unicode
+                    if not type(i.data()) == unicode:
+                        file = str(i.data().toString())
+                    else:
+                        file = str(i.data())
+                except NameError:
                     file = str(i.data())
+                #     str = str
+                #     unicode = unicode
+                #     bytes = str
+                #     basestring = basestring
+
+                # if not type(i.data()) == unicode:
+                #     file = str(i.data().toString())
+                # else:
+                #     # PyQt4 differences...
+                #     file = str(i.data())
                 path = os.path.normpath(os.path.join(dir, file))
                 # encodedPath = path.encode("ascii", )
                 files.append(path)
