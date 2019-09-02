@@ -43,6 +43,7 @@ Tik Manager Version History
 * **Update.51** Transfer Central / auto naming considers sub-projects
 * **Fix.511** Project Materials Python 3 Compatibility issue with material names
 * **Fix.512** Settings / Bug that prevents removing categories
+* **Fix.513** Maya/Preview minor bug fixes.
 
 2.5
 ---

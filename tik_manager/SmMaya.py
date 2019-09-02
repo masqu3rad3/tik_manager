@@ -540,12 +540,16 @@ class MayaManager(RootManager, MayaCoreFunctions):
         if pbSettings["ConvertMP4"]:
             # TODO // Make it compatible with LINUX and MAC
             if self.currentPlatform == "Windows":
-                validFormats = [u'avi']
-                validCodecs = [u'none']
+                # validFormats = [u'avi']
+                # validCodecs = [u'none']
+                pbSettings["Format"] = u'avi'
+                pbSettings["Codec"] = u'none'
                 extension = "avi"
             else:
-                validFormats = [u'qt']
-                validCodecs = [u'png']
+                # validFormats = [u'qt']
+                # validCodecs = [u'png']
+                pbSettings["Format"] = u'qt'
+                pbSettings["Codec"] = u'png'
                 extension = "mov"
 
 
@@ -777,6 +781,8 @@ class MayaManager(RootManager, MayaCoreFunctions):
 
         aPlayBackSliderPython = mel.eval('$tmpVar=$gPlayBackSlider')
         activeSound = cmds.timeControl(aPlayBackSliderPython, q=True, sound=True)
+        # if activeSound == u'':
+        #     actuveSound = False
 
         ## Check here: http://download.autodesk.com/us/maya/2011help/pymel/generated/functions/pymel.core.windows/pymel.core.windows.headsUpDisplay.html
         # print "playBlastFile", playBlastFile
@@ -790,7 +796,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
                        compression=pbSettings["Codec"],
                        sound=activeSound,
                        # uts=True,
-                       v=not pbSettings["ConvertMP4"]
+                       # v=not pbSettings["ConvertMP4"]
                        )
         ## remove window when pb is donw
         cmds.deleteUI(tempWindow)
@@ -833,10 +839,12 @@ class MayaManager(RootManager, MayaCoreFunctions):
             self.executeFile(convertedFile)
         else:
             relPlayBlastFile = os.path.relpath(playBlastFile, start=openSceneInfo["projectPath"])
+            if self.currentPlatform == "Linux": #somehow linux pb command is not playing the file with 'v' flag
+                self.executeFile(playBlastFile)
 
         ## find this version in the json data
         for version in jsonInfo["Versions"]:
-            if relVersionName.replace("/", "\\") == version["RelativePath"]:
+            if relVersionName.replace("/", "\\") == version["RelativePath"].replace("/", "\\"):
                 version["Preview"][validName] = relPlayBlastFile
 
         self._dumpJson(jsonInfo, openSceneInfo["jsonFile"])

@@ -1,5 +1,5 @@
 {
     "templateFolder": "", 
     "warningSizeLimit": 200, 
-    "fileName": "<subproject>_<baseName>_<categoryName>_<userInitials>"
+    "fileName": "<baseName>_<categoryName>_<userInitials>"
 }
