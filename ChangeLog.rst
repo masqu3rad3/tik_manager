@@ -44,6 +44,7 @@ Tik Manager Version History
 * **Fix.511** Project Materials Python 3 Compatibility issue with material names
 * **Fix.512** Settings / Bug that prevents removing categories
 * **Fix.513** Maya/Preview minor bug fixes.
+* **Fix.513** Houdini-Transfer Central/ error prevented when trying to export alembic and fbx formats with apprentice edition
 
 2.5
 ---

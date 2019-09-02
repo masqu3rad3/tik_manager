@@ -64,12 +64,12 @@ tools.append(pmTool)
 
 ## add assetLibrary button
 alScript = """
-from tik_manager import projectMaterials
-projectMaterials.MainUI().show()
+from tik_manager import assetLibrary
+assetLibrary.MainUI().show()
 """
 alIcon = os.path.join(iconsLocation, "assetLibrary_ICON.png")
 
-alTool = hou.shelves.newTool(name="ProjectMaterials", label="ProjectMaterials", script=alScript, icon=alIcon)
+alTool = hou.shelves.newTool(name="AssetLibrary", label="AssetLibrary", script=alScript, icon=alIcon)
 
 tools.append(alTool)
 

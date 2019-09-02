@@ -151,6 +151,9 @@ class HoudiniCoreFunctions(object):
         return True
 
     def _exportAlembic(self, filePath, exportSettings, exportSelected=True, timeRange=[0,10]):
+        if hou.isApprentice():
+            hou.ui.displayMessage("Alembic export is not supported in Houdini Apprentice. ")
+            return False
         houdiniExp_abc = exportSettings["alembicExportHoudini"]
 
         rootNode = hou.node('obj')
@@ -162,6 +165,7 @@ class HoudiniCoreFunctions(object):
         if len(exportList) == 0:
             hou.ui.displayMessage("Nothing to export. Aborting")
             return False
+
 
         geoNode = rootNode.createNode('geo', node_name="tmpExport")
         try: geoNode.allSubChildren()[0].destroy()
@@ -207,6 +211,9 @@ class HoudiniCoreFunctions(object):
         return True
 
     def _exportFbx(self, filePath, exportSettings, exportSelected=True, timeRange=[0,10]):
+        if hou.isApprentice():
+            hou.ui.displayMessage("FBX export is not supported in Houdini Apprentice. ")
+            return False
         houdiniExp_fbx = exportSettings["fbxExportHoudini"]
 
         rootNode = hou.node('obj')
