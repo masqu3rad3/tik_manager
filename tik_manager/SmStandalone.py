@@ -460,6 +460,7 @@ class StandaloneManager(RootManager):
     def setProject(self, path):
         """Sets the project"""
         # print("d", type(path), path)
+        path = path.replace("file:", "\\")
         projectsDict = self.loadProjects()
         if not projectsDict:
             projectsDict = {"Standalone": path}

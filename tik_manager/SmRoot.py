@@ -278,6 +278,7 @@ class RootManager(object):
     def setProject(self, path):
         """Sets the project"""
         logger.debug("Func: setProject")
+        path = path.replace("file:", "\\")
         projectsDict = self.loadProjects()
         if not projectsDict:
             projectsDict = {self.swName: path}
@@ -1906,12 +1907,13 @@ Elapsed Time:{6}
         logger.debug("Func: nameCheck")
         # if allowSpaces:
         #     aSpa = " "
+        print("DB", text)
         aSpa = " " if allowSpaces else ""
         dir = "\\\\:" if directory else ""
 
         # pattern = "^[%s%sA-Za-z0-9_-]*$" %(dir, aSpa)
         # pattern = r'^[:/A-Za-z0-9\\:_-]*$'
-        pattern = r'^[:/A-Za-z0-9%s%sA_-]*$' %(dir, aSpa)
+        pattern = r'^[:/A-Za-z0-9%s%s.A_-]*$' %(dir, aSpa)
 
         # if allowSpaces:
         #     pattern = "^[ /A-Za-z0-9_-]*$"

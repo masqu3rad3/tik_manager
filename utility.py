@@ -76,6 +76,13 @@ class TMUtility(object):
             data.close()
         session.quit()
         print("Upload Completed")
+        print("TikManager_v%s" %versionInfo.__version__)
+
+        print("Windows Download Link:")
+        print("http://www.ardakutlu.com/Tik_Manager/%s/TikManager_v%s.exe" %(distributionType, versionInfo.__version__))
+        print("Linux Download Link:")
+        print("http://www.ardakutlu.com/Tik_Manager/%s/tikManager_%s_linux.tar.gz" %(distributionType, versionInfo.__version__))
+
 
 
     def cliMenu(self):
@@ -299,8 +306,8 @@ class TMUtility(object):
 
 def main(argv):
     utility = TMUtility()
-    # utility.innoSetupCompile()
-    # utility.prepareLinuxTar()
+    utility.innoSetupCompile()
+    utility.prepareLinuxTar()
     utility.remoteUpload()
 
 if __name__ == "__main__":

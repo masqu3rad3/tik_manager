@@ -1619,7 +1619,6 @@ class MainUI(QtWidgets.QMainWindow):
             paths = [os.path.normpath(path) for path in paths if path != u'']
         # paths = [os.path.normpath(compat.unicode(path)) for path in paths if path != u'']
         # paths = [(unicode(path)) for path in paths if path != u'']
-        print("DB_Paths", paths)
         if len(paths) == 0:
             self.statusBar().showMessage("Warning | There is no file path in dropped item")
             return

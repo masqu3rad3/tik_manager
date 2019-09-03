@@ -46,6 +46,7 @@ Tik Manager Version History
 * **Fix.513** Maya/Preview minor bug fixes.
 * **Fix.513** Houdini-Transfer Central/ error prevented when trying to export alembic and fbx formats with apprentice edition
 * **Fix.513** Project Materials/ Unicode error when adding materials by browsing
+* **Update.514** Network path support added
 
 2.5
 ---

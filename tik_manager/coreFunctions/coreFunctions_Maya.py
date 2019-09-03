@@ -224,6 +224,7 @@ class MayaCoreFunctions(object):
         encodedPath = unicode(path).encode("utf-8")
         # melCompPath = path.replace("\\", "/") # mel is picky
         melCompPath = encodedPath.replace("\\", "/") # mel is picky
+        melCompPath = melCompPath.replace("file:", "/") # compatibility with network paths
         command = 'setProject "%s";' %melCompPath
         mel.eval(command)
 
