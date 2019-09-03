@@ -413,7 +413,7 @@ class PsManager(RootManager, PsCoreFunctions):
                     return 0
 
             # find the maximum revision number and increment it by 1
-            revisionNumberList = (map(lambda x: tryGetNumber(x), revisionHistory))
+            revisionNumberList = list(map(lambda x: tryGetNumber(x), revisionHistory))
             revisionNumber = 1 if len(revisionNumberList) == 0 else max(revisionNumberList)+1
 
         fileName = "{0}_{1}_r{2}.{3}".format(baseName, textureType, str(revisionNumber).zfill(3), extension)
@@ -428,6 +428,7 @@ class PsManager(RootManager, PsCoreFunctions):
                 return False
             else:
                 pass
+
 
         if extension == "jpg":
             self._exportJPG(filePath)
@@ -452,81 +453,6 @@ class PsManager(RootManager, PsCoreFunctions):
 
         if extension == "hdr":
             self._exportHDR(filePath)
-
-        # activeDocument = self.psApp.Application.ActiveDocument
-        # if extension == "jpg":
-        #     saveOPT=Dispatch("Photoshop.JPEGSaveOptions")
-        #     saveOPT.EmbedColorProfile = True
-        #     saveOPT.FormatOptions = 1 # => psStandardBaseline
-        #     saveOPT.Matte = 1 # => No Matte
-        #     saveOPT.Quality = 12
-        #     activeDocument.SaveAs(filePath, saveOPT, True)
-        # if extension == "png":
-        #     saveOPT=Dispatch("Photoshop.PNGSaveOptions")
-        #     activeDocument.SaveAs(filePath, saveOPT, True)
-        # if extension == "bmp":
-        #     saveOPT=Dispatch("Photoshop.BMPSaveOptions")
-        #     activeDocument.SaveAs(filePath, saveOPT, True)
-        # if extension == "tga":
-        #     saveOPT=Dispatch("Photoshop.TargaSaveOptions")
-        #     saveOPT.Resolution=32
-        #     saveOPT.AlphaChannels=True
-        #     saveOPT.RLECompression=True
-        #     activeDocument.SaveAs(filePath, saveOPT, True)
-        # if extension == "psd":
-        #     saveOPT=Dispatch("Photoshop.PhotoshopSaveOptions")
-        #     saveOPT.AlphaChannels = True
-        #     saveOPT.Annotations = True
-        #     saveOPT.Layers = True
-        #     saveOPT.SpotColors = True
-        #     activeDocument.SaveAs(filePath, saveOPT, True)
-        # if extension == "tif":
-        #     saveOPT=Dispatch("Photoshop.TiffSaveOptions")
-        #     saveOPT.AlphaChannels = True
-        #     saveOPT.EmbedColorProfile = True
-        #     saveOPT.Layers = False
-        #     activeDocument.SaveAs(filePath, saveOPT, True)
-        # if extension == "exr":
-        #     idsave = self.psApp.CharIDToTypeID("save")
-        #     desc182 = Dispatch("Photoshop.ActionDescriptor")
-        #     idAs = self.psApp.CharIDToTypeID("As  ")
-        #     desc183 = Dispatch("Photoshop.ActionDescriptor")
-        #     idBtDp = self.psApp.CharIDToTypeID("BtDp")
-        #     desc183.PutInteger(idBtDp, 16);
-        #     idCmpr = self.psApp.CharIDToTypeID("Cmpr")
-        #     desc183.PutInteger(idCmpr, 1)
-        #     idAChn = self.psApp.CharIDToTypeID("AChn")
-        #     desc183.PutInteger(idAChn, 0)
-        #     idEXRf = self.psApp.CharIDToTypeID("EXRf")
-        #     desc182.PutObject(idAs, idEXRf, desc183)
-        #     idIn = self.psApp.CharIDToTypeID("In  ")
-        #     desc182.PutPath(idIn, (filePath))
-        #     idDocI = self.psApp.CharIDToTypeID("DocI")
-        #     desc182.PutInteger(idDocI, 340)
-        #     idCpy = self.psApp.CharIDToTypeID("Cpy ")
-        #     desc182.PutBoolean(idCpy, True)
-        #     idsaveStage = self.psApp.StringIDToTypeID("saveStage")
-        #     idsaveStageType = self.psApp.StringIDToTypeID("saveStageType")
-        #     idsaveSucceeded = self.psApp.StringIDToTypeID("saveSucceeded")
-        #     desc182.PutEnumerated(idsaveStage, idsaveStageType, idsaveSucceeded)
-        #     self.psApp.ExecuteAction(idsave, desc182, 3)
-        #
-        # if extension == "hdr":
-        #     idsave = self.psApp.CharIDToTypeID("save")
-        #     desc419 = Dispatch("Photoshop.ActionDescriptor")
-        #     idAs = self.psApp.CharIDToTypeID("As  ")
-        #     desc419.PutString(idAs, """Radiance""")
-        #     idIn = self.psApp.CharIDToTypeID("In  ")
-        #     desc419.PutPath(idIn, (filePath))
-        #     idDocI = self.psApp.CharIDToTypeID("DocI")
-        #     desc419.PutInteger(idDocI, 333)
-        #     idCpy = self.psApp.CharIDToTypeID("Cpy ")
-        #     desc419.PutBoolean(idCpy, True)
-        #     idsaveStage = self.psApp.StringIDToTypeID("saveStage")
-        #     idsaveStageType = self.psApp.StringIDToTypeID("saveStageType")
-        #     idsaveSucceeded = self.psApp.StringIDToTypeID("saveSucceeded")
-        #     desc419.PutEnumerated(idsaveStage, idsaveStageType, idsaveSucceeded)
-        #     self.psApp.ExecuteAction(idsave, desc419, 3)
 
         success = os.path.isfile(filePath)
         if success:
@@ -751,7 +677,7 @@ class MainUI(baseUI):
 
         self.export_pushButton.setVisible(True)
         self.export_pushButton.setText("Export Texture")
-        self.export_pushButton.clicked.connect(self.exportSourceUI)
+        # self.export_pushButton.clicked.connect(self.exportSourceUI)
 
         # self.mIconPixmap = QtWidgets.QPixmap(os.path.join(self.manager.getIconsDir(), "iconPS.png"))
         self.mIconPixmap = QtGui.QPixmap(":/icons/CSS/rc/iconPS.png")
@@ -771,7 +697,7 @@ class MainUI(baseUI):
         # self.changeCommonFolder.setVisible(True)
         # self.changeCommonFolder.triggered.connect(self.manager._defineCommonFolder)
 
-    def exportSourceUI(self):
+    def transferCentralUI(self):
         self.exportTexture_Dialog = QtWidgets.QDialog(parent=self)
         self.exportTexture_Dialog.resize(336, 194)
         self.exportTexture_Dialog.setWindowTitle(("Export Textures"))
