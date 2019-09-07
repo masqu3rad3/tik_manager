@@ -1210,10 +1210,11 @@ class MainUI(QtWidgets.QMainWindow):
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.brief_tab)
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
 
-        self.brief_textEdit = QtWidgets.QTextEdit(self.brief_tab)
+        self.brief_textEdit = QtWidgets.QTextBrowser(self.brief_tab)
+        self.brief_textEdit.setOpenExternalLinks(True)
         self.brief_textEdit.setToolTip((""))
         self.brief_textEdit.setStatusTip((""))
-        self.brief_textEdit.setReadOnly(True)
+        # self.brief_textEdit.setReadOnly(True)
         self.horizontalLayout_2.addWidget(self.brief_textEdit)
 
         self.brief_treeWidget = QtWidgets.QTreeWidget(self.brief_tab)

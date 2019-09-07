@@ -35,7 +35,7 @@ icon = os.path.join(iconsLocation, "manager_ICON.png")
 if not os.path.isfile(icon):
     mc.warning("Icon cannot found - %s" %icon)
     icon = None
-addButton("SceneManager", command=cmd, icon=icon )
+addButton("TikManager", command=cmd, icon=icon )
 
 ## add saveVersion button
 cmd = """

@@ -796,7 +796,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
                        compression=pbSettings["Codec"],
                        sound=activeSound,
                        # uts=True,
-                       # v=not pbSettings["ConvertMP4"]
+                       v=not pbSettings["ConvertMP4"]
                        )
         ## remove window when pb is donw
         cmds.deleteUI(tempWindow)

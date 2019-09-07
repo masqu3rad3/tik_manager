@@ -1028,12 +1028,6 @@ QSpinBox{
     color: #F0F0F0;
 }
 
-/* QTabWiget --------------------------------------------------------------
-
-https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qtabwidget-and-qtabbar
-
---------------------------------------------------------------------------- */
-
 
 /* QTabWiget --------------------------------------------------------------
 
@@ -1089,27 +1083,8 @@ QTabBar {
   margin: 0px;
   padding: 2px;
   border: 0;
+  font: 12px;
 }
-
-/*
-QTabBar::close-button {
-  border: 0;
-  margin: 2px;
-  padding: 2px;
-  image: url(":/icons/CSS/rc/window_close.png");
-}
-
-QTabBar::close-button:hover {
-  image: url(":/icons/CSS/rc/window_close_focus.png");
-}
-
-QTabBar::close-button:pressed {
-  image: url(":/icons/CSS/rc/window_close_pressed.png");
-}
-*/
-
-
-
 
 
 QTabBar::tab {
@@ -1159,6 +1134,7 @@ QTabBar::tab:!selected:hover
     border-top-right-radius: 3px;
     background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:1 #212121, stop:0.4 #343434, stop:0.126 #343434, stop:0.125 #ff8d1c);
 }
+
 
 
 /* QDockWiget -------------------------------------------------------------

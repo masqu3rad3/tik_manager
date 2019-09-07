@@ -393,9 +393,9 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.main_gridLayout.addLayout(self.r1_gridLayout, 0, 0, 1, 1)
 
-        self.category_tabWidget = QtWidgets.QTabWidget(self.centralwidget, maximumSize=QtCore.QSize(16777215, 20),
+        self.category_tabWidget = QtWidgets.QTabWidget(self.centralwidget, maximumSize=QtCore.QSize(16777215, 23),
                                                        tabPosition=QtWidgets.QTabWidget.North,
-                                                       elideMode=QtCore.Qt.ElideNone, usesScrollButtons=False)
+                                                       elideMode=QtCore.Qt.ElideNone, usesScrollButtons=True)
 
         self.main_gridLayout.addWidget(self.category_tabWidget, 2, 0, 1, 1)
 

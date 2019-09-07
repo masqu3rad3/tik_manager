@@ -48,6 +48,8 @@ Tik Manager Version History
 * **Fix.513** Project Materials/ Unicode error when adding materials by browsing
 * **Update.514** Network path support added
 * **Fix.6** Photoshop Texture export fixed
+* **Fix.601** CSS fix / tab label font sizes fixed to 12px
+* **Fix.601** Maya playblast / fixed error caused by the mp4 conversion (arouse with v3.0.513)
 
 2.5
 ---
