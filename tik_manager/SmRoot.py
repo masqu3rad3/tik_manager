@@ -46,7 +46,11 @@ import re
 # import ctypes
 import socket
 
-import urllib
+# import urllib
+try:
+    from urllib.request import urlopen
+except:
+    from urllib import urlopen ## python 2.7 compatibility
 # import tik_manager.pyseq as pyseq
 import pyseq
 # import tik_manager._version as _version
@@ -1286,12 +1290,13 @@ class RootManager(object):
 
     def getProjectReport(self):
 
-        # TODO // NEEDS to be working on
+        projectDir = self.getProjectDir()
 
-        # Hard Coded Software List - get path
-        hardCodedSwPath = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "softwareDatabase.json"))
-        softwareDictionary = self._loadJson(hardCodedSwPath)
-        # softwareDBList=["mayaDB", "maxDB", "houdiniDB", "nukeDB"]
+        # check for the databaseDirectory
+        databaseDir = self._pathsDict["masterDir"]
+        if not os.path.isdir(databaseDir):
+            self._exception(360, "Project Folder does not have Tik Manager Database")
+            return
 
         def getOldestFile(listOfFiles):
             return min(listOfFiles, key=lambda fn: os.stat(fn).st_mtime)
@@ -1314,6 +1319,64 @@ class RootManager(object):
                 seen[marker] = 1
                 result.append(item)
             return result
+
+        def getdbfiles(folder):
+            if os.path.isdir(folder):
+                swCategories = os.listdir(folder)
+                for category in swCategories:
+                    # get all json files in it recursively
+                    for root, dirs, files in os.walk(os.path.join(folder, category)):
+                        for file in files:
+                            if file.endswith(".json"):
+                                yield (os.path.join(root, file))
+
+
+
+        def softwareReport(dbName):
+            # get all base scene database files
+            dbFiles = getdbfiles(os.path.join(databaseDir, dbName))
+
+            # get users in the base scene database files
+            users = []
+            workstations = []
+            categories = []
+            for file in dbFiles:
+                dbData = self._loadJson(file)
+                users += [v["User"] for v in dbData["Versions"]]
+                workstations += [v["Workstation"] for v in dbData["Versions"]]
+                categories.append(dbData["Category"])
+
+            reportDictionary = {"Software": dbName.replace("DB", "").capitalize(),
+                                "Users": uniqueList(users),
+                                "Workstations": uniqueList(workstations),
+                                "Categories": uniqueList(categories),
+                                }
+
+            # users = uniqueList(users)
+            # workstations = uniqueList(workstations)
+            # categories = uniqueList(categories)
+            #
+            # print(users, workstations, categories)
+
+            pass
+
+
+        softwareDBList=["mayaDB", "maxDB", "houdiniDB", "nukeDB", "photoshopDB"]
+        print(projectDir)
+
+        # for sw in softwareDBList:
+        #     dbFiles = getdbfiles(os.path.join(databaseDir, sw))
+        #     print(list(dbFiles))
+
+        for sw in softwareDBList:
+            softwareReport(sw)
+
+
+        return
+        # hardCodedSwPath = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "softwareDatabase.json"))
+        # softwareDictionary = self._loadJson(hardCodedSwPath)
+
+
 
 
         now = datetime.datetime.now()
@@ -1907,7 +1970,6 @@ Elapsed Time:{6}
         logger.debug("Func: nameCheck")
         # if allowSpaces:
         #     aSpa = " "
-        print("DB", text)
         aSpa = " " if allowSpaces else ""
         dir = "\\\\:" if directory else ""
 
@@ -2369,13 +2431,15 @@ Elapsed Time:{6}
     def checkNewVersion(self):
 
         url = "http://www.ardakutlu.com/Tik_Manager/versionCheck/versionInfo.json"
-
-        response = urllib.urlopen(url)
+        print("DB1tt")
+        # response = urllib.urlopen(url)
+        response = urlopen(url)
         data = json.loads(response.read())
         majorV_remote, minorV_remote, patch_remote = map(lambda x: int(x), data["CurrentVersion"].split("."))
         versionStr_remote = data["CurrentVersion"]
         downloadPath = data["DownloadPath"]
         whatsNewPath = data["WhatsNew"]
+
         # try:
         #     response = urllib.urlopen(url)
         #     data = json.loads(response.read())

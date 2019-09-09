@@ -505,7 +505,7 @@ class MainUI(QtWidgets.QMainWindow):
         deleteReference_fm = QtWidgets.QAction(QtGui.QIcon(":/icons/CSS/rc/delete.png"),
                                                "&Delete Reference of Selected Scene", self)
         projectReport_fm = QtWidgets.QAction("&Project Report", self)
-        projectReport_fm.setEnabled(False)
+        projectReport_fm.setEnabled(True)
         checkReferences_fm = QtWidgets.QAction("&Check References", self)
 
         # save
@@ -619,6 +619,8 @@ class MainUI(QtWidgets.QMainWindow):
         deleteFile_fm.triggered.connect(self.onDeleteBaseScene)
 
         deleteReference_fm.triggered.connect(self.onDeleteReference)
+
+        projectReport_fm.triggered.connect(self.onProjectReport)
 
         checkReferences_fm.triggered.connect(lambda: self.populateBaseScenes(deepCheck=True))
 
@@ -1429,7 +1431,6 @@ class MainUI(QtWidgets.QMainWindow):
             else:
                 if selection_radioButton.isChecked():
                     subProjectFolder = "" if sceneInfo["subProject"] == "None" else "{0}/".format(sceneInfo["subProject"])
-                    print("DB", subProjectFolder)
                     sel = self.manager._getSelection()
                     if len(sel) > 1:
                         name = "{0}{1}/{1}_{2}_{3}sel".format(subProjectFolder, sceneInfo["shotName"], sceneInfo["version"], len(sel))
@@ -5376,6 +5377,11 @@ class MainUI(QtWidgets.QMainWindow):
             manager.deleteReference(manager.currentDatabasePath)
             self.populateBaseScenes()
             self.statusBar().showMessage("Status | Reference of %s is deleted" % name)
+
+    def onProjectReport(self):
+        manager = self._getManager()
+
+        manager.getProjectReport()
 
     def onIviewer(self):
         # This method is NOT Software Specific.
