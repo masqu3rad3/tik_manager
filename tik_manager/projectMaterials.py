@@ -99,6 +99,7 @@ except ImportError:
 
 import os
 import sys
+# import io
 import unicodedata
 from glob import glob
 
@@ -551,11 +552,11 @@ class CopyProgress(QtWidgets.QWidget):
         self.terminated = True
         self.cancelAll = all
 
-    def safeLog(self, msg):
-        try:
-            self.logger.debug(msg)
-        except:
-            pass
+    # def safeLog(self, msg):
+    #     try:
+    #         self.logger.debug(msg)
+    #     except:
+    #         pass
 
     def masterCopy(self, srcList, dst):
         # logName = "fileTransferLog_{0}.txt".format(now.strftime("%Y.%m.%d.%H.%M"))
@@ -624,6 +625,7 @@ class CopyProgress(QtWidgets.QWidget):
         self.terminated = False  # reset the termination status
         totalCount = self.countFiles(src)
         current = 0
+        QtWidgets.QApplication.processEvents()
 
         for path, dirs, filenames in os.walk(src):
             for directory in dirs:
@@ -639,17 +641,22 @@ class CopyProgress(QtWidgets.QWidget):
                 srcFile = os.path.join(path, sfile)
 
                 destFile = os.path.join(path.replace(src, dst), sfile)
-                destFile = self.strip_accents(destFile)
+                print("ss", srcFile, os.path.split(destFile)[0])
+                self.copyItem(srcFile, os.path.split(destFile)[0])
 
-                try:
-                    shutil.copyfile(srcFile, destFile)
-
-                except:
-                    self.errorFlag = True
-                    #     # self.safeLog("FAILED - unknown error")
-                    return None
+                # destFile = os.path.join(path.replace(src, dst), sfile)
+                # destFile = self.strip_accents(destFile)
+                # try:
+                #     # self.copyItem(srcFile, destFile)
+                #     shutil.copyfile(srcFile, destFile)
+                #
+                # except:
+                #     self.errorFlag = True
+                #     #     # self.safeLog("FAILED - unknown error")
+                #     return None
                 percent = (100 * current) / totalCount
-                self.pb.setValue(percent)
+                # self.pb.setValue(percent)
+                self.pbOverall.setValue(percent)
                 current += 1
                 QtWidgets.QApplication.processEvents()
                 # self.safeLog("Success - {0}".format(targetPath))
@@ -662,24 +669,86 @@ class CopyProgress(QtWidgets.QWidget):
         return dst
 
     def copyItem(self, src, dst):
+        print("test", src, dst)
         src = os.path.normpath(src)
         dst = os.path.normpath(dst)
-
+        length = 8*1024
         self.pb.setValue(0)
         self.terminated = False  # reset the termination status
         totalCount = self.countFiles(src)
         current = 0
+        QtWidgets.QApplication.processEvents()
 
-        try:
-            fileLocation = self.uniqueFileName(os.path.join(dst, os.path.basename(src)))
-            fileLocation = self.strip_accents(fileLocation)
+        # Prevent progress callback from being made each cycle
+        c = 0
+        c_max = 50
 
-            shutil.copyfile(src, fileLocation)
-            return fileLocation
-        except:
-            self.errorFlag = True
-            # self.safeLog("FAILED - unknown error")
+        # try:
+        fileLocation = self.uniqueFileName(os.path.join(dst, os.path.basename(src)))
+        fileLocation = self.strip_accents(fileLocation)
+        # print("DB1")
+        with open(src, 'rb') as fsrc:
+            print(src, fsrc)
+            # print("DB2")
+            with open(fileLocation, 'wb') as fdst:
+                # print("DB3")
+                copied = 0
+                # print("DB4")
+                while self.errorFlag==False:
+                    # print("DB5")
+                    # print("fsrc", fsrc.read())
+                    buf = fsrc.read(length)
+                    # print("DB6")
+                    if not buf:
+                        break
+                    fdst.write(buf)
+                    copied += len(buf)
+                    c += 1
+                    if c == c_max:
+                        size_src = os.stat(fsrc.name).st_size
+                        size_dst =os.stat(fdst.name).st_size
+                        float_src = float(size_src)
+                        float_dst = float(size_dst)
+                        percentage = int(float_dst/float_src*100)
+                        self.pb.setValue(percentage)
+                        c = 0
+                        QtWidgets.QApplication.processEvents()
+                    if self.terminated or self.cancelAll:
+
+                        self.errorFlag = True
+                        # os.remove(fileLocation)
+                        # self.safeLog("FAILED - skipped by user")
+                        # return None
+                # callback_copydone(fsrc=fsrc, fdst=fdst, copied=copied)
+        if self.errorFlag:
+            os.remove(fileLocation)
             return None
+        else:
+            return fileLocation
+        # except:
+        #     self.errorFlag = True
+        #     # self.safeLog("FAILED - unknown error")
+        #     return None
+
+    # def copyItem(self, src, dst):
+    #     src = os.path.normpath(src)
+    #     dst = os.path.normpath(dst)
+    #
+    #     self.pb.setValue(0)
+    #     self.terminated = False  # reset the termination status
+    #     totalCount = self.countFiles(src)
+    #     current = 0
+    #     QtWidgets.QApplication.processEvents()
+    #     try:
+    #         fileLocation = self.uniqueFileName(os.path.join(dst, os.path.basename(src)))
+    #         fileLocation = self.strip_accents(fileLocation)
+    #
+    #         shutil.copyfile(src, fileLocation)
+    #         return fileLocation
+    #     except:
+    #         self.errorFlag = True
+    #         # self.safeLog("FAILED - unknown error")
+    #         return None
 
     def uniqueFolderName(self, folderLocation):
         count = 0
@@ -767,23 +836,23 @@ class CopyProgress(QtWidgets.QWidget):
     #         self.results_ui("Transfer Successfull", logPath=logFile, destPath=destination)
     #     pass
 
-    def setupLogger(self, handlerPath):
-        """Prepares logger to write into log file"""
-        logger = logging.getLogger('imageViewer')
-        file_logger = logging.FileHandler(handlerPath)
-        logger.addHandler(file_logger)
-        logger.setLevel(logging.DEBUG)
-        return logger
-
-    def deleteLogger(self, logger):
-        """Deletes the looger object once the logging into file finishes"""
-        try:
-            for i in logger.handlers:
-                logger.removeHandler(i)
-                i.flush()
-                i.close()
-        except:
-            pass
+    # def setupLogger(self, handlerPath):
+    #     """Prepares logger to write into log file"""
+    #     logger = logging.getLogger('imageViewer')
+    #     file_logger = logging.FileHandler(handlerPath)
+    #     logger.addHandler(file_logger)
+    #     logger.setLevel(logging.DEBUG)
+    #     return logger
+    #
+    # def deleteLogger(self, logger):
+    #     """Deletes the looger object once the logging into file finishes"""
+    #     try:
+    #         for i in logger.handlers:
+    #             logger.removeHandler(i)
+    #             i.flush()
+    #             i.close()
+    #     except:
+    #         pass
 
     def strip_accents(self, s):
         """
@@ -966,7 +1035,8 @@ class ProjectMaterials(RootManager, CoreFunctions):
         material_absPath = os.path.join(self._pathsDict["projectDir"], dbInfo["relativePath"])
 
         if os.path.isdir(material_absPath):
-            os.rmdir(material_absPath)
+            # os.rmdir(material_absPath)
+            shutil.rmtree(material_absPath)
         else:
             os.remove(material_absPath)
 

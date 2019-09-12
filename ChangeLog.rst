@@ -52,6 +52,7 @@ Tik Manager Version History
 * **Fix.601** Maya playblast / fixed error caused by the mp4 conversion (arouse with v3.0.513)
 * **Fix.602** Check New version python3 bug fixed
 * **Fix.603** 3ds Max playblast filename issue prior to 2020 fixed
+* **Fix.604** Project Materials / Bug fixes & minor improvements with File Transferring
 
 2.5
 ---
