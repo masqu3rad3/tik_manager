@@ -216,7 +216,8 @@ class MayaManager(RootManager, MayaCoreFunctions):
         jsonInfo["Versions"] = [ # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
             {"RelativePath": relSceneFile,
              "Note": completeNote,
-             "User": self._usersDict[self.currentUser],
+             # "User": self._usersDict[self.currentUser],
+             "User": self.currentUser,
              "Workstation": socket.gethostname(),
              "Preview": {},
              "Thumb": thumbPath,
@@ -226,6 +227,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
 
         jsonInfo["SubProject"] = self._subProjectsList[subProjectIndex]
         self._dumpJson(jsonInfo, jsonFile)
+        self.progressLogger("save", sceneFile)
         return [0, ""]
 
     def saveVersion(self, makeReference=True, versionNotes="", sceneFormat="mb", *args, **kwargs):
@@ -317,7 +319,8 @@ class MayaManager(RootManager, MayaCoreFunctions):
         # TODO : ref => Dict
             {"RelativePath": relSceneFile,
              "Note": completeNote,
-             "User": self._usersDict[self.currentUser],
+             # "User": self._usersDict[self.currentUser],
+             "User": self.currentUser,
              "Workstation": socket.gethostname(),
              "Preview": {},
              "Thumb": thumbPath,
@@ -335,7 +338,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
             jsonInfo["ReferenceFile"] = relReferenceFile
             jsonInfo["ReferencedVersion"] = currentVersion
         self._dumpJson(jsonInfo, jsonFile)
-
+        self.progressLogger("save", sceneFile)
         return jsonInfo
 
 
@@ -858,6 +861,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
         if os.path.isfile(absSceneFile):
             # cmds.file(absSceneFile, o=True, force=force)
             self._load(absSceneFile, force=True)
+            self.progressLogger("load", absSceneFile)
             return 0
         else:
             msg = "File in Scene Manager database doesnt exist"

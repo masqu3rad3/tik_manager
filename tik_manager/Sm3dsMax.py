@@ -407,13 +407,33 @@ class MaxManager(RootManager, MaxCoreFunctions):
         #         logger.error(msg)
         #         return -1, msg
 
-        rt.createPreview(filename=playBlastFile, percentSize=percentSize, dspGeometry=dspGeometry,
+        test = rt.createPreview(filename=playBlastFile, percentSize=percentSize, dspGeometry=dspGeometry,
                          dspShapes=dspShapes, dspLights=dspLights,
                          dspCameras=dspCameras, dspHelpers=dspHelpers,
                          dspParticles=dspParticles, dspBones=dspBones,
                          dspGrid=dspGrid, dspFrameNums=dspFrameNums,
                          rndLevel=rndLevel)
 
+        # prior to version 2020, filename flag is not working
+        if not os.path.isfile(playBlastFile):
+        # find the path of where the avi file be created
+            if rt.maxFilePath:
+                previewname = rt.getFilenameFile(rt.maxFileName)
+            else:
+                previewname = "Untitled"
+
+            sourceClip = rt.GetDir(rt.execute("#preview")) + "\_scene.avi"
+            shutil.copy(sourceClip, playBlastFile)
+
+            # if os.path.isfile(sourceClip):
+            #     try:
+            #         os.remove(sourceClip)
+            #     except WindowsError:
+            #         msg = "Cannot continue creating preview.\n Close '%s' and try again" %sourceClip
+            #         logger.error(msg)
+            #         return -1, msg
+
+        # return
         # return the render width and height to original:
         rt.renderWidth = originalValues["width"]
         rt.renderHeight = originalValues["height"]
@@ -423,7 +443,7 @@ class MaxManager(RootManager, MaxCoreFunctions):
         # shutil.copy(sourceClip, playBlastFile)
 
         if pbSettings["ConvertMP4"]:
-            convertedFile = self._convertPreview(playBlastFile, overwrite=True, deleteAfter=True, crf=pbSettings["CrfValue"])
+            convertedFile = self._convertPreview(playBlastFile, overwrite=True, deleteAfter=False, crf=pbSettings["CrfValue"])
             relPlayBlastFile = os.path.relpath(convertedFile, start=openSceneInfo["projectPath"])
             # os.startfile(convertedFile)
         else:

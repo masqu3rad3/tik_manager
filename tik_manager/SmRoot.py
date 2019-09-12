@@ -1330,46 +1330,46 @@ class RootManager(object):
                             if file.endswith(".json"):
                                 yield (os.path.join(root, file))
 
+        def getSoftwareReports():
+            softwareReport = "Tik Manager Report for Project: '%s'" % os.path.basename(projectDir)
+            softwareDBList = ["mayaDB", "maxDB", "houdiniDB", "nukeDB", "photoshopDB"]
+            allUsers = []
+            for dbName in softwareDBList:
+                # get all base scenes in database folder
+                dbFiles = getdbfiles(os.path.join(databaseDir, dbName))
 
+                # get users in the base scene database files
+                users = []
+                workstations = []
+                categories = []
+                for file in dbFiles:
+                    dbData = self._loadJson(file)
+                    users += [v["User"] for v in dbData["Versions"]]
+                    workstations += [v["Workstation"] for v in dbData["Versions"]]
+                    categories.append(dbData["Category"])
 
-        def softwareReport(dbName):
-            # get all base scene database files
-            dbFiles = getdbfiles(os.path.join(databaseDir, dbName))
+                if categories != []:
+                    softwareReport = """
+{0}
 
-            # get users in the base scene database files
-            users = []
-            workstations = []
-            categories = []
-            for file in dbFiles:
-                dbData = self._loadJson(file)
-                users += [v["User"] for v in dbData["Versions"]]
-                workstations += [v["Workstation"] for v in dbData["Versions"]]
-                categories.append(dbData["Category"])
+{1}:
+Users: {2}
+Used Workstations: {3}
+Used Categories: {4}""".format(softwareReport,
+                               dbName.replace("DB", "").capitalize(),
+                               ", ".join(uniqueList(users)),
+                               ", ".join(uniqueList(workstations)),
+                               ", ".join(uniqueList(categories)),
+                               )
 
-            reportDictionary = {"Software": dbName.replace("DB", "").capitalize(),
-                                "Users": uniqueList(users),
-                                "Workstations": uniqueList(workstations),
-                                "Categories": uniqueList(categories),
-                                }
+                return softwareReport
 
-            # users = uniqueList(users)
-            # workstations = uniqueList(workstations)
-            # categories = uniqueList(categories)
-            #
-            # print(users, workstations, categories)
+        def getWorkstationReports():
+            # find the workstation log paths
 
             pass
 
-
-        softwareDBList=["mayaDB", "maxDB", "houdiniDB", "nukeDB", "photoshopDB"]
-        print(projectDir)
-
-        # for sw in softwareDBList:
-        #     dbFiles = getdbfiles(os.path.join(databaseDir, sw))
-        #     print(list(dbFiles))
-
-        for sw in softwareDBList:
-            softwareReport(sw)
+        print(getSoftwareReports())
 
 
         return
@@ -1875,6 +1875,30 @@ Elapsed Time:{6}
         logger.removeHandler(file_logger)
         file_logger.flush()
         file_logger.close()
+
+    def progressLogger(self, action, actionPath):
+        logger = logging.getLogger('progressLogs')
+        userInfo = self.currentUser
+        machineInfo = socket.gethostname()
+
+        currentDT = datetime.datetime.now()
+        today = currentDT.strftime("%y%m%d")
+        timeStamp = currentDT.hour*60+currentDT.minute
+
+        logFolder = os.path.join(self._pathsDict["masterDir"], "progressLogs", machineInfo)
+        self._folderCheck(logFolder)
+        logFile = os.path.join(logFolder, "%s.log" %today)
+        file_logger = logging.FileHandler(logFile)
+        logger.addHandler(file_logger)
+        logger.setLevel(logging.DEBUG)
+
+        logMessage = "{0}***{1}***{2}***{3}".format(action, userInfo, actionPath, timeStamp)
+
+        logger.debug(logMessage)
+        logger.removeHandler(file_logger)
+        file_logger.flush()
+        file_logger.close()
+
 
     def checkPassword(self, password):
         """Compares the given password with the hashed password file. Returns True if matches else False"""
