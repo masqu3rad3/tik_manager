@@ -230,9 +230,7 @@ class QFileAndFolderDialog(QtWidgets.QFileDialog):
         files = []
         for i in inds:
             if i.column() == 0:
-                # print self.directory().absolutePath(), i.data()
                 # files.append(os.path.join(str(self.directory().absolutePath()),str(i.data().toString())))
-                # print "varyant", i.data().toString()
                 dir = str(self.directory().absolutePath())
                 # file = str((i.data().toString()))
 
@@ -617,7 +615,6 @@ class CopyProgress(QtWidgets.QWidget):
         # src = os.path.normpath(src.replace(" ", "_"))
         # dst = os.path.normpath(dst.replace(" ", "_"))
         dst = self.uniqueFolderName(os.path.normpath(dst.replace(" ", "_")))
-        # print "defcon", dst
         if not os.path.isdir(dst):
             os.makedirs(dst)
 
@@ -641,7 +638,6 @@ class CopyProgress(QtWidgets.QWidget):
                 srcFile = os.path.join(path, sfile)
 
                 destFile = os.path.join(path.replace(src, dst), sfile)
-                print("ss", srcFile, os.path.split(destFile)[0])
                 self.copyItem(srcFile, os.path.split(destFile)[0])
 
                 # destFile = os.path.join(path.replace(src, dst), sfile)
@@ -669,7 +665,6 @@ class CopyProgress(QtWidgets.QWidget):
         return dst
 
     def copyItem(self, src, dst):
-        print("test", src, dst)
         src = os.path.normpath(src)
         dst = os.path.normpath(dst)
         length = 8*1024
@@ -686,19 +681,11 @@ class CopyProgress(QtWidgets.QWidget):
         # try:
         fileLocation = self.uniqueFileName(os.path.join(dst, os.path.basename(src)))
         fileLocation = self.strip_accents(fileLocation)
-        # print("DB1")
         with open(src, 'rb') as fsrc:
-            print(src, fsrc)
-            # print("DB2")
             with open(fileLocation, 'wb') as fdst:
-                # print("DB3")
                 copied = 0
-                # print("DB4")
                 while self.errorFlag==False:
-                    # print("DB5")
-                    # print("fsrc", fsrc.read())
                     buf = fsrc.read(length)
-                    # print("DB6")
                     if not buf:
                         break
                     fdst.write(buf)
@@ -716,19 +703,11 @@ class CopyProgress(QtWidgets.QWidget):
                     if self.terminated or self.cancelAll:
 
                         self.errorFlag = True
-                        # os.remove(fileLocation)
-                        # self.safeLog("FAILED - skipped by user")
-                        # return None
-                # callback_copydone(fsrc=fsrc, fdst=fdst, copied=copied)
         if self.errorFlag:
             os.remove(fileLocation)
             return None
         else:
             return fileLocation
-        # except:
-        #     self.errorFlag = True
-        #     # self.safeLog("FAILED - unknown error")
-        #     return None
 
     # def copyItem(self, src, dst):
     #     src = os.path.normpath(src)
@@ -961,11 +940,9 @@ class ProjectMaterials(RootManager, CoreFunctions):
             self._exception(101, msg)
             return
 
-        # print indexData
         if indexData == self.currentSubIndex:
             self.cursorInfo()
             return
-        # self._setCurrents("currentSubIndex", indexData)
 
         # change only the attribute, dont update currents database
         self._currentsDict["currentSubIndex"] = indexData
@@ -1544,7 +1521,6 @@ class MainUI(QtWidgets.QMainWindow):
 
     def onContextMenu(self, point, treeWidget):
         """Method to pop the menu at the position of the mouse cursor"""
-        # print se
         if treeWidget.currentItem():
             self.popMenu.exec_(treeWidget.mapToGlobal(point))
 
@@ -1605,7 +1581,6 @@ class MainUI(QtWidgets.QMainWindow):
 
     def onChangeItem(self, item):
         self.statusBar().showMessage("Status | Idle")
-        # print item
         if not item:
             return
 
@@ -1617,7 +1592,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.promat._loadMaterialInfo(self.matDBpath)
 
         if self.matCategory == "Storyboard":
-            # print item
             pic = os.path.normpath(self.promat.getMaterialPath())
             # update thumb
             self.tPixmap = QtGui.QPixmap(pic)
@@ -1630,7 +1604,6 @@ class MainUI(QtWidgets.QMainWindow):
             self.brief_textEdit.setPlainText(docContent)
 
         elif self.matCategory == "Reference":
-            # print item
             self.promat._loadMaterialInfo(self.matDBpath)
             pic = self.promat.getMaterialPath()
             # update thumb
@@ -1758,9 +1731,6 @@ class DropPushButton(QtWidgets.QPushButton):
         links = []
 
         for url in event.mimeData().urls():
-            # print "g", unicode(str(url), "utf-8")
-            # print "str", url.toString()
-            # print "str", url.toLocalFile()
             # links.append(str(url.toLocalFile()))
 
             links.append((url.toLocalFile()))
@@ -1784,7 +1754,6 @@ class DropPushButton(QtWidgets.QPushButton):
 
     # def dropEvent(self, event):
     #     rawPath = event.mimeData().data('text/uri-list').__str__()
-    #     print "rawPath", rawPath
     #     path = rawPath.replace("file:///", "").splitlines()[0]
     #     self.dropped.emit(path)
 
