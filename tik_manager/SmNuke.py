@@ -178,8 +178,8 @@ class NukeManager(RootManager, NukeCoreFunctions):
             jsonInfo["ReferencedVersion"] = None
 
         jsonInfo["ID"] = "SmNukeV02_sceneFile"
-        # jsonInfo["NukeVersion"] = self._getVersion
-        jsonInfo["NukeVersion"] = "test"
+        jsonInfo["NukeVersion"] = self._getVersion()
+        # jsonInfo["NukeVersion"] = "test"
         jsonInfo["Name"] = baseName
         jsonInfo["Path"] = os.path.relpath(shotPath, start=projectPath)
         jsonInfo["Category"] = categoryName
@@ -373,8 +373,12 @@ class NukeManager(RootManager, NukeCoreFunctions):
         """Compares the versions of current session and database version at cursor position"""
         logger.debug("Func: compareVersions")
 
-        cMajorV = self._getVersion[0]
-        cMinorV = self._getVersion[1]
+        nukeVersion = self._getVersion()
+        print(nukeVersion)
+        cMajorV = nukeVersion[0]
+        cMinorV = nukeVersion[1]
+        # cMajorV = self._getVersion[0]
+        # cMinorV = self._getVersion[1]
         currentVersion = float("{0}.{1}".format(cMajorV, cMinorV))
 
         dbMajorV = self._currentSceneInfo["NukeVersion"][0]

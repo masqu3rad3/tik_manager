@@ -53,6 +53,7 @@ Tik Manager Version History
 * **Fix.602** Check New version python3 bug fixed
 * **Fix.603** 3ds Max playblast filename issue prior to 2020 fixed
 * **Fix.604** Project Materials / Bug fixes & minor improvements with File Transferring
+* **Fix.605** Nuke Scene Manager / Critical bug fix (related with version checking) with Nuke version 10 which prevents Loading Base Scenes
 
 2.5
 ---
