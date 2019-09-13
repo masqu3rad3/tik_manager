@@ -1,5 +1,13 @@
 # TIK Manager
 
+** Latest Build **
+TikManager_v3.0.605(BETA)
+Windows Download Link:
+http://www.ardakutlu.com/Tik_Manager/beta/TikManager_v3.0.605.exe
+Linux Download Link:
+http://www.ardakutlu.com/Tik_Manager/beta/tikManager_3.0.605_linux.tar.gz
+** End **
+
 Tik Manager is a lightweight multi platform asset and project management system.
 
 A project manager helps team members to maintain focus on the task at hand.
@@ -54,3 +62,5 @@ Tik Manager has the following hierarchy:
                 
 Scene Manager main window is not a browser window. It is NOT POSSIBLE TO OVERWRITE ANY PREVIOUS FILE.
 With admin password, it is possible to delete entire base scene along with all versions. This should not be necessary in most cases.
+
+
