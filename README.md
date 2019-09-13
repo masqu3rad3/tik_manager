@@ -26,7 +26,7 @@ Tik Manager already has been tested and used on dozens of tv commercials and sev
 Tik Manager has following features / tools:
 * Consistent naming of scenes and versions
 * Version and reference controlling
-* Supports Maya, 3ds Max, Houdini, Nuke
+* Supports Maya, 3ds Max, Houdini, Nuke, Photoshop
 * Standalone version to view and launch all the scenes created with supported softwares
 * Adjustable Categories for each project and software version. (Default categories are: Model, Shading, Rig, Layout, Render, Other)
 * Sub-project support seperately for each project and software version. 
@@ -44,9 +44,10 @@ Tik Manager has following features / tools:
     * Lists rendered images (or footages) as collapsed items
     * Executing the sequences within the application by double clicking
     * Option to send the selected sequences to a remote path in a dated folder
-* Project Materials - A tool for organizing and viewing brief documents, concepts, artworks, references etc.
-* Global Asset Library - Keeps re-usable assets organized
-* Easy installation single CLI installer. (Windows only)
+* Transfer Central for practical data sharing between softwares
+* Project Materials - A tool for organising and viewing brief documents, concepts, artworks, references etc.
+* Global Asset Library - Keeps re-usable assets organised
+* Easy installation single executable installation. (Windows only)
 
 Tik Manager follows a simple folder hierarchy. 
 The folder structure makes sense for manual browsing. There are minimal nested folders. If at some
@@ -65,4 +66,5 @@ Tik Manager has the following hierarchy:
 Scene Manager main window is not a browser window. It is NOT POSSIBLE TO OVERWRITE ANY PREVIOUS FILE.
 With admin password, it is possible to delete entire base scene along with all versions. This should not be necessary in most cases.
 
-
+Visit the online documentation for further info:
+http://www.ardakutlu.com/tik-manager-documentation/

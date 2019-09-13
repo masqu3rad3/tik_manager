@@ -1105,7 +1105,6 @@ class RootManager(object):
     def showInExplorer(self, tpath):
         """Opens the path in Windows Explorer(Windows) or Nautilus(Linux)"""
         logger.debug("Func: showInExplorer")
-
         if os.path.isfile(tpath):
             tpath = os.path.dirname(tpath)
         if self.currentPlatform == "Windows":
@@ -2017,7 +2016,7 @@ Elapsed Time:{6}
         """Parses the info to the absolute project folder path"""
         logger.debug("Func: resolveProjectPath")
 
-        if projectName == "" or client == "" or projectRoot == "":
+        if projectName == "" or projectRoot == "":
             msg = ("Fill the mandatory fields")
             # logger.warning(msg)
             # raise Exception([341, msg])
@@ -2026,11 +2025,14 @@ Elapsed Time:{6}
 
         projectDate = datetime.datetime.now().strftime("%y%m%d")
 
-        if brandName:
-            brandName = "%s_" % brandName
-        else:
-            brandName = ""
-        fullName = "{0}{1}_{2}_{3}".format(brandName, projectName, client, projectDate)
+        nameList = [x for x in [brandName, projectName, client, projectDate] if x != ""]
+        fullName = "_".join(nameList)
+
+        # if brandName:
+        #     brandName = "%s_" % brandName
+        # else:
+        #     brandName = ""
+        # fullName = "{0}{1}_{2}_{3}".format(brandName, projectName, client, projectDate)
         fullPath = os.path.join(os.path.normpath(projectRoot), fullName)
         return fullPath
 

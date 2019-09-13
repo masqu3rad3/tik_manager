@@ -723,7 +723,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         client_vLay = QtWidgets.QVBoxLayout(spacing=6)
         client_lbl = QtWidgets.QLabel(text="Client", alignment=QtCore.Qt.AlignCenter)
-        client_le = QtWidgets.QLineEdit(placeholderText="Mandatory Field")
+        client_le = QtWidgets.QLineEdit(placeholderText="(Optional)")
         client_vLay.addWidget(client_lbl)
         client_vLay.addWidget(client_le)
         nameFields_hLay.addLayout(client_vLay)
@@ -796,7 +796,9 @@ class MainUI(QtWidgets.QMainWindow):
             createProject_Dialog.close()
 
         def resolve():
-            if projectName_le.text() == "" or client_le.text() == "" or projectRoot_le.text() == "":
+            # if projectName_le.text() == "" or client_le.text() == "" or projectRoot_le.text() == "":
+            if projectName_le.text() == "" or projectRoot_le.text() == "":
+                print("DB1")
                 resolvedPath_lbl.setText("Fill the mandatory fields")
                 return
             # resolvedPath = self.manager.resolveProjectPath(unicode(projectRoot_le.text()).decode("utf-8"),
@@ -5026,7 +5028,8 @@ class MainUI(QtWidgets.QMainWindow):
             manager.showInExplorer(dirPath)
 
         if command == "showInExplorerProject":
-            manager.showInExplorer(manager.projectDir)
+            # use self.manager here in case there is no software database yet in the project
+            self.manager.showInExplorer(self.manager.projectDir)
 
         if command == "showSceneInfo":
             textInfo = pprint.pformat(manager._currentSceneInfo)
