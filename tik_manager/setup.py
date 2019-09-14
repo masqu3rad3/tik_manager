@@ -572,8 +572,6 @@ def mayaSetup(prompt=True):
 
 def houdiniSetup(prompt=True):
 
-    # TODO : implement workspace injection to XML
-    # TODO : TEST IT
     # Check file integrity
     print("Starting Houdini Setup")
     print("Checking files...")

@@ -267,9 +267,6 @@ class MaxManager(RootManager, MaxCoreFunctions):
 
             sceneFile = os.path.join(sceneInfo["projectPath"], relSceneFile)
 
-            # killTurtle()
-            # TODO // cmds?
-            # fManager.Save(sceneFile)
             self._saveAs(sceneFile)
 
             thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=currentVersion)
@@ -461,7 +458,6 @@ class MaxManager(RootManager, MaxCoreFunctions):
 
     def loadBaseScene(self, force=False):
         """Loads the scene at cursor position"""
-        # TODO // TEST IT
         relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"]
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
@@ -598,7 +594,6 @@ class MaxManager(RootManager, MaxCoreFunctions):
 
     def compareVersions(self):
         """Compares the versions of current session and database version at cursor position"""
-        # TODO : Write compare function for 3ds max
         # return 0, ""
         if not self._currentSceneInfo["3dsMaxVersion"]:
             logger.warning("Cursor is not on a base scene")
@@ -671,8 +666,6 @@ class MaxManager(RootManager, MaxCoreFunctions):
     def preSaveChecklist(self):
         """Checks the scene for inconsistencies"""
         checklist = []
-
-        # TODO : Create a fps comparison with the settings file
         fpsValue_setting = self.getFPS()
         fpsValue_current = rt.framerate
         if fpsValue_setting is not fpsValue_current:
