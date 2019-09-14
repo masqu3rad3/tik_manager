@@ -202,7 +202,10 @@ def getMainWindow():
         return hou.qt.mainWindow()
 
     elif BoilerDict["Environment"] == "Nuke":
-        # TODO // Needs a main window getter for nuke
+        app = QtWidgets.QApplication.instance()
+        for widget in app.topLevelWidgets():
+            if widget.metaObject().className() == 'Foundry::UI::DockMainWindow':
+                return widget
         return None
 
     else:

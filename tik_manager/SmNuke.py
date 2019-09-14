@@ -156,8 +156,6 @@ class NukeManager(RootManager, NukeCoreFunctions):
         sceneFile = os.path.join(shotPath, "{0}.{1}".format(sceneName, sceneFormat))
         ## relativity update
         relSceneFile = os.path.relpath(sceneFile, start=projectPath)
-        # killTurtle()
-        # TODO // cmds may be used instead
         self._saveAs(sceneFile)
 
         thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=version)
@@ -165,7 +163,6 @@ class NukeManager(RootManager, NukeCoreFunctions):
         jsonInfo = {}
 
         if makeReference:
-            # TODO // Find an elegant solution and add MA compatibility. Can be merged with makeReference function in derived class
             referenceName = "{0}_{1}_forReference".format(baseName, categoryName)
             referenceFile = os.path.join(shotPath, "{0}.{1}".format(referenceName, sceneFormat))
             ## relativity update
@@ -255,7 +252,6 @@ class NukeManager(RootManager, NukeCoreFunctions):
 
             jsonInfo["Versions"].append(
                 # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
-            # TODO : ref => Dict
                 {"RelativePath": relSceneFile,
                  "Note": completeNote,
                  "User": self._usersDict[self.currentUser],
@@ -459,25 +455,6 @@ class NukeManager(RootManager, NukeCoreFunctions):
         R_max = lastFrame
         R_aet = lastFrame
         return [R_ast, R_min, R_max, R_aet]
-    #
-    # def _setTimelineRanges(self, rangeList):
-    #     """Sets the timeline ranges [AnimationStart, Min, Max, AnimationEnd]"""
-    #     # TODO : Make sure the time ranges are INTEGERS
-    #     cmds.playbackOptions(ast=rangeList[0], min=rangeList[1], max=rangeList[2], aet=rangeList[3])
-
-    # def loadCategories(self):
-    #     """OVERRIDEN FUNCTION for specific category default of Nuke"""
-    #     logger.debug("Func: loadCategories")
-    #
-    #     if os.path.isfile(self._pathsDict["categoriesFile"]):
-    #         categoriesData = self._loadJson(self._pathsDict["categoriesFile"])
-    #         if categoriesData == -2:
-    #             return -2
-    #     else:
-    #         # categoriesData = self._sceneManagerDefaults["defaultCategories"]
-    #         categoriesData = ["Comp"]
-    #         self._dumpJson(categoriesData, self._pathsDict["categoriesFile"])
-    #     return categoriesData
 
 
 class MainUI(baseUI):

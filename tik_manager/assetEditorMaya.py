@@ -42,7 +42,6 @@ from shutil import copyfile
 from tik_manager.coreFunctions.coreFunctions_Maya import MayaCoreFunctions
 
 
-# TODO : Subclass MayaCoreFunctions
 class AssetEditorMaya(MayaCoreFunctions):
     def __init__(self):
         super(AssetEditorMaya, self).__init__()

@@ -197,27 +197,6 @@ def getMainWindow():
     else:
         return None
 
-
-# def getProject():
-#     """Returns the project folder"""
-#     if BoilerDict["Environment"] == "Maya":
-#         return os.path.normpath(cmds.workspace(q=1, rd=1))
-#     elif BoilerDict["Environment"] == "3dsMax":
-#         return os.path.normpath(MaxPlus.PathManager.GetProjectFolderDir())
-#     elif BoilerDict["Environment"] == "Houdini":
-#         return os.path.normpath((hou.hscript('echo $JOB')[0])[:-1])  # [:-1] is for the extra \n
-#     elif BoilerDict["Environment"] == "Nuke":
-#         # TODO // Needs a project getter for nuke
-#         return os.path.normpath(os.path.join(os.path.expanduser("~")))
-#     else:
-#         return os.path.normpath(os.path.join(os.path.expanduser("~")))
-
-
-# def folderCheck(folder):
-#     """Checks if the folder exists, creates it if it doesnt"""
-#     if not os.path.isdir(os.path.normpath(folder)):
-#         os.makedirs(os.path.normpath(folder))
-
 class ImageViewer(RootManager, CoreFunctions):
     def __init__(self, projectPath=None):
         super(ImageViewer, self).__init__()
@@ -1092,10 +1071,6 @@ class SeqCopyProgress(QtWidgets.QWidget, RootManager):
 
     def onShowInExplorer(self, path):
         """Open the folder in explorer"""
-        # TODO // Make it compatible with Linux
-        # os.startfile(str(os.path.normpath(path)))
-
-        # self.showInExplorer(unicode(os.path.normpath(path)).decode("utf-8"))
         self.showInExplorer(compat.decode(os.path.normpath(path)))
         pass
 

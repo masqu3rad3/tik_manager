@@ -37,6 +37,7 @@
 # ---------------
 import tik_manager._version as _version
 import tik_manager.compatibility as compat
+import subprocess
 
 BoilerDict = {"Environment": "Standalone",
               "MainWindow": None,
@@ -535,11 +536,23 @@ class CopyProgress(QtWidgets.QWidget):
 
         self.msgDialog.show()
 
-    def onShowInExplorer(self, path):
-        """Open the folder in explorer"""
-        # TODO // Make it compatible with Linux
-        os.startfile(os.path.normpath(path))
-        pass
+    # def onShowInExplorer(self, path):
+    #     """Open the folder in explorer"""
+    #     # TODO // Make it compatible with Linux
+    #     os.startfile(os.path.normpath(path))
+    #     pass
+
+    def onShowInExplorer(self, tpath):
+        """Opens the path in Windows Explorer(Windows) or Nautilus(Linux)"""
+        logger.debug("Func: showInExplorer")
+        if os.path.isfile(tpath):
+            tpath = os.path.dirname(tpath)
+        if self.currentPlatform == "Windows":
+            os.startfile(tpath)
+        elif self.currentPlatform == "Linux":
+            subprocess.Popen(["xdg-open", tpath])
+        else:
+            subprocess.Popen(["open", tpath])
 
     def closeEvent(self, *args, **kwargs):
         """Override close behaviour"""

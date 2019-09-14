@@ -1364,6 +1364,8 @@ Used Categories: {4}""".format(softwareReport,
                 return softwareReport
 
         def getWorkstationReports():
+            # TODO / create getting workstation reports and finish logging it on a file
+            # TODO / Additionally, in th SmUIRoot file make another simple UI to show the results
             # find the workstation log paths
 
             pass

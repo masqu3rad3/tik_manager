@@ -38,7 +38,6 @@ import hou
 from tik_manager.coreFunctions.coreFunctions_Houdini import HoudiniCoreFunctions
 
 
-# TODO : Subclass MayaCoreFunctions
 class AssetEditorHoudini(HoudiniCoreFunctions):
     def __init__(self):
         super(AssetEditorHoudini, self).__init__()
@@ -58,7 +57,6 @@ class AssetEditorHoudini(HoudiniCoreFunctions):
         """
         Saves the selected object(s) as an asset into the predefined library
         """
-        ## TODO // ASSET CREATE
         # hou.ui.displayMessage("This Function is not available yet", title="Not yet available")
         # self.ssResolution = 1000
         if assetName == "":
