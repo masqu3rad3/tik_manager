@@ -2208,19 +2208,18 @@ Elapsed Time:{6}
     def loadNameConventions(self):
         if os.path.isfile(self._pathsDict["tikConventions"]):
             nameConventions = self._loadJson(self._pathsDict["tikConventions"])
+            # compatibility prior to version 3.0.606
+            try: nameConventions["newProjectName"]
+            except KeyError:
+                nameConventions["newProjectName"] = "<brandName>_<projectName>_<clientName>_<yy><mm><dd>"
+                self._dumpJson(nameConventions, self._pathsDict["tikConventions"])
             return nameConventions
         else:
             defaultNameConventions = self._sceneManagerDefaults["defaultTikConvention"]
-            ## return and dump default name extensions:
-            # defaultNameConventions = {
-            #     "validItems": {
-            #         "baseName": "",
-            #         "categoryName": "",
-            #         "userInitials": "",
-            #         "date": ""
-            #     },
-            #     "fileName": "<baseName>_<categoryName>_<userInitials>"
-            # }
+            # compatibility prior to version 3.0.606
+            try: defaultNameConventions["newProjectName"]
+            except KeyError:
+                defaultNameConventions["newProjectName"] = "<brandName>_<projectName>_<clientName>_<yy><mm><dd>"
             self._dumpJson(defaultNameConventions, self._pathsDict["tikConventions"])
             return defaultNameConventions
 

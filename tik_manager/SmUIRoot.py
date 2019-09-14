@@ -684,6 +684,20 @@ class MainUI(QtWidgets.QMainWindow):
                              textInfo="Choose an unique name with latin characters without spaces", type="C")
 
     def createProjectUI(self):
+        # TODO : Re-write the ui with dynamically building fields from the tikConventions["newProjectName"]
+        # TODO : <yy>, <mm>, <dd> fields will be filled automatic
+        # TODO : Other fields defined in the tikConventions.json file will be mandatory to fill.
+
+        ## ROAD MAP
+        ## load tikConventions.json to a variable
+        ## get the newProjectName key
+        ## get the used tokens
+        ## create ui fields for each token except <yy>, <mm>, <dd>
+        ## assign values to <yy>, <mm> and <dd> tokens
+
+        ## resolve the project name and update it with each character entered to the fields
+
+
         createProject_Dialog = QtWidgets.QDialog(parent=self, windowTitle="Create New Project")
         createProject_Dialog.resize(420, 220)
 
@@ -4161,6 +4175,7 @@ class MainUI(QtWidgets.QMainWindow):
         settings = self.allSettingsDict.get("nameConventions")
 
         validFileNameTokens = ["<date>", "<subproject>", "<baseName>", "<categoryName>", "<userInitials>"]
+        validProjectNameTokens = ["<brandName>", "<projectName>", "<clientName>", "<yy>", "<mm>", "<dd>"]
 
         namingConv_Layout = QtWidgets.QVBoxLayout(self.namingConventions_vis)
         namingConv_Layout.setSpacing(0)
@@ -4190,9 +4205,21 @@ class MainUI(QtWidgets.QMainWindow):
         formLayout.addRow(fileNameConv_lbl, fileNameConv_le)
 
         infoLabel = QtWidgets.QLabel()
-        infoLabel.setText("Valid tokens are %s" % (",".join(validFileNameTokens)))
+        infoLabel.setText("Valid Scene Name tokens: %s\n" % (", ".join(validFileNameTokens)))
         infoLabel.setWordWrap(True)
         formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, infoLabel)
+
+        newProjectNameConv_lbl = QtWidgets.QLabel()
+        newProjectNameConv_lbl.setText("Project Name Convention: ")
+        newProjectNameConv_le = QtWidgets.QLineEdit()
+        newProjectNameConv_le.setText(settings["newProjectName"])
+
+        formLayout.addRow(newProjectNameConv_lbl, newProjectNameConv_le)
+
+        infoLabel_newProjectConv = QtWidgets.QLabel()
+        infoLabel_newProjectConv.setText("Valid Project Name tokens: %s\n" % (", ".join(validProjectNameTokens)))
+        infoLabel_newProjectConv.setWordWrap(True)
+        formLayout.setWidget(3, QtWidgets.QFormLayout.FieldRole, infoLabel_newProjectConv)
 
         templateFolder_lbl = QtWidgets.QLabel()
         templateFolder_lbl.setText("Template Folder: ")
@@ -4209,7 +4236,7 @@ class MainUI(QtWidgets.QMainWindow):
         infoLabel.setText(
             "While creating a new project, all contents of the template folder will be copied into the project folder")
         infoLabel.setWordWrap(True)
-        formLayout.setWidget(3, QtWidgets.QFormLayout.FieldRole, infoLabel)
+        formLayout.setWidget(4, QtWidgets.QFormLayout.FieldRole, infoLabel)
 
         h1_s1_layout.addLayout(formLayout)
 
@@ -4258,6 +4285,20 @@ class MainUI(QtWidgets.QMainWindow):
             settings["fileName"] = template
             self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
 
+        def updateProjectName():
+            # template = unicode(fileNameConv_le.text()).encode("utf-8")
+            template = compat.encode(newProjectNameConv_le.text())
+            items = re.findall(r'<(.*?)\>', template)
+            for x in items:
+                if ("<%s>" % x) not in validProjectNameTokens:
+                    msg = "%s token is invalid\nValid tokens are: %s" % (x, ",".join(validProjectNameTokens))
+                    self.infoPop(textTitle="Invalid Token", textHeader=msg)
+                    newProjectNameConv_le.setText(settings["newProjectName"])
+                    return
+            settings["newProjectName"] = template
+            self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
+
+
         def get_size(start_path='.'):
             total_size = 0
             for dirpath, dirnames, filenames in os.walk(start_path):
@@ -4276,6 +4317,7 @@ class MainUI(QtWidgets.QMainWindow):
         templateFolderBrowse_pb.clicked.connect(browseTemplateFolder)
         templateFolder_le.editingFinished.connect(updateTemplateFolder)
         fileNameConv_le.editingFinished.connect(updateFileName)
+        newProjectNameConv_le.editingFinished.connect(updateProjectName)
 
     def _createFormWidgets(self, loopList, settingsDict, formattingType, formlayout, dictUpdateMethod):
         """Creates widgets for the given form layout"""
@@ -4631,8 +4673,7 @@ class MainUI(QtWidgets.QMainWindow):
                     if button.isChecked():
                         sceneFormat = button.text()
                         break
-                resolvedText = "{0}\{1}\{2}\{3}\{4}.{5}".format(relScenesDir, category, subProject, name, sceneName,
-                                                                sceneFormat)
+                resolvedText = r"{0}\{1}\{2}\{3}\{4}.{5}".format(relScenesDir, category, subProject, name, sceneName, sceneFormat)
                 resolvedText = resolvedText.replace("\\\\", "\\")
             else:
                 resolvedText = ""

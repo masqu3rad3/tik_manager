@@ -25,7 +25,8 @@
   },
   "defaultTikConvention": {
     "templateFolder": "",
-    "fileName": "<baseName>_<categoryName>_<userInitials>"
+    "fileName": "<baseName>_<categoryName>_<userInitials>",
+    "newProjectName": "<brandName>_<projectName>_<clientName>_<yy><mm><dd>"
   },
   "defaultProjectSettings": {
     "Resolution": [
