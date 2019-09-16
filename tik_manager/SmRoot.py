@@ -1368,6 +1368,15 @@ Used Categories: {4}""".format(softwareReport,
             # TODO / create getting workstation reports and finish logging it on a file
             # TODO / Additionally, in th SmUIRoot file make another simple UI to show the results
             # find the workstation log paths
+            logFolder = os.path.join(self._pathsDict["masterDir"], "progressLogs")
+
+            # get all folders in here and add them to the workstations list
+
+            # go through each workstation folder
+                # get total log files and put the number to workingDays variable
+                # for each log file:
+                    # Get each line
+                    #
 
             pass
 

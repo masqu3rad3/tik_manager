@@ -1073,6 +1073,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
         # pm.saveFile()
         # cmds.file(save=True)
         self._save()
+        self.progressLogger("save", self.getSceneFile())
 
     def getFormatsAndCodecs(self):
         """Returns the codecs which can be used in current workstation"""
