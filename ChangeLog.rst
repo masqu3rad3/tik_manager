@@ -56,6 +56,7 @@ Tik Manager Version History
 * **Fix.605** Nuke Scene Manager / Critical bug fix (related with version checking) with Nuke version 10 which prevents Loading Base Scenes
 * **Fix.605** Create New Project / client removed from the mandatory list
 * **Fix.605** Standalone / Bug causing crash while showing project folder with empty projects fixed
+* **Update.606** New Project Naming Conventions added for further customization. All fields defined in the Shared Settings/Conventions/New Project are mandatory
 
 2.5
 ---

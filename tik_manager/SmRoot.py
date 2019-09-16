@@ -872,7 +872,8 @@ class RootManager(object):
         """Returns the codecs which can be used in current workstation"""
         return None
 
-    def createNewProject(self, projectRoot, projectName, brandName, client, settingsData=None):
+    # def createNewProject(self, projectRoot, projectName, brandName, client, settingsData=None):
+    def createNewProject(self, resolvedPath, settingsData=None):
         """
         Creates New Project Structure
         :param projectRoot: (String) Path to where all projects are
@@ -884,7 +885,7 @@ class RootManager(object):
         logger.debug("Func: createNewProject")
 
         # resolve the project path
-        resolvedPath = self.resolveProjectPath(projectRoot, projectName, brandName, client)
+        # resolvedPath = self.resolveProjectPath(projectRoot, projectName, brandName, client)
 
         # check if there is a duplicate
         if not os.path.isdir(os.path.normpath(resolvedPath)):
@@ -2015,7 +2016,10 @@ Elapsed Time:{6}
         return os.path.splitext(basename)[0]
 
     def resolveProjectPath(self, projectRoot, projectName, brandName, client):
-        """Parses the info to the absolute project folder path"""
+        """
+        METHOD IS DEPRECATED AND NO LONGER NEEDED
+        Parses the info to the absolute project folder path
+        """
         logger.debug("Func: resolveProjectPath")
 
         if projectName == "" or projectRoot == "":
