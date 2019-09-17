@@ -1298,11 +1298,11 @@ class RootManager(object):
             self._exception(360, "Project Folder does not have Tik Manager Database")
             return
 
-        def getOldestFile(listOfFiles):
-            return min(listOfFiles, key=lambda fn: os.stat(fn).st_mtime)
-
-        def getNewestFile(listOfFiles):
-            return max(listOfFiles, key=lambda fn: os.stat(fn).st_mtime)
+        # def getOldestFile(listOfFiles):
+        #     return min(listOfFiles, key=lambda fn: os.stat(fn).st_mtime)
+        #
+        # def getNewestFile(listOfFiles):
+        #     return max(listOfFiles, key=lambda fn: os.stat(fn).st_mtime)
 
         def uniqueList(seq, idfun=None):
             # order preserving
@@ -1331,7 +1331,7 @@ class RootManager(object):
                                 yield (os.path.join(root, file))
 
         def getSoftwareReports():
-            softwareReport = "Tik Manager Report for Project: '%s'" % os.path.basename(projectDir)
+            softwareReport = "-----------------\nSoftware Reports:\n-----------------\n"
             softwareDBList = ["mayaDB", "maxDB", "houdiniDB", "nukeDB", "photoshopDB"]
             allUsers = []
             for dbName in softwareDBList:
@@ -1351,12 +1351,13 @@ class RootManager(object):
                 if categories != []:
                     softwareReport = """
 {0}
-
-{1}:
-Users: {2}
-Used Workstations: {3}
-Used Categories: {4}""".format(softwareReport,
+{1}
+{2}
+Users: {3}
+Used Workstations: {4}
+Used Categories: {5}""".format(softwareReport,
                                dbName.replace("DB", "").capitalize(),
+                               "-" * len(dbName.replace("DB", "")),
                                ", ".join(uniqueList(users)),
                                ", ".join(uniqueList(workstations)),
                                ", ".join(uniqueList(categories)),
@@ -1365,141 +1366,78 @@ Used Categories: {4}""".format(softwareReport,
                 return softwareReport
 
         def getWorkstationReports():
-            # TODO / create getting workstation reports and finish logging it on a file
-            # TODO / Additionally, in th SmUIRoot file make another simple UI to show the results
             # find the workstation log paths
             logFolder = os.path.join(self._pathsDict["masterDir"], "progressLogs")
-
+            workstationReport = "--------------------\nWorkstation Reports:\n--------------------\n"
+            if not os.path.isdir(logFolder):
+                return "%sNo Report for Workstations" %workstationReport
             # get all folders in here and add them to the workstations list
-
+            folderContent = os.listdir(logFolder)
+            workstationList = [x for x in folderContent if os.path.isdir(os.path.join(logFolder, x))]
             # go through each workstation folder
+            grandTotalDays = 0
+            grandTotalHours = 0
+            grandDaysList = []
+            for ws in workstationList:
                 # get total log files and put the number to workingDays variable
+                wsFolder = os.path.join(logFolder, ws)
+                logFiles = [logFile for logFile in os.listdir(wsFolder) if os.path.splitext(logFile)[1] == ".log"]
+                totalWorkDays = len(logFiles)
+                totalWorkHours = 0
+                firstDay = datetime.datetime.strptime(logFiles[0].replace(".log", ""), "%y%m%d").strftime("%d.%b.%Y")
+                lastDay = datetime.datetime.strptime(logFiles[-1].replace(".log", ""), "%y%m%d").strftime("%d.%b.%Y")
+                grandDaysList.append(int(logFiles[0].replace(".log", "")))
+                grandDaysList.append(int(logFiles[-1].replace(".log", "")))
+                wsUsers=[]
                 # for each log file:
-                    # Get each line
-                    #
+                # get first and last line
 
-            pass
+                for file in logFiles:
+                    absFilePath = os.path.join(wsFolder, file)
+                    f = open(absFilePath, "r")
+                    if f.mode == "r":
+                        fileContent = f.readlines()
+                    else:
+                        return "Cannot Read Log File %s" %absFilePath
+                    f.close()
 
-        print(getSoftwareReports())
+                    firstLineInfo = fileContent[0].split("***")
+                    lastLineInfo = fileContent[-1].split("***")
+                    totalWorkHours += (float(lastLineInfo[3]) - float(firstLineInfo[3])) / 60
+                    wsUsers += [x.split("***")[1] for x in fileContent]
 
+                grandTotalDays += totalWorkDays
+                grandTotalHours += totalWorkHours
 
-        return
-        # hardCodedSwPath = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "softwareDatabase.json"))
-        # softwareDictionary = self._loadJson(hardCodedSwPath)
+                grandFirstDay = datetime.datetime.strptime(str(min(grandDaysList)), "%y%m%d").strftime("%d.%b.%Y")
+                grandLastDay = datetime.datetime.strptime(str(max(grandDaysList)), "%y%m%d").strftime("%d.%b.%Y")
+                workstationReport = """
+{0}
+{1}:
+{2}
+Total Work Days: {3} ({4} - {5})
+Estimated Total Hours of work*: {6}
+User(s): {7}
 
+""".format(workstationReport, ws, "-" * len(str(ws)), totalWorkDays, firstDay, lastDay, '%.1f'%(totalWorkHours), ", ".join(uniqueList(wsUsers)))
 
+            workstationReport = "{0}\nGrand Total:\n------------\nTotal Days: {1} ({2} - {3}\nTotal Hours: {4}\n\n*Please note that work hours are a rough estimation based on save/load periods".format(workstationReport, grandTotalDays, grandFirstDay, grandLastDay, '%.1f'%(totalWorkHours))
+            return workstationReport
 
+        totalReport = "Tik Manager Report for Project: '{0}'\n\n{1}\n\n{2}".format(os.path.basename(projectDir), getSoftwareReports(), getWorkstationReports())
+        # print(totalReport)
 
         now = datetime.datetime.now()
-        formattedDate = now.strftime("%Y.%m.%d.%H.%M")
-        filename = "summary_{0}.txt".format(formattedDate)
-
-        # search entire database folder
-
-        allDBfiles = []
-        for sw in list(softwareDictionary):
-            dbDirName = softwareDictionary[sw]["databaseDir"]
-            dbPath = os.path.join(self._pathsDict["masterDir"], dbDirName)
-            if os.path.isdir(dbPath):
-
-                swCategories = os.listdir(dbPath)
-                for category in swCategories:
-                    # get all json files in it recursively
-                    for root, dirs, files in os.walk(os.path.join(dbPath, category)):
-                        for file in files:
-                            if file.endswith(".json"):
-                                allDBfiles.append(os.path.join(root, file))
-                                print(os.path.join(root, file))
+        filename = "_ProjectReport_{0}.txt".format(now.strftime("%Y.%m.%d.%H.%M"))
+        filePath = os.path.join(databaseDir, filename)
+        file = open(filePath, "w")
+        file.write(totalReport)
+        file.close()
+        logger.info("Report has been logged => %s" %filePath)
 
 
-        usersList = []
-        usedSoftwares = []
-        for sceneFile in allDBfiles:
-            sceneInfo = self._loadJson(sceneFile)
-            for v in sceneInfo["Versions"]:
-                usersList.append(v["User"])
+        return totalReport
 
-        print(uniqueList(usersList))
-
-
-
-        oldestFile = getOldestFile(allDBfiles)
-        pathOldestFile, nameOldestFile = os.path.split(oldestFile)
-        oldestTimeMod = datetime.datetime.fromtimestamp(os.path.getmtime(oldestFile))
-        newestFile = getNewestFile(allDBfiles)
-        pathNewestFile, nameNewestFile = os.path.split(oldestFile)
-        newestTimeMod = datetime.datetime.fromtimestamp(os.path.getmtime(newestFile))
-
-        # print ", ".join(usedSofwares)
-        formattedUsedSoftwares = ", ".join(usedSofwares)
-
-        ReportText = """
-Scene Manager Report - by {0} on {1}
----------------
-Participants:{2}
-Softwares Used:{3}
-Oldest Scene File:{4}
-Most Recent Scene File:{5}
-Elapsed Time:{6}
-        """.format(self.currentUser, formattedDate, "2", formattedUsedSoftwares, oldestFile, newestFile, "6")
-        print(ReportText)
-        pass
-    # def getProjectReport(self):
-    #     # TODO This function should be re-written considering all possible softwares
-    #     # TODO instead of clunking scanBaseScenes with extra arguments, do the scanning inside this function
-    #     def getOldestFile(rootfolder, extension=".avi"):
-    #         return min(
-    #             (os.path.join(dirname, filename)
-    #              for dirname, dirnames, filenames in os.walk(rootfolder)
-    #              for filename in filenames
-    #              if filename.endswith(extension)),
-    #             key=lambda fn: os.stat(fn).st_mtime)
-    #
-    #     def getNewestFile(rootfolder, extension=".avi"):
-    #         return max(
-    #             (os.path.join(dirname, filename)
-    #              for dirname, dirnames, filenames in os.walk(rootfolder)
-    #              for filename in filenames
-    #              if filename.endswith(extension)),
-    #             key=lambda fn: os.stat(fn).st_mtime)
-    #
-    #     oldestFile = getOldestFile(self.scenesDir, extension=(".mb", ".ma"))
-    #     pathOldestFile, nameOldestFile = os.path.split(oldestFile)
-    #     oldestTimeMod = datetime.datetime.fromtimestamp(os.path.getmtime(oldestFile))
-    #     newestFile = getNewestFile(self.scenesDir, extension=(".mb", ".ma"))
-    #     pathNewestFile, nameNewestFile = os.path.split(oldestFile)
-    #     newestTimeMod = datetime.datetime.fromtimestamp(os.path.getmtime(newestFile))
-    #
-    #     L1 = "Oldest Scene file: {0} - {1}".format(nameOldestFile, oldestTimeMod)
-    #     L2 = "Newest Scene file: {0} - {1}".format(nameNewestFile, newestTimeMod)
-    #     L3 = "Elapsed Time: {0}".format(str(newestTimeMod - oldestTimeMod))
-    #     L4 = "Scene Counts:"
-    #
-    #     report = {}
-    #     for subP in range(len(self._subProjectsList)):
-    #         subReport = {}
-    #         for category in self._categories:
-    #             categoryItems = (self.scanBaseScenes(categoryAs=category, subProjectAs=subP))
-    #             categoryItems = [x for x in categoryItems if x != []]
-    #
-    #             L4 = "{0}\n{1}: {2}".format(L4, category, len(categoryItems))
-    #             subReport[category] = categoryItems
-    #         report[self._subProjectsList[subP]] = subReport
-    #
-    #     report = pprint.pformat(report)
-    #     now = datetime.datetime.now()
-    #     filename = "summary_{0}.txt".format(now.strftime("%Y.%m.%d.%H.%M"))
-    #     filePath = os.path.join(self.projectDir, filename)
-    #     file = open(filePath, "w")
-    #     file.write("{0}\n".format(L1))
-    #     file.write("{0}\n".format(L2))
-    #     file.write("{0}\n".format(L3))
-    #     file.write("{0}\n".format(L4))
-    #     file.write((report))
-    #
-    #     file.close()
-    #     logger.info("Report has been logged => %s" %filePath)
-    #     return report
 
     def addNote(self, note):
         """Adds a note to the version at current position"""

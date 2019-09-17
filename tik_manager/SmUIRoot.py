@@ -5588,7 +5588,20 @@ class MainUI(QtWidgets.QMainWindow):
     def onProjectReport(self):
         manager = self._getManager()
 
-        manager.getProjectReport()
+        report = manager.getProjectReport()
+        print(report)
+        self.messageDialog = QtWidgets.QDialog()
+        self.messageDialog.setWindowTitle("Project Progress Report")
+        self.messageDialog.resize(800, 700)
+        messageLayout = QtWidgets.QVBoxLayout(self.messageDialog)
+        messageLayout.setContentsMargins(0, 0, 0, 0)
+        report_te = QtWidgets.QTextEdit()
+        report_te.setFont(QtGui.QFont("Courier New", 12, QtGui.QFont.Bold))
+        report_te.setReadOnly(True)
+        # report_te.setFontPointSize(14)
+        report_te.setText(report)
+        messageLayout.addWidget(report_te)
+        self.messageDialog.show()
 
     def onIviewer(self):
         # This method is NOT Software Specific.

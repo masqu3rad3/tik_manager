@@ -227,6 +227,7 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
         jsonInfo["SubProject"] = self._subProjectsList[subProjectIndex]
         self._dumpJson(jsonInfo, jsonFile)
         # return jsonInfo
+        self.progressLogger("save", absSceneFile)
         return [0, ""]
 
     def saveVersion(self, makeReference=False, versionNotes="", sceneFormat="hip", *args, **kwargs):
@@ -317,6 +318,7 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
         else:
             msg = "This is not a base scene (Json file cannot be found)"
             return -1, msg
+        self.progressLogger("save", absSceneFile)
         return jsonInfo
 
 
@@ -435,6 +437,7 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
             absSceneFile = absSceneFile.replace('\\', '/')
             # hou.hipFile.load(absSceneFile, suppress_save_prompt=force, ignore_load_warnings=False)
             self._load(absSceneFile, force=force)
+            self.progressLogger("load", absSceneFile)
             # self._setEnvVariable('HIP', os.path.split(absSceneFile)[0])
             # self._setEnvVariable('HIP', os.path.split(absSceneFile)[0])
             return 0

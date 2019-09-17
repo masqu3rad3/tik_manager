@@ -216,6 +216,7 @@ class MaxManager(RootManager, MaxCoreFunctions):
         jsonInfo["SubProject"] = self._subProjectsList[subProjectIndex]
         self._dumpJson(jsonInfo, jsonFile)
         # return jsonInfo
+        self.progressLogger("save", sceneFile)
         return [0, ""]
 
     def saveVersion(self, makeReference=True, versionNotes="", sceneFormat="max", *args, **kwargs):
@@ -295,6 +296,7 @@ class MaxManager(RootManager, MaxCoreFunctions):
             msg = "This is not a base scene (Json file cannot be found)"
             logger.warning(msg)
             return -1, msg
+        self.progressLogger("save", sceneFile)
         return jsonInfo
 
 
@@ -463,7 +465,7 @@ class MaxManager(RootManager, MaxCoreFunctions):
         if os.path.isfile(absSceneFile):
             # fManager.Open(absSceneFile)
             self._load(absSceneFile)
-
+            self.progressLogger("load", absSceneFile)
             return 0
         else:
             msg = "File in Scene Manager database doesnt exist"
@@ -656,6 +658,7 @@ class MaxManager(RootManager, MaxCoreFunctions):
         """Save the currently open file"""
         # fManager.Save()
         self._save()
+        self.progressLogger("save", self.getSceneFile())
 
     def getFormatsAndCodecs(self):
         """Returns the codecs which can be used in current workstation"""

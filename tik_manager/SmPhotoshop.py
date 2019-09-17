@@ -256,6 +256,7 @@ class PsManager(RootManager, PsCoreFunctions):
 
         jsonInfo["SubProject"] = self._subProjectsList[subProjectIndex]
         self._dumpJson(jsonInfo, jsonFile)
+        self.progressLogger("save", sceneFile)
         return [0, ""]
 
     def saveVersion(self, makeReference=False, versionNotes="", sceneFormat="psd", *args, **kwargs):
@@ -357,6 +358,7 @@ class PsManager(RootManager, PsCoreFunctions):
             msg = "This is not a base scene (Json file cannot be found)"
             self._exception(360, msg)
             return -1, msg
+        self.progressLogger("save", sceneFile)
         return jsonInfo
 
     # def getTextureVersions(self, baseSceneName):
@@ -470,6 +472,7 @@ class PsManager(RootManager, PsCoreFunctions):
         if os.path.isfile(absSceneFile):
             # self.psApp.Open(absSceneFile)
             self._load(absSceneFile)
+            self.progressLogger("load", absSceneFile)
             return 0
         else:
             msg = "File in Scene Manager database doesnt exist"

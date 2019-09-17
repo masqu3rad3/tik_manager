@@ -195,6 +195,7 @@ class NukeManager(RootManager, NukeCoreFunctions):
 
         jsonInfo["SubProject"] = self._subProjectsList[subProjectIndex]
         self._dumpJson(jsonInfo, jsonFile)
+        self.progressLogger("save", sceneFile)
         return [0, ""]
 
     def saveVersion(self, makeReference=True, versionNotes="", sceneFormat="mb", *args, **kwargs):
@@ -275,6 +276,7 @@ class NukeManager(RootManager, NukeCoreFunctions):
             msg = "This is not a base scene (Json file cannot be found)"
             self._exception(360, msg)
             return -1, msg
+        self.progressLogger("save", sceneFile)
         return jsonInfo
 
     def loadBaseScene(self, force=False):
@@ -285,6 +287,7 @@ class NukeManager(RootManager, NukeCoreFunctions):
         if os.path.isfile(absSceneFile):
             nuke.scriptOpen(absSceneFile)
             self._load()
+            self.progressLogger("load", sceneFile)
             return 0
         else:
             msg = "File in Scene Manager database doesnt exist"
