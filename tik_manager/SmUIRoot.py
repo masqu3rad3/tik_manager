@@ -558,6 +558,18 @@ class MainUI(QtWidgets.QMainWindow):
         self.scenes_listWidget.customContextMenuRequested.connect(self.onContextMenu_scenes)
         self.popMenu_scenes = QtWidgets.QMenu()
 
+        # self.baseSceneFromReference = QtWidgets.QAction('Create Base Scene from', self)
+        self.baseSceneFromReference = self.popMenu_scenes.addMenu('Create Base Scene to:')
+
+        # # if self.reference_radioButton.isChecked():
+        if BoilerDict["Environment"] != "Standalone":
+            for c in self.manager.getCategories():
+                createBaseSceneInCategory_rcItem = QtWidgets.QAction(c, self)
+                self.baseSceneFromReference.addAction(createBaseSceneInCategory_rcItem)
+                createBaseSceneInCategory_rcItem.triggered.connect(lambda ignore=c, cat=c: self.onBaseSceneFromReference(category=cat))
+        self.popMenu_scenes.addSeparator()
+
+
         self.scenes_rcItem_0 = QtWidgets.QAction('Import Scene', self)
         self.popMenu_scenes.addAction(self.scenes_rcItem_0)
         self.scenes_rcItem_0.triggered.connect(lambda: self.rcAction_scenes("importScene"))
@@ -5585,6 +5597,31 @@ class MainUI(QtWidgets.QMainWindow):
             self.populateBaseScenes()
             self.statusBar().showMessage("Status | Reference of %s is deleted" % name)
 
+    def onBaseSceneFromReference(self, category):
+        ## TODO : Finish the method
+
+        manager = self._getManager()
+        print("category", category)
+        print("scene", manager.currentBaseSceneName)
+
+        ## Query: Prevent data loss, ask for unsaved changes
+        if self.manager.isSceneModified():
+            q = self.queryPop(type="yesNoCancel", textTitle="Save Changes", textInfo="Save Changes to",
+                              textHeader=("Scene Modified"))
+            if q == "yes":
+                self.manager.saveSimple()
+            if q == "no":
+                pass
+            if q == "cancel":
+                return
+
+        ## open a new scene with project settings
+        self.manager._new()
+
+        ## reference the selected base scene to the scene
+
+        ## save it as a base scene to the specified category with proper naming
+
     def onProjectReport(self):
         manager = self._getManager()
 
@@ -5716,12 +5753,14 @@ class MainUI(QtWidgets.QMainWindow):
             self.makeReference_pushButton.setEnabled(True)
             self.addNote_pushButton.setEnabled(True)
             self.version_label.setEnabled(True)
+            self.baseSceneFromReference.menuAction().setVisible(False)
         else:
             self.version_comboBox.setEnabled(False)
             self.showPreview_pushButton.setEnabled(False)
             self.makeReference_pushButton.setEnabled(False)
             self.addNote_pushButton.setEnabled(False)
             self.version_label.setEnabled(False)
+            self.baseSceneFromReference.menuAction().setVisible(True)
 
         if manager.getPreviews():
             self.showPreview_pushButton.setEnabled(True)

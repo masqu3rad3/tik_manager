@@ -198,6 +198,12 @@ class NukeManager(RootManager, NukeCoreFunctions):
         self.progressLogger("save", sceneFile)
         return [0, ""]
 
+    def saveSimple(self):
+        """Save the currently open file"""
+        logger.debug("Func: saveSimple")
+        self._save()
+        self.progressLogger("save", self.getSceneFile())
+
     def saveVersion(self, makeReference=True, versionNotes="", sceneFormat="mb", *args, **kwargs):
         """
         Saves a version for the predefined scene. The scene json file must be present at the /data/[Category] folder.
@@ -285,9 +291,9 @@ class NukeManager(RootManager, NukeCoreFunctions):
         relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"].replace("\\", "/")
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
-            nuke.scriptOpen(absSceneFile)
-            self._load()
-            self.progressLogger("load", sceneFile)
+            self._new(force=True)
+            self._load(absSceneFile)
+            self.progressLogger("load", absSceneFile)
             return 0
         else:
             msg = "File in Scene Manager database doesnt exist"

@@ -583,8 +583,9 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
 
     def saveSimple(self):
         """Save the currently open file"""
-        # hou.hipFile.save()
+        logger.debug("Func: saveSimple")
         self._save()
+        self.progressLogger("save", self.getSceneFile())
 
     def getFormatsAndCodecs(self):
         """Returns the codecs which can be used in current workstation"""

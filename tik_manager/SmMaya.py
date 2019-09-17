@@ -1070,8 +1070,6 @@ class MayaManager(RootManager, MayaCoreFunctions):
     def saveSimple(self):
         """Save the currently open file"""
         logger.debug("Func: saveSimple")
-        # pm.saveFile()
-        # cmds.file(save=True)
         self._save()
         self.progressLogger("save", self.getSceneFile())
 

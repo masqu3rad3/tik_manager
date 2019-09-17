@@ -192,3 +192,8 @@ class PsCoreFunctions(object):
         self.psApp.ExecuteAction(idsave, desc419, 3)
         return True
 
+    def _setFPS(self, fps, *args, **kwargs):
+        pass
+
+    def _getFPS(self, *args, **kwargs):
+        pass

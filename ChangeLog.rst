@@ -57,7 +57,8 @@ Tik Manager Version History
 * **Fix.605** Create New Project / client removed from the mandatory list
 * **Fix.605** Standalone / Bug causing crash while showing project folder with empty projects fixed
 * **Update.606** New Project Naming Conventions added for further customization. All fields defined in the Shared Settings/Conventions/New Project are mandatory
-* **New.7** Project Report and progress
+* **New.700** Project Report and progress
+* **Update.701** Nuke / Loading method changes. Instead of opening a new Nuke instance, it closes the current one (after asking to save first) and opens the new one.
 
 2.5
 ---

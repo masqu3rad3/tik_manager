@@ -12,6 +12,9 @@ class MaxCoreFunctions(object):
     def __init__(self):
         super(MaxCoreFunctions, self).__init__()
 
+    def _new(self, force=True):
+        fManager.Reset(noPrompt=force)
+
     def _save(self, *args, **kwargs):
         fManager.Save()
 
@@ -319,3 +322,9 @@ class MaxCoreFunctions(object):
 
     def _isSceneModified(self):
         return fManager.IsSaveRequired()
+
+    def _setFPS(self, fps, *args, **kwargs):
+        pass
+
+    def _getFPS(self, *args, **kwargs):
+        pass

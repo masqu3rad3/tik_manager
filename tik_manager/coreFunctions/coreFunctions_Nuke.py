@@ -10,8 +10,11 @@ class NukeCoreFunctions(object):
     def __init__(self):
         super(NukeCoreFunctions, self).__init__()
 
+    def _new(self, force=True):
+        nuke.scriptClose(ignoreUnsavedChanges=force)
+
     def _save(self, *args, **kwargs):
-        pass
+        nuke.scriptSave()
         # not needed
 
     def _saveAs(self, filePath, format=None, *args, **kwargs):
@@ -83,3 +86,9 @@ class NukeCoreFunctions(object):
 
     def _isSceneModified(self):
         return nuke.modified()
+
+    def _setFPS(self, fps, *args, **kwargs):
+        pass
+
+    def _getFPS(self, *args, **kwargs):
+        pass

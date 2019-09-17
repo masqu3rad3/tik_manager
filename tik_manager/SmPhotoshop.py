@@ -366,6 +366,11 @@ class PsManager(RootManager, PsCoreFunctions):
     #     #resolve the available texture versions and return the list
     #
     #     pass
+    def saveSimple(self):
+        """Save the currently open file"""
+        logger.debug("Func: saveSimple")
+        self._save()
+        self.progressLogger("save", self.getSceneFile())
 
     def exportSourceimage(self, extension="jpg", textureType="diffuse", asNextRevision=True, revisionNumber=1):
         # ???

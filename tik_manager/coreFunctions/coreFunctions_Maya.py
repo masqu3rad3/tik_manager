@@ -11,6 +11,9 @@ class MayaCoreFunctions(object):
     def __init__(self):
         super(MayaCoreFunctions, self).__init__()
 
+    def _new(self, force=True):
+        cmds.file(new=True, f=force)
+
     def _save(self, *args, **kwargs):
         cmds.file(save=True)
 
@@ -242,3 +245,9 @@ class MayaCoreFunctions(object):
 
     def _getCameras(self):
         return cmds.ls(type="camera")
+
+    def _setFPS(self, fps, *args, **kwargs):
+        pass
+
+    def _getFPS(self, *args, **kwargs):
+        pass

@@ -647,6 +647,8 @@ class MainUI(baseUI):
         self.saveBaseScene_fm.setVisible(False)
         self.scenes_rcItem_0.setVisible(False)
 
+        self.baseSceneFromReference.menuAction().setVisible(False)
+
         # self.changeCommonFolder.setVisible(True)
         # self.changeCommonFolder.triggered.connect(self.manager._defineCommonFolder)
 

@@ -317,3 +317,9 @@ class HoudiniCoreFunctions(object):
         hscript_command = "set -g %s = '%s'" % (var, value)
 
         hou.hscript(str(hscript_command))
+
+    def _setFPS(self, fps, *args, **kwargs):
+        pass
+
+    def _getFPS(self, *args, **kwargs):
+        pass
