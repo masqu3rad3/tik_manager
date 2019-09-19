@@ -1067,6 +1067,7 @@ def prepareCommonFolder(targetCommonFolderPath):
         ["", "alExportSettings.json"],
         ["", "alImportSettings.json"],
         ["", "conversionLUT.json"],
+        ["", "adminPass.psw"],
         # ["icons", "iconHoudini.png"],
         # ["icons", "iconMax.png"],
         # ["icons", "iconMaya.png"],

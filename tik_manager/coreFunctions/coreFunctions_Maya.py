@@ -11,8 +11,20 @@ class MayaCoreFunctions(object):
     def __init__(self):
         super(MayaCoreFunctions, self).__init__()
 
-    def _new(self, force=True):
+    def _new(self, force=True, fps=None):
         cmds.file(new=True, f=force)
+        if fps:
+            fpsDict = {15: "game",
+                       24: "film",
+                       25: "pal",
+                       30: "ntsc",
+                       48: "show",
+                       50: "palf",
+                       60: "ntscf"}
+            ranges = self._getTimelineRanges()
+            cmds.currentUnit(time=fpsDict[fps])
+            self._setTimelineRanges(ranges)
+            cmds.currentTime(1)
 
     def _save(self, *args, **kwargs):
         cmds.file(save=True)
@@ -245,6 +257,20 @@ class MayaCoreFunctions(object):
 
     def _getCameras(self):
         return cmds.ls(type="camera")
+
+    def _getTimelineRanges(self):
+        # TODO : Make sure the time ranges are INTEGERS
+        R_ast = cmds.playbackOptions(q=True, ast=True)
+        R_min = cmds.playbackOptions(q=True, min=True)
+        R_max = cmds.playbackOptions(q=True, max=True)
+        R_aet = cmds.playbackOptions(q=True, aet=True)
+        return [R_ast, R_min, R_max, R_aet]
+
+    def _setTimelineRanges(self, rangeList):
+        """Sets the timeline ranges [AnimationStart, Min, Max, AnimationEnd]"""
+        # TODO : Make sure the time ranges are INTEGERS
+        print("DB", rangeList)
+        cmds.playbackOptions(ast=rangeList[0], min=rangeList[1], max=rangeList[2], aet=rangeList[3])
 
     def _setFPS(self, fps, *args, **kwargs):
         pass

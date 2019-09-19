@@ -14,6 +14,9 @@ class PsCoreFunctions(object):
     def comLink(self):
         return Dispatch('Photoshop.Application')
 
+    def _new(self, force=True, fps=None):
+        pass
+
     def _save(self, *args, **kwargs):
         pass
         # not needed

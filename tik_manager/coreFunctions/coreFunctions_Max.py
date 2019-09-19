@@ -12,8 +12,10 @@ class MaxCoreFunctions(object):
     def __init__(self):
         super(MaxCoreFunctions, self).__init__()
 
-    def _new(self, force=True):
+    def _new(self, force=True, fps=None):
         fManager.Reset(noPrompt=force)
+        if fps:
+            rt.frameRate = fps
 
     def _save(self, *args, **kwargs):
         fManager.Save()
@@ -322,6 +324,17 @@ class MaxCoreFunctions(object):
 
     def _isSceneModified(self):
         return fManager.IsSaveRequired()
+
+    def _getTimelineRanges(self):
+        R_ast = int(rt.animationRange.start)
+        R_min = int(rt.animationRange.start)
+        R_max = int(rt.animationRange.end)
+        R_aet = int(rt.animationRange.end)
+        return [R_ast, R_min, R_max, R_aet]
+
+    def _setTimelineRanges(self, rangeList):
+        """Sets the timeline ranges [AnimationStart, Min, Max, AnimationEnd]"""
+        rt.animationRange = rt.interval(rangeList[0], rangeList[-1])
 
     def _setFPS(self, fps, *args, **kwargs):
         pass

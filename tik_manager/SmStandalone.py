@@ -658,6 +658,12 @@ class MainUI(baseUI):
     def initMainUI(self, newborn=False):
         """OVERRIDEN METHOD"""
 
+        extraColumnList = ["Name"] + self.manager.getExtraColumns()
+        # header = QtWidgets.QTreeWidgetItem(["Name", "Date", "Ref. Version", "Creator", "Version Count"])
+        header = QtWidgets.QTreeWidgetItem(extraColumnList)
+        self.scenes_listWidget.setHeaderItem(header)
+        self.scenes_listWidget.setColumnWidth(0, 250)
+
         if not newborn:
             self.manager.init_paths("Standalone")
             self.manager.init_database()

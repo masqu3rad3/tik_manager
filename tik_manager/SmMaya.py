@@ -1121,18 +1121,18 @@ class MayaManager(RootManager, MayaCoreFunctions):
         inputDir = QtWidgets.QFileDialog.getExistingDirectory()
         return os.path.normpath(inputDir)
 
-    def _getTimelineRanges(self):
-        # TODO : Make sure the time ranges are INTEGERS
-        R_ast = cmds.playbackOptions(q=True, ast=True)
-        R_min = cmds.playbackOptions(q=True, min=True)
-        R_max = cmds.playbackOptions(q=True, max=True)
-        R_aet = cmds.playbackOptions(q=True, aet=True)
-        return [R_ast, R_min, R_max, R_aet]
-
-    def _setTimelineRanges(self, rangeList):
-        """Sets the timeline ranges [AnimationStart, Min, Max, AnimationEnd]"""
-        # TODO : Make sure the time ranges are INTEGERS
-        cmds.playbackOptions(ast=rangeList[0], min=rangeList[1], max=rangeList[2], aet=rangeList[3])
+    # def _getTimelineRanges(self):
+    #     # TODO : Make sure the time ranges are INTEGERS
+    #     R_ast = cmds.playbackOptions(q=True, ast=True)
+    #     R_min = cmds.playbackOptions(q=True, min=True)
+    #     R_max = cmds.playbackOptions(q=True, max=True)
+    #     R_aet = cmds.playbackOptions(q=True, aet=True)
+    #     return [R_ast, R_min, R_max, R_aet]
+    #
+    # def _setTimelineRanges(self, rangeList):
+    #     """Sets the timeline ranges [AnimationStart, Min, Max, AnimationEnd]"""
+    #     # TODO : Make sure the time ranges are INTEGERS
+    #     cmds.playbackOptions(ast=rangeList[0], min=rangeList[1], max=rangeList[2], aet=rangeList[3])
 
 
     def _createCallbacks(self, handler, parent):

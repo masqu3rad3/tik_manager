@@ -455,15 +455,15 @@ class NukeManager(RootManager, NukeCoreFunctions):
         inputDir = QtWidgets.QFileDialog.getExistingDirectory()
         return os.path.normpath(inputDir)
 
-    def _getTimelineRanges(self):
-        # TODO : Make sure the time ranges are INTEGERS
-        firstFrame = nuke.Root().firstFrame()
-        lastFrame = nuke.Root().lastFrame()
-        R_ast = firstFrame
-        R_min = firstFrame
-        R_max = lastFrame
-        R_aet = lastFrame
-        return [R_ast, R_min, R_max, R_aet]
+    # def _getTimelineRanges(self):
+    #     # TODO : Make sure the time ranges are INTEGERS
+    #     firstFrame = nuke.Root().firstFrame()
+    #     lastFrame = nuke.Root().lastFrame()
+    #     R_ast = firstFrame
+    #     R_min = firstFrame
+    #     R_max = lastFrame
+    #     R_aet = lastFrame
+    #     return [R_ast, R_min, R_max, R_aet]
 
 
 class MainUI(baseUI):

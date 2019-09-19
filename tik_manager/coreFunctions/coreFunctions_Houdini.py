@@ -10,6 +10,9 @@ class HoudiniCoreFunctions(object):
     def __init__(self):
         super(HoudiniCoreFunctions, self).__init__()
 
+    def _new(self, force=True, fps=None):
+        pass
+
     def _save(self, *args, **kwargs):
         hou.hipFile.save()
 
@@ -317,6 +320,19 @@ class HoudiniCoreFunctions(object):
         hscript_command = "set -g %s = '%s'" % (var, value)
 
         hou.hscript(str(hscript_command))
+
+    def _getTimelineRanges(self):
+        pass
+        R_ast = int(hou.playbar.frameRange()[0])
+        R_min = int(hou.playbar.playbackRange()[0])
+        R_max = int(hou.playbar.playbackRange()[1])
+        R_aet = int(hou.playbar.frameRange()[1])
+        return [R_ast, R_min, R_max, R_aet]
+
+    def _setTimelineRanges(self, rangeList):
+        """Sets the timeline ranges [AnimationStart, Min, Max, AnimationEnd]"""
+        hou.playbar.setFrameRange(rangeList[0], rangeList[3])
+        hou.playbar.setPlaybackRange(rangeList[1], rangeList[2])
 
     def _setFPS(self, fps, *args, **kwargs):
         pass

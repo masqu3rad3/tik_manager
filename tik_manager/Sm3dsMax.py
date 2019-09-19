@@ -697,16 +697,16 @@ class MaxManager(RootManager, MaxCoreFunctions):
         inputDir = QtWidgets.QFileDialog.getExistingDirectory()
         return os.path.normpath(inputDir)
 
-    def _getTimelineRanges(self):
-        R_ast = int(rt.animationRange.start)
-        R_min = int(rt.animationRange.start)
-        R_max = int(rt.animationRange.end)
-        R_aet = int(rt.animationRange.end)
-        return [R_ast, R_min, R_max, R_aet]
-
-    def _setTimelineRanges(self, rangeList):
-        """Sets the timeline ranges [AnimationStart, Min, Max, AnimationEnd]"""
-        rt.animationRange = rt.interval(rangeList[0], rangeList[-1])
+    # def _getTimelineRanges(self):
+    #     R_ast = int(rt.animationRange.start)
+    #     R_min = int(rt.animationRange.start)
+    #     R_max = int(rt.animationRange.end)
+    #     R_aet = int(rt.animationRange.end)
+    #     return [R_ast, R_min, R_max, R_aet]
+    #
+    # def _setTimelineRanges(self, rangeList):
+    #     """Sets the timeline ranges [AnimationStart, Min, Max, AnimationEnd]"""
+    #     rt.animationRange = rt.interval(rangeList[0], rangeList[-1])
 
     def _createCallbacks(self, handler):
         logger.warning("_createCallbacks Function yet implemented")

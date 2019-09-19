@@ -10,8 +10,10 @@ class NukeCoreFunctions(object):
     def __init__(self):
         super(NukeCoreFunctions, self).__init__()
 
-    def _new(self, force=True):
+    def _new(self, force=True, fps=None):
         nuke.scriptClose(ignoreUnsavedChanges=force)
+        if fps:
+            pass
 
     def _save(self, *args, **kwargs):
         nuke.scriptSave()
@@ -86,6 +88,20 @@ class NukeCoreFunctions(object):
 
     def _isSceneModified(self):
         return nuke.modified()
+
+    def _getTimelineRanges(self):
+        # TODO : Make sure the time ranges are INTEGERS
+        firstFrame = nuke.Root().firstFrame()
+        lastFrame = nuke.Root().lastFrame()
+        R_ast = firstFrame
+        R_min = firstFrame
+        R_max = lastFrame
+        R_aet = lastFrame
+        return [R_ast, R_min, R_max, R_aet]
+
+    def _setTimelineRanges(self, rangeList):
+        """Sets the timeline ranges [AnimationStart, Min, Max, AnimationEnd]"""
+        pass
 
     def _setFPS(self, fps, *args, **kwargs):
         pass

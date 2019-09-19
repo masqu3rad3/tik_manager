@@ -4,7 +4,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING .ISS SCRIPT FILES!
 
 #define appName "Tik Manager"
-#define appVersion "3.0.700"
+#define appVersion "3.0.701"
 
 [Setup]
 AppName={#appName}
@@ -106,7 +106,7 @@ var
 
   InputDirWizardPage := CreateInputDirPage(AfterID, 'Define the path to the COMMON FOLDER', 'Select Common Database Folder', 'For single machine setup, this can be the same folder with installation folder.' + #13#13#10 + 'For team work, this should be a common folder where each workstation can reach', False, 'TikCommons');
   InputDirWizardPage.Add('&Common Folder:');
-  InputDirWizardPage.Values[0] := ExpandConstant('{commonpf}\TikWorks\tik_manager\TikManager_Commons');
+  InputDirWizardPage.Values[0] := ExpandConstant('{userdocs}\TikManager_Commons');
   AfterID := InputDirWizardPage.ID;
 
 end;

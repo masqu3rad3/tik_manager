@@ -422,14 +422,38 @@ class RootManager(object):
         logger.debug("Func: currentTabIndex/setter")
         if not 0 <= indexData < len(self._categories):
             msg="Tab index is out of range!"
-            # logger.error(msg)
-            # raise Exception([101, msg])
             self._exception(101, msg)
             return
         if indexData == self.currentTabIndex:
             self.cursorInfo()
             return
         self._setCurrents("currentTabIndex", indexData)
+        self.scanBaseScenes()
+        self.currentBaseSceneName = ""
+        self._currentVersionIndex = -1
+        self._currentPreviewCamera = ""
+        self.cursorInfo()
+
+    @property
+    def currentTabName(self):
+        """Returns the Category name at cursor position"""
+        logger.debug("Func: currentTabName/getter")
+        return self._categories[self._currentsDict["currentTabIndex"]]
+
+    @currentTabName.setter
+    def currentTabName(self, tabName):
+        """Moves the cursor to the given category name"""
+        logger.debug("Func: currentTabIndex/setter")
+        if tabName is self.currentTabName:
+            self.cursorInfo()
+            return
+        try:
+            index = self._categories.index(tabName)
+        except ValueError:
+            msg="Tab Name is not valid!"
+            self._exception(101, msg)
+            return
+        self._setCurrents("currentTabIndex", index)
         self.scanBaseScenes()
         self.currentBaseSceneName = ""
         self._currentVersionIndex = -1
@@ -506,9 +530,10 @@ class RootManager(object):
         logger.debug("Func: currentMode/setter")
 
         if not type(state) is bool:
-            if bool is 0:
+            print("DEBUGGGG", type(state))
+            if state is 0:
                 state = False
-            elif bool is 1:
+            elif state is 1:
                 state = True
             else:
                 msg = ("only boolean or 0-1 accepted, entered %s" %state)
@@ -707,6 +732,9 @@ class RootManager(object):
 
     def isGlobalFavorites(self):
         return self._userSettings["globalFavorites"]
+
+    def getExtraColumns(self):
+        return self._userSettings["extraColumns"]
 
     def getMasterDir(self):
         return self._pathsDict["masterDir"]
@@ -1421,7 +1449,7 @@ User(s): {7}
 
 """.format(workstationReport, ws, "-" * len(str(ws)), totalWorkDays, firstDay, lastDay, '%.1f'%(totalWorkHours), ", ".join(uniqueList(wsUsers)))
 
-            workstationReport = "{0}\nGrand Total:\n------------\nTotal Days: {1} ({2} - {3}\nTotal Hours: {4}\n\n*Please note that work hours are a rough estimation based on save/load periods".format(workstationReport, grandTotalDays, grandFirstDay, grandLastDay, '%.1f'%(totalWorkHours))
+            workstationReport = "{0}\nGrand Total:\n------------\nTotal Days: {1} ({2} - {3}\nTotal Hours: {4}\n\n*Please note that work hours are a rough estimation based on save/load periods".format(workstationReport, grandTotalDays, grandFirstDay, grandLastDay, '%.1f'%(grandTotalHours))
             return workstationReport
 
         totalReport = "Tik Manager Report for Project: '{0}'\n\n{1}\n\n{2}".format(os.path.basename(projectDir), getSoftwareReports(), getWorkstationReports())
@@ -1529,7 +1557,7 @@ User(s): {7}
         return
 
     def isCategoryTrash(self, categoryName, dbPath=None):
-        print(self._subProjectsList)
+        """Checks if the given category(by name) is empty or not"""
         if not dbPath:
             dbPath = self._pathsDict["databaseDir"]
         for subP in self._subProjectsList:
@@ -2196,13 +2224,15 @@ User(s): {7}
             self._dumpJson(categoriesData, filePath)
         return categoriesData
 
-    def loadSceneInfo(self):
+    def loadSceneInfo(self, asBaseScene=None):
         """Returns scene info of base scene at cursor position"""
         logger.debug("Func: loadSceneInfo")
-
-        sceneInfo = self._loadJson(self._baseScenesInCategory[self._currentBaseSceneName])
-        if sceneInfo == -2:
-            return -2
+        if not asBaseScene:
+            sceneInfo = self._loadJson(self._baseScenesInCategory[self._currentBaseSceneName])
+            if sceneInfo == -2:
+                return -2
+        else:
+            sceneInfo = self._loadJson(self._baseScenesInCategory[asBaseScene])
         return sceneInfo
 
     def loadUserPrefs(self):
@@ -2269,6 +2299,10 @@ User(s): {7}
     def loadUserSettings(self):
         if os.path.isfile(self._pathsDict["userSettingsFile"]):
             userSettings = self._loadJson(self._pathsDict["userSettingsFile"])
+            try: userSettings["extraColumns"] # safety for pre 3.0.701 version
+            except KeyError:
+                userSettings["extraColumns"] = ["Date"]
+                self.saveUserSettings(userSettings)
             if userSettings == -2:
                 return -2
         else:

@@ -404,9 +404,19 @@ class MainUI(QtWidgets.QMainWindow):
         self.scenes_listWidget = QtWidgets.QTreeWidget(self.splitter, sortingEnabled=True,
                                                        selectionMode=QtWidgets.QAbstractItemView.SingleSelection,
                                                        rootIsDecorated=False)
-        header = QtWidgets.QTreeWidgetItem(["Name", "Date"])
-        self.scenes_listWidget.setHeaderItem(header)
-        self.scenes_listWidget.setColumnWidth(0, 250)
+        # header = QtWidgets.QTreeWidgetItem(["Name", "Date"])
+        # self.scenes_listWidget.setHeaderItem(header)
+        # self.scenes_listWidget.setColumnWidth(0, 250)
+
+
+        # self.scenes_listWidget.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
+
+        # header.addChild(QtWidgets.QTreeWidgetItem(["Anan??"]))
+        # newHeader = QtWidgets.QTreeWidgetItem(["Name", "Date", "anan"])
+        # self.scenes_listWidget.setHeaderItem(newHeader)
+        # anan = self.scenes_listWidget.headerItem()
+        # print("db", anan.text(2))
+
 
         self.frame = QtWidgets.QFrame(self.splitter, frameShape=QtWidgets.QFrame.StyledPanel,
                                       frameShadow=QtWidgets.QFrame.Raised)
@@ -1901,6 +1911,8 @@ class MainUI(QtWidgets.QMainWindow):
 
         ## USER SETTINGS
         currentUserSettings = self.manager.loadUserSettings()
+        # try: currentUserSettings["extraColumns"] # this moved to the root
+        # except KeyError: currentUserSettings["extraColumns"] = ["Date"]
         self.allSettingsDict.add("userSettings", currentUserSettings, self.manager._pathsDict["userSettingsFile"])
         currentCommonFolder = self.manager._getCommonFolder()
         self.allSettingsDict.add("sharedSettingsDir", currentCommonFolder, self.manager._pathsDict["commonFolderFile"])
@@ -2077,6 +2089,17 @@ class MainUI(QtWidgets.QMainWindow):
         def updateDictionary():
             userSettings["globalFavorites"] = globalFavorites_radiobutton.isChecked()
 
+            newExtraColumns = []
+            if extra_date_cb.isChecked():
+                newExtraColumns.append("Date")
+            if extra_ref_cb.isChecked():
+                newExtraColumns.append("Ref. Version")
+            if extra_creator_cb.isChecked():
+                newExtraColumns.append("Creator")
+            if extra_versionCount_cb.isChecked():
+                newExtraColumns.append("Version Count")
+            userSettings["extraColumns"] = newExtraColumns
+
             # enteredPath = os.path.normpath(unicode(commonDir_lineEdit.text()).encode("utf-8"))
             enteredPath = os.path.normpath(compat.encode(commonDir_lineEdit.text()))
             if self.manager._checkCommonFolder(enteredPath):
@@ -2105,9 +2128,11 @@ class MainUI(QtWidgets.QMainWindow):
 
         favorites_layout = QtWidgets.QHBoxLayout()
         globalFavorites_radiobutton = QtWidgets.QRadioButton(text="Global Favorites")
+        globalFavorites_radiobutton.setToolTip("Projects added to the Favorites list in the Set Project Interface will be available for all software")
         globalFavorites_radiobutton.setChecked(self.manager.isGlobalFavorites())
 
         localFavorites_radiobutton = QtWidgets.QRadioButton(text="Software Specific")
+        localFavorites_radiobutton.setToolTip("Projects added to the Favorites list in the Set Project Interface will be available only for that software")
         localFavorites_radiobutton.setChecked(not self.manager.isGlobalFavorites())
 
         favorites_buttonGroup = QtWidgets.QButtonGroup(self.userSettings_vis)
@@ -2117,9 +2142,39 @@ class MainUI(QtWidgets.QMainWindow):
         favorites_layout.addWidget(localFavorites_radiobutton)
         userSettings_formLayout.setLayout(1, QtWidgets.QFormLayout.FieldRole, favorites_layout)
 
-        # form item 2
+        # form item 2 - Extra Columns
+        extraColumns_label = QtWidgets.QLabel(text="Base Scenes Extra Columns:")
+        userSettings_formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, extraColumns_label)
+
+        extraColumns_layout = QtWidgets.QHBoxLayout()
+        extraColumns_layout.setSpacing(2)
+
+        extra_date_cb = QtWidgets.QCheckBox(text="Date")
+        extra_date_cb.setToolTip("Adds Date Column to the Base Software List which shows the creation dates of Base Scenes")
+        extraColumns_layout.addWidget(extra_date_cb)
+        extra_date_cb.setChecked("Date" in userSettings["extraColumns"])
+
+        extra_ref_cb = QtWidgets.QCheckBox(text="Reference Version")
+        extra_ref_cb.setToolTip("Adds Ref. Version Column to the Base Software List which shows the currently referenced version of the Base Scenes.\nKeep in mind this option may create performance issues with crowded categories")
+        extraColumns_layout.addWidget(extra_ref_cb)
+        extra_ref_cb.setChecked("Ref. Version" in userSettings["extraColumns"])
+
+        extra_creator_cb = QtWidgets.QCheckBox(text="Creator")
+        extra_creator_cb.setToolTip("Adds Creator Column to the Base Software List")
+        extraColumns_layout.addWidget(extra_creator_cb)
+        extra_creator_cb.setChecked("Creator" in userSettings["extraColumns"])
+
+        extra_versionCount_cb = QtWidgets.QCheckBox(text="Version Count")
+        extra_versionCount_cb.setToolTip("Adds Version Count Column to the Base Software List")
+        extraColumns_layout.addWidget(extra_versionCount_cb)
+        extra_versionCount_cb.setChecked("Version Count" in userSettings["extraColumns"])
+
+        userSettings_formLayout.setLayout(2, QtWidgets.QFormLayout.FieldRole, extraColumns_layout)
+
+
+        # form item 3 - Common Settings Directory
         commonDir_label = QtWidgets.QLabel(text="Common Settings Directory:")
-        userSettings_formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, commonDir_label)
+        userSettings_formLayout.setWidget(3, QtWidgets.QFormLayout.LabelRole, commonDir_label)
 
         commonDir_layout = QtWidgets.QHBoxLayout()
         commonDir_layout.setSpacing(2)
@@ -2129,16 +2184,16 @@ class MainUI(QtWidgets.QMainWindow):
 
         setCommon_button = QtWidgets.QPushButton(text="...")
         commonDir_layout.addWidget(setCommon_button)
-        userSettings_formLayout.setLayout(2, QtWidgets.QFormLayout.FieldRole, commonDir_layout)
+        userSettings_formLayout.setLayout(3, QtWidgets.QFormLayout.FieldRole, commonDir_layout)
 
-        # form item 3
+        # form item 4
         colorCoding_label = QtWidgets.QLabel(text="Color Codes: ")
-        userSettings_formLayout.setWidget(3, QtWidgets.QFormLayout.LabelRole, colorCoding_label)
+        userSettings_formLayout.setWidget(4, QtWidgets.QFormLayout.LabelRole, colorCoding_label)
 
         colorCoding_formlayout = QtWidgets.QFormLayout()
         colorCoding_formlayout.setSpacing(2)
         colorCoding_formlayout.setVerticalSpacing(5)
-        userSettings_formLayout.setLayout(3, QtWidgets.QFormLayout.FieldRole, colorCoding_formlayout)
+        userSettings_formLayout.setLayout(4, QtWidgets.QFormLayout.FieldRole, colorCoding_formlayout)
 
         # Executable paths
         # header lbl
@@ -2336,8 +2391,11 @@ class MainUI(QtWidgets.QMainWindow):
         # ---------------------
         ccReset_button.clicked.connect(resetColors)
         setCommon_button.clicked.connect(browseCommonDatabase)
-
         globalFavorites_radiobutton.clicked.connect(updateDictionary)
+        extra_date_cb.stateChanged.connect(updateDictionary)
+        extra_ref_cb.stateChanged.connect(updateDictionary)
+        extra_creator_cb.stateChanged.connect(updateDictionary)
+        extra_versionCount_cb.stateChanged.connect(updateDictionary)
         localFavorites_radiobutton.clicked.connect(updateDictionary)
         commonDir_lineEdit.editingFinished.connect(updateDictionary)
 
@@ -5182,6 +5240,13 @@ class MainUI(QtWidgets.QMainWindow):
     def initMainUI(self, newborn=False):
         """Initialization Method for MainUI. Needs to be overriden for Standalone Version"""
 
+        extraColumnList = ["Name"] + self.manager.getExtraColumns()
+        # header = QtWidgets.QTreeWidgetItem(["Name", "Date", "Ref. Version", "Creator", "Version Count"])
+        header = QtWidgets.QTreeWidgetItem(extraColumnList)
+        self.scenes_listWidget.setHeaderItem(header)
+        self.scenes_listWidget.setColumnWidth(0, 250)
+
+
         self.load_radioButton.setChecked(self.manager.currentMode)
         self.reference_radioButton.setChecked(not self.manager.currentMode)
         self.category_tabWidget.setCurrentIndex(self.manager.currentTabIndex)
@@ -5430,12 +5495,18 @@ class MainUI(QtWidgets.QMainWindow):
 
     def populateBaseScenes(self, deepCheck=False):
         # This method IS Software Specific
+        # import time
+        # start = time.time()
+
         manager = self._getManager()
         if not manager:
             return
 
         self.scenes_listWidget.blockSignals(True)
         self.scenes_listWidget.clear()
+        header = self.scenes_listWidget.headerItem()
+        columnCount = header.columnCount()
+        extraColumns = [header.text(x) for x in range(1, columnCount)]
         baseScenesDict = manager.getBaseScenesInCategory()
         if self.reference_radioButton.isChecked():
             for key in baseScenesDict:
@@ -5454,12 +5525,45 @@ class MainUI(QtWidgets.QMainWindow):
                 retCode = manager.checkReference(baseScenesDict[key],
                                                  deepCheck=deepCheck)  # returns -1, 0 or 1 for color ref
                 color = codeDict[retCode]
-                timestamp = os.path.getmtime(baseScenesDict[key])
-                timestampFormatted = datetime.datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
-                item = QtWidgets.QTreeWidgetItem(self.scenes_listWidget, [key, str(timestampFormatted)])
+                # timestamp = os.path.getmtime(baseScenesDict[key])
+                # timestampFormatted = datetime.datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
+                # item = QtWidgets.QTreeWidgetItem(self.scenes_listWidget, [key, str(timestampFormatted), str(34)])
+
+                columnData = [key]
+                if "Date" in extraColumns:
+                    timestamp = os.path.getmtime(baseScenesDict[key])
+                    timestampFormatted = datetime.datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
+                    columnData.append(timestampFormatted)
+
+                if "Ref. Version" in extraColumns or "Creator" in extraColumns or "Version Count" in extraColumns:
+                    manager.getBaseScenesInCategory()
+                    sInfo = manager.loadSceneInfo(asBaseScene=key)
+                    if 'Ref. Version' in extraColumns:
+                        refVersion = sInfo["ReferencedVersion"]
+                        refVersion = "" if not refVersion else str(refVersion)
+                        columnData.append(refVersion)
+                    if "Creator" in extraColumns:
+                        creator = sInfo["Creator"]
+                        columnData.append(creator)
+                    if "Version Count" in extraColumns:
+                        vCount = str(len(sInfo["Versions"]))
+                        columnData.append(vCount)
+
+                # if 'Ref. Version' in extraColumns:
+                #     manager.getBaseScenesInCategory()
+                #     refVersion = (manager.loadSceneInfo(asBaseScene=key)["ReferencedVersion"])
+                #     refVersion = "" if not refVersion else str(refVersion)
+                #     columnData.append(refVersion)
+
+
+
+                item = QtWidgets.QTreeWidgetItem(self.scenes_listWidget, columnData)
+
                 item.setForeground(0, color)
 
         self.scenes_listWidget.blockSignals(False)
+        # end = time.time()
+        # print(end - start)
 
     def onLoadScene(self):
         # This method IS Software Specific. BUT overriding it is better, so it is not selecting manager
@@ -5598,11 +5702,11 @@ class MainUI(QtWidgets.QMainWindow):
             self.statusBar().showMessage("Status | Reference of %s is deleted" % name)
 
     def onBaseSceneFromReference(self, category):
-        ## TODO : Finish the method
-
         manager = self._getManager()
-        print("category", category)
-        print("scene", manager.currentBaseSceneName)
+
+        row = self.scenes_listWidget.currentIndex().row()
+        if row == -1:
+            return
 
         ## Query: Prevent data loss, ask for unsaved changes
         if self.manager.isSceneModified():
@@ -5616,11 +5720,24 @@ class MainUI(QtWidgets.QMainWindow):
                 return
 
         ## open a new scene with project settings
-        self.manager._new()
+        self.manager._new(fps=self.manager.getFPS())
 
         ## reference the selected base scene to the scene
+        self.manager.referenceBaseScene()
 
         ## save it as a base scene to the specified category with proper naming
+        name = self.manager.currentBaseSceneName
+        subIndex = self.manager.currentSubIndex
+        makeReference = False
+        # notes = "Automatically referenced from %s/%s" %(self.manager.getCategories()[self.manager.currentTabIndex], name)
+        notes = "Automatically referenced from %s/%s" %(self.manager.currentTabName, name)
+        sceneFormat = os.path.splitext(self.manager._currentSceneInfo["ReferenceFile"])[1].replace(".", "")
+        state = self.manager.saveBaseScene(str(category), str(name), subIndex, makeReference, notes, sceneFormat)
+        if state[0] is not -1:
+            self.manager.currentMode = 1
+            self.manager.currentTabName = category
+            self.initMainUI()
+            self.statusBar().showMessage("Status | Scene Referenced => %s" % self.manager.currentBaseSceneName)
 
     def onProjectReport(self):
         manager = self._getManager()

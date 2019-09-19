@@ -432,6 +432,9 @@
       "obj_exec": "",
       "fbx_exec": "",
       "alembic_exec": ""
-    }
+    },
+    "extraColumns": [
+      "Date"
+    ]
   }
 }
