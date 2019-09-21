@@ -63,6 +63,8 @@ Tik Manager Version History
 * **Fix.701** Bug fixed with the Grand Total Work Hours in project report
 * **Update.701** "Create Base Scene To:" feature added to the right click menu in Reference Mode
 * **Update.701** Added Extra Columns options to the Base Scene List
+* **Fix.702** Refresh issue with 'create base scene to:' fixed when categories added and removed within the same session.
+* **Fix.702** Standalone software launcher updated
 
 2.5
 ---

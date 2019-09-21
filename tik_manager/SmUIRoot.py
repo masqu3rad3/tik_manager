@@ -572,11 +572,11 @@ class MainUI(QtWidgets.QMainWindow):
         self.baseSceneFromReference = self.popMenu_scenes.addMenu('Create Base Scene to:')
 
         # # if self.reference_radioButton.isChecked():
-        if BoilerDict["Environment"] != "Standalone":
-            for c in self.manager.getCategories():
-                createBaseSceneInCategory_rcItem = QtWidgets.QAction(c, self)
-                self.baseSceneFromReference.addAction(createBaseSceneInCategory_rcItem)
-                createBaseSceneInCategory_rcItem.triggered.connect(lambda ignore=c, cat=c: self.onBaseSceneFromReference(category=cat))
+        # if BoilerDict["Environment"] != "Standalone":
+        #     for c in self.manager.getCategories():
+        #         createBaseSceneInCategory_rcItem = QtWidgets.QAction(c, self)
+        #         self.baseSceneFromReference.addAction(createBaseSceneInCategory_rcItem)
+        #         createBaseSceneInCategory_rcItem.triggered.connect(lambda ignore=c, cat=c: self.onBaseSceneFromReference(category=cat))
         self.popMenu_scenes.addSeparator()
 
 
@@ -5246,6 +5246,12 @@ class MainUI(QtWidgets.QMainWindow):
         self.scenes_listWidget.setHeaderItem(header)
         self.scenes_listWidget.setColumnWidth(0, 250)
 
+        self.baseSceneFromReference.clear()
+        for c in self.manager.getCategories():
+            createBaseSceneInCategory_rcItem = QtWidgets.QAction(c, self)
+            self.baseSceneFromReference.addAction(createBaseSceneInCategory_rcItem)
+            createBaseSceneInCategory_rcItem.triggered.connect(lambda ignore=c, cat=c: self.onBaseSceneFromReference(category=cat))
+
 
         self.load_radioButton.setChecked(self.manager.currentMode)
         self.reference_radioButton.setChecked(not self.manager.currentMode)
@@ -5702,7 +5708,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.statusBar().showMessage("Status | Reference of %s is deleted" % name)
 
     def onBaseSceneFromReference(self, category):
-        manager = self._getManager()
+        # manager = self._getManager()
 
         row = self.scenes_listWidget.currentIndex().row()
         if row == -1:

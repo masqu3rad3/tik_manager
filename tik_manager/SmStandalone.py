@@ -99,6 +99,7 @@ class SwViewer(RootManager):
 
     def _findExecutables(self, rootPath, relativePath, executableList, searchword=None):
 
+        print("DB", rootPath, relativePath, executableList, searchword)
         if searchword:
             try:
                 versionRoots = [x for x in os.listdir(rootPath) if x.startswith(searchword) and os.path.isdir(os.path.join(rootPath, x))]
@@ -123,7 +124,8 @@ class SwViewer(RootManager):
             return None
 
         programFiles32 = os.environ["PROGRAMFILES(X86)"]
-        programFiles64 = os.environ["PROGRAMFILES"]
+        programFiles64 = os.environ["PROGRAMW6432"]
+        # programFiles64 = os.environ["PROGRAMFILES"]
 
         # empty dictionary to hold findings
         exeDict = {}
@@ -174,6 +176,8 @@ class SwViewer(RootManager):
         swID = self.swDict["niceName"]
 
         executables = self.getAvailableExecutables(software=swID)
+        if not executables:
+            return None
         # return
 
         # ------------
