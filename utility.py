@@ -232,40 +232,8 @@ class TMUtility(object):
 
         print ("Preparing Linux Tarball...")
 
-        # def tardir(build, path):
-        #     for root, dirs, files in os.walk(path):
-        #         for file in files:
-        #             build.add(os.path.join(root, file))
-
         tarFileLocation = os.path.join(self.location, "tikManager_%s_linux.tar.gz" %versionInfo.__version__)
         build = tarfile.open(tarFileLocation, mode='w')
-
-        # addList = [
-        #     "coreFunctions\\__init__.pyc",
-        #     "coreFunctions\\coreFunctions_Houdini.pyc",
-        #     "coreFunctions\\coreFunctions_Maya.pyc",
-        #     "coreFunctions\\coreFunctions_Nuke.pyc",
-        #     "CSS\\tikManager.qss"
-        #     "icons",
-        #     "setupFiles",
-        #     "__init__.pyc",
-        #     "_version.pyc",
-        #     "assetEditorHoudini.pyc",
-        #     "assetEditorMaya.pyc",
-        #     "assetLibrary.pyc",
-        #     "iconsSource.pyc",
-        #     "ImageViewer.pyc",
-        #     "ImMaya.pyc",
-        #     "projectMaterials.pyc",
-        #     "pyseq.pyc",
-        #     "Qt.pyc",
-        #     "SmHoudini.pyc",
-        #     "SmMaya.pyc",
-        #     "SmNuke.pyc",
-        #     "SmRoot.pyc",
-        #     "SmStandalone.pyc",
-        #     "SmUIRoot.pyc"
-        # ]
 
         addList = [
             "coreFunctions\\__init__.py",
@@ -295,8 +263,6 @@ class TMUtility(object):
         ]
 
         for item in addList:
-
-            # build.add(os.path.join(self.root_folder, item))
             build.add(os.path.join(self.root_folder, item), arcname=item)
 
         build.close()

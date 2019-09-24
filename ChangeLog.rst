@@ -65,6 +65,7 @@ Tik Manager Version History
 * **Update.701** Added Extra Columns options to the Base Scene List
 * **Fix.702** Refresh issue with 'create base scene to:' fixed when categories added and removed within the same session.
 * **Fix.702** Standalone software launcher updated
+* **Fix.703** Project Materials / .doc and .docx removed from the valid brief feedback list (Why they were there?)
 
 2.5
 ---

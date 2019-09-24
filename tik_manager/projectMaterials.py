@@ -972,7 +972,7 @@ class ProjectMaterials(RootManager, CoreFunctions):
     def getFileContent(self):
 
         filePath = os.path.join(self.projectDir, self.currentMaterialInfo["relativePath"].replace("\\", "/"))
-        validDocList = [".txt", ".rtf", ".doc", ".docx"]
+        validDocList = [".txt", ".rtf"]
         ext = os.path.splitext(filePath)[1]
 
         if ext not in validDocList:
@@ -1596,7 +1596,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.statusBar().showMessage("Status | Idle")
         if not item:
             return
-
         try:
             self.matDBpath = self.promat.materialsInCategory[str(item.text(0))]
         except KeyError:
@@ -1608,13 +1607,13 @@ class MainUI(QtWidgets.QMainWindow):
             pic = os.path.normpath(self.promat.getMaterialPath())
             # update thumb
             self.tPixmap = QtGui.QPixmap(pic)
-
-
             self.stb_label.setImage(self.tPixmap)
+
 
         elif self.matCategory == "Brief":
             docContent = self.promat.getFileContent()
             self.brief_textEdit.setPlainText(docContent)
+
 
         elif self.matCategory == "Reference":
             self.promat._loadMaterialInfo(self.matDBpath)
@@ -1624,6 +1623,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.tPixmap = QtGui.QPixmap(pic)
 
             self.reference_label.setImage(self.tPixmap)
+
         else:
             return
 
