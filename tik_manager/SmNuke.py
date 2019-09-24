@@ -321,8 +321,104 @@ class NukeManager(RootManager, NukeCoreFunctions):
         :param version: (integer) if defined this version number will be used instead currently open scene version.
         :return: (String) Relative path of the thumbnail file
         """
+        logger.debug("Func: createThumbnail")
+        projectPath = self.projectDir
+        if useCursorPosition:
+            versionInt = self.currentVersionIndex
+            dbPath = self.currentDatabasePath
+        else:
+            if not dbPath or not versionInt:
+                msg = "Both dbPath and version must be defined if useCursorPosition=False"
+                raise Exception ([360, msg])
 
-        return ""
+        versionStr = "v%s" % (str(versionInt).zfill(3))
+        dbDir, shotNameWithExt = os.path.split(dbPath)
+        shotName = os.path.splitext(shotNameWithExt)[0]
+
+        thumbPath = "{0}_{1}_thumb.jpg".format(os.path.join(dbDir, shotName), versionStr)
+        relThumbPath = os.path.relpath(thumbPath, projectPath)
+
+        # create a thumbnail
+        thumbDir = os.path.split(thumbPath)[0]
+        try:
+            #############################################
+            # get the node attached to the current viewer
+            activeNode = nuke.activeViewer().node().input(0)
+
+            # create reformat node
+            reformatNode = nuke.createNode("Reformat")
+            reformatNode["type"].setValue(1)
+            reformatNode["box_fixed"].setValue(1)
+            reformatNode["box_width"].setValue(221)
+            reformatNode["box_height"].setValue(124)
+            reformatNode["black_outside"].setValue(1)
+            reformatNode.setInput(0, activeNode)
+
+            # create a write node
+            writeNode = nuke.createNode("Write")
+            writeNode.setName("tik_tempWrite")
+            writeNode['file'].setValue(thumbPath.replace("\\", "/"))
+            writeNode["use_limit"].setValue(True)
+            frame = self._getCurrentFrame()
+            writeNode['first'].setValue(frame)
+            writeNode['last'].setValue(frame)
+            # writeNode['_jpeg_quality'].setValue(1)
+            # writeNode['_jpeg_sub_sampling'].setValue(2)
+
+            # execute & cleanup
+            nuke.execute(writeNode, frame, frame)
+            nuke.delete(writeNode)
+            nuke.delete(reformatNode)
+            ####################################################
+
+
+            # # frame = pm.currentTime(query=True)
+            # frame = cmds.currentTime(query=True)
+            # # store = pm.getAttr("defaultRenderGlobals.imageFormat")
+            # store = cmds.getAttr("defaultRenderGlobals.imageFormat")
+            # # pm.setAttr("defaultRenderGlobals.imageFormat", 8)  # This is the value for jpeg
+            # cmds.setAttr("defaultRenderGlobals.imageFormat", 8)  # This is the value for jpeg
+            # # pm.playblast(completeFilename=thumbPath, forceOverwrite=True, format='image', width=221, height=124, showOrnaments=False, frame=[frame], viewer=False, percent=100)
+            # cmds.playblast(completeFilename=thumbPath, forceOverwrite=True, format='image', width=221, height=124, showOrnaments=False, frame=[frame], viewer=False, percent=100)
+            # # pm.setAttr("defaultRenderGlobals.imageFormat", store) #take it back
+            # cmds.setAttr("defaultRenderGlobals.imageFormat", store) #take it back
+        except:
+            # pm.warning("something went wrong with thumbnail. Skipping thumbnail")
+            nuke.warning("something went wrong with thumbnail. Skipping thumbnail")
+            return ""
+        # return thumbPath
+        return relThumbPath
+
+
+
+        #############################################
+        # get the node attached to the current viewer
+        activeNode = nuke.activeViewer().node().input(0)
+
+        # create a write node
+        writeNode = nuke.createNode("Write")
+        writeNode.setName("tik_tempWrite")
+        writeNode['file'].setValue("TEST.jpg")
+        # writeNode['_jpeg_quality'].setValue(1)
+        # writeNode['_jpeg_sub_sampling'].setValue(2)
+        r = nuke.createNode("Reformat")
+
+        # create reformat node
+        reformatNode = nuke.createNode("Reformat")
+        reformatNode["type"].setValue(1)
+        reformatNode["box_width"].setValue(123)
+        reformatNode["box_height"].setValue(123)
+        reformatNode["black_outside"].setValue(1)
+        reformatNode["box_fixed"].setValue(1)
+
+        # make Connections
+        writeNode.setInput(0, reformatNode)
+        reformatNode.setInput(0, activeNode)
+        ####################################################
+
+
+
+        # return ""
         # logger.debug("Func: createThumbnail")
         # projectPath = self.projectDir
         # if useCursorPosition:

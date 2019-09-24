@@ -66,6 +66,7 @@ Tik Manager Version History
 * **Fix.702** Refresh issue with 'create base scene to:' fixed when categories added and removed within the same session.
 * **Fix.702** Standalone software launcher updated
 * **Fix.703** Project Materials / .doc and .docx removed from the valid brief feedback list (Why they were there?)
+* **New.703** Nuke / Thumbnail images
 
 2.5
 ---
