@@ -467,7 +467,7 @@ class MainUI(QtWidgets.QMainWindow):
             try:
                 if entry.objectName() == BoilerDict["WindowTitle"]:
                     entry.close()
-            except AttributeError:
+            except (AttributeError, TypeError):
                 pass
         parent = getMainWindow()
         super(MainUI, self).__init__(parent=parent)

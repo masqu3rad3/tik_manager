@@ -185,7 +185,7 @@ class MainUI(QtWidgets.QMainWindow):
             try:
                 if entry.objectName() == self.windowName:
                     entry.close()
-            except AttributeError:
+            except (AttributeError, TypeError):
                 pass
         parent = getMainWindow()
         super(MainUI, self).__init__(parent=parent)
