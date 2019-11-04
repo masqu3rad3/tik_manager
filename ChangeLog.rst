@@ -68,6 +68,7 @@ Tik Manager Version History
 * **Fix.703** Project Materials / .doc and .docx removed from the valid brief feedback list (Why they were there?)
 * **New.703** Nuke / Thumbnail images
 * **Fix.704** UI Clash issues with MASH fixed
+* **Fix,705** Standalone / Add Sub-Project Crash issue fixed
 
 2.5
 ---

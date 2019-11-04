@@ -402,8 +402,11 @@ class StandaloneManager(RootManager):
         self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "exportSettings.json"))
         self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "importSettings.json"))
 
-        self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
+        # self._pathsDict["categoriesFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], _softwarePathsDict["categoriesFile"]))
 
+
+        self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
+        self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "subPdata.json"))
         self._pathsDict["sharedSettingsDir"] = self._getCommonFolder()
         if self._pathsDict["sharedSettingsDir"] == -1:
             self._exception(201, "Cannot Continue Without Common Database")
@@ -427,9 +430,12 @@ class StandaloneManager(RootManager):
         self._sceneManagerDefaults = self.loadManagerDefaults()
         self._userSettings = self.loadUserSettings()
 
+        # self._categories = self.loadCategories()
+
+
         self._usersDict = self.loadUsers()
         self._currentsDict = self.loadUserPrefs()
-        # self._subProjectsList = self.loadSubprojects()
+        self._subProjectsList = self.loadSubprojects()
         # get hardcoded software list
         # hardCodedSwPath = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "softwareDatabase.json"))
 
@@ -725,7 +731,10 @@ class MainUI(baseUI):
         for x in self.manager.swList:
             self.software_comboBox.addItem(x.swName)
         # print self.manager.getColorCoding(niceName="standalone")
-
+        if self.manager.swList:
+            self.addSubProject_pushButton.setEnabled(True)
+        else:
+            self.addSubProject_pushButton.setEnabled(False)
         # self.software_comboBox.setStyleSheet("background-color: QLinearGradient(x1:0, y1:0, x2:0, y2:1, stop:1 #404040, stop:0.11 #404040, stop:0.1 %s)" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
         self.comboColorbar.setStyleSheet("background-color: %s" %self.manager.getColorCoding(str(self.software_comboBox.currentText())))
         # self.colorBar.setStyleSheet("background-color: %s;" %self.manager.getColorCoding(niceName=""))

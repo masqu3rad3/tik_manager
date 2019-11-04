@@ -692,14 +692,14 @@ class MainUI(QtWidgets.QMainWindow):
         self.export_pushButton.clicked.connect(self.transferCentralUI)
 
     def createSubProjectUI(self):
-
+        manager = self._getManager()
         # This method is NOT Software Specific
         newSub, ok = QtWidgets.QInputDialog.getText(self, "Create New Sub-Project", "Enter an unique Sub-Project name:")
         if ok:
             if self.manager.nameCheck(newSub):
                 self.subProject_comboBox.clear()
-                self.subProject_comboBox.addItems(self.manager.createSubproject(newSub))
-                self.subProject_comboBox.setCurrentIndex(self.manager.currentSubIndex)
+                self.subProject_comboBox.addItems(manager.createSubproject(newSub))
+                self.subProject_comboBox.setCurrentIndex(manager.currentSubIndex)
                 self.populateBaseScenes()
             else:
                 self.infoPop(textTitle="Naming Error", textHeader="Naming Error",
