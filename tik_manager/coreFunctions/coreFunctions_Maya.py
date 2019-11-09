@@ -92,6 +92,15 @@ class MayaCoreFunctions(object):
             cmds.confirmDialog(title='Unknown Error', message=msg)
             return False
 
+    def _importVray(self, filePath, importSettings, *args, **kwargs):
+        # cmds.confirmDialog(title='Ongoing development', message="Vray Proxy Import for Maya is under development")
+        directory, name = os.path.split(filePath)
+        cmds.vrayCreateProxy(node="%s" %name, existing=True, dir=filePath, createProxyNode=True)
+
+    def _importRedshift(self, filePath, importSettings, *args, **kwargs):
+        # TODO: // import redshift core function for Maya
+        cmds.confirmDialog(title='Ongoing development', message="Redshift Proxy Import for Maya is under development")
+
     def _exportObj(self, filePath, exportSettings=None, exportSelected=True):
         """
         Exports wavefront Obj file
@@ -225,6 +234,76 @@ class MayaCoreFunctions(object):
             msg = "Cannot export FBX for unknown reason. Skipping"
             cmds.confirmDialog(title='Unknown Error', message=msg)
             return False
+
+    def _exportVray(self, filePath, exportSettings, exportSelected=True, timeRange=[0,10]):
+        # TODO: // export vray core function for Maya
+        # cmds.confirmDialog(title='Ongoing development', message="Vray Proxy Export for Maya is under development")
+
+        # mayaExp_vrayProxy = exportSettings["vrayProxyExportMaya"]
+
+        # export settings / Choices / Default Value:
+        # exportType / 1 2 / 1
+        # velocityOn / True False / True
+        # velocityIntervalStart / 0.0 1.0 /0.0
+        # velocityIntervalEnd / 0.0 1.0 /0.050
+        # pointSize / 0.0 1.0 / 0.0
+        # previewFaces / Integer / 10000
+        # previewType / "clustering" "edge_collapse" "face_sampling" "combined" / "clustering"
+        # vertexColorsOn / True False / False
+        # ignoreHiddenObjects / True False / True
+        # oneVoxelPerMesh / True False / False
+        # facesPerVoxel / Integer / 20000
+        # createProxyNode / True False / False
+        # makeBackup / True False / False
+
+
+
+
+        if not cmds.pluginInfo('vrayformaya.mll', l=True, q=True):
+            try:
+                cmds.loadPlugin('vrayformaya.mll')
+            except:
+                msg = "Vray cannot be initialized. Skipping Vray Proxy export"
+                cmds.confirmDialog(title='Plugin Error', message=msg)
+                return False
+
+        originalSelection = cmds.ls(sl=True)
+        if not exportSelected:
+            cmds.SelectAll()
+
+        # OVERRIDE ANIMATION SETTINGS
+        if timeRange[0] != timeRange[1]:
+            animOn = True
+        else:
+            animOn = False
+
+
+        directory, name = os.path.split(filePath)
+        proxyNode = "%s_proxy" %name
+
+        cmds.vrayCreateProxy(dir=directory, fname=name, overwrite=True, animOn=animOn, animType=3, startFrame=timeRange[0], endFrame=timeRange[1], node=proxyNode,
+                             exportType=1,
+                             makeBackup=False,
+                             velocityOn=True,
+                             velocityIntervalStart=0.0,
+                             velocityIntervalEnd=0.050,
+                             pointSize=0.0,
+                             previewFaces=10000,
+                             previewType="clustering",
+                             vertexColorsOn=False,
+                             ignoreHiddenObjects=True,
+                             oneVoxelPerMesh=False,
+                             facesPerVoxel=20000,
+                             createProxyNode=False)
+
+        # re-select original selection
+        cmds.select(originalSelection)
+        return False
+
+    def _exportRedshift(self, filePath, exportSettings, exportSelected=True, timeRange=[0,10]):
+        # TODO: // export redshift core function for Maya
+        cmds.confirmDialog(title='Ongoing development', message="Redshift Proxy Export for Maya is under development")
+        return False
 
     def _getSceneFile(self):
         s_path = cmds.file(q=True, sn=True)

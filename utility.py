@@ -241,8 +241,10 @@ class TMUtility(object):
             "coreFunctions\\coreFunctions_Maya.py",
             "coreFunctions\\coreFunctions_Nuke.py",
             "CSS\\tikManager.qss",
+            "TikManager_Commons",
             "icons",
             "setupFiles",
+            "compatibility.py",
             "__init__.py",
             "_version.py",
             "assetEditorHoudini.py",
@@ -272,7 +274,7 @@ class TMUtility(object):
 
 def main(argv):
     utility = TMUtility()
-    utility.innoSetupCompile()
+    # utility.innoSetupCompile()
     utility.prepareLinuxTar()
     utility.remoteUpload()
 

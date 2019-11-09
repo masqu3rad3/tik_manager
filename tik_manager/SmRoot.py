@@ -1195,7 +1195,7 @@ class RootManager(object):
         # self._currentBaseScenes = [os.path.join(searchDir, file) for file in os.listdir(searchDir) if file.endswith('.json')]
         return self._baseScenesInCategory # dictionary of json files
 
-    def exportTransfers(self, name, isSelection=True, isObj=True, isAlembic=True, isFbx=True, timeRange=[1, 10]):
+    def exportTransfers(self, name, isSelection=True, isObj=True, isAlembic=True, isFbx=True, isVrayProxy=False, isRedShiftProxy=False, timeRange=[1, 10]):
         """
         Exports scene or selection with defined settings
         :param name: (string) name of the export
@@ -1275,6 +1275,29 @@ class RootManager(object):
             else:
                 self._exportFbx(fbxFilePath, exportSettings=fbxSettings, exportSelected=isSelection, timeRange=timeRange)
 
+        if isVrayProxy:
+            vrayProxySettings = exportSettings
+            vrayProxyDir = os.path.join(self._pathsDict["transferDir"], "vrayProxy", subFolders)
+            self._folderCheck(vrayProxyDir)
+            vrayProxyFilePath = os.path.join(vrayProxyDir, "%s.vrmesh" % baseName)
+            print("DEBUG1")
+            if os.path.isfile(vrayProxyFilePath):
+                msg = "The following file will be overwritten if you continue:\n %s\nChoose Yes to overwrite file and continue" % (
+                    os.path.basename(vrayProxyFilePath))
+                title = "Are you Sure?"
+                if not self._question(msg=msg):
+                    pass
+                else:
+                    self._exportVray(vrayProxyFilePath, exportSettings=vrayProxySettings, exportSelected=isSelection, timeRange=timeRange)
+            else:
+                self._exportVray(vrayProxyFilePath, exportSettings=vrayProxySettings, exportSelected=isSelection, timeRange=timeRange)
+
+            pass
+
+        if isRedShiftProxy:
+            print("export RedShift Proxy function is under progress")
+            pass
+
         return True
 
     def importTransfers(self, itemAbsPath):
@@ -1290,6 +1313,9 @@ class RootManager(object):
         elif extension.lower() == ".abc":
             alembicSettings = importSettings
             self._importAlembic(itemAbsPath, alembicSettings)
+        elif extension.lower() == ".vrmesh":
+            vrayProxySettings = importSettings
+            self._importVray(itemAbsPath, vrayProxySettings)
         else:
             self._info("Format is not supported")
 
@@ -1298,7 +1324,9 @@ class RootManager(object):
 
         transferDict = {"obj":{},
                         "fbx":{},
-                        "abc":{}}
+                        "abc":{},
+                        "vrmesh":{},
+                        "rs":{}}
 
         objPath = os.path.join(self._pathsDict["transferDir"], "OBJ")
         if os.path.exists(objPath):
@@ -1313,6 +1341,14 @@ class RootManager(object):
         fbxPath = os.path.join(self._pathsDict["transferDir"], "FBX")
         if os.path.exists(fbxPath):
             transferDict["fbx"] = {self.niceName(y):y for x in os.walk(fbxPath) for y in glob(os.path.join(x[0], '*.fbx'))}
+
+        vrayProxyPath = os.path.join(self._pathsDict["transferDir"], "vrayProxy")
+        if os.path.exists(fbxPath):
+            transferDict["vrmesh"] = {self.niceName(y):y for x in os.walk(vrayProxyPath) for y in glob(os.path.join(x[0], '*.vrmesh'))}
+
+        rsProxyPath = os.path.join(self._pathsDict["transferDir"], "rsProxy")
+        if os.path.exists(fbxPath):
+            transferDict["rs"] = {self.niceName(y):y for x in os.walk(rsProxyPath) for y in glob(os.path.join(x[0], '*.rs'))}
 
         return transferDict
 

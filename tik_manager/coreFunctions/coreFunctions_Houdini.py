@@ -118,6 +118,14 @@ class HoudiniCoreFunctions(object):
         ret[0].setName(niceName)
         ret[0].moveToGoodPosition()
 
+    def _importVray(self, filePath, importSettings, *args, **kwargs):
+        # TODO: // import vray core function for Houdini
+        hou.ui.displayMessage("Vray Proxy Import for Houdini is under development")
+
+    def _importRedshift(self, filePath, importSettings, *args, **kwargs):
+        # TODO: // import redshift core function for Houdini
+        hou.ui.displayMessage("Redshift Proxy Import for Houdini is under development")
+
     def _exportObj(self, filePath, exportSettings, exportSelected=True):
         rootNode = hou.node('obj')
         if exportSelected:
@@ -271,6 +279,16 @@ class HoudiniCoreFunctions(object):
         # delete the export nodes
         geoNode.destroy()
         return True
+
+    def _exportVray(self, filePath, exportSettings, exportSelected=True, timeRange=[0,10]):
+        # TODO: // export vray core function for Houdini
+        hou.ui.displayMessage("Vray Proxy Export for Houdini is under development")
+        return False
+
+    def _exportRedshift(self, filePath, exportSettings, exportSelected=True, timeRange=[0,10]):
+        # TODO: // export redshift core function for Houdini
+        hou.ui.displayMessage("Redshift Proxy Export for Houdini is under development")
+        return False
 
     def _getSceneFile(self):
         s_path = hou.hipFile.path()

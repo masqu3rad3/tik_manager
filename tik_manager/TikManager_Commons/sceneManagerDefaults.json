@@ -263,6 +263,21 @@
         "shutter1": 0,
         "shutter2": 1,
         "format": "default"
+    },
+    "vrayExportMaya": {
+        "exportType": "Single_File",
+        "velocityOn": true,
+        "velocityIntervalStart": 0.0,
+        "velocityIntervalEnd": 0.050,
+        "pointSize": 0.0,
+        "previewFaces": 10000,
+        "previewType": "clustering",
+        "vertexColorOn": false,
+        "ignoreHiddenObjects": true,
+        "oneVoxelPerMesh": false,
+        "facesPerVoxel": 20000,
+        "createProxyMode": false,
+        "makeBackup": false
     }
   },
   "transferImportSettings": {
@@ -413,6 +428,8 @@
         "loadmode": "houdini",
         "viewportlod": "full",
         "loadUserProps": "none"
+    },
+    "vrayImportMaya": {
     }
   },
   "defaultUserSettings": {

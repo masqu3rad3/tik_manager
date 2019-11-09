@@ -144,6 +144,14 @@ class MaxCoreFunctions(object):
             rt.messageBox(msg, title='Info')
             return False
 
+    def _importVray(self, filePath, importSettings, *args, **kwargs):
+        # TODO: // import vray core function for 3ds Max
+        rt.messageBox("Vray Proxy Import for 3ds Max is under development", title='Info')
+
+    def _importRedshift(self, filePath, importSettings, *args, **kwargs):
+        # TODO: // import redshift core function for 3ds Max
+        rt.messageBox("Redshift Proxy Import for 3ds Max is under development", title='Info')
+
     def _exportObj(self, filePath, exportSettings, exportSelected=True):
         """
         Exports wavefront Obj file
@@ -298,6 +306,16 @@ class MaxCoreFunctions(object):
             msg = "FBX Plugin cannot be initialized. Skipping FBX export"
             rt.messageBox(msg, title='Info')
             return False
+
+    def _exportVray(self, filePath, exportSettings, exportSelected=True, timeRange=[0,10]):
+        # TODO: // export vray core function for 3ds Max
+        rt.messageBox("Vray Proxy Export for 3ds Max is under development", title='Info')
+        return False
+
+    def _exportRedshift(self, filePath, exportSettings, exportSelected=True, timeRange=[0,10]):
+        # TODO: // export redshift core function for 3ds Max
+        rt.messageBox("Redshift Proxy Export for 3ds Max is under development", title='Info')
+        return False
 
     def _getSceneFile(self):
         s_path = fManager.GetFileNameAndPath()

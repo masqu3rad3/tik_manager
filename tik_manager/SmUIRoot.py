@@ -1482,6 +1482,13 @@ class MainUI(QtWidgets.QMainWindow):
         fbx_checkBox = QtWidgets.QCheckBox(exportTab, text="FBX", checked=False)
         format_horizontalLayout.addWidget(fbx_checkBox)
 
+        vrayProxy_checkBox = QtWidgets.QCheckBox(exportTab, text="VrayProxy", checked=False)
+        format_horizontalLayout.addWidget(vrayProxy_checkBox)
+
+        redShiftProxy_checkBox = QtWidgets.QCheckBox(exportTab, text="RedShiftProxy", checked=False)
+        format_horizontalLayout.addWidget(redShiftProxy_checkBox)
+        redShiftProxy_checkBox.setEnabled(False)
+
         spacerItem2 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         format_horizontalLayout.addItem(spacerItem2)
         formLayout.setLayout(3, QtWidgets.QFormLayout.FieldRole, format_horizontalLayout)
@@ -1580,11 +1587,15 @@ class MainUI(QtWidgets.QMainWindow):
             alembic_topLevel = QtWidgets.QTreeWidgetItem(["ALEMBIC"])
             alembic_topLevel.setBackground(0, QtGui.QBrush(QtGui.QColor("magenta")))
             alembic_topLevel.setForeground(0, QtGui.QBrush(QtGui.QColor("black")))
+            vrayProxy_topLevel = QtWidgets.QTreeWidgetItem(["VrayProxy"])
+            vrayProxy_topLevel.setBackground(0, QtGui.QBrush(QtGui.QColor("green")))
+            vrayProxy_topLevel.setForeground(0, QtGui.QBrush(QtGui.QColor("black")))
 
             transfers_treeWidget.setHeaderLabels(["Transfer Items", "Path"])
             transfers_treeWidget.addTopLevelItem(obj_topLevel)
             transfers_treeWidget.addTopLevelItem(fbx_topLevel)
             transfers_treeWidget.addTopLevelItem(alembic_topLevel)
+            transfers_treeWidget.addTopLevelItem(vrayProxy_topLevel)
 
             self.importDict = self.manager.scanTransfers()
             for item in self.importDict["obj"].items():
@@ -1599,12 +1610,16 @@ class MainUI(QtWidgets.QMainWindow):
                 treeItem = QtWidgets.QTreeWidgetItem([item[0], item[1]])
                 treeItem.setForeground(0, QtGui.QBrush(QtGui.QColor("magenta")))
                 alembic_topLevel.addChild(treeItem)
+            for item in self.importDict["vrmesh"].items():
+                treeItem = QtWidgets.QTreeWidgetItem([item[0], item[1]])
+                treeItem.setForeground(0, QtGui.QBrush(QtGui.QColor("green")))
+                vrayProxy_topLevel.addChild(treeItem)
 
         tabWidget.setCurrentIndex(0)
 
         def formatProof():
             timeRangeState = False
-            if alembic_checkBox.isChecked() or fbx_checkBox.isChecked():
+            if alembic_checkBox.isChecked() or fbx_checkBox.isChecked() or vrayProxy_checkBox.isChecked() or redShiftProxy_checkBox.isChecked():
                 timeRangeState = True
 
             timeSlider_radioButton.setEnabled(timeRangeState)
@@ -1614,6 +1629,19 @@ class MainUI(QtWidgets.QMainWindow):
             frameStart_doubleSpinBox.setEnabled(timeRangeState)
             frameEnd_label.setEnabled(timeRangeState)
             frameEnd_doubleSpinBox.setEnabled(timeRangeState)
+
+            if customRange_radioButton.isChecked():
+                frameStart_doubleSpinBox.setEnabled(True)
+                frameEnd_doubleSpinBox.setEnabled(True)
+                frameStart_label.setEnabled(True)
+                frameEnd_label.setEnabled(True)
+            else:
+                frameStart_doubleSpinBox.setEnabled(False)
+                frameEnd_doubleSpinBox.setEnabled(False)
+                frameStart_label.setEnabled(False)
+                frameEnd_label.setEnabled(False)
+
+        formatProof()
 
         def resolveName():
             # resolve name
@@ -1688,11 +1716,15 @@ class MainUI(QtWidgets.QMainWindow):
             isObj = obj_checkBox.isChecked()
             isAlembic = alembic_checkBox.isChecked()
             isFbx = fbx_checkBox.isChecked()
+            isVrayProxy = vrayProxy_checkBox.isChecked()
+            isRedShiftProxy = redShiftProxy_checkBox.isChecked()
             res = self.manager.exportTransfers(name,
                                                isSelection=isSelection,
                                                isObj=isObj,
                                                isAlembic=isAlembic,
                                                isFbx=isFbx,
+                                               isRedShiftProxy=isRedShiftProxy,
+                                               isVrayProxy=isVrayProxy,
                                                timeRange=timeRange
                                                )
             self.infoPop(textTitle="Transfers Exported", textHeader="Transfers Exported under '_TRANSFER' folder")
@@ -1741,6 +1773,12 @@ class MainUI(QtWidgets.QMainWindow):
         obj_checkBox.toggled.connect(formatProof)
         alembic_checkBox.toggled.connect(formatProof)
         fbx_checkBox.toggled.connect(formatProof)
+        vrayProxy_checkBox.toggled.connect(formatProof)
+        redShiftProxy_checkBox.toggled.connect(formatProof)
+
+        timeSlider_radioButton.toggled.connect(formatProof)
+        singleFrame_radioButton.toggled.connect(formatProof)
+        customRange_radioButton.toggled.connect(formatProof)
 
         export_pushButton.clicked.connect(executeExport)
         cancel_pushButton.clicked.connect(self.transferCentral_Dialog.close)
@@ -3274,9 +3312,11 @@ class MainUI(QtWidgets.QMainWindow):
             objTab = QtWidgets.QWidget(mayaTab)
             fbxTab = QtWidgets.QWidget(mayaTab)
             alembicTab = QtWidgets.QWidget(mayaTab)
+            vrayProxyTab = QtWidgets.QWidget(mayaTab)
             formatsTabWidget.addTab(objTab, "Obj")
             formatsTabWidget.addTab(fbxTab, "FBX")
             formatsTabWidget.addTab(alembicTab, "Alembic")
+            formatsTabWidget.addTab(vrayProxyTab, "VrayProxy")
             maya_verticalLayout.addWidget(formatsTabWidget)
 
             ## MAYA OBJ
@@ -3560,9 +3600,81 @@ class MainUI(QtWidgets.QMainWindow):
                                                    QtWidgets.QSizePolicy.Expanding)
                 alembic_export_layout.addItem(spacerItem)
 
+            ## MAYA vrayProxy
+            ## ------------
+            def _maya_vrayProxy():
+                vrayProxy_horizontal_layout = QtWidgets.QHBoxLayout(vrayProxyTab)
+                vrayProxy_import_layout = QtWidgets.QVBoxLayout()
+                vrayProxy_seperator = QtWidgets.QLabel()
+                vrayProxy_seperator.setProperty("seperator", True)
+                vrayProxy_seperator.setMaximumWidth(2)
+                vrayProxy_export_layout = QtWidgets.QVBoxLayout()
+
+                vrayProxy_horizontal_layout.addLayout(vrayProxy_import_layout)
+                vrayProxy_horizontal_layout.addWidget(vrayProxy_seperator)
+                vrayProxy_horizontal_layout.addLayout(vrayProxy_export_layout)
+
+                ## MAYA vrayProxy IMPORT WIDGETS
+                vrayProxy_import_label = QtWidgets.QLabel()
+                vrayProxy_import_label.setText("vrayProxy Import Settings")
+                vrayProxy_import_label.setFont(self.headerBFont)
+                vrayProxy_import_layout.addWidget(vrayProxy_import_label)
+
+                vrayProxy_import_formlayout = QtWidgets.QFormLayout()
+                vrayProxy_import_formlayout.setSpacing(6)
+                vrayProxy_import_formlayout.setHorizontalSpacing(15)
+                vrayProxy_import_formlayout.setVerticalSpacing(10)
+                vrayProxy_import_formlayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldsStayAtSizeHint)
+                vrayProxy_import_layout.addLayout(vrayProxy_import_formlayout)
+
+                mayavrayProxyImpCreateDict = [
+                ]
+                self._createFormWidgets(mayavrayProxyImpCreateDict, importSettings, "vrayImportMaya",
+                                        vrayProxy_import_formlayout, updateImportDictionary)
+
+                spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
+                                                   QtWidgets.QSizePolicy.Expanding)
+                vrayProxy_import_layout.addItem(spacerItem)
+
+                ## MAYA vrayProxy EXPORT WIDGETS
+                vrayProxy_export_label = QtWidgets.QLabel()
+                vrayProxy_export_label.setText("vrayProxy Export Settings")
+                vrayProxy_export_label.setFont(self.headerBFont)
+                vrayProxy_export_layout.addWidget(vrayProxy_export_label)
+
+                vrayProxy_export_formlayout = QtWidgets.QFormLayout()
+                vrayProxy_export_formlayout.setSpacing(6)
+                vrayProxy_export_formlayout.setHorizontalSpacing(15)
+                vrayProxy_export_formlayout.setVerticalSpacing(10)
+                vrayProxy_export_formlayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldsStayAtSizeHint)
+                vrayProxy_export_layout.addLayout(vrayProxy_export_formlayout)
+
+                mayavrayProxyExpCreateDict = [
+                    {"NiceName": "Export Type: ", "DictName": "exportType", "Type": "combo", "items": ["Single_File", "Seperate_Files"], "asFlag": ""},
+                    {"NiceName": "Export Velocity: ", "DictName": "velocityOn", "Type": "chb", "asFlag": ""},
+                    {"NiceName": "Velocity Interval Start: ", "DictName": "velocityIntervalStart", "Type": "spbDouble", "asFlag": ""},
+                    {"NiceName": "Velocity Interval End: ", "DictName": "velocityIntervalEnd", "Type": "spbDouble", "asFlag": ""},
+                    {"NiceName": "Lowest Level Point Size: ", "DictName": "pointSize", "Type": "spbDouble", "asFlag": ""},
+                    {"NiceName": "Faces in Preview: ", "DictName": "previewFaces", "Type": "spbInt", "asFlag": ""},
+                    {"NiceName": "Preview Type: ", "DictName": "previewType", "Type": "combo", "items": ["clustering", "edge_collapse", "face_sampling", "combined"], "asFlag": ""},
+                    {"NiceName": "Export Vertex Colors: ", "DictName": "vertexColorsOn", "Type": "chb", "asFlag": ""},
+                    {"NiceName": "Ignore Hidden and templated objects: ", "DictName": "ignoreHiddenObjects", "Type": "chb", "asFlag": ""},
+                    {"NiceName": "One voxel per mesh: ", "DictName": "oneVoxelPerMesh", "Type": "chb", "asFlag": ""},
+                    {"NiceName": "Faces Per Voxel: ", "DictName": "facesPerVoxel", "Type": "spbInt", "asFlag": ""},
+                    {"NiceName": "Automatically Create Proxies: ", "DictName": "createProxyNode", "Type": "chb", "asFlag": ""},
+                    {"NiceName": "Make backup: ", "DictName": "makeBackup", "Type": "chb", "asFlag": ""}
+                ]
+                self._createFormWidgets(mayavrayProxyExpCreateDict, exportSettings, "vrayExportMaya",
+                                        vrayProxy_export_formlayout, updateExportDictionary)
+
+                spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum,
+                                                   QtWidgets.QSizePolicy.Expanding)
+                vrayProxy_export_layout.addItem(spacerItem)
+
             _maya_obj()
             _maya_fbx()
             _maya_alembic()
+            _maya_vrayProxy()
 
         if sw == "3dsmax" or sw == "standalone":
             maxTab = QtWidgets.QWidget()
@@ -4674,7 +4786,7 @@ class MainUI(QtWidgets.QMainWindow):
             elif widget["Type"] == "spbInt":
                 lbl = QtWidgets.QLabel()
                 lbl.setText(widget["NiceName"])
-                spb = QtWidgets.QSpinBox()
+                spb = QtWidgets.QSpinBox(maximum=9999999)
                 spb.setMinimumSize(self.minSPBSize[0], self.minSPBSize[1])
                 spb.setFocusPolicy(QtCore.Qt.NoFocus)
                 spb.setMinimumWidth(60)
