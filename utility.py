@@ -1,7 +1,8 @@
 # for auto compilation and clean-up purposes
 import sys, os
 import py_compile
-from shutil import copyfile, rmtree
+# from shutil import copyfile, rmtree
+import shutil
 import subprocess
 import tik_manager._version as versionInfo
 import tarfile
@@ -9,6 +10,9 @@ import ftplib
 import datetime
 import socket, io
 import configparser
+
+
+
 
 class FtpUploadTracker:
     sizeWritten = 0
@@ -116,7 +120,7 @@ class TMUtility(object):
         ps_folder = os.path.join(self.root_folder, "dist", "SmPhotoshop")
 
         # remove dir
-        try: rmtree(ps_folder)
+        try: shutil.rmtree(ps_folder)
         except: pass
 
         res = subprocess.check_output(freezePs, cwd=self.root_folder, shell=True)
@@ -135,7 +139,7 @@ class TMUtility(object):
         # iconPath = os.path.join(self.root_folder, "icons", "osicon_scenemanager_EM0_icon.ico")
 
         # remove dir
-        try: rmtree(standalone_folder)
+        try: shutil.rmtree(standalone_folder)
         except: pass
 
 
@@ -149,6 +153,31 @@ class TMUtility(object):
         for x in copyList:
             self._copyfile(x[0], x[1])
         # map(lambda x: self._copyfile(x[0], x[1]), copyList)
+
+    def buildBin(self):
+        bin_folder = os.path.join(self.root_folder, "bin")
+        standalone_folder = os.path.join(self.root_folder, "dist", "SmStandalone")
+        ps_folder = os.path.join(self.root_folder, "dist", "SmPhotoshop")
+        etc_folder = os.path.join(self.root_folder, "etc")
+        print("here", etc_folder)
+        try: shutil.rmtree(bin_folder)
+        except: pass
+
+
+
+        self._copytree(ps_folder, bin_folder)
+
+        #
+        self._copytree(standalone_folder, bin_folder)
+        # except: pass
+        #
+        copyList = [
+            [os.path.join(etc_folder, "saveVersion.vbs"), self.bin_folder],
+            [os.path.join(self.root_folder, "CSS", "tikManager.qss"), os.path.join(self.bin_folder, "CSS")]
+        ]
+        #
+        for x in copyList:
+            self._copyfile(x[0], x[1], forceDir=True)
 
 
     # def forceCompile(self):
@@ -179,12 +208,12 @@ class TMUtility(object):
                 innoSetupContents[lineNumber] = '#define appVersion "%s"\n' %versionInfo.__version__
 
         backupFile = "tikManager_aSetup.bak".format(filePath)
-        copyfile(filePath, backupFile)
+        shutil.copyfile(filePath, backupFile)
         tempFile = "tikManager_aSetup_TMP.iss"
         f = open(tempFile, "w+")
         f.writelines(innoSetupContents)
         f.close()
-        copyfile(tempFile, filePath)
+        shutil.copyfile(tempFile, filePath)
         os.remove(tempFile)
 
     def innoSetupCompile(self):
@@ -224,9 +253,55 @@ class TMUtility(object):
         #     input("inno setup compilation completed...")
         # pass
 
-    def _copyfile(self, src, dst):
+    def _copyfile(self, src, dst, forceDir=False):
         targetPath = os.path.join(dst, os.path.basename(src))
-        copyfile(src, targetPath)
+        if forceDir:
+            if not os.path.isdir(os.path.normpath(dst)):
+                os.makedirs(os.path.normpath(dst))
+
+        shutil.copyfile(src, targetPath)
+
+    def _copytree(self, src, dst, symlinks=False, ignore=None):
+        names = os.listdir(src)
+        if ignore is not None:
+            ignored_names = ignore(src, names)
+        else:
+            ignored_names = set()
+
+        if not os.path.isdir(dst):  # This one line does the trick
+            os.makedirs(dst)
+        errors = []
+        for name in names:
+            if name in ignored_names:
+                continue
+            srcname = os.path.join(src, name)
+            dstname = os.path.join(dst, name)
+            try:
+                if symlinks and os.path.islink(srcname):
+                    linkto = os.readlink(srcname)
+                    os.symlink(linkto, dstname)
+                elif os.path.isdir(srcname):
+                    self._copytree(srcname, dstname, symlinks, ignore)
+                else:
+                    # Will raise a SpecialFileError for unsupported file types
+                    shutil.copy2(srcname, dstname)
+
+            except shutil.Error as err:
+                errors.extend(err.args[0])
+            except EnvironmentError as why:
+                errors.append((srcname, dstname, str(why)))
+        try:
+            shutil.copystat(src, dst)
+        except OSError as why:
+            if WindowsError is not None and isinstance(why, WindowsError):
+                # Copying file access times may fail on Windows
+                pass
+            else:
+                errors.extend((src, dst, str(why)))
+        if errors:
+            raise shutil.Error(errors)
+
+        ###############################
 
     def prepareLinuxTar(self):
 
@@ -274,8 +349,9 @@ class TMUtility(object):
 
 def main(argv):
     utility = TMUtility()
-    # utility.innoSetupCompile()
+    utility.innoSetupCompile()
     utility.prepareLinuxTar()
+    utility.buildBin()
     utility.remoteUpload()
 
 if __name__ == "__main__":
