@@ -71,6 +71,7 @@ Tik Manager Version History
 * **Fix.705** Standalone / Add Sub-Project Crash issue fixed
 * **Fix.706** Maya 2019 false FPS alarm fixed
 * **Fix.707** Utility fix for building BIN folder
+* **Fix.707** Create New Project / Crash fixed while trying to create without filling the mandatory fields
 
 2.5
 ---

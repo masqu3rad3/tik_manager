@@ -911,7 +911,6 @@ class RootManager(object):
         :return: None
         """
         logger.debug("Func: createNewProject")
-
         # resolve the project path
         # resolvedPath = self.resolveProjectPath(projectRoot, projectName, brandName, client)
 

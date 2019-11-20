@@ -706,9 +706,6 @@ class MainUI(QtWidgets.QMainWindow):
                              textInfo="Choose an unique name with latin characters without spaces", type="C")
 
     def createProjectUI(self):
-        # TODO : Re-write the ui with dynamically building fields from the tikConventions["newProjectName"]
-        # TODO : <yy>, <mm>, <dd> fields will be filled automatic
-        # TODO : Other fields defined in the tikConventions.json file will be mandatory to fill.
 
         ## ROAD MAP
         ## load tikConventions.json to a pConvention variable
@@ -825,11 +822,15 @@ class MainUI(QtWidgets.QMainWindow):
                 return
 
             projectName = resolve()
+            if not projectName:
+                self.infoPop(textTitle="Fill Mandatory Fields", textHeader="Fill All Mandatory Fields")
+                return
             resolvedPath = os.path.join(root, projectName)
             projectSettingsDB = {"Resolution": [resolutionX_spinBox.value(), resolutionY_spinBox.value()],
                                  "FPS": int(fps_combo.currentText())}
 
             pPath = self.manager.createNewProject(resolvedPath, settingsData=projectSettingsDB)
+
             if pPath:
                 self.manager.setProject(pPath)
                 self.manager.addToRecentProjects(pPath) #moved to the SmRoot
