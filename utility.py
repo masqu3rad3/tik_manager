@@ -125,13 +125,13 @@ class TMUtility(object):
 
         res = subprocess.check_output(freezePs, cwd=self.root_folder, shell=True)
         print("PS Res",res)
-        copyList = [
-            [os.path.join(ps_folder, "SmPhotoshop.exe"), self.bin_folder],
-            [os.path.join(ps_folder, "SmPhotoshop.exe.manifest"), self.bin_folder]
-        ]
+        # copyList = [
+        #     [os.path.join(ps_folder, "SmPhotoshop.exe"), self.bin_folder],
+        #     [os.path.join(ps_folder, "SmPhotoshop.exe.manifest"), self.bin_folder]
+        # ]
         # map(lambda x: self._copyfile(x[0], x[1]), copyList)
-        for x in copyList:
-            self._copyfile(x[0], x[1])
+        # for x in copyList:
+        #     self._copyfile(x[0], x[1])
 
     def freezeStandalone(self):
         freezeStandalone = os.path.join(self.root_folder, "freezeStandalone.bat")
@@ -145,13 +145,13 @@ class TMUtility(object):
 
         res = subprocess.check_output(freezeStandalone, cwd=self.root_folder, shell=True)
         print("ST Res",res)
-        copyList = [
-            [os.path.join(standalone_folder, "SmStandalone.exe"), self.bin_folder],
-            [os.path.join(standalone_folder, "SmStandalone.exe.manifest"), self.bin_folder],
-            [os.path.join(self.root_folder, "CSS", "tikManager.qss"), os.path.join(self.bin_folder, "CSS")]
-        ]
-        for x in copyList:
-            self._copyfile(x[0], x[1])
+        # copyList = [
+        #     [os.path.join(standalone_folder, "SmStandalone.exe"), self.bin_folder],
+        #     [os.path.join(standalone_folder, "SmStandalone.exe.manifest"), self.bin_folder],
+        #     [os.path.join(self.root_folder, "CSS", "tikManager.qss"), os.path.join(self.bin_folder, "CSS")]
+        # ]
+        # for x in copyList:
+        #     self._copyfile(x[0], x[1])
         # map(lambda x: self._copyfile(x[0], x[1]), copyList)
 
     def buildBin(self):
@@ -239,6 +239,10 @@ class TMUtility(object):
         print("Starting freezeStandalone...")
         self.freezeStandalone()
         print("freezeStandalone DONE...\n")
+
+        print("Building BIN folder...")
+        self.buildBin()
+        print("Building BIN folder DONE...\n")
 
         print("Editing Inno Setup File with current version")
         self._updateInnoSetupFile()
@@ -351,7 +355,7 @@ def main(argv):
     utility = TMUtility()
     utility.innoSetupCompile()
     utility.prepareLinuxTar()
-    utility.buildBin()
+    # utility.buildBin()
     utility.remoteUpload()
 
 if __name__ == "__main__":
