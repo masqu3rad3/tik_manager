@@ -1091,7 +1091,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
         fpsName_current = cmds.currentUnit(query=True, time=True)
         fpsValue_current = fpsDict[fpsName_current]
 
-        if fpsValue_setting is not fpsValue_current:
+        if int(fpsValue_setting) is not fpsValue_current:
             msg = "FPS values are not matching with the project settings.\n Project FPS => {0}\n scene FPS => {1}\nDo you want to continue?".format(fpsValue_setting, fpsValue_current)
             checklist.append(msg)
 
