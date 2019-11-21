@@ -389,7 +389,15 @@ class MainUI(QtWidgets.QMainWindow):
         self.setProject_pushButton = QtWidgets.QPushButton(self.centralwidget, text="SET")
         self.setProject_pushButton.setToolTip("Opens the Set Project window")
 
-        self.r1_gridLayout.addWidget(self.setProject_pushButton, 1, 2, 1, 1)
+        self.setProject_pushButton.setToolTip("Set Recent Project")
+        self.setRecent_pushButton = QtWidgets.QPushButton(self.centralwidget, text="R")
+
+        pLayout = QtWidgets.QHBoxLayout()
+        pLayout.addWidget(self.setProject_pushButton)
+        pLayout.addWidget(self.setRecent_pushButton)
+
+        self.r1_gridLayout.addLayout(pLayout, 1, 2, 1, 1)
+        # self.r1_gridLayout.addWidget(self.setProject_pushButton, 1, 2, 1, 1)
 
         self.main_gridLayout.addLayout(self.r1_gridLayout, 0, 0, 1, 1)
 
@@ -677,6 +685,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.addSubProject_pushButton.clicked.connect(self.createSubProjectUI)
 
         self.setProject_pushButton.clicked.connect(self.setProjectUI)
+        self.setRecent_pushButton.clicked.connect(self.rcAction_recent)
 
         self.saveBaseScene_pushButton.clicked.connect(self.saveBaseSceneDialog)
         self.saveBaseScene_fm.triggered.connect(self.saveBaseSceneDialog)
@@ -1291,41 +1300,42 @@ class MainUI(QtWidgets.QMainWindow):
                 tempAction = QtWidgets.QAction(p, self)
                 zortMenu.addAction(tempAction)
                 ## Take note about the usage of lambda "item=z" makes it possible using the loop, ignore -> for discarding emitted value
-                tempAction.triggered.connect(lambda ignore=p, item=p: setProject(custompath=(item)))
+                tempAction.triggered.connect(lambda ignore=p, item=p: setAndClose(custompath=(item)))
                 # tempAction.triggered.connect(lambda item=z: manager.playPreview(str(item)))
 
             zortMenu.exec_((QtGui.QCursor.pos()))
 
-        def setProject(custompath=None):
-            # print(type(custompath))
-            try: passPy2 = True if type(custompath) == unicode else False
-            except: passPy2 = False
-            if type(custompath) == str or passPy2:
-                pPath=custompath
-            else:
-                if not self.spActiveProjectPath:
-                    self.infoPop(textTitle="Cannot set project", textHeader="Nothing Selected\nSelect the project from the list or bookmarks and hit 'set' again\nPress 'Ok' to continue")
-                    return
-                pPath = os.path.normpath(compat.decode(self.spActiveProjectPath))
-
-                # if not self.manager.nameCheck(self.spActiveProjectPath, allowSpaces=True, directory=True):
-                if not self.manager.nameCheck(pPath, allowSpaces=True, directory=True):
-                    self.infoPop(textTitle="Invalid Path",
-                                 textHeader="There are invalid (non-ascii) characters in the selected path.",
-                                 textInfo="This Path cannot be used", type="C")
-                    return
-                if self.manager.currentPlatform == "Linux":
-                    # pPath = "/%s" % self.spActiveProjectPath
-                    pPath = "/%s" % pPath
-                else:
-                    # pPath = self.spActiveProjectPath
-                    pPath = pPath
-
-            self.manager.setProject(pPath)
-                # recentData
-            self.manager.addToRecentProjects(pPath) #moved to the SmRoot
-
-            self.onProjectChange()
+        def setAndClose(custompath=None):
+            # # print(type(custompath))
+            # try: passPy2 = True if type(custompath) == unicode else False
+            # except: passPy2 = False
+            # if type(custompath) == str or passPy2:
+            #     pPath=custompath
+            # else:
+            #     if not self.spActiveProjectPath:
+            #         self.infoPop(textTitle="Cannot set project", textHeader="Nothing Selected\nSelect the project from the list or bookmarks and hit 'set' again\nPress 'Ok' to continue")
+            #         return
+            #     pPath = os.path.normpath(compat.decode(self.spActiveProjectPath))
+            #
+            #     # if not self.manager.nameCheck(self.spActiveProjectPath, allowSpaces=True, directory=True):
+            #     if not self.manager.nameCheck(pPath, allowSpaces=True, directory=True):
+            #         self.infoPop(textTitle="Invalid Path",
+            #                      textHeader="There are invalid (non-ascii) characters in the selected path.",
+            #                      textInfo="This Path cannot be used", type="C")
+            #         return
+            #     if self.manager.currentPlatform == "Linux":
+            #         # pPath = "/%s" % self.spActiveProjectPath
+            #         pPath = "/%s" % pPath
+            #     else:
+            #         # pPath = self.spActiveProjectPath
+            #         pPath = pPath
+            #
+            # self.manager.setProject(pPath)
+            #     # recentData
+            # self.manager.addToRecentProjects(pPath) #moved to the SmRoot
+            #
+            # self.onProjectChange()
+            self.setProject(custompath=custompath)
 
             self.setProject_Dialog.close()
 
@@ -1336,7 +1346,7 @@ class MainUI(QtWidgets.QMainWindow):
         remove_pushButton.clicked.connect(onRemoveFavs)
         add_pushButton.clicked.connect(onAddFavs)
 
-        self.favorites_listWidget.doubleClicked.connect(setProject)
+        self.favorites_listWidget.doubleClicked.connect(setAndClose)
 
         up_pushButton.clicked.connect(lambda: navigate("up"))
         self.back_pushButton.clicked.connect(lambda: navigate("back"))
@@ -1352,11 +1362,12 @@ class MainUI(QtWidgets.QMainWindow):
         selectionModel = self.folders_treeView.selectionModel()
         selectionModel.selectionChanged.connect(foldersViewActivated)
 
-        self.favorites_listWidget.doubleClicked.connect(setProject)
+        self.favorites_listWidget.doubleClicked.connect(setAndClose)
 
         self.dirFilter_lineEdit.textChanged.connect(self._filterDirectories)
 
-        set_pushButton.clicked.connect(setProject)
+        # set_pushButton.clicked.connect(setProject)
+        set_pushButton.clicked.connect(setAndClose)
         setproject_buttonBox.rejected.connect(self.setProject_Dialog.reject)
 
         self.setProject_Dialog.show()
@@ -5403,6 +5414,55 @@ class MainUI(QtWidgets.QMainWindow):
         self.initMainUI()
 
         self.populateBaseScenes()
+
+    def setProject(self, custompath=None):
+        # print(type(custompath))
+        try:
+            passPy2 = True if type(custompath) == unicode else False
+        except:
+            passPy2 = False
+        if type(custompath) == str or passPy2:
+            pPath = custompath
+        else:
+            if not self.spActiveProjectPath:
+                self.infoPop(textTitle="Cannot set project",
+                             textHeader="Nothing Selected\nSelect the project from the list or bookmarks and hit 'set' again\nPress 'Ok' to continue")
+                return
+            pPath = os.path.normpath(compat.decode(self.spActiveProjectPath))
+
+            # if not self.manager.nameCheck(self.spActiveProjectPath, allowSpaces=True, directory=True):
+            if not self.manager.nameCheck(pPath, allowSpaces=True, directory=True):
+                self.infoPop(textTitle="Invalid Path",
+                             textHeader="There are invalid (non-ascii) characters in the selected path.",
+                             textInfo="This Path cannot be used", type="C")
+                return
+            if self.manager.currentPlatform == "Linux":
+                # pPath = "/%s" % self.spActiveProjectPath
+                pPath = "/%s" % pPath
+            else:
+                # pPath = self.spActiveProjectPath
+                pPath = pPath
+
+        self.manager.setProject(pPath)
+        # recentData
+        self.manager.addToRecentProjects(pPath)  # moved to the SmRoot
+
+        self.onProjectChange()
+
+        # try:
+        # self.setProject_Dialog.close()
+
+    def rcAction_recent(self):
+        recentList = reversed(self.manager.loadRecentProjects())
+
+        zortMenu = QtWidgets.QMenu()
+        for p in recentList:
+            tempAction = QtWidgets.QAction(p, self)
+            zortMenu.addAction(tempAction)
+            ## Take note about the usage of lambda "item=z" makes it possible using the loop, ignore -> for discarding emitted value
+            tempAction.triggered.connect(lambda ignore=p, item=p: self.setProject(custompath=(item)))
+
+        zortMenu.exec_((QtGui.QCursor.pos()))
 
     def rcAction_scenes(self, command):
         # This method IS Software Specific
