@@ -1,0 +1,13 @@
+
+If somehow the compiled SmStandalone.exe is not working or you are on Linux / MacOs you can run SmStandalone.py
+
+You need to have python 3.x installed.
+
+In addition, you need the following libraries installed:
+
+PyQt5 > v3.5
+PyQt5-sip > v5.13.1
+sip > v5.0.0
+
+If you are on Linux or MacOs you need to have ffmpeg libraries installed too for mp4 conversion option.
+For Windows, ffmpeg.exe is added inside the package

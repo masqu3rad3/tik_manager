@@ -1,0 +1,27 @@
+
+- Add following lines to 456.py under scripts in HOUDINI_PATH. If there is no 456.py file, create it.
+        Default Windows location is %programfiles%\Side Effects Software\<HOUDINI VERSION>\houdini\scripts
+        or
+        %UserProfile%\Documents\<HOUDINI VERSION>\scripts
+
+#######################################################
+# start Scene Manager
+import os
+import sys
+def initFolder(targetFolder):
+    if targetFolder in sys.path:
+        return
+    if not os.path.isdir(targetFolder):
+        print ('Path is not valid (%s)' % targetFolder)
+    sys.path.append(targetFolder)
+initFolder("PATH//TO//TIKWORKS//FOLDER")
+# end Scene Manager
+#######################################################
+
+- Replace the "PATH//TO//TIKWORKS//FOLDER" with the path of where the tik_manager folder is. Use double BACK Slashes between folder names
+
+- Restart Houdini
+- Run the following command from python shell:
+from tik_manager.setupFiles.Houdini import setupHoudini
+
+- Click the + button at the end of the shelf set. From dropdown menu select Shelves and check “Tik Manager”

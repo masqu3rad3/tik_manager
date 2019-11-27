@@ -1,0 +1,12 @@
+
+- Open smManagerCallback.ms with notepad or any text editor you want.
+- Replace the 'PATH//TO//ROOT//OF//tik_manager' with the path of where the tik_manager folder copied. Use double BACK Slashes between folder names
+- Save modified smManagerCallback.ms into one of the 3ds Max scripts startup folder.
+        The Startup Scripts directory is defined on the Configure System Paths dialog. Common paths for startup scripts are:
+        %localappdata%\Autodesk\3dsMax\<YOUR MAX VERSION>\ENU\scripts\startup
+        %programfiles%\Autodesk\<YOUR MAX VERSION>\scripts\Startup
+- Copy all .bmp files inside the tik_manager\icons folder (SceneManager_16a.bmp, SceneManager_16i.bmp, SceneManager_24a.bmp, SceneManager_24i.bmp) into the usericons folder of 3ds Max
+        Default path for usericons folder:
+        %localappdata%\Autodesk\3dsMax\2017 – 64bit\ENU\usericons
+- Launch 3dsMax and run setup3dsMax.ms from scripting -> Run Script, or drag and drop the file into 3ds Max viewport
+- From customize -> customize interface assign the scripts to menu, shortcuts, quad-menus or toolbars. You can find them under Tik Works category

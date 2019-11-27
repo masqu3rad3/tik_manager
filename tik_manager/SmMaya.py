@@ -942,18 +942,12 @@ class MayaManager(RootManager, MayaCoreFunctions):
         # create a thumbnail using playblast
         thumbDir = os.path.split(thumbPath)[0]
         if os.path.exists(thumbDir):
-            # frame = pm.currentTime(query=True)
             frame = self._getCurrentFrame()
-            # store = pm.getAttr("defaultRenderGlobals.imageFormat")
             store = cmds.getAttr("defaultRenderGlobals.imageFormat")
-            # pm.setAttr("defaultRenderGlobals.imageFormat", 8)  # This is the value for jpeg
             cmds.setAttr("defaultRenderGlobals.imageFormat", 8)  # This is the value for jpeg
-            # pm.playblast(completeFilename=thumbPath, forceOverwrite=True, format='image', width=221, height=124, showOrnaments=False, frame=[frame], viewer=False, percent=100)
             cmds.playblast(completeFilename=thumbPath, forceOverwrite=True, format='image', width=221, height=124, showOrnaments=False, frame=[frame], viewer=False, percent=100)
-            # pm.setAttr("defaultRenderGlobals.imageFormat", store) #take it back
             cmds.setAttr("defaultRenderGlobals.imageFormat", store) #take it back
         else:
-            # pm.warning("something went wrong with thumbnail. Skipping thumbnail")
             cmds.warning("something went wrong with thumbnail. Skipping thumbnail")
             return ""
         # return thumbPath

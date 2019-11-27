@@ -1,0 +1,37 @@
+
+- Locate the startup scripts folder
+        Check the following link to locate the folder for different operating systems:
+        https://learn.foundry.com/nuke/developers/63/pythondevguide/startup.html
+
+- open (or create) init.py and add the following lines:
+
+#######################################################
+# start Scene Manager
+import os
+import sys
+
+def initFolder(targetFolder):
+    if targetFolder in sys.path:
+        return
+    if not os.path.isdir(targetFolder):
+        print ('Path is not valid (%s)' % targetFolder)
+    sys.path.append(targetFolder)
+
+initFolder('PATH//TO//TIKWORKS//FOLDER')
+# end Scene Manager
+#######################################################
+
+- open (or create) menu.py and add the following lines:
+
+####################################################
+# start Scene Manager
+toolbar = nuke.menu('Nodes')
+smMenu = toolbar.addMenu('SceneManager', icon='manager_ICON.png')
+smMenu.addCommand('Scene Manager', 'from tik_manager import SmNuke\nSmNuke.MainUI().show()', icon='manager_ICON.png')
+smMenu.addCommand('Save Version', 'from tik_manager import SmNuke\nSmNuke.MainUI().saveAsVersionDialog()', icon='saveVersion_ICON.png')
+smMenu.addCommand('Image Viewer', 'from tik_manager import SmNuke\ntik_imageViewer = SmNuke.MainUI()\ntik_imageViewer.onIviewer()', icon='imageViewer_ICON.png')
+smMenu.addCommand('Project Materials', 'from tik_manager import SmNuke\ntik_projectMaterials = SmNuke.MainUI()\ntik_projectMaterials.onPMaterials()', icon='projectMaterials_ICON.png')
+# end Scene Manager
+####################################################
+
+- Restart Nuke

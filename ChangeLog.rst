@@ -73,6 +73,7 @@ Tik Manager Version History
 * **Fix.707** Utility fix for building BIN folder
 * **Fix.707** Create New Project / Crash fixed while trying to create without filling the mandatory fields
 * **New.708** Recent Projects added to the main UI
+* **Update.709** Manual installation folders updated
 
 2.5
 ---

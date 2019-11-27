@@ -1,0 +1,31 @@
+
+- Locate the userSetup.py under scripts folder. Create the file if there is no userSetup.py
+    Default Windows location is for scripts folder is %UserProfile%\Documents\maya\scripts
+- Add following lines to the file
+
+#######################################################
+# start Scene Manager
+import os
+import sys
+import maya.utils
+import maya.OpenMaya as OpenMaya
+def initFolder(targetFolder):
+    if targetFolder in sys.path:
+        return
+    if not os.path.isdir(targetFolder):
+        print ('Path is not valid (%s)' % targetFolder)
+    sys.path.append(targetFolder)
+def smUpdate(*args):
+    from tik_manager import manager
+    m = manager.TikManager()
+    m.regularSaveUpdate()
+initFolder('PATH//TO//TIKWORKS//FOLDER')
+maya.utils.executeDeferred('SMid = OpenMaya.MSceneMessage.addCallback(OpenMaya.MSceneMessage.kAfterSave, smUpdate)')
+# end Scene Manager
+#######################################################
+
+- Replace the "PATH//TO//TIKWORKS//FOLDER" with the path of where the tik_manager folder is. Use double BACK Slashes between folder names
+
+- Restart Maya
+- Open script editor and run the following command from python tab:
+from tik_manager.setupFiles.Maya import setupMaya
