@@ -359,7 +359,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.subProject_comboBox.setToolTip("Changes sub-project level")
         self.r2_gridLayout.addWidget(self.subProject_comboBox, 0, 3, 1, 1)
 
-        self.addSubProject_pushButton = QtWidgets.QPushButton(self.centralwidget, size=QtCore.QSize(30, 30),
+        self.addSubProject_pushButton = QtWidgets.QPushButton(self.centralwidget, minimumSize=QtCore.QSize(30, 30),
                                                               font=self.iconFont)
         self.addSubProject_pushButton.setToolTip("Adds a new sub-project level")
         self.addSubProject_pushButton.setIcon(QtGui.QIcon(":/icons/CSS/rc/plus.png"))

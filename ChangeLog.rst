@@ -74,6 +74,7 @@ Tik Manager Version History
 * **Fix.707** Create New Project / Crash fixed while trying to create without filling the mandatory fields
 * **New.708** Recent Projects added to the main UI
 * **Update.709** Manual installation folders updated
+* **Fix.710** 2020 incompatibility with size flag fixed
 
 2.5
 ---
