@@ -618,6 +618,11 @@ class MainUI(QtWidgets.QMainWindow):
         self.popMenu_scenes.addAction(self.scenes_rcItem_5)
         self.scenes_rcItem_5.triggered.connect(lambda: self.rcAction_scenes("viewRender"))
 
+        self.popMenu_scenes.addSeparator()
+        self.scenes_rcItem_6 = QtWidgets.QAction('Save Current Scene As Version', self)
+        self.popMenu_scenes.addAction(self.scenes_rcItem_6)
+        self.scenes_rcItem_6.triggered.connect(lambda: self.rcAction_scenes("insertTo"))
+
         # Thumbnail Right Click Menu
         self.thumbnail_label.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.thumbnail_label.customContextMenuRequested.connect(self.onContextMenu_thumbnail)
@@ -5504,6 +5509,9 @@ class MainUI(QtWidgets.QMainWindow):
             helpText.setFontPointSize(14)
             helpText.setText(textInfo)
             messageLayout.addWidget(helpText)
+
+        if command == "insertTo":
+            manager.saveVersion(insertTo=True)
 
         if command == "viewRender":
             imagePath = os.path.join(manager.projectDir, "images", manager.currentBaseSceneName)
