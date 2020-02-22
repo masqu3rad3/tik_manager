@@ -230,9 +230,6 @@ class MayaManager(RootManager, MayaCoreFunctions):
         self.progressLogger("save", sceneFile)
         return [0, ""]
 
-    def insertAsVersion(self, versionInfo, makeReference=True, versionNotes="", sceneFormat="mb"):
-        pass
-
     def saveVersion(self, makeReference=True, versionNotes="", sceneFormat="mb", insertTo=None, *args, **kwargs):
         """
         Saves a version for the predefined scene. The scene json file must be present at the /data/[Category] folder.
@@ -256,14 +253,14 @@ class MayaManager(RootManager, MayaCoreFunctions):
         currentSceneName = self.getSceneFile()
         if not currentSceneName:
             msg = "This is not a base scene (Untitled)"
-            cmds.warning(msg)
+            self._exception(360, msg)
             return -1, msg
 
         if not insertTo:
             sceneInfo = self.getOpenSceneInfo()
             if not sceneInfo:
                 msg = "This is not a base scene (Json file cannot be found)"
-                cmds.warning(msg)
+                self._exception(360, msg)
                 return -1, msg
         else:
             sceneInfo = {
@@ -275,6 +272,8 @@ class MayaManager(RootManager, MayaCoreFunctions):
                     "version":len(self.getVersions()),
                     "previewPath":self.currentPreviewPath,
                     }
+            # ingesting overrides make reference
+            makeReference = False
 
         ## Unknown nodes Check
         if sceneFormat == "mb":

@@ -619,7 +619,7 @@ class MainUI(QtWidgets.QMainWindow):
         self.scenes_rcItem_5.triggered.connect(lambda: self.rcAction_scenes("viewRender"))
 
         self.popMenu_scenes.addSeparator()
-        self.scenes_rcItem_6 = QtWidgets.QAction('Save Current Scene As Version', self)
+        self.scenes_rcItem_6 = QtWidgets.QAction('Ingest Current Scene As the New Version', self)
         self.popMenu_scenes.addAction(self.scenes_rcItem_6)
         self.scenes_rcItem_6.triggered.connect(lambda: self.rcAction_scenes("insertTo"))
 
@@ -5511,7 +5511,13 @@ class MainUI(QtWidgets.QMainWindow):
             messageLayout.addWidget(helpText)
 
         if command == "insertTo":
-            manager.saveVersion(insertTo=True)
+            success = manager.saveVersion(insertTo=True)
+            print(success)
+            if success:
+                self.infoPop(textTitle="Success", textHeader="Scene successfully saved as a new version to %s" %(success["Name"]))
+                self.onBaseSceneChange()
+            else:
+                self.infoPop(textTitle="Failure", textHeader="Ingestion Failed for an unknown reason", type="C")
 
         if command == "viewRender":
             imagePath = os.path.join(manager.projectDir, "images", manager.currentBaseSceneName)

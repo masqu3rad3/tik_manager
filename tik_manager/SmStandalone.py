@@ -656,6 +656,7 @@ class MainUI(baseUI):
         self.saveBaseScene_pushButton.setVisible(False)
         self.saveBaseScene_fm.setVisible(False)
         self.scenes_rcItem_0.setVisible(False)
+        self.scenes_rcItem_6.setVisible(False)
 
         self.baseSceneFromReference.menuAction().setVisible(False)
 

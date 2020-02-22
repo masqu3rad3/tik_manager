@@ -204,7 +204,7 @@ class NukeManager(RootManager, NukeCoreFunctions):
         self._save()
         self.progressLogger("save", self.getSceneFile())
 
-    def saveVersion(self, makeReference=True, versionNotes="", sceneFormat="mb", *args, **kwargs):
+    def saveVersion(self, makeReference=True, versionNotes="", sceneFormat="mb", insertTo=None, *args, **kwargs):
         """
         Saves a version for the predefined scene. The scene json file must be present at the /data/[Category] folder.
         Args:
@@ -230,7 +230,26 @@ class NukeManager(RootManager, NukeCoreFunctions):
             self._exception(360, msg)
             return -1, msg
 
-        sceneInfo = self.getOpenSceneInfo()
+        if not insertTo:
+            sceneInfo = self.getOpenSceneInfo()
+            if not sceneInfo:
+                msg = "This is not a base scene (Json file cannot be found)"
+                self._exception(360, msg)
+                return -1, msg
+        else:
+            sceneInfo = {
+                    "jsonFile":self.currentDatabasePath,
+                    "projectPath":self._pathsDict["projectDir"],
+                    "subProject":self.subProject,
+                    "category":self.currentTabName,
+                    "shotName":self.currentBaseSceneName,
+                    "version":len(self.getVersions()),
+                    "previewPath":self.currentPreviewPath,
+                    }
+            # ingesting overrides make reference
+            makeReference = False
+
+        # sceneInfo = self.getOpenSceneInfo()
 
         if sceneInfo: ## getCurrentJson returns None if the resolved json path is missing
             jsonFile = sceneInfo["jsonFile"]
