@@ -218,7 +218,7 @@ class MainUI(QtWidgets.QMainWindow):
 
     def buildUI(self):
         self.setObjectName(self.windowName)
-        self.resize(680, 600)
+        self.resize(680, 620)
         self.setWindowTitle(self.windowName)
 
         self.centralwidget = QtWidgets.QWidget(self)
@@ -5042,6 +5042,9 @@ class MainUI(QtWidgets.QMainWindow):
             resolvedPath_label.setText(resolvedText)
 
         def saveCommand():
+            if notes_plainTextEdit.toPlainText() == "":
+                self.infoPop(textTitle="Cannot Continue", textHeader="Notes MUST be filled ('dtgfd' is not a version note)", type="I")
+                return
             checklist = self.manager.preSaveChecklist()
             for msg in checklist:
                 q = self.queryPop(type="yesNo", textTitle="Checklist", textHeader=msg)
@@ -5083,7 +5086,202 @@ class MainUI(QtWidgets.QMainWindow):
         # QtCore.QMetaObject.connectSlotsByName(self.save_Dialog)
 
         saveBaseScene_Dialog.show()
+        
+    def ingestAsVersionDialog(self):
+        ingestV_Dialog = QtWidgets.QDialog(parent=self)
+        ingestV_Dialog.setModal(True)
+        ingestV_Dialog.resize(500, 220)
+        ingestV_Dialog.setMinimumSize(QtCore.QSize(300, 220))
+        ingestV_Dialog.setMaximumSize(QtCore.QSize(600, 600))
+        ingestV_Dialog.setWindowTitle(("Ingest Scene To the Base Scene as Version"))
 
+        ing_masterLayout = QtWidgets.QVBoxLayout(ingestV_Dialog)
+
+        # ----------
+        # HEADER BAR
+        # ----------
+        margin = 5
+        colorWidget = QtWidgets.QWidget(ingestV_Dialog)
+        headerLayout = QtWidgets.QHBoxLayout(colorWidget)
+        headerLayout.setSpacing(0)
+        try:
+            headerLayout.setMargin(0)
+        except AttributeError:
+            pass
+
+        tikIcon_label = QtWidgets.QLabel(self.centralwidget)
+        # tikIcon_label.setFixedSize(115, 30)
+        tikIcon_label.setProperty("header", True)
+        tikIcon_label.setMaximumWidth(80)
+        try:
+            tikIcon_label.setMargin(margin)
+        except AttributeError:
+            pass
+        tikIcon_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        tikIcon_label.setScaledContents(False)
+
+        tikIcon_label.setText("Ingesting As:")
+        tikIcon_label.setStyleSheet("color: red")
+
+        # saveVersionHeaderBitmap = QtGui.QPixmap(":/icons/CSS/rc/tmVersion.png")
+        # tikIcon_label.setPixmap(saveVersionHeaderBitmap)
+
+        headerLayout.addWidget(tikIcon_label)
+
+        resolvedPath_label = QtWidgets.QLabel()
+        resolvedPath_label.setProperty("header", True)
+        try:
+            resolvedPath_label.setMargin(margin)
+        except AttributeError:
+            pass
+        resolvedPath_label.setIndent(2)
+
+        resolvedPath_label.setFont(QtGui.QFont("Times", 10, QtGui.QFont.Bold))
+        resolvedPath_label.setWordWrap(True)
+
+        headerLayout.addWidget(resolvedPath_label)
+
+        ing_masterLayout.addWidget(colorWidget)
+        # ----------
+        # ----------
+
+        right_verticalLayout = QtWidgets.QVBoxLayout()
+        right_verticalLayout.setContentsMargins(-1, -1, 10, 10)
+        right_verticalLayout.setSpacing(6)
+
+        notes_label = QtWidgets.QLabel(ingestV_Dialog)
+        notes_label.setText(("Notes"))
+        right_verticalLayout.addWidget(notes_label)
+
+        notes_plainTextEdit = QtWidgets.QPlainTextEdit(ingestV_Dialog)
+        notes_plainTextEdit.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        right_verticalLayout.addWidget(notes_plainTextEdit)
+
+        formats_horizontalLayout = QtWidgets.QHBoxLayout()
+        right_verticalLayout.addLayout(formats_horizontalLayout)
+        spacerItem = QtWidgets.QSpacerItem(80, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        formats_horizontalLayout.addItem(spacerItem)
+
+        ext = os.path.splitext(self.manager.getSceneFile())[1][1:]
+        radioButtonList = []
+        for format in BoilerDict["SceneFormats"]:
+            radioButton = QtWidgets.QRadioButton(ingestV_Dialog)
+            radioButton.setText(format)
+            formats_horizontalLayout.addWidget(radioButton)
+            radioButtonList.append(radioButton)
+            if format == ext:
+                radioButton.setChecked(True)
+
+        # hide radiobutton if only one format exists
+        if len(radioButtonList) == 1:
+            radioButtonList[0].setVisible(False)
+
+        formats_horizontalLayout_2 = QtWidgets.QHBoxLayout()
+        spacerItem1 = QtWidgets.QSpacerItem(80, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        formats_horizontalLayout_2.addItem(spacerItem1)
+
+        makeReference_checkBox = QtWidgets.QCheckBox(ingestV_Dialog)
+        makeReference_checkBox.setLayoutDirection(QtCore.Qt.LeftToRight)
+        makeReference_checkBox.setInputMethodHints(QtCore.Qt.ImhPreferUppercase)
+        makeReference_checkBox.setText("Make Reference")
+        makeReference_checkBox.setCheckable(True)
+
+        if BoilerDict["Environment"] == "Houdini" or \
+                BoilerDict["Environment"] == "Nuke" or \
+                BoilerDict["Environment"] == "Standalone":
+            makeReference_checkBox.setVisible(False)
+
+        formats_horizontalLayout_2.addWidget(makeReference_checkBox)
+        right_verticalLayout.addLayout(formats_horizontalLayout_2)
+
+        sv_buttonBox = QtWidgets.QDialogButtonBox(ingestV_Dialog)
+        sv_buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        sv_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
+        right_verticalLayout.addWidget(sv_buttonBox)
+        ing_masterLayout.addLayout(right_verticalLayout)
+
+        buttonS = sv_buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
+        buttonS.setText('Save As Version')
+        buttonS.setMinimumSize(QtCore.QSize(100, 30))
+        buttonC = sv_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel)
+        buttonC.setText('Cancel')
+        buttonC.setMinimumSize(QtCore.QSize(100, 30))
+
+        def ingestAsVersionCommand():
+            # TODO : ref
+            if notes_plainTextEdit.toPlainText() == "":
+                self.infoPop(textTitle="Cannot Continue", textHeader="Version Notes MUST be filled ('dtgfd' is not a version note)", type="I")
+                return
+            checklist = self.manager.preSaveChecklist()
+            for msg in checklist:
+                q = self.queryPop(type="yesNo", textTitle="Checklist", textHeader=msg)
+                if q == "no":
+                    return
+                else:
+                    self.manager.errorLogger(title="Disregarded warning", errorMessage=msg)
+
+            for button in radioButtonList:
+                if button.isChecked():
+                    sceneFormat = button.text()
+                    break
+
+            sceneInfo = self.manager.saveVersion(makeReference=makeReference_checkBox.checkState(),
+                                                 versionNotes=notes_plainTextEdit.toPlainText(),
+                                                 sceneFormat=sceneFormat, insertTo=True)
+
+            if not sceneInfo == -1:
+                self.statusBar().showMessage("Status | Version Saved => %s" % len(sceneInfo["Versions"]))
+            self.manager.currentBaseSceneName = sceneInfo["Name"]
+            self.manager.currentVersionIndex = len(sceneInfo["Versions"])
+
+            self.populateBaseScenes()
+            self.onBaseSceneChange()
+            ingestV_Dialog.accept()
+
+        def getResolvedPath():
+            # Resolve and display filename info
+            sceneFormat = ""
+            for button in radioButtonList:
+                if button.isChecked():
+                    sceneFormat = button.text()
+                    break
+
+            sceneInfo = self.manager.getOpenSceneInfo()
+            if not sceneInfo:
+                return
+            jsonFile = sceneInfo["jsonFile"]
+            jsonInfo = self.manager._loadJson(jsonFile)
+
+            currentVersion = len(jsonInfo["Versions"]) + 1
+            ## Naming Dictionary
+            nameDict = {
+                "baseName": jsonInfo["Name"],
+                "categoryName": jsonInfo["Category"],
+                "userInitials": self.manager.currentUserInitials,
+                "subproject": self.manager.subProject,
+                "date": ""  # date is unnecessary since it will be calculated in SmRoot->resolveSaveName
+            }
+            sceneName = self.manager.resolveSaveName(nameDict, currentVersion)
+
+            # sceneName = "{0}_{1}_{2}_v{3}".format(jsonInfo["Name"], jsonInfo["Category"],
+            #                                       self.manager.currentUserInitials,
+            #                                       str(currentVersion).zfill(3))
+            relSceneFile = os.path.join(jsonInfo["Path"], "{0}.{1}".format(sceneName, sceneFormat))
+            resolvedPath_label.setText("\\%s" % relSceneFile)
+
+        getResolvedPath()
+
+        # SIGNALS
+        # -------
+        sv_buttonBox.accepted.connect(ingestAsVersionCommand)
+        sv_buttonBox.rejected.connect(ingestV_Dialog.reject)
+
+        for rb in radioButtonList:
+            rb.toggled.connect(getResolvedPath)
+
+        ingestV_Dialog.show()
+
+    
     def saveAsVersionDialog(self):
         # This method IS Software Specific
         saveV_Dialog = QtWidgets.QDialog(parent=self)
@@ -5220,6 +5418,9 @@ class MainUI(QtWidgets.QMainWindow):
 
         def saveAsVersionCommand():
             # TODO : ref
+            if notes_plainTextEdit.toPlainText() == "":
+                self.infoPop(textTitle="Cannot Continue", textHeader="Version Notes MUST be filled ('dtgfd' is not a version note)", type="I")
+                return
             checklist = self.manager.preSaveChecklist()
             for msg in checklist:
                 q = self.queryPop(type="yesNo", textTitle="Checklist", textHeader=msg)
@@ -5511,13 +5712,13 @@ class MainUI(QtWidgets.QMainWindow):
             messageLayout.addWidget(helpText)
 
         if command == "insertTo":
-            success = manager.saveVersion(insertTo=True)
-            print(success)
-            if success:
-                self.infoPop(textTitle="Success", textHeader="Scene successfully saved as a new version to %s" %(success["Name"]))
-                self.onBaseSceneChange()
-            else:
-                self.infoPop(textTitle="Failure", textHeader="Ingestion Failed for an unknown reason", type="C")
+            # success = manager.saveVersion(insertTo=True)
+            success = self.ingestAsVersionDialog()
+            # if success:
+            #     self.infoPop(textTitle="Success", textHeader="Scene successfully saved as a new version to %s" %(success["Name"]))
+            #     self.onBaseSceneChange()
+            # else:
+            #     self.infoPop(textTitle="Failure", textHeader="Ingestion Failed for an unknown reason", type="C")
 
         if command == "viewRender":
             imagePath = os.path.join(manager.projectDir, "images", manager.currentBaseSceneName)
