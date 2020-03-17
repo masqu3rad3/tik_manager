@@ -76,6 +76,9 @@ Tik Manager Version History
 * **Update.709** Manual installation folders updated
 * **Fix.710** 2020 incompatibility with size flag fixed
 * **New.800** Ability to saving scenes to existing any base Scenes as versions added. Right Click Menu -> Ingest Current scene as the new version
+* **New.900** Version notes became mandatory for all saves (Base, version, ingest)
+* **Fix.900** False mismatch fixed for FPS fixed. (Nuke)
+
 
 2.5
 ---
