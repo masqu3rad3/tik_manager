@@ -86,7 +86,17 @@ class RootManager(object):
                       "50", "59.94", "60", "75", "80", "100", "120", "125", "150",
                       "200", "240", "250", "300", "375", "400", "500", "600", "750",
                       "1200", "1500", "2000", "3000", "6000", "44100", "48000"]
-        # self.padding = 3
+        self.resolutionPresets={
+            "HD_720": [1280, 720],
+            "HD_1080": [1920, 1080],
+            "UHD_4K": [3840, 2160],
+            "UHD_8K": [7680, 4320],
+            "Academy_2K": [1828, 1332],
+            "Full_Aperture_2K": [2048, 1556],
+            "Academy_4K": [3656 , 2664],
+            "Full_Aperture_4K": [4096, 3112],
+            "IMAX": [5616, 4096],
+        }
 
         self.errorCodeDict = {200: "Corrupted File",
                          201: "Missing File",
@@ -904,12 +914,18 @@ class RootManager(object):
     def createNewProject(self, resolvedPath, settingsData=None):
         """
         Creates New Project Structure
-        :param projectRoot: (String) Path to where all projects are
-        :param projectName: (String) Name of the project
-        :param brandName: (String) Optional. Brand name
-        :param client: (String) Client Name
-        :return: None
+
+        Args:
+            resolvedPath: (String) Destionation path of the project
+            settingsData: (Dictionary) Dictionary data for project settings. (Optional)
+                Example:
+                    {"Resolution": [1920, 1080],
+                                   "FPS": 25}
+
+        Returns: (String) Resolved Path
+
         """
+
         logger.debug("Func: createNewProject")
         # resolve the project path
         # resolvedPath = self.resolveProjectPath(projectRoot, projectName, brandName, client)

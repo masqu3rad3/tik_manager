@@ -791,8 +791,14 @@ class MainUI(QtWidgets.QMainWindow):
                                                  maximumWidth=(65), buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons)
         resolutionY_spinBox = QtWidgets.QSpinBox(minimum=1, maximum=99999, value=1080, minimumWidth=(65),
                                                  maximumWidth=(65), buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons)
+        resolution_presets_cb = QtWidgets.QComboBox()
+        resolution_presets_cb.addItem("Custom Resolution")
+        resolution_presets_cb.addItems(self.manager.resolutionPresets.keys())
+
         resolution_hLay.addWidget(resolutionX_spinBox)
         resolution_hLay.addWidget(resolutionY_spinBox)
+        resolution_hLay.addWidget(resolution_presets_cb)
+
         formLayout.addRow(resolution_lbl, resolution_hLay)
 
         fps_lbl = QtWidgets.QLabel(text="FPS")
@@ -811,6 +817,27 @@ class MainUI(QtWidgets.QMainWindow):
         cp_button.setProperty("menuButton", True)
 
         masterLayout.addWidget(createproject_buttonBox)
+
+        def onPresetChange():
+            resolutionX_spinBox.blockSignals(True)
+            resolutionY_spinBox.blockSignals(True)
+            if resolution_presets_cb.currentIndex() == 0:
+                return
+            key = resolution_presets_cb.currentText()
+            resolutionX_spinBox.setValue(self.manager.resolutionPresets[key][0])
+            resolutionY_spinBox.setValue(self.manager.resolutionPresets[key][1])
+            resolutionX_spinBox.blockSignals(False)
+            resolutionY_spinBox.blockSignals(False)
+
+        def onValueChange():
+            if resolution_presets_cb.currentIndex() == 0:
+                return
+            preset_res = (self.manager.resolutionPresets[resolution_presets_cb.currentText()])
+            x_val = resolutionX_spinBox.value()
+            y_val = resolutionY_spinBox.value()
+            if x_val != preset_res[0] or y_val != preset_res[1]:
+                resolution_presets_cb.setCurrentIndex(0)
+
 
         def resolve():
             resolvedProjectName = str(pConvention)
@@ -864,189 +891,14 @@ class MainUI(QtWidgets.QMainWindow):
                 projectRoot_le.setText(selectedroot)
                 resolve()
 
+        resolution_presets_cb.currentIndexChanged.connect(onPresetChange)
+        resolutionX_spinBox.valueChanged.connect(onValueChange)
+        resolutionY_spinBox.valueChanged.connect(onValueChange)
         projectRoot_pb.clicked.connect(browseProjectRoot)
         createproject_buttonBox.accepted.connect(onCreateNewProject)
         createproject_buttonBox.rejected.connect(createProject_Dialog.reject)
 
         createProject_Dialog.show()
-
-    # def createProjectUI(self):
-    #     # TODO : Re-write the ui with dynamically building fields from the tikConventions["newProjectName"]
-    #     # TODO : <yy>, <mm>, <dd> fields will be filled automatic
-    #     # TODO : Other fields defined in the tikConventions.json file will be mandatory to fill.
-    #
-    #     ## ROAD MAP
-    #     ## load tikConventions.json to a pConvention variable
-    #     nameConventions = self.manager.loadNameConventions()
-    #     pConvention = nameConventions["newProjectName"]
-    #
-    #     ## get the used tokens
-    #     tokens = re.findall(r'<(.*?)\>', pConvention)
-    #     print(tokens)
-    #
-    #     ## create ui fields for each token except <yy>, <mm>, <dd>
-    #
-    #
-    #     ## assign values to <yy>, <mm> and <dd> tokens
-    #
-    #     ## resolve the project name and update it with each character entered to the fields
-    #
-    #
-    #     createProject_Dialog = QtWidgets.QDialog(parent=self, windowTitle="Create New Project")
-    #     createProject_Dialog.resize(420, 220)
-    #
-    #     masterLayout = QtWidgets.QVBoxLayout(createProject_Dialog)
-    #
-    #     formLayout = QtWidgets.QFormLayout(spacing=15, labelAlignment=(
-    #                 QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter))
-    #     masterLayout.addLayout(formLayout)
-    #
-    #     resolvedPath_lbl = QtWidgets.QLabel(createProject_Dialog, text="Fill the mandatory fields")
-    #     formLayout.addRow(resolvedPath_lbl)
-    #
-    #     projectRoot_lbl = QtWidgets.QLabel(createProject_Dialog, text="Projects Root")
-    #     projectRoot_lbl.setFocus()
-    #     projectRoot_hLay = QtWidgets.QHBoxLayout(spacing=4)
-    #     projectRoot_le = QtWidgets.QLineEdit(text=os.path.abspath(os.path.join(self.manager.projectDir, os.pardir)))
-    #     projectRoot_pb = QtWidgets.QPushButton(text="Browse")
-    #     projectRoot_hLay.addWidget(projectRoot_le)
-    #     projectRoot_hLay.addWidget(projectRoot_pb)
-    #     formLayout.addRow(projectRoot_lbl, projectRoot_hLay)
-    #
-    #     nameFields_hLay = QtWidgets.QHBoxLayout()
-    #
-    #     brandName_vLay = QtWidgets.QVBoxLayout(spacing=6)
-    #     brandName_lbl = QtWidgets.QLabel(text="Brand Name", alignment=QtCore.Qt.AlignCenter)
-    #     brandName_le = QtWidgets.QLineEdit(placeholderText="Mandatory Field")
-    #     brandName_vLay.addWidget(brandName_lbl)
-    #     brandName_vLay.addWidget(brandName_le)
-    #     nameFields_hLay.addLayout(brandName_vLay)
-    #     brandName_lbl.setVisible('brandName' in tokens)
-    #     brandName_le.setVisible('brandName' in tokens)
-    #
-    #     projectName_vLay = QtWidgets.QVBoxLayout(spacing=6)
-    #     projectName_lbl = QtWidgets.QLabel(text="Project Name", alignment=QtCore.Qt.AlignCenter)
-    #     projectName_le = QtWidgets.QLineEdit(placeholderText="Mandatory Field")
-    #     projectName_vLay.addWidget(projectName_lbl)
-    #     projectName_vLay.addWidget(projectName_le)
-    #     nameFields_hLay.addLayout(projectName_vLay)
-    #     projectName_lbl.setVisible('projectName' in tokens)
-    #     projectName_le.setVisible('projectName' in tokens)
-    #
-    #     client_vLay = QtWidgets.QVBoxLayout(spacing=6)
-    #     client_lbl = QtWidgets.QLabel(text="Client", alignment=QtCore.Qt.AlignCenter)
-    #     client_le = QtWidgets.QLineEdit(placeholderText="Mandatory Field")
-    #     client_vLay.addWidget(client_lbl)
-    #     client_vLay.addWidget(client_le)
-    #     nameFields_hLay.addLayout(client_vLay)
-    #     client_lbl.setVisible('clientName' in tokens)
-    #     client_le.setVisible('clientName' in tokens)
-    #
-    #     formLayout.addRow(nameFields_hLay)
-    #
-    #     resolution_lbl = QtWidgets.QLabel(text="Resolution")
-    #     resolution_hLay = QtWidgets.QHBoxLayout(spacing=4)
-    #     resolutionX_spinBox = QtWidgets.QSpinBox(minimum=1, maximum=99999, value=1920, minimumWidth=(65),
-    #                                              maximumWidth=(65), buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons)
-    #     resolutionY_spinBox = QtWidgets.QSpinBox(minimum=1, maximum=99999, value=1080, minimumWidth=(65),
-    #                                              maximumWidth=(65), buttonSymbols=QtWidgets.QAbstractSpinBox.NoButtons)
-    #     resolution_hLay.addWidget(resolutionX_spinBox)
-    #     resolution_hLay.addWidget(resolutionY_spinBox)
-    #     formLayout.addRow(resolution_lbl, resolution_hLay)
-    #
-    #     fps_lbl = QtWidgets.QLabel(text="FPS")
-    #     fps_combo = QtWidgets.QComboBox(maximumWidth=(65))
-    #     fps_combo.addItems(self.manager.fpsList)
-    #     fps_combo.setCurrentIndex(13)
-    #     formLayout.addRow(fps_lbl, fps_combo)
-    #
-    #     createproject_buttonBox = QtWidgets.QDialogButtonBox(createProject_Dialog, orientation=QtCore.Qt.Horizontal)
-    #     createproject_buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
-    #     createproject_buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).setMinimumSize(QtCore.QSize(100, 30))
-    #     createproject_buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setMinimumSize(QtCore.QSize(100, 30))
-    #
-    #     cp_button = createproject_buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
-    #     cp_button.setText('Create Project')
-    #     cp_button.setProperty("menuButton", True)
-    #
-    #     masterLayout.addWidget(createproject_buttonBox)
-    #
-    #     def browseProjectRoot():
-    #         dlg = QtWidgets.QFileDialog()
-    #         dlg.setFileMode(QtWidgets.QFileDialog.Directory)
-    #
-    #         if dlg.exec_():
-    #             # selectedroot = os.path.normpath(unicode(dlg.selectedFiles()[0])).encode("utf-8")
-    #             selectedroot = os.path.normpath(compat.encode(dlg.selectedFiles()[0]))
-    #             projectRoot_le.setText(selectedroot)
-    #             resolve()
-    #
-    #     def onCreateNewProject():
-    #         root = os.path.normpath(compat.encode(projectRoot_le.text()))
-    #         if not self.manager.nameCheck(root, allowSpaces=True, directory=True):
-    #             self.infoPop(textTitle="Non-Ascii Character", textHeader="Selected Project Root cannot be used",
-    #                          textInfo="There are non-ascii characters in the selected path.", type="C")
-    #             return
-    #         if not os.path.isdir(root):
-    #             self.infoPop(textTitle="Path Error", textHeader="Selected Project Root does not exist", type="C")
-    #             return
-    #
-    #         # pName = unicode(projectName_le.text()).decode("utf-8")
-    #         pName = compat.decode(projectName_le.text())
-    #         # bName = unicode(brandName_le.text()).decode("utf-8")
-    #         bName = compat.decode(brandName_le.text())
-    #         # cName = unicode(client_le.text()).decode("utf-8")
-    #         cName = compat.decode(client_le.text())
-    #         projectSettingsDB = {"Resolution": [resolutionX_spinBox.value(), resolutionY_spinBox.value()],
-    #                              "FPS": int(fps_combo.currentText())}
-    #
-    #         pPath = self.manager.createNewProject(root, pName, bName, cName, settingsData=projectSettingsDB)
-    #         if pPath:
-    #             self.manager.setProject(pPath)
-    #             self.manager.addToRecentProjects(pPath) #moved to the SmRoot
-    #         # self.onProjectChange()
-    #
-    #         self.initMainUI()
-    #         createProject_Dialog.close()
-    #
-    #     def resolve():
-    #         # if projectName_le.text() == "" or client_le.text() == "" or projectRoot_le.text() == "":
-    #         if projectName_le.text() == "" or projectRoot_le.text() == "":
-    #             print("DB1")
-    #             resolvedPath_lbl.setText("Fill the mandatory fields")
-    #             return
-    #         # resolvedPath = self.manager.resolveProjectPath(unicode(projectRoot_le.text()).decode("utf-8"),
-    #         #                                                unicode(projectName_le.text()).decode("utf-8"),
-    #         #                                                unicode(brandName_le.text()).decode("utf-8"),
-    #         #                                                unicode(client_le.text()).decode("utf-8"))
-    #         resolvedPath = self.manager.resolveProjectPath(compat.decode(projectRoot_le.text()),
-    #                                                        compat.decode(projectName_le.text()),
-    #                                                        compat.decode(brandName_le.text()),
-    #                                                        compat.decode(client_le.text()))
-    #
-    #         resolvedPath_lbl.setText(resolvedPath)
-    #
-    #     resolve()
-    #
-    #     projectRoot_pb.clicked.connect(browseProjectRoot)
-    #
-    #     brandName_le.textEdited.connect(lambda: resolve())
-    #     projectName_le.textEdited.connect(lambda: resolve())
-    #     client_le.textEdited.connect(lambda: resolve())
-    #
-    #     createproject_buttonBox.accepted.connect(onCreateNewProject)
-    #     createproject_buttonBox.rejected.connect(createProject_Dialog.reject)
-    #
-    #     brandName_le.textChanged.connect(
-    #         lambda: self._checkValidity(brandName_le.text(), cp_button,
-    #                                     brandName_le))
-    #     projectName_le.textChanged.connect(
-    #         lambda: self._checkValidity(projectName_le.text(), cp_button,
-    #                                     projectName_le))
-    #     client_le.textChanged.connect(
-    #         lambda: self._checkValidity(client_le.text(), cp_button, client_le))
-    #
-    #     createProject_Dialog.show()
 
     def setProjectUI(self):
 
