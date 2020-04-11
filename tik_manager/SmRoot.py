@@ -74,11 +74,6 @@ logger.setLevel(logging.WARNING)
 class RootManager(object):
     """Base of all Scene Manager Command Classes"""
     def __init__(self):
-        # super(RootManager, self).__init__()
-
-        # self.database = db.SmDatabase()
-        # self.validCategories = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
-
         self.currentPlatform = self.getPlatform()
         self._pathsDict={}
         self.fpsList=["2", "3", "4", "5", "6", "8", "10", "12", "15", "16", "20",
@@ -112,8 +107,6 @@ class RootManager(object):
         """Initializes all the necessary paths"""
         logger.debug("Func: init_paths")
         # all paths in here must be absolute paths
-        # _softwarePathsDict = self.getSoftwarePaths()
-
         self._pathsDict["userSettingsDir"] = os.path.normpath(os.path.join(self.getUserDir(), "TikManager"))
         self._folderCheck(os.path.join(self._pathsDict["userSettingsDir"], nicename))
         self._pathsDict["userSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["userSettingsDir"], "userSettings.json"))
@@ -136,32 +129,18 @@ class RootManager(object):
         self._pathsDict["sceneFile"] = ""
 
         self._pathsDict["masterDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "smDatabase"))
-        # self._folderCheck(self._pathsDict["masterDir"])
-
         self._pathsDict["databaseDir"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], _softwarePathsDict["databaseDir"]))
-        # self._folderCheck(self._pathsDict["databaseDir"])
-
         self._pathsDict["scenesDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], _softwarePathsDict["scenesDir"]))
-        # self._folderCheck(self._pathsDict["scenesDir"])
         self._pathsDict["transferDir"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "_TRANSFER"))
-
         self._pathsDict["projectSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "projectSettings.json"))
         self._pathsDict["subprojectsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "subPdata.json"))
         self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "exportSettings.json"))
         self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["masterDir"], "importSettings.json"))
-
         self._pathsDict["categoriesFile"] = os.path.normpath(os.path.join(self._pathsDict["databaseDir"], _softwarePathsDict["categoriesFile"]))
-
         self._pathsDict["previewsRoot"] = os.path.normpath(os.path.join(self._pathsDict["projectDir"], "Playblasts")) # dont change
         self._pathsDict["previewsDir"] = os.path.normpath(os.path.join(self._pathsDict["previewsRoot"], _softwarePathsDict["niceName"])) # dont change
-        # self._folderCheck(self._pathsDict["previewsDir"])
-
         self._pathsDict["pbSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["previewsRoot"], _softwarePathsDict["pbSettingsFile"]))
-
         self._pathsDict["usersFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerUsers.json"))
-        # self._pathsDict["alImportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "alImportSettings.json"))
-        # self._pathsDict["alExportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "alExportSettings.json"))
-
         self._pathsDict["softwareDatabase"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "softwareDatabase.json"))
         self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerDefaults.json"))
         self._pathsDict["tikConventions"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "tikConventions.json"))
@@ -176,12 +155,9 @@ class RootManager(object):
                      os.path.join(folder, "softwareDatabase.json"),
                      os.path.join(folder, "adminPass.psw")
                      ]
-        # checkList = [os.path.join(folder, "sceneManagerDefaults.json"),
-        #              os.path.join(folder, "sceneManagerUsers.json"),]
         missingList = [os.path.basename(path) for path in checkList if not os.path.isfile(path)]
         if len(missingList) > 0:
             self._info("This folder cannot be set as Common Database Folder.\n\n It is missing necessary files:\n\nFollowing files are missing:\n %s" %(missingList))
-            # logger.error("Common Database Folder missing some necessary files\nFollowing files are missing:\n %s" %(missingList))
             return False
         else:
             return True
@@ -192,14 +168,12 @@ class RootManager(object):
             commonFolder = self._loadJson(self._pathsDict["commonFolderFile"])
             if commonFolder == -2:
                 return -2
-
         else:
             msg = "Common Folder is not defined.\n\nDo you want to define now?"
             if self._question(msg):
                 commonFolder = self._defineCommonFolder()
             else:
                 return -1
-
         return commonFolder
 
     def _defineCommonFolder(self, path=None):
@@ -229,30 +203,6 @@ class RootManager(object):
             msg = "Cannot save common folder file"
             return -1, msg
 
-    # def getProjectDir(self):
-    #     """OVERRIDEN FUNCTION"""
-    #     # get the projects file for standalone manager
-    #     projectsDict = self.loadProjects()
-    #
-    #     if not projectsDict:
-    #         currentProject = os.path.normpath(os.path.expanduser("~"))
-    #         projectsDict = {"Standalone": currentProject}
-    #         self.saveProjects(projectsDict)
-    #         return currentProject
-    #
-    #     # get the project defined in the database file
-    #     try:
-    #         dbProject = projectsDict["Standalone"]
-    #         if dbProject:  # some error can save it as None
-    #             return dbProject
-    #         else:
-    #             return os.path.normpath(os.path.expanduser("~"))
-    #     except KeyError:
-    #         currentProject = os.path.normpath(os.path.expanduser("~"))
-    #         projectsDict = {"Standalone": currentProject}
-    #         self.saveProjects(projectsDict)
-    #         return currentProject
-
     def getProjectDir(self):
         ## Load dictionary from database
 
@@ -265,7 +215,6 @@ class RootManager(object):
             projectsDict = {self.swName: currentProject}
             self.saveProjects(projectsDict)
             return currentProject
-
         # get the project defined in the database file
         try:
             dbProject = projectsDict[self.swName]
@@ -300,35 +249,6 @@ class RootManager(object):
             projectsDict[self.swName] = path
         self.saveProjects(projectsDict)
         self.projectDir = path
-        # self.addToRecentProjects(path)
-
-    # def getProjectDir(self, softwareName):
-    #
-    #     ## Load dictionary from database
-    #     projectsDict = self.loadProjects()
-    #
-    #     ## If there is no database, create one with current project and return
-    #     if not projectsDict:
-    #         currentProject = self._getProject()
-    #         projectsDict = {softwareName: currentProject,
-    #                         "LastProject": currentProject}
-    #         self.saveProjects(projectsDict)
-    #         return currentProject
-    #
-    #     # get the project defined in the database file
-    #     globalSet = self._userSettings["globalSetProject"]
-    #     try:
-    #         if globalSet:
-    #             currentProject = projectsDict["LastProject"]
-    #         else:
-    #             currentProject = projectsDict[softwareName]
-    #         return currentProject
-    #     except KeyError:
-    #         currentProject = self._getProject()
-    #         projectsDict[softwareName] = currentProject
-    #         projectsDict["LastProject"] = currentProject
-    #         self.saveProjects(projectsDict)
-    #         return currentProject
 
     def getSoftwarePaths(self):
         """Returns the database dictionary of CURRENT SOFTWARE"""
@@ -350,8 +270,6 @@ class RootManager(object):
         self._folderCheck(self._pathsDict["databaseDir"])
         self._folderCheck(self._pathsDict["scenesDir"])
         self._folderCheck(self._pathsDict["previewsDir"])
-
-
 
         # defaults dictionary holding "defaultCategories", "defaultPreviewSettings", "defaultUsers"
         self._sceneManagerDefaults = self.loadManagerDefaults()
@@ -399,8 +317,6 @@ class RootManager(object):
         """Sets the Scene Manager Project directory to given path"""
         logger.debug("Func: projectDir/setter")
         self._pathsDict["projectDir"] = path
-        # self.init_paths()
-        # self.init_database()
 
     @property
     def subProject(self):
@@ -413,12 +329,6 @@ class RootManager(object):
         """Returns the absolute path of the scenes folder"""
         logger.debug("Func: scenesDir/getter")
         return self._pathsDict["scenesDir"]
-
-    # @property
-    # def baseScene(self):
-    #     """Returns the name of the Base Scene at cursor position"""
-    #     baseSceneDir = os.path.abspath(os.path.join(self._pathsDict["sceneFile"], os.pardir))
-    #     return os.path.basename(baseSceneDir)
 
     @property
     def currentTabIndex(self):
@@ -485,7 +395,6 @@ class RootManager(object):
             # raise Exception([101, msg])
             self._exception(101, msg)
             return
-
 
         if indexData == self.currentSubIndex:
             self.cursorInfo()
@@ -571,46 +480,35 @@ class RootManager(object):
         if sceneName not in list(self._baseScenesInCategory):
 
             self.currentVersionIndex = -1
-            # msg = "There is no scene called %s in current category" %sceneName
-
-            # self._exception(101, msg)
             return
 
         self._currentBaseSceneName = sceneName
         self._currentSceneInfo = self.loadSceneInfo()
 
-
-        # assert (self._currentSceneInfo == -2)
         if self._currentSceneInfo == -2: # corrupted db file
             # self._currentSceneInfo == {}
             self._currentBaseSceneName = ""
             self.currentVersionIndex = -1
             msg = "Database file %s is corrupted"
-            # raise Exception ([200, "Database file %s is corrupted\nDo you want to fix it manually?" %sceneName, self._baseScenesInCategory[sceneName]] )
             self._exception(200, msg)
             return
-
 
         if self._currentSceneInfo["ReferencedVersion"]:
             self.currentVersionIndex = self._currentSceneInfo["ReferencedVersion"]
         else:
             self.currentVersionIndex = len(self._currentSceneInfo["Versions"])
-
         self.cursorInfo()
-        # self._currentPreviewIndex = 0
 
     @property
     def currentBaseScenePath(self):
         """Returns absolute path of Base Scene at cursor position"""
         logger.debug("Func: currentBaseScenePath/getter")
-
         return os.path.join(self.projectDir, self._currentSceneInfo["Path"])
 
     @property
     def currentScenePath(self):
         """Returns absolute path of Base Scene Version at cursor position"""
         logger.debug("Func: currentBaseScenePath/getter")
-
         return os.path.join(self.projectDir, self._currentSceneInfo["Versions"][self.currentVersionIndex-1]["RelativePath"])
 
     @property
@@ -624,24 +522,17 @@ class RootManager(object):
             path = os.path.join(self._pathsDict["previewsDir"], self._currentSceneInfo["Category"],
                                 self._currentSceneInfo["SubProject"], self._currentSceneInfo["Name"])
         return path
-        # if os.path.isdir(path):
-        #     return path
-        # else:
-        #     return ""
 
     @property
     def currentVersionIndex(self):
         """Returns the index number of Version at cursor position"""
         logger.debug("Func: currentVersionIndex/getter")
-
-        """Returns current Version index at cursor position"""
         return self._currentVersionIndex
 
     @currentVersionIndex.setter
     def currentVersionIndex(self, indexData):
         """Moves the cursor to given Version index"""
         logger.debug("Func: currentVersionIndex/setter")
-
         if indexData <= 0:
             self._currentVersionIndex = -1
             self._currentThumbFile = ""
@@ -649,17 +540,11 @@ class RootManager(object):
             self._currentPreviewCamera = ""
             return
         if not self._currentSceneInfo:
-            # logger.warning(("BaseScene not Selected"))
             return
         if not 1 <= indexData <= len(self._currentSceneInfo["Versions"]):
             msg = "out of range! %s" %indexData
-            # logger.error(msg)
-            # raise Exception([101, msg])
             self._exception(101, msg)
             return
-        # if self._currentVersionIndex == indexData:
-        #     logger.warning("Cursor is already at %s" % indexData)
-        #     return
         self._currentVersionIndex = indexData
         self._currentNotes = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["Note"]
         self._currentPreviewsDict = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["Preview"]
@@ -670,31 +555,6 @@ class RootManager(object):
 
         self._currentThumbFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["Thumb"]
         self.cursorInfo()
-
-    # @property
-    # def currentPreviewCamera(self):
-    #     """Returns current Previewed Camera name at cursor position"""
-    #     logger.debug("Func: currentPreviewCamera/getter")
-    #
-    #     return self._currentPreviewCamera
-    #
-    # @currentPreviewCamera.setter
-    # def currentPreviewCamera(self, cameraName):
-    #     """Moves the cursor to the given Preview Camera Name"""
-    #     logger.debug("Func: currentPreviewCamera/setter")
-    #
-    #     if not self._currentSceneInfo:
-    #         logger.warning(("BaseScene not Selected"))
-    #         return
-    #     if cameraName not in self._currentPreviewsDict.keys():
-    #         logger.error(("There is no preview for that camera"))
-    #         return
-    #     self._currentPreviewCamera = cameraName
-    #     self.cursorInfo()
-
-    # @property
-    # def baseScenesInCategory(self):
-    #     return sorted(self._baseScenesInCategory.keys())
 
     @property
     def currentDatabasePath(self):
@@ -759,9 +619,6 @@ class RootManager(object):
     def getLocalSettingsDir(self):
         return self._pathsDict["localSettingsDir"]
 
-    # def getIconsDir(self):
-    #     return self._pathsDict["iconsDir"]
-
     def getSharedSettingsDir(self):
         """Returns the general settings Directory where common settings are"""
         return self._pathsDict["sharedSettingsDir"]
@@ -824,33 +681,27 @@ class RootManager(object):
     def getCategories(self):
         """Returns All Valid Categories"""
         logger.debug("Func: getCategories")
-
         return self._categories
 
     def getSubProjects(self):
         """Returns list of sub-projects"""
         logger.debug("Func: getSubProjects")
-
         return self._subProjectsList
 
     def getUsers(self):
         """Returns nice names of all users"""
         logger.debug("Func: getUsers")
-
         return sorted(list(self._usersDict))
 
     def getBaseScenesInCategory(self):
         """Returns list of nice base scene names under the category at cursor position"""
         logger.debug("Func: getBaseScenesInCategory")
-
         self.scanBaseScenes()
-        # return sorted(self._baseScenesInCategory.keys())
         return self._baseScenesInCategory
 
     def getVersions(self):
         """Returns Versions List of base scene at cursor position"""
         logger.debug("Func: getVersions")
-
         try:
             return self._currentSceneInfo["Versions"]
         except:
@@ -859,14 +710,11 @@ class RootManager(object):
     def getNotes(self):
         """returns (String) version notes on cursor position"""
         logger.debug("Func: getNotes")
-
         return self._currentNotes
 
     def getPreviews(self):
         """returns (list) nice preview names of version on cursor position"""
         logger.debug("Func: getPreviews")
-        
-        # return "ASDFASDF"
         return sorted(list(self._currentPreviewsDict))
 
     def getThumbnail(self):
@@ -910,7 +758,6 @@ class RootManager(object):
         """Returns the codecs which can be used in current workstation"""
         return None
 
-    # def createNewProject(self, projectRoot, projectName, brandName, client, settingsData=None):
     def createNewProject(self, resolvedPath, settingsData=None):
         """
         Creates New Project Structure
@@ -927,16 +774,11 @@ class RootManager(object):
         """
 
         logger.debug("Func: createNewProject")
-        # resolve the project path
-        # resolvedPath = self.resolveProjectPath(projectRoot, projectName, brandName, client)
-
         # check if there is a duplicate
         if not os.path.isdir(os.path.normpath(resolvedPath)):
             os.makedirs(os.path.normpath(resolvedPath))
         else:
             msg = "Project already exists"
-            # logger.warning(msg)
-            # raise Exception ([340, msg])
             self._exception(340, msg)
             return
 
@@ -962,14 +804,12 @@ class RootManager(object):
         os.makedirs(os.path.join(resolvedPath, "sourceimages", "_HDR"))
         os.makedirs(os.path.join(resolvedPath, "smDatabase"))
 
-
         # Create project settings file
         if not settingsData:
             settingsData = {"Resolution": [1920, 1080],
                                    "FPS": 25}
 
         self._dumpJson(settingsData, os.path.join(resolvedPath, "smDatabase", "projectSettings.json"))
-
 
         filePath = os.path.join(resolvedPath, "workspace.mel")
         file = open(filePath, "w")
@@ -1058,8 +898,6 @@ class RootManager(object):
 
         if nameOfSubProject in self._subProjectsList:
             msg = "%s is already in sub-projects list" % nameOfSubProject
-            # logger.warning(msg)
-            # raise Exception([340, msg])
             self._exception(340, msg)
             return
 
@@ -1158,13 +996,6 @@ class RootManager(object):
         else:
             subprocess.Popen(["open", tpath])
 
-        # elif self.currentPlatform == "Linux":
-        #     os.system('nautilus %s' % path)
-        # else:
-        #     msg = "%s is not supported" %self.currentPlatform
-        #     self._exception(210, msg)
-        #     return
-
     def scanBaseScenes(self, categoryAs=None, subProjectAs=None, databaseDirAs=None):
         """Returns the basescene database files in current category"""
         logger.debug("Func: scanBaseScenes")
@@ -1206,8 +1037,6 @@ class RootManager(object):
             searchDir = categoryDBpath
 
         self._baseScenesInCategory = {self.niceName(file):file for file in glob(os.path.join(searchDir, '*.json'))}
-        # self._baseScenesInCategory = {self.niceName(file): self.filterReferenced(file) for file in glob(os.path.join(searchDir, '*.json'))}
-        # self._currentBaseScenes = [os.path.join(searchDir, file) for file in os.listdir(searchDir) if file.endswith('.json')]
         return self._baseScenesInCategory # dictionary of json files
 
     def exportTransfers(self, name, isSelection=True, isObj=True, isAlembic=True, isFbx=True, isVrayProxy=False, isRedShiftProxy=False, timeRange=[1, 10]):
@@ -1269,12 +1098,6 @@ class RootManager(object):
 
         if isFbx:
             fbxSettings = exportSettings
-            # if timeRange[0] is not timeRange[1]:
-            #     fbxSettings["Animation"]=True
-            #     fbxSettings["BakeFrameStart"]=timeRange[0]
-            #     fbxSettings["BakeFrameEnd"]=timeRange[1]
-            # else:
-            #     fbxSettings["Animation"] = False
 
             fbxDir = os.path.join(self._pathsDict["transferDir"],"FBX", subFolders)
             self._folderCheck(fbxDir)
@@ -1295,7 +1118,6 @@ class RootManager(object):
             vrayProxyDir = os.path.join(self._pathsDict["transferDir"], "vrayProxy", subFolders)
             self._folderCheck(vrayProxyDir)
             vrayProxyFilePath = os.path.join(vrayProxyDir, "%s.vrmesh" % baseName)
-            print("DEBUG1")
             if os.path.isfile(vrayProxyFilePath):
                 msg = "The following file will be overwritten if you continue:\n %s\nChoose Yes to overwrite file and continue" % (
                     os.path.basename(vrayProxyFilePath))
@@ -1335,7 +1157,6 @@ class RootManager(object):
             self._info("Format is not supported")
 
     def scanTransfers(self):
-        # self._baseScenesInCategory = {self.niceName(file):file for file in glob(os.path.join(searchDir, '*.json'))}
 
         transferDict = {"obj":{},
                         "fbx":{},
@@ -1346,7 +1167,6 @@ class RootManager(object):
         objPath = os.path.join(self._pathsDict["transferDir"], "OBJ")
         if os.path.exists(objPath):
             # first collect all the obj files
-            # transferDict["obj"] = [y for x in os.walk(objPath) for y in glob(os.path.join(x[0], '*.obj'))]
             transferDict["obj"] = {self.niceName(y):y for x in os.walk(objPath) for y in glob(os.path.join(x[0], '*.obj'))}
 
         abcPath = os.path.join(self._pathsDict["transferDir"], "ALEMBIC")
@@ -1368,7 +1188,6 @@ class RootManager(object):
         return transferDict
 
     def getProjectReport(self):
-
         projectDir = self.getProjectDir()
 
         # check for the databaseDirectory
@@ -1376,12 +1195,6 @@ class RootManager(object):
         if not os.path.isdir(databaseDir):
             self._exception(360, "Project Folder does not have Tik Manager Database")
             return
-
-        # def getOldestFile(listOfFiles):
-        #     return min(listOfFiles, key=lambda fn: os.stat(fn).st_mtime)
-        #
-        # def getNewestFile(listOfFiles):
-        #     return max(listOfFiles, key=lambda fn: os.stat(fn).st_mtime)
 
         def uniqueList(seq, idfun=None):
             # order preserving
@@ -1583,29 +1396,12 @@ User(s): {7}
         self._categories = curCategories
         return
 
-    def moveCategory(self, categoryName, direction):
-        """Moves the category index one step towards given direction"""
-        # TODO : NOT TESTED
-        if direction == "left" or direction == "down":
-            dir = -1
-        if direction == "right" or direction == "up":
-            dir = 1
-
-        curCategories = self.loadCategories()
-
-        index = curCategories.index(categoryName)
-        newindex= index+dir
-        if not (0 <= newindex <= len(curCategories)):
-            return
-
-        itemAtNewIndex = curCategories[newindex]
-
-        curCategories[newindex] = categoryName
-        curCategories[index] = itemAtNewIndex
-
-        self._dumpJson(curCategories, self._pathsDict["categoriesFile"])
-        self._categories = curCategories
-        return
+    def moveCategory(self, category, direction):
+        """
+        Moves the category index one step towards given direction
+        This Fuction has been moved to the UI
+        """
+        pass
 
     def isCategoryTrash(self, categoryName, dbPath=None):
         """Checks if the given category(by name) is empty or not"""
@@ -1654,27 +1450,11 @@ User(s): {7}
             self._exception(101, msg)
             return
 
-        # try:
-        #     curCategories.remove(categoryName)
-        #     self._dumpJson(curCategories, self._pathsDict["categoriesFile"])
-        #     self._categories = curCategories
-        #     return
-        # except ValueError:
-        #     logger.warning("Specified Category does not exist")
-
-
-
     def playPreview(self, camera):
         """Runs the playblast at cursor position"""
         logger.debug("Func: playPreview")
         absPath = os.path.join(self.projectDir, self._currentPreviewsDict[camera].replace("\\", "/"))
         self.executeFile(absPath)
-        # if self.currentPlatform == "Windows":
-        #     try:
-        #         os.startfile(absPath)
-        #     except WindowsError:
-        #         return -1, ["Cannot Find Playblast", "Playblast File is missing", "Do you want to remove it from the Database?"]
-        # # TODO something to play the file in linux
         return
 
     def removePreview(self):
@@ -1733,19 +1513,13 @@ User(s): {7}
             os.rmdir(scene_path)
         except:
             msg = "Cannot delete scene path %s" % (scene_path)
-            # logger.warning(msg)
-            # raise Exception([203, msg])
             self._exception(203, msg)
-            # pass
         # delete json database file
         try:
             os.remove(os.path.join(self.projectDir, databaseFile))
         except:
             msg = "Cannot delete scene path %s" % (databaseFile)
-            # logger.warning(msg)
-            # raise Exception([203, msg])
             self._exception(203, msg)
-            # pass
         msg = "all database entries and version files of %s deleted" %databaseFile
         logger.debug(msg)
         self.errorLogger(title="Deleted Base Scene", errorMessage=msg)
@@ -1784,8 +1558,6 @@ User(s): {7}
 
         if self._currentVersionIndex == -1:
             msg = "Cursor is not on a Base Scene Version. Cancelling"
-            # logger.warning(msg)
-            # raise Exception([101, msg])
             self._exception(101, msg)
             return
             # return
@@ -1843,7 +1615,6 @@ User(s): {7}
         logger.debug("Func: checkReference")
 
         sceneInfo = self._loadJson(databaseFile)
-        # assert (sceneInfo == -2)
         if sceneInfo == -2:
             return -2 # Corrupted database file
 
@@ -1992,15 +1763,6 @@ User(s): {7}
             self._exception(210, "Operating System is not supported\nCurrently only Windows and Linux supported")
             return -1, ["OS Error", "Operating System is not supported",
                         "Scene Manager only supports Windows and Linux Operating Systems"]
-        ## check admin rights
-        # try:
-        #     is_admin = os.getuid() == 0
-        # except AttributeError:
-        #     is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
-        # if not is_admin:
-        #     self._exception(360, "Admin Rights Needed\nSoftware needs to be run as administrator in order to work with Scene Manager")
-        #     return -1, ["Admin Rights", "You dont have the administrator rights",
-        #                 "You need to run the Software as administrator to work with Scene Manager"]
         return None, None
 
     def _folderCheck(self, folder):
@@ -2014,19 +1776,10 @@ User(s): {7}
     def nameCheck(self, text, allowSpaces=False, directory=False):
         """Checks the text for illegal characters, Returns:  corrected Text or -1 for Error """
         logger.debug("Func: nameCheck")
-        # if allowSpaces:
-        #     aSpa = " "
         aSpa = " " if allowSpaces else ""
         dir = "\\\\:" if directory else ""
 
-        # pattern = "^[%s%sA-Za-z0-9_-]*$" %(dir, aSpa)
-        # pattern = r'^[:/A-Za-z0-9\\:_-]*$'
         pattern = r'^[:/A-Za-z0-9%s%s.A_-]*$' %(dir, aSpa)
-
-        # if allowSpaces:
-        #     pattern = "^[ /A-Za-z0-9_-]*$"
-        # else:
-        #     pattern = "^[/A-Za-z0-9_-]*$"
 
         if re.match(pattern, text):
             return True
@@ -2050,8 +1803,6 @@ User(s): {7}
 
         if projectName == "" or projectRoot == "":
             msg = ("Fill the mandatory fields")
-            # logger.warning(msg)
-            # raise Exception([341, msg])
             self._exception(341, msg)
             return
 
@@ -2059,12 +1810,6 @@ User(s): {7}
 
         nameList = [x for x in [brandName, projectName, client, projectDate] if x != ""]
         fullName = "_".join(nameList)
-
-        # if brandName:
-        #     brandName = "%s_" % brandName
-        # else:
-        #     brandName = ""
-        # fullName = "{0}{1}_{2}_{3}".format(brandName, projectName, client, projectDate)
         fullPath = os.path.join(os.path.normpath(projectRoot), fullName)
         return fullPath
 
@@ -2210,13 +1955,8 @@ User(s): {7}
         self._dumpJson(bookmarksData, self._pathsDict["bookmarksFile"])
         return bookmarksData
 
-    # def getNamingDictionary(self):
-    #     return self._nameConventions["validItems"]
-
     def resolveSaveName(self, nameDict, version):
         nameDict["date"] = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
-        # cnvDict = self._nameConventions["validItems"]
-
         # get the template defined in tikConventions.json file under Common Folder
         template = "%s_v%s" %(self._nameConventions["fileName"], str(version).zfill(3))
 
@@ -2225,7 +1965,6 @@ User(s): {7}
         for i in items:
             if i in list(nameDict):
                 template = template.replace("<%s>" %i, nameDict[i])
-
         return template
 
     def loadSoftwareDatabase(self):
@@ -2271,7 +2010,6 @@ User(s): {7}
                 return -2
         else:
             categoriesData = self._sceneManagerDefaults["defaultCategories"][swName]
-            # categoriesData = ["Model", "Shading", "Rig", "Layout", "Animation", "Render", "Other"]
             self._dumpJson(categoriesData, filePath)
         return categoriesData
 
@@ -2393,7 +2131,6 @@ User(s): {7}
             if alExportSettings == -2:
                 return -2
         else:
-            # self._sceneManagerDefaults = self.loadManagerDefaults()
             alExportSettings = self._sceneManagerDefaults["transferExportSettings"]
             self.saveExportSettings(alExportSettings)
         return alExportSettings
@@ -2411,7 +2148,6 @@ User(s): {7}
             if exportSettings == -2:
                 return -2
         else:
-            # self._sceneManagerDefaults = self.loadManagerDefaults()
             exportSettings = self._sceneManagerDefaults["transferExportSettings"]
             self.saveExportSettings(exportSettings)
         return exportSettings
@@ -2430,7 +2166,6 @@ User(s): {7}
             if importSettings == -2:
                 return -2
         else:
-            # self._sceneManagerDefaults = self.loadManagerDefaults()
             importSettings = self._sceneManagerDefaults["transferImportSettings"]
             self.saveImportSettings(importSettings)
         return importSettings
@@ -2462,9 +2197,7 @@ User(s): {7}
     def savePBSettings(self, pbSettings):
         """Dumps the Preview settings data to the database"""
         logger.debug("Func: savePBSettings")
-
         # old Name setPBsettings
-
         self._dumpJson(pbSettings, self._pathsDict["pbSettingsFile"])
         return
 
@@ -2496,17 +2229,6 @@ User(s): {7}
         versionStr_remote = data["CurrentVersion"]
         downloadPath = data["DownloadPath"]
         whatsNewPath = data["WhatsNew"]
-
-        # try:
-        #     response = urllib.urlopen(url)
-        #     data = json.loads(response.read())
-        #     majorV_remote, minorV_remote, patch_remote = map(lambda x: int(x) ,data["CurrentVersion"].split("."))
-        #     versionStr_remote = data["CurrentVersion"]
-        #     downloadPath = data["DownloadPath"]
-        #     whatsNewPath = data["WhatsNew"]
-        # except:
-        #     vMsg = "Cannot reach version information. Check you internet connection"
-        #     return vMsg, None, None
 
         majorV, minorV, patch = map(lambda x: int(x) ,_version.__version__.split("."))
 
@@ -2554,30 +2276,11 @@ User(s): {7}
         # abort if system is not supported or converter exe is missing
         compatibleVideos = [".avi", ".mov", ".mp4", ".flv", ".webm", ".mkv", ".mp4"]
         compatibleImages = [".tga", ".jpg", ".exr", ".png", ".pic"]
-        # if self.currentPlatform is not "Windows":
-        #     self._info("Currently only Windows operating system is supported for mp4 conversion")
-        #     return
 
         ffmpeg = self.checkFFMPEG()
         if not ffmpeg:
             self._info("Cannot find ffmpeg")
             return
-        #
-        # if self.currentPlatform == "Windows":
-        #     ffmpeg = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ffmpeg.exe")
-        #     if not os.path.isfile(ffmpeg):
-        #         self._info("Cannot find ffmpeg.exe")
-        #         return
-        #
-        # if self.currentPlatform == "Linux":
-        #     ## check if ffmpeg installed
-        #     try:
-        #         v = subprocess.call(["ffmpeg", "-version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        #         ffmpeg = "ffmpeg"
-        #         self._info("ffmpeg is not installed")
-        #     except OSError:
-        #         return
-
 
         # get the conversion lut
         presetLUT = self.loadConversionLUT()
@@ -2585,13 +2288,9 @@ User(s): {7}
         # if the compression value passed, override the LUT dictionary with that value
         if crf:
             presetLUT["compression"] = "-crf %s" %crf
-
         # set output file
         base, ext = os.path.splitext(sourceFile)
-
-
         outputFile = "%s.mp4" %(base)
-
         # deal with the existing output
         if os.path.isfile(outputFile):
             if overwrite:
@@ -2603,7 +2302,6 @@ User(s): {7}
         if ext in compatibleVideos:
             flagStart = ["%s" %ffmpeg, "-i", sourceFile]
 
-            # iFlag = '-i "%s"' %sourceFile
         elif ext in compatibleImages:
             filename, startFrame, sourceSequence = self._formatImageSeq(sourceFile)
             flagStart = ["%s" %ffmpeg, '-start_number', str(startFrame), '-i', filename]
@@ -2621,8 +2319,6 @@ User(s): {7}
             subprocess.check_call(fullFlagList, shell=False)
         else:
             subprocess.check_call(fullFlagList)
-        # print command
-        # os.system(command)
         if deleteAfter:
             if ext in compatibleImages:
                 rootPath = os.path.split(os.path.normpath(sourceFile))[0]
@@ -2633,14 +2329,12 @@ User(s): {7}
                 os.remove(sourceFile)
         return outputFile
 
-
     def _formatImageSeq(self, filePath):
         """
         Checks the path if it belongs to a sequence and formats it ready to be passes to FFMPEG
         :param filePath: a single member of a sequence
         :return: (String) Formatted path, (int) Starting frame
         """
-
         sourceDir, sourceFile = os.path.split(filePath)
 
         seqList = pyseq.get_sequences(sourceDir)
@@ -2713,20 +2407,6 @@ User(s): {7}
                     shutil.copy2(srcname, dstname)
             # catch the Error from the recursive copytree so that we can
             # continue with other files
-        #     except shutil.Error, err:
-        #         errors.extend(err.args[0])
-        #     except EnvironmentError, why:
-        #         errors.append((srcname, dstname, str(why)))
-        # try:
-        #     shutil.copystat(src, dst)
-        # except OSError, why:
-        #     if WindowsError is not None and isinstance(why, WindowsError):
-        #         # Copying file access times may fail on Windows
-        #         pass
-        #     else:
-        #         errors.extend((src, dst, str(why)))
-        # if errors:
-        #     raise shutil.Error, errors
             ##############
 
             except shutil.Error as err:

@@ -1,6 +1,10 @@
 =============================
 Tik Manager Version History
 =============================
+3.1
+---
+* **New.001** Resolution presets are added to the Create new Project menu
+* **New.002** Category orders now can be changed from settings => Project Settings => Categories
 
 3.0
 ---
@@ -78,7 +82,6 @@ Tik Manager Version History
 * **New.800** Ability to saving scenes to existing any base Scenes as versions added. Right Click Menu -> Ingest Current scene as the new version
 * **New.900** Version notes became mandatory for all saves (Base, version, ingest)
 * **Fix.900** False mismatch fixed for FPS fixed. (Nuke)
-* **New.910** Resolution presets are added to the Create new Project menu
 
 2.5
 ---

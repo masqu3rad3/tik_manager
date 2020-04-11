@@ -3019,6 +3019,30 @@ class MainUI(QtWidgets.QMainWindow):
         swTabs.setElideMode(QtCore.Qt.ElideNone)
         swTabs.setUsesScrollButtons(False)
 
+        def onMoveCategory(settingKey, listWidget, direction):
+            row = listWidget.currentRow()
+            if row == -1:
+                return
+            dir = 1 if direction == "down" else -1
+
+            categories = self.allSettingsDict.get(settingKey)
+            item_name = categories[row]
+            # all_items = [str(listWidget.item(i).text()) for i in range(listWidget.count())]
+
+            new_row = row + dir
+            if not (0 <= new_row <= len(categories)):
+                return
+
+            item_at_new_row = categories[new_row]
+
+            categories[new_row] = item_name
+            categories[row] = item_at_new_row
+
+            listWidget.clear()
+            listWidget.addItems(categories)
+            self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
+            listWidget.setCurrentRow(new_row)
+
         def onRemove(settingKey, listWidget):
             row = listWidget.currentRow()
             if row == -1:
@@ -3039,10 +3063,6 @@ class MainUI(QtWidgets.QMainWindow):
                 categories.remove(trashCategory)
                 listWidget.clear()
                 listWidget.addItems(categories)
-            # if self.manager.isCategoryTrash(trashCategory, dbPath=dbPath):
-            #     categories.remove(trashCategory)
-            #     listWidget.clear()
-            #     listWidget.addItems(categories)
             else:
                 self.infoPop(textTitle="Cannot Remove Category",
                              textHeader="%s Category is not empty. Aborting..." % trashCategory)
@@ -3111,6 +3131,14 @@ class MainUI(QtWidgets.QMainWindow):
             remove_pushButton.setText(("Remove"))
             verticalLayout.addWidget(remove_pushButton)
 
+            move_up_pb = QtWidgets.QPushButton()
+            move_up_pb.setText(("Move Up"))
+            verticalLayout.addWidget(move_up_pb)
+
+            move_down_pb = QtWidgets.QPushButton()
+            move_down_pb.setText(("Move Down"))
+            verticalLayout.addWidget(move_down_pb)
+
             spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
             verticalLayout.addItem(spacerItem)
 
@@ -3125,6 +3153,8 @@ class MainUI(QtWidgets.QMainWindow):
             remove_pushButton.clicked.connect(
                 lambda ignore=1, settingKey=cat, listWidget=categories_listWidget: onRemove(settingKey, listWidget))
             # remove_pushButton.clicked.connect(lambda: onRemove(cat, categories_listWidget))
+            move_up_pb.clicked.connect(lambda ignore=1, settingKey=cat, listWidget=categories_listWidget: onMoveCategory(settingKey, listWidget, "up"))
+            move_down_pb.clicked.connect(lambda ignore=1, settingKey=cat, listWidget=categories_listWidget: onMoveCategory(settingKey, listWidget, "down"))
 
         h1_s1_layout.addWidget(swTabs)
         categories_Layout.addLayout(h1_s1_layout)
