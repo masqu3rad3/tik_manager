@@ -330,6 +330,10 @@ class MainUI(QtWidgets.QMainWindow):
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.main_horizontalLayout.addItem(spacerItem)
 
+        self.multi_reference_cb = QtWidgets.QComboBox(self.centralwidget)
+        self.multi_reference_cb.addItems(["1x","2x","3x","4x","5x","6x","7x","8x","9x","10x"])
+        self.multi_reference_cb.setProperty("menuButton", True)
+        self.main_horizontalLayout.addWidget(self.multi_reference_cb)
         self.loadScene_pushButton = QtWidgets.QPushButton(self.centralwidget, text="Load Scene", font=self.iconFont)
         self.loadScene_pushButton.setProperty("menuButton", True)
         self.loadScene_pushButton.setLayoutDirection(QtCore.Qt.LeftToRight)
@@ -409,22 +413,11 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.splitter = QtWidgets.QSplitter(self.centralwidget, orientation=QtCore.Qt.Horizontal)
 
-        self.scenes_listWidget = QtWidgets.QTreeWidget(self.splitter, sortingEnabled=True,
-                                                       selectionMode=QtWidgets.QAbstractItemView.SingleSelection,
-                                                       rootIsDecorated=False)
-        # header = QtWidgets.QTreeWidgetItem(["Name", "Date"])
-        # self.scenes_listWidget.setHeaderItem(header)
-        # self.scenes_listWidget.setColumnWidth(0, 250)
-
-
-        # self.scenes_listWidget.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
-
-        # header.addChild(QtWidgets.QTreeWidgetItem(["Anan??"]))
-        # newHeader = QtWidgets.QTreeWidgetItem(["Name", "Date", "anan"])
-        # self.scenes_listWidget.setHeaderItem(newHeader)
-        # anan = self.scenes_listWidget.headerItem()
-        # print("db", anan.text(2))
-
+        # self.scenes_listWidget = QtWidgets.QTreeWidget(self.splitter, sortingEnabled=True,
+        #                                                selectionMode=QtWidgets.QAbstractItemView.SingleSelection,
+        #                                                rootIsDecorated=False)
+        self.scenes_listWidget = QtWidgets.QTreeWidget(self.splitter, sortingEnabled=True, rootIsDecorated=False)
+        self.scenes_listWidget.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
 
         self.frame = QtWidgets.QFrame(self.splitter, frameShape=QtWidgets.QFrame.StyledPanel,
                                       frameShadow=QtWidgets.QFrame.Raised)
@@ -1163,35 +1156,6 @@ class MainUI(QtWidgets.QMainWindow):
             zortMenu.exec_((QtGui.QCursor.pos()))
 
         def setAndClose(custompath=None):
-            # # print(type(custompath))
-            # try: passPy2 = True if type(custompath) == unicode else False
-            # except: passPy2 = False
-            # if type(custompath) == str or passPy2:
-            #     pPath=custompath
-            # else:
-            #     if not self.spActiveProjectPath:
-            #         self.infoPop(textTitle="Cannot set project", textHeader="Nothing Selected\nSelect the project from the list or bookmarks and hit 'set' again\nPress 'Ok' to continue")
-            #         return
-            #     pPath = os.path.normpath(compat.decode(self.spActiveProjectPath))
-            #
-            #     # if not self.manager.nameCheck(self.spActiveProjectPath, allowSpaces=True, directory=True):
-            #     if not self.manager.nameCheck(pPath, allowSpaces=True, directory=True):
-            #         self.infoPop(textTitle="Invalid Path",
-            #                      textHeader="There are invalid (non-ascii) characters in the selected path.",
-            #                      textInfo="This Path cannot be used", type="C")
-            #         return
-            #     if self.manager.currentPlatform == "Linux":
-            #         # pPath = "/%s" % self.spActiveProjectPath
-            #         pPath = "/%s" % pPath
-            #     else:
-            #         # pPath = self.spActiveProjectPath
-            #         pPath = pPath
-            #
-            # self.manager.setProject(pPath)
-            #     # recentData
-            # self.manager.addToRecentProjects(pPath) #moved to the SmRoot
-            #
-            # self.onProjectChange()
             self.setProject(custompath=custompath)
 
             self.setProject_Dialog.close()
@@ -1995,6 +1959,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         def updateDictionary():
             userSettings["globalFavorites"] = globalFavorites_radiobutton.isChecked()
+            userSettings["inheritRanges"] = inherit_range_combo.currentText()
 
             newExtraColumns = []
             if extra_date_cb.isChecked():
@@ -2026,12 +1991,14 @@ class MainUI(QtWidgets.QMainWindow):
         userSettings_Layout.addLayout(userSettings_formLayout)
 
         # form item 0
+        row = 0
         userSettings_label = QtWidgets.QLabel(font=self.headerAFont, text="User Settings")
-        userSettings_formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, userSettings_label)
+        userSettings_formLayout.setWidget(row, QtWidgets.QFormLayout.LabelRole, userSettings_label)
 
         # form item 1
+        row += 1
         favorites_label = QtWidgets.QLabel(text="Project Favorites:")
-        userSettings_formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, favorites_label)
+        userSettings_formLayout.setWidget(row, QtWidgets.QFormLayout.LabelRole, favorites_label)
 
         favorites_layout = QtWidgets.QHBoxLayout()
         globalFavorites_radiobutton = QtWidgets.QRadioButton(text="Global Favorites")
@@ -2042,16 +2009,27 @@ class MainUI(QtWidgets.QMainWindow):
         localFavorites_radiobutton.setToolTip("Projects added to the Favorites list in the Set Project Interface will be available only for that software")
         localFavorites_radiobutton.setChecked(not self.manager.isGlobalFavorites())
 
+
         favorites_buttonGroup = QtWidgets.QButtonGroup(self.userSettings_vis)
         favorites_buttonGroup.addButton(globalFavorites_radiobutton)
         favorites_buttonGroup.addButton(localFavorites_radiobutton)
         favorites_layout.addWidget(globalFavorites_radiobutton)
         favorites_layout.addWidget(localFavorites_radiobutton)
-        userSettings_formLayout.setLayout(1, QtWidgets.QFormLayout.FieldRole, favorites_layout)
+        userSettings_formLayout.setLayout(row, QtWidgets.QFormLayout.FieldRole, favorites_layout)
+
+        #
+        row += 1
+        inherit_range_lb = QtWidgets.QLabel(text="Inherit Referenced Ranges")
+        userSettings_formLayout.setWidget(row, QtWidgets.QFormLayout.LabelRole, inherit_range_lb)
+        inherit_range_combo = QtWidgets.QComboBox()
+        inherit_range_combo.addItems(["Ask", "Always", "Never"])
+        inherit_range_combo.setCurrentText(userSettings["inheritRanges"])
+        userSettings_formLayout.setWidget(row, QtWidgets.QFormLayout.FieldRole, inherit_range_combo)
 
         # form item 2 - Extra Columns
+        row += 1
         extraColumns_label = QtWidgets.QLabel(text="Base Scenes Extra Columns:")
-        userSettings_formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, extraColumns_label)
+        userSettings_formLayout.setWidget(row, QtWidgets.QFormLayout.LabelRole, extraColumns_label)
 
         extraColumns_layout = QtWidgets.QHBoxLayout()
         extraColumns_layout.setSpacing(2)
@@ -2076,12 +2054,13 @@ class MainUI(QtWidgets.QMainWindow):
         extraColumns_layout.addWidget(extra_versionCount_cb)
         extra_versionCount_cb.setChecked("Version Count" in userSettings["extraColumns"])
 
-        userSettings_formLayout.setLayout(2, QtWidgets.QFormLayout.FieldRole, extraColumns_layout)
+        userSettings_formLayout.setLayout(row, QtWidgets.QFormLayout.FieldRole, extraColumns_layout)
 
 
         # form item 3 - Common Settings Directory
+        row += 1
         commonDir_label = QtWidgets.QLabel(text="Common Settings Directory:")
-        userSettings_formLayout.setWidget(3, QtWidgets.QFormLayout.LabelRole, commonDir_label)
+        userSettings_formLayout.setWidget(row, QtWidgets.QFormLayout.LabelRole, commonDir_label)
 
         commonDir_layout = QtWidgets.QHBoxLayout()
         commonDir_layout.setSpacing(2)
@@ -2091,16 +2070,17 @@ class MainUI(QtWidgets.QMainWindow):
 
         setCommon_button = QtWidgets.QPushButton(text="...")
         commonDir_layout.addWidget(setCommon_button)
-        userSettings_formLayout.setLayout(3, QtWidgets.QFormLayout.FieldRole, commonDir_layout)
+        userSettings_formLayout.setLayout(row, QtWidgets.QFormLayout.FieldRole, commonDir_layout)
 
         # form item 4
+        row += 1
         colorCoding_label = QtWidgets.QLabel(text="Color Codes: ")
-        userSettings_formLayout.setWidget(4, QtWidgets.QFormLayout.LabelRole, colorCoding_label)
+        userSettings_formLayout.setWidget(row, QtWidgets.QFormLayout.LabelRole, colorCoding_label)
 
         colorCoding_formlayout = QtWidgets.QFormLayout()
         colorCoding_formlayout.setSpacing(2)
         colorCoding_formlayout.setVerticalSpacing(5)
-        userSettings_formLayout.setLayout(4, QtWidgets.QFormLayout.FieldRole, colorCoding_formlayout)
+        userSettings_formLayout.setLayout(row, QtWidgets.QFormLayout.FieldRole, colorCoding_formlayout)
 
         # Executable paths
         # header lbl
@@ -2118,6 +2098,7 @@ class MainUI(QtWidgets.QMainWindow):
         exeImages_hlay = QtWidgets.QHBoxLayout(spacing=2)
         exeImages_le = QtWidgets.QLineEdit(minimumWidth=350,
                                            placeholderText="Define an executable for images (Optional) ")
+        exeImages_le.setObjectName("image_exec") # DO NOT DELETE THIS
         try:
             exeImages_le.setText(userSettings["executables"]["image_exec"])
         except KeyError:
@@ -2131,6 +2112,7 @@ class MainUI(QtWidgets.QMainWindow):
         exeImageSeq_hlay = QtWidgets.QHBoxLayout(spacing=2)
         exeImageSeq_le = QtWidgets.QLineEdit(minimumWidth=350,
                                              placeholderText="Define an executable for imageSeq (Optional) ")
+        exeImageSeq_le.setObjectName("imageSeq_exec")  # DO NOT DELETE THIS
         try:
             exeImageSeq_le.setText(userSettings["executables"]["imageSeq_exec"])
         except KeyError:
@@ -2144,6 +2126,7 @@ class MainUI(QtWidgets.QMainWindow):
         exeVideo_hlay = QtWidgets.QHBoxLayout(spacing=2)
         exeVideo_le = QtWidgets.QLineEdit(minimumWidth=350,
                                           placeholderText="Define an executable for Video (Optional) ")
+        exeVideo_le.setObjectName("video_exec")  # DO NOT DELETE THIS
         try:
             exeVideo_le.setText(userSettings["executables"]["video_exec"])
         except KeyError:
@@ -2156,6 +2139,7 @@ class MainUI(QtWidgets.QMainWindow):
         exeObj_lbl = QtWidgets.QLabel(text="Obj viewer: ")
         exeObj_hlay = QtWidgets.QHBoxLayout(spacing=2)
         exeObj_le = QtWidgets.QLineEdit(minimumWidth=350, placeholderText="Define an executable for obj (Optional) ")
+        exeObj_le.setObjectName("obj_exec")  # DO NOT DELETE THIS
         try:
             exeObj_le.setText(userSettings["executables"]["obj_exec"])
         except KeyError:
@@ -2168,6 +2152,7 @@ class MainUI(QtWidgets.QMainWindow):
         exeFbx_lbl = QtWidgets.QLabel(text="Fbx viewer: ")
         exeFbx_hlay = QtWidgets.QHBoxLayout(spacing=2)
         exeFbx_le = QtWidgets.QLineEdit(minimumWidth=350, placeholderText="Define an executable for fbx (Optional) ")
+        exeFbx_le.setObjectName("fbx_exec")  # DO NOT DELETE THIS
         try:
             exeFbx_le.setText(userSettings["executables"]["fbx_exec"])
         except KeyError:
@@ -2180,6 +2165,7 @@ class MainUI(QtWidgets.QMainWindow):
         exeAbc_lbl = QtWidgets.QLabel(text="Alembic viewer: ")
         exeAbc_hlay = QtWidgets.QHBoxLayout(spacing=2)
         exeAbc_le = QtWidgets.QLineEdit(minimumWidth=350, placeholderText="Define an executable for abc (Optional) ")
+        exeAbc_le.setObjectName("alembic_exec")  # DO NOT DELETE THIS
         try:
             exeAbc_le.setText(userSettings["executables"]["alembic_exec"])
         except KeyError:
@@ -2191,9 +2177,10 @@ class MainUI(QtWidgets.QMainWindow):
 
         def colorSet(button, niceName):
             color = QtWidgets.QColorDialog.getColor()
-            button.setStyleSheet("background-color: %s; min-width: 80px;" % color.name())
-            userSettings["colorCoding"][niceName] = "rgb%s" % str(color.getRgb())
-            self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
+            if color:
+                button.setStyleSheet("background-color: %s; min-width: 80px;" % color.name())
+                userSettings["colorCoding"][niceName] = "rgb%s" % str(color.getRgb())
+                self.settingsApply_btn.setEnabled(self.allSettingsDict.isChanged())
 
         def resetColors():
             try:
@@ -2299,6 +2286,7 @@ class MainUI(QtWidgets.QMainWindow):
         ccReset_button.clicked.connect(resetColors)
         setCommon_button.clicked.connect(browseCommonDatabase)
         globalFavorites_radiobutton.clicked.connect(updateDictionary)
+        inherit_range_combo.currentIndexChanged.connect(updateDictionary)
         extra_date_cb.stateChanged.connect(updateDictionary)
         extra_ref_cb.stateChanged.connect(updateDictionary)
         extra_creator_cb.stateChanged.connect(updateDictionary)
@@ -2313,12 +2301,12 @@ class MainUI(QtWidgets.QMainWindow):
         exeFbx_btn.clicked.connect(lambda: browseExecutable(exeFbx_le))
         exeAbc_btn.clicked.connect(lambda: browseExecutable(exeAbc_le))
 
-        exeImages_le.editingFinished.connect(lambda: editExecutable(exeImages_le))
-        exeImageSeq_le.editingFinished.connect(lambda: editExecutable(exeImageSeq_le))
-        exeVideo_le.editingFinished.connect(lambda: editExecutable(exeVideo_le))
-        exeObj_le.editingFinished.connect(lambda: editExecutable(exeObj_le))
-        exeFbx_le.editingFinished.connect(lambda: editExecutable(exeFbx_le))
-        exeAbc_le.editingFinished.connect(lambda: editExecutable(exeAbc_le))
+        exeImages_le.textChanged.connect(lambda: editExecutable(exeImages_le))
+        exeImageSeq_le.textChanged.connect(lambda: editExecutable(exeImageSeq_le))
+        exeVideo_le.textChanged.connect(lambda: editExecutable(exeVideo_le))
+        exeObj_le.textChanged.connect(lambda: editExecutable(exeObj_le))
+        exeFbx_le.textChanged.connect(lambda: editExecutable(exeFbx_le))
+        exeAbc_le.textChanged.connect(lambda: editExecutable(exeAbc_le))
 
     def _projectSettingsContent(self):
         settings = self.allSettingsDict.get("projectSettings")
@@ -2421,6 +2409,7 @@ class MainUI(QtWidgets.QMainWindow):
             codecList = self.manager.getFormatsAndCodecs()[self.format_Maya_comboBox.currentText()]
             self.codec_Maya_comboBox.clear()
             self.codec_Maya_comboBox.addItems(codecList)
+            self.codec_Maya_comboBox.setCurrentText(settings["Codec"])
 
         previewSettings_MAYA_Layout = QtWidgets.QVBoxLayout()
         previewSettings_MAYA_Layout.setSpacing(0)
@@ -4559,9 +4548,9 @@ class MainUI(QtWidgets.QMainWindow):
 
         ## SIGNALS
         templateFolderBrowse_pb.clicked.connect(browseTemplateFolder)
-        templateFolder_le.editingFinished.connect(updateTemplateFolder)
-        fileNameConv_le.editingFinished.connect(updateFileName)
-        newProjectNameConv_le.editingFinished.connect(updateProjectName)
+        templateFolder_le.textChanged.connect(updateTemplateFolder)
+        fileNameConv_le.textChanged.connect(updateFileName)
+        newProjectNameConv_le.textChanged.connect(updateProjectName)
 
     def _createFormWidgets(self, loopList, settingsDict, formattingType, formlayout, dictUpdateMethod):
         """Creates widgets for the given form layout"""
@@ -5504,7 +5493,6 @@ class MainUI(QtWidgets.QMainWindow):
         self.populateBaseScenes()
 
     def setProject(self, custompath=None):
-        # print(type(custompath))
         try:
             passPy2 = True if type(custompath) == unicode else False
         except:
@@ -5643,6 +5631,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.scenes_rcItem_0.setEnabled(True)
             self.scenes_rcItem_1.setEnabled(os.path.isdir(manager.currentBaseScenePath))
             self.scenes_rcItem_2.setEnabled(os.path.isdir(manager.currentPreviewPath))
+            # self.scenes_rcItem_2.setEnabled(True)
             self.scenes_rcItem_3.setEnabled(True)
             self.scenes_rcItem_4.setEnabled(True)
             # show context menu
@@ -5706,9 +5695,13 @@ class MainUI(QtWidgets.QMainWindow):
         if self.load_radioButton.isChecked():
             self.loadScene_pushButton.setText("Load Scene")
             self.scenes_listWidget.setProperty("reference", False)
+            self.multi_reference_cb.setHidden(True)
+            self.scenes_listWidget.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         else:
             self.loadScene_pushButton.setText("Reference Scene")
             self.scenes_listWidget.setProperty("reference", True)
+            self.multi_reference_cb.setHidden(False)
+            self.scenes_listWidget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
 
         self.scenes_listWidget.setStyleSheet("")  # refresh
         self.manager.currentMode = self.load_radioButton.isChecked()
@@ -5838,8 +5831,6 @@ class MainUI(QtWidgets.QMainWindow):
                 item.setForeground(0, color)
 
         self.scenes_listWidget.blockSignals(False)
-        # end = time.time()
-        # print(end - start)
 
     def onLoadScene(self):
         # This method IS Software Specific. BUT overriding it is better, so it is not selecting manager
@@ -5877,9 +5868,14 @@ class MainUI(QtWidgets.QMainWindow):
             self.statusBar().showMessage("Status | Scene Loaded => %s" % self.manager.currentBaseSceneName)
 
         if self.reference_radioButton.isChecked():
-            self.manager.referenceBaseScene()
-            # self.populateScenes()
-            self.statusBar().showMessage("Status | Scene Referenced => %s" % self.manager.currentBaseSceneName)
+            loop_count = self.multi_reference_cb.currentIndex() +1
+            for nmb, tree_item in enumerate(self.scenes_listWidget.selectedItems()):
+                self.manager.currentBaseSceneName = tree_item.text(0)
+                for count in range(loop_count):
+                    set_ranges = self.manager.getInheritRangePolicy() if count == 0 else "no"
+                    self.manager.referenceBaseScene(set_ranges=set_ranges)
+                    self.statusBar().showMessage("Status | Scene Referenced => %s" % self.manager.currentBaseSceneName)
+
 
     def onMakeReference(self):
         # This method IS Software Specific.
@@ -6133,7 +6129,6 @@ class MainUI(QtWidgets.QMainWindow):
             lineEdit.setStyleSheet("")  # update
             button.setEnabled(False)
             return False
-        # print lineEdit.styleSheet()
 
     def _vEnableDisable(self):
         manager = self._getManager()

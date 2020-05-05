@@ -506,7 +506,7 @@ class MaxManager(RootManager, MaxCoreFunctions):
             logger.error(msg)
             return -1, msg
 
-    def referenceBaseScene(self):
+    def referenceBaseScene(self, set_ranges="ask"):
         """Creates reference from the scene at cursor position"""
 
         projectPath = self.projectDir
@@ -520,14 +520,22 @@ class MaxManager(RootManager, MaxCoreFunctions):
             # Xrefobjs = rt.getMAXFileObjectNames(referenceFile)
             # rt.xrefs.addNewXRefObject(referenceFile, Xrefobjs)
             self._reference(referenceFile)
-            try:
-                ranges = self._currentSceneInfo["Versions"][self._currentSceneInfo["ReferencedVersion"]-1]["Ranges"]
-                q = self._question("Do You want to set the Time ranges same with the reference?")
-                if q:
+            if set_ranges == "ask":
+                try:
+                    ranges = self._currentSceneInfo["Versions"][self._currentSceneInfo["ReferencedVersion"]-1]["Ranges"]
+                    q = self._question("Do You want to set the Time ranges same with the reference?")
+                    if q:
+                        self._setTimelineRanges(ranges)
+                except KeyError:
+                    pass
+            elif set_ranges == "yes":
+                try:
+                    ranges = self._currentSceneInfo["Versions"][self._currentSceneInfo["ReferencedVersion"]-1]["Ranges"]
                     self._setTimelineRanges(ranges)
-            except KeyError:
+                except KeyError:
+                    pass
+            else:
                 pass
-
         else:
             logger.warning("There is no reference set for this scene. Nothing changed")
 

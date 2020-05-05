@@ -7,9 +7,7 @@ import maya.cmds as cmds
 
 shareDir = 'M:\\Projects\\__database\\scripts'
 devDir = 'C:\\Users\\User\\Documents\\maya\\scripts\\dev\\tik_manager'
-delModules = ["tik_manager"]
-
-
+delModules = ["tik_manager", "tik_manager.manager", "tik_manager.imageManager", "tik_manager.imageViewer", "tik_manager.__init__", "tik_manager._version"]
 
 def devSwitch():
     for module in sys.modules.keys():

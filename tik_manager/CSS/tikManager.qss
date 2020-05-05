@@ -896,7 +896,10 @@ QComboBox[preVersion=true] {
   color: yellow
 }
 
-
+QComboBox[menuButton=true] {
+  min-width: 2;
+  min-height: 48;
+}
 
 /* QSlider ----------------------------------------------------------------
 

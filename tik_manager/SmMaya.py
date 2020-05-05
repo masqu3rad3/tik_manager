@@ -273,7 +273,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
                     "previewPath":self.currentPreviewPath,
                     }
             # ingesting overrides make reference
-            makeReference = False
+            # makeReference = False
 
         ## Unknown nodes Check
         if sceneFormat == "mb":
@@ -903,7 +903,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
             cmds.error(msg)
             return -1, msg
 
-    def referenceBaseScene(self):
+    def referenceBaseScene(self, set_ranges="ask"):
         """Creates reference from the scene at cursor position"""
         logger.debug("Func: referenceBaseScene")
         projectPath = self.projectDir
@@ -914,15 +914,23 @@ class MayaManager(RootManager, MayaCoreFunctions):
             refFileBasename = os.path.split(relReferenceFile)[1]
             namespace = os.path.splitext(refFileBasename)[0]
             self._reference(os.path.normpath(referenceFile), namespace)
-            # cmds.file(os.path.normpath(referenceFile), reference=True, gl=True, mergeNamespacesOnClash=False,
-            #           namespace=namespace)
-            try:
-                ranges = self._currentSceneInfo["Versions"][self._currentSceneInfo["ReferencedVersion"]-1]["Ranges"]
-                q = self._question("Do You want to set the Time ranges same with the reference?")
-                if q:
+            if set_ranges == "ask":
+                try:
+                    ranges = self._currentSceneInfo["Versions"][self._currentSceneInfo["ReferencedVersion"]-1]["Ranges"]
+                    q = self._question("Do You want to set the Time ranges same with the reference?")
+                    if q:
+                        self._setTimelineRanges(ranges)
+                except KeyError:
+                    pass
+            elif set_ranges == "yes":
+                try:
+                    ranges = self._currentSceneInfo["Versions"][self._currentSceneInfo["ReferencedVersion"]-1]["Ranges"]
                     self._setTimelineRanges(ranges)
-            except KeyError:
+                except KeyError:
+                    pass
+            else:
                 pass
+
 
         else:
             cmds.warning("There is no reference set for this scene. Nothing changed")

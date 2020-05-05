@@ -515,7 +515,7 @@ class RootManager(object):
     def currentPreviewPath(self):
         """Returns absolute path of preview folder of the Base scene at cursor position"""
         logger.debug("Func: currentPreviewPath/getter")
-        if self._currentSceneInfo["SubProject"] is not "None":
+        if self.currentSubIndex == 0:
             path = os.path.join(self._pathsDict["previewsDir"], self._currentSceneInfo["Category"],
                                 self._currentSceneInfo["Name"])
         else:
@@ -757,6 +757,10 @@ class RootManager(object):
     def getFormatsAndCodecs(self):
         """Returns the codecs which can be used in current workstation"""
         return None
+
+    def getInheritRangePolicy(self):
+        """Returns the settings policy when inheriting ranges from referenced scenes"""
+        return self._userSettings["inheritRanges"]
 
     def createNewProject(self, resolvedPath, settingsData=None):
         """
@@ -2092,6 +2096,9 @@ User(s): {7}
             except KeyError:
                 userSettings["extraColumns"] = ["Date"]
                 self.saveUserSettings(userSettings)
+            try: userSettings["inheritRanges"] # safety for pre 3.1.007 version
+            except KeyError:
+                userSettings["inheritRanges"] = "Ask"
             if userSettings == -2:
                 return -2
         else:

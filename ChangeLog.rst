@@ -4,7 +4,12 @@ Tik Manager Version History
 3.1
 ---
 * **New.001** Resolution presets are added to the Create new Project menu
-* **New.002** Category orders now can be changed from settings => Project Settings => Categories
+* **New.002** (Published) Category orders now can be changed from settings => Project Settings => Categories
+* **Fix.003** Maya Settings codec update fix
+* **Fix.004** Executable inputs fixed. line inputs + apply button activation sensitivity updated with each keystroke
+* **New.005** Multi referencing added. Now in reference mode multi selections are allowed and same reference can be multi imported using the dropbox next to the reference button
+* **Fix.006** Show Preview folder issue fixed for sub-projects
+* **New.007** New settings item for setting frame ranges while referencing scene. Default "Ask" behaviour can now be changed to "Never" and "Always". "Always" makes sense for lighting artists who references animation scenes and "Never" makes sense for animators who only reference rigs and assets.
 
 3.0
 ---
