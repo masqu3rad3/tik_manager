@@ -449,7 +449,6 @@ class RootManager(object):
         logger.debug("Func: currentMode/setter")
 
         if not type(state) is bool:
-            print("DEBUGGGG", type(state))
             if state is 0:
                 state = False
             elif state is 1:

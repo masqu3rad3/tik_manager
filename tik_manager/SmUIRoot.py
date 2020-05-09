@@ -5626,7 +5626,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.scenes_rcItem_3.setEnabled(False)
             self.scenes_rcItem_4.setEnabled(False)
             self.scenes_rcItem_5.setEnabled(False)
-            self.scenes_rcItem_6.setEnabled(True)
+            self.scenes_rcItem_6.setEnabled(False)
         else:
             self.scenes_rcItem_0.setEnabled(True)
             self.scenes_rcItem_1.setEnabled(os.path.isdir(manager.currentBaseScenePath))
@@ -5697,11 +5697,14 @@ class MainUI(QtWidgets.QMainWindow):
             self.scenes_listWidget.setProperty("reference", False)
             self.multi_reference_cb.setHidden(True)
             self.scenes_listWidget.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+            self.scenes_rcItem_6.setVisible(True)
         else:
             self.loadScene_pushButton.setText("Reference Scene")
             self.scenes_listWidget.setProperty("reference", True)
             self.multi_reference_cb.setHidden(False)
             self.scenes_listWidget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+            self.scenes_rcItem_6.setVisible(False)
+
 
         self.scenes_listWidget.setStyleSheet("")  # refresh
         self.manager.currentMode = self.load_radioButton.isChecked()

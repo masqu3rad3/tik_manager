@@ -10,6 +10,7 @@ Tik Manager Version History
 * **New.005** Multi referencing added. Now in reference mode multi selections are allowed and same reference can be multi imported using the dropbox next to the reference button
 * **Fix.006** Show Preview folder issue fixed for sub-projects
 * **New.007** New settings item for setting frame ranges while referencing scene. Default "Ask" behaviour can now be changed to "Never" and "Always". "Always" makes sense for lighting artists who references animation scenes and "Never" makes sense for animators who only reference rigs and assets.
+* **Fix.008** Ingest scene as right click item hidden in reference mode
 
 3.0
 ---
