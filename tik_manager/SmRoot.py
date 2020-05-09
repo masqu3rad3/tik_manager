@@ -2233,8 +2233,13 @@ User(s): {7}
         data = json.loads(response.read())
         majorV_remote, minorV_remote, patch_remote = map(lambda x: int(x), data["CurrentVersion"].split("."))
         versionStr_remote = data["CurrentVersion"]
-        downloadPath = data["DownloadPath"]
-        whatsNewPath = data["WhatsNew"]
+        if self.getPlatform() == "Windows":
+            downloadPath = data["WindowsDownloadPath"]
+        else:
+            downloadPath = data["LinuxDownloadPath"]
+        whatsNewPath = data["VersionHistory"]
+
+        print(versionStr_remote, downloadPath, whatsNewPath)
 
         majorV, minorV, patch = map(lambda x: int(x) ,_version.__version__.split("."))
 

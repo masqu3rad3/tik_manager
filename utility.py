@@ -10,9 +10,8 @@ import ftplib
 import datetime
 import socket, io
 import configparser
-
-
-
+import json
+import docutils.core
 
 class FtpUploadTracker:
     sizeWritten = 0
@@ -36,9 +35,6 @@ class TMUtility(object):
         self.location =  os.path.dirname(os.path.abspath(__file__))
         self.root_folder = os.path.join(self.location, "tik_manager")
         self.bin_folder= os.path.join(self.root_folder, "bin")
-
-
-
 
         # self.upx_folder = os.path.join(self.location, "upx")
 
@@ -68,17 +64,47 @@ class TMUtility(object):
 
         session = ftplib.FTP(host, username, password)
         print("Connected")
-        # print("Uploading the compiled versions")
+
+        # check if the distribution folder exists:
+        if not distributionType in session.nlst():
+            session.mkd(distributionType)
+
+        # Prepare the version info file
+        version_check_info = {"CurrentVersion": versionInfo.__version__,
+                              "WindowsDownloadPath": "http://www.ardakutlu.com/Tik_Manager/%s/TikManager_v%s.exe" %(distributionType, versionInfo.__version__),
+                              "LinuxDownloadPath":  "http://www.ardakutlu.com/Tik_Manager/%s/tikManager_%s_linux.tar.gz" %(distributionType, versionInfo.__version__),
+                              "VersionHistory": "http://www.ardakutlu.com/Tik_Manager/versionCheck/version_history.html",
+                              }
+        self._dumpJson(version_check_info, "versionInfo.json")
+
+        # convert the changelog to html
+        docutils.core.publish_file(
+            source_path="ChangeLog.rst",
+            destination_path="version_history.html",
+            writer_name="html")
+
+        # send it to the ftp if this is not a beta
+        if distributionType != "beta":
+            version_check_file_list = ["versionInfo.json", "version_history.html"]
+            for filePath in version_check_file_list:
+                data = open(filePath, "rb")
+                session.cwd('/versionCheck')
+                uploadTracker = FtpUploadTracker(int(os.path.getsize(filePath)))
+                session.storbinary('STOR %s' % filePath, data, 1024, uploadTracker.handle)
+                data.close()
+
         for filePath in filePathList:
             print("Uploading %s as %s distribution" %(filePath, distributionType))
             data = open(filePath, 'rb')
             fileBaseName = os.path.basename(filePath)
 
-            session.cwd('/beta')
+            session.cwd('/%s' % distributionType)
             uploadTracker = FtpUploadTracker(int(os.path.getsize(filePath)))
             session.storbinary('STOR %s' %fileBaseName, data, 1024, uploadTracker.handle)
             data.close()
         session.quit()
+
+
         print("Upload Completed")
         print("TikManager_v%s" %versionInfo.__version__)
 
@@ -307,6 +333,30 @@ class TMUtility(object):
 
         ###############################
 
+    def _loadJson(self, file):
+        """Loads the given json file"""
+        # TODO : Is it paranoid checking?
+        if os.path.isfile(file):
+            try:
+                with open(file, 'r') as f:
+                    data = json.load(f)
+                    return data
+            except ValueError:
+                msg = "Corrupted JSON file => %s" % file
+                raise Exception(msg)
+        else:
+            msg = "File cannot be found => %s" % file
+            raise Exception(msg)
+
+    def _dumpJson(self, data, file):
+        """Saves the data to the json file"""
+        name, ext = os.path.splitext(file)
+        tempFile = ("{0}.tmp".format(name))
+        with open(tempFile, "w") as f:
+            json.dump(data, f, indent=4)
+        shutil.copyfile(tempFile, file)
+        os.remove(tempFile)
+
     def prepareLinuxTar(self):
 
         print ("Preparing Linux Tarball...")
@@ -355,9 +405,10 @@ def main(argv):
     utility = TMUtility()
     utility.innoSetupCompile()
     utility.prepareLinuxTar()
-    # utility.buildBin()
-    utility.remoteUpload()
+    # utility.buildBin() # this is running in innoSetupCompile
+    utility.remoteUpload(distributionType="stable")
 
 if __name__ == "__main__":
     main(sys.argv[1:])
+
 
