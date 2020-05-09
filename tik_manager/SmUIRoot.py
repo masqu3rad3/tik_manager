@@ -6183,12 +6183,6 @@ class MainUI(QtWidgets.QMainWindow):
             buttonS = vCheck_mBox.button(QtWidgets.QMessageBox.Help)
             buttonS.setText('Whats New?')
 
-            # ret = vCheck_mBox.exec_()
-            # print ret
-            # if ret == 0:
-            #     webbrowser.open_new(downloadPath)
-            # elif ret == 1:
-            #     webbrowser.open_new(whatsNewPath)
         else:
             vCheck_mBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
             # vCheck_mBox.button(QtWidgets.QMessageBox.Ok).setMinimumSize(QtCore.QSize(100, 30))

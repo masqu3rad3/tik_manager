@@ -2227,42 +2227,39 @@ User(s): {7}
     def checkNewVersion(self):
 
         url = "http://www.ardakutlu.com/Tik_Manager/versionCheck/versionInfo.json"
-        print("DB1tt")
         # response = urllib.urlopen(url)
         response = urlopen(url)
         data = json.loads(response.read())
-        majorV_remote, minorV_remote, patch_remote = map(lambda x: int(x), data["CurrentVersion"].split("."))
-        versionStr_remote = data["CurrentVersion"]
+        current_version = data.get("CurrentVersion")
+        if not current_version:
+            self._exception(202, "Error reading remote file (No 'CurrentVersion' key)")
+            return
+        majorV_remote, minorV_remote, patch_remote = map(lambda x: int(x), current_version.split("."))
         if self.getPlatform() == "Windows":
-            downloadPath = data["WindowsDownloadPath"]
+            downloadPath = data.get("WindowsDownloadPath")
         else:
-            downloadPath = data["LinuxDownloadPath"]
-        whatsNewPath = data["VersionHistory"]
+            downloadPath = data.get("LinuxDownloadPath")
+        whatsNewPath = data.get("VersionHistory")
 
-        print(versionStr_remote, downloadPath, whatsNewPath)
+        print(current_version, downloadPath, whatsNewPath)
 
         majorV, minorV, patch = map(lambda x: int(x) ,_version.__version__.split("."))
 
         if majorV_remote > majorV:
-            vMsg = "New major version!\nTik Manager v{0} is now available".format(versionStr_remote)
+            vMsg = "New major version!\nTik Manager v{0} is now available".format(current_version)
+            return vMsg, downloadPath, whatsNewPath
+
+        elif minorV_remote > minorV:
+            vMsg = "Tik Manager v{0} is now available".format(current_version)
+            return vMsg, downloadPath, whatsNewPath
+
+        elif patch_remote > patch:
+            vMsg = "Tik Manager v{0} with minor bug fixes and improvements is now available".format(current_version)
             return vMsg, downloadPath, whatsNewPath
         else:
             vMsg = "Tik Manager is up to date"
             return vMsg, None, None
 
-        if minorV_remote > minorV:
-            vMsg = "Tik Manager v{0} is now available".format(versionStr_remote)
-            return vMsg, downloadPath, whatsNewPath
-        else:
-            vMsg = "Tik Manager is up to date"
-            return vMsg, None, None
-
-        if patch_remote > patch:
-            vMsg = "Tik Manager v{0} with minor bug fixes and improvements is now available".format(versionStr_remote)
-            return vMsg, downloadPath, whatsNewPath
-        else:
-            vMsg = "Tik Manager is up to date"
-            return vMsg, None, None
 
     def getPlatform(self):
         return platform.system()
