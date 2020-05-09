@@ -770,11 +770,17 @@ class MainUI(baseUI):
 
         if self.load_radioButton.isChecked():
             self.loadScene_pushButton.setText("Load Scene")
-
             self.scenes_listWidget.setProperty("reference_pyside", False)
+            self.multi_reference_cb.setHidden(True)
+            self.scenes_listWidget.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+            self.scenes_rcItem_6.setVisible(True)
         else:
             self.loadScene_pushButton.setText("Reference Scene")
             self.scenes_listWidget.setProperty("reference_pyside", True)
+            self.multi_reference_cb.setHidden(False)
+            self.scenes_listWidget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+            self.scenes_rcItem_6.setVisible(False)
+
         self.scenes_listWidget.setStyleSheet("")
         self.populateBaseScenes()
 

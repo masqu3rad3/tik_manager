@@ -1620,7 +1620,6 @@ User(s): {7}
         sceneInfo = self._loadJson(databaseFile)
         if sceneInfo == -2:
             return -2 # Corrupted database file
-
         if sceneInfo["ReferenceFile"]:
             relVersionFile = sceneInfo["Versions"][sceneInfo["ReferencedVersion"] - 1]["RelativePath"].replace("\\", "/")
             absVersionFile = os.path.join(self.projectDir, relVersionFile)

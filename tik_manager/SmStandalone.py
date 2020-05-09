@@ -435,6 +435,9 @@ class StandaloneManager(RootManager):
 
         self._usersDict = self.loadUsers()
         self._currentsDict = self.loadUserPrefs()
+
+        if not os.path.isdir(self._pathsDict["masterDir"]):
+            return
         self._subProjectsList = self.loadSubprojects()
         # get hardcoded software list
         # hardCodedSwPath = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "softwareDatabase.json"))
