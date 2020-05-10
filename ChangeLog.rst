@@ -14,6 +14,7 @@ Tik Manager Version History
 * **Fix.009** Check for updates (Help => Check for updates) command is up and working
 * **Fix.010** Reference related buttons and not getting hidden in 3ds Max bug fixed
 * **Fix.011** Critical error fixed with Standalone when a non-Tik Manager folder selected.
+* **Update.012** Dictionary lookup for launching Maya from standalone version disabled. This will disregard minor versions and should work with upcoming ones.
 
 3.0
 ---

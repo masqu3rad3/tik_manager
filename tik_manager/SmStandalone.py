@@ -185,57 +185,7 @@ class SwViewer(RootManager):
         # ------------
 
         if swID == "Maya":
-            versionDict = {201400: "Maya2014",
-                           201414: "Maya2014",
-                           201450: "Maya2014",
-                           201451: "Maya2014",
-                           201459: "Maya2014",
-                           201402: "Maya2014",
-                           201404: "Maya2014",
-                           201406: "Maya2014",
-                           201500: "Maya2015",
-                           201506: "Maya2015",
-                           201507: "Maya2015",
-                           201501: "Maya2015",
-                           201502: "Maya2015",
-                           201505: "Maya2015",
-                           201506: "Maya2015",
-                           201507: "Maya2015",
-                           201600: "Maya2016",
-                           201650: "Maya2016.5",
-                           201651: "Maya2016.5",
-                           201653: "Maya2016.5",
-                           201605: "Maya2016",
-                           201607: "Maya2016",
-                           201650: "Maya2016.5",
-                           201651: "Maya2016.5",
-                           201653: "Maya2016.5",
-                           201605: "Maya2016",
-                           201607: "Maya2016",
-                           201700: "Maya2017",
-                           201701: "Maya2017",
-                           201720: "Maya2017",
-                           201740: "Maya2017",
-                           20180000: "Maya2018",
-                           20180100: "Maya2018",
-                           20180200: "Maya2018",
-                           20180300: "Maya2018",
-                           20180400: "Maya2018",
-                           20180500: "Maya2018",
-                           20190000: "Maya2019",
-                           20190100: "Maya2019",
-                           20190200: "Maya2019",
-                           20190300: "Maya2019",
-                           20190400: "Maya2019",
-                           20190500: "Maya2019",
-                           }
-            try:
-                versionName = versionDict[self._currentSceneInfo["MayaVersion"]]
-            except KeyError:
-                msg = "Maya version cannot resolved"
-                self._exception(360, msg)
-                return
-
+            versionName = "Maya%s" % (str(self._currentSceneInfo["MayaVersion"])[:4])
             exePath = None
             for v in executables["Maya"]["64Bit"]:
                 if v[0] == versionName:
@@ -258,7 +208,11 @@ class SwViewer(RootManager):
                            17000: "3ds Max 2015",
                            18000: "3ds Max 2016",
                            19000: "3ds Max 2017",
-                           20000: "3ds Max 2018"
+                           20000: "3ds Max 2018",
+                           21000: "3ds Max 2019",
+                           22000: "3ds Max 2020",
+                           23000: "3ds Max 2021",
+                           24000: "3ds Max 2022",
                            }
             try:
                 versionName = versionDict[self._currentSceneInfo["3dsMaxVersion"][0]]
