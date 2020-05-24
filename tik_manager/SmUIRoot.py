@@ -413,11 +413,24 @@ class MainUI(QtWidgets.QMainWindow):
 
         self.splitter = QtWidgets.QSplitter(self.centralwidget, orientation=QtCore.Qt.Horizontal)
 
-        # self.scenes_listWidget = QtWidgets.QTreeWidget(self.splitter, sortingEnabled=True,
-        #                                                selectionMode=QtWidgets.QAbstractItemView.SingleSelection,
-        #                                                rootIsDecorated=False)
-        self.scenes_listWidget = QtWidgets.QTreeWidget(self.splitter, sortingEnabled=True, rootIsDecorated=False)
+        left_frame = QtWidgets.QFrame(self.splitter, frameShape=QtWidgets.QFrame.StyledPanel,
+                                      frameShadow=QtWidgets.QFrame.Raised)
+        scenes_vLay = QtWidgets.QVBoxLayout(left_frame)
+        scenes_vLay.setContentsMargins(0, 0, 0, 0)
+        self.scenes_listWidget = QtWidgets.QTreeWidget(sortingEnabled=True, rootIsDecorated=False)
         self.scenes_listWidget.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        scenes_vLay.addWidget(self.scenes_listWidget)
+
+        self.scene_filter_lineEdit = QtWidgets.QLineEdit()
+        self.scene_filter_lineEdit.setFont(self.iconFont)
+        # # self.scene_filter_lineEdit.setPlaceholderText("🔍".decode("utf-8"))
+        self.scene_filter_lineEdit.setPlaceholderText("🔍")
+        scenes_vLay.addWidget(self.scene_filter_lineEdit)
+
+
+        # self.scenes_listWidget = QtWidgets.QTreeWidget(self.splitter, sortingEnabled=True, rootIsDecorated=False)
+        # self.scenes_listWidget.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+
 
         self.frame = QtWidgets.QFrame(self.splitter, frameShape=QtWidgets.QFrame.StyledPanel,
                                       frameShadow=QtWidgets.QFrame.Raised)
@@ -697,6 +710,9 @@ class MainUI(QtWidgets.QMainWindow):
         self.addNote_pushButton.clicked.connect(self.addNoteDialog)
 
         self.export_pushButton.clicked.connect(self.transferCentralUI)
+
+        self.scene_filter_lineEdit.textChanged.connect(self.populateBaseScenes)
+
 
     def createSubProjectUI(self):
         manager = self._getManager()
@@ -5680,6 +5696,9 @@ class MainUI(QtWidgets.QMainWindow):
         # This method IS Software Specific
         manager = self._getManager()
         manager.currentTabIndex = self.category_tabWidget.currentIndex()
+        self.scene_filter_lineEdit.blockSignals(True)
+        self.scene_filter_lineEdit.setText("")
+        self.scene_filter_lineEdit.blockSignals(False)
         self.populateBaseScenes()
         self.onBaseSceneChange()
 
@@ -5769,7 +5788,6 @@ class MainUI(QtWidgets.QMainWindow):
         # This method IS Software Specific
         # import time
         # start = time.time()
-
         manager = self._getManager()
         if not manager:
             return
@@ -5780,6 +5798,10 @@ class MainUI(QtWidgets.QMainWindow):
         columnCount = header.columnCount()
         extraColumns = [header.text(x) for x in range(1, columnCount)]
         baseScenesDict = manager.getBaseScenesInCategory()
+        filter_word = self.scene_filter_lineEdit.text()
+        if filter_word:
+            baseScenesDict = dict(filter(lambda elem: filter_word.lower() in elem[0].lower(), baseScenesDict.items()))
+
         if self.reference_radioButton.isChecked():
             for key in baseScenesDict:
                 if manager.checkReference(baseScenesDict[key]) == 1:
