@@ -149,7 +149,7 @@ class MayaCoreFunctions(object):
 
         """
         mayaExp_alembic = exportSettings["alembicExportMaya"]
-
+        # TODO : THIS WILL FAIL ON LINUX!!! What were you thinking???
         if not cmds.pluginInfo('AbcExport.mll', l=True, q=True):
             try:
                 cmds.loadPlugin('AbcExport.mll')
