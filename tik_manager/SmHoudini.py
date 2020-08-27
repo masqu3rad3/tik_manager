@@ -616,7 +616,7 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
 
         fpsValue_setting = self.getFPS()
         fpsValue_current = int(hou.fps())
-        if fpsValue_setting is not fpsValue_current:
+        if int(fpsValue_setting) is not fpsValue_current:
             msg = "FPS values are not matching with the project settings.\n Project FPS => {0}\n scene FPS => {1}\nDo you want to continue?".format(fpsValue_setting, fpsValue_current)
             checklist.append(msg)
 

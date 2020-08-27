@@ -4,6 +4,8 @@ Tik Manager Version History
 3.2
 ---
 * **Update.000** Maya 2021 Python 3 compatibility
+* **Update.001** Maya version nicename updates
+* **Fix.001** (Published) Houdini Fps mismatch issue fixed
 
 3.1
 ---

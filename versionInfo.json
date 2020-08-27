@@ -1,6 +1,6 @@
 {
-    "CurrentVersion": "3.1.014",
-    "WindowsDownloadPath": "http://www.ardakutlu.com/Tik_Manager/stable/TikManager_v3.1.014.exe",
-    "LinuxDownloadPath": "http://www.ardakutlu.com/Tik_Manager/stable/tikManager_3.1.014_linux.tar.gz",
+    "CurrentVersion": "3.2.001",
+    "WindowsDownloadPath": "http://www.ardakutlu.com/Tik_Manager/stable/TikManager_v3.2.001.exe",
+    "LinuxDownloadPath": "http://www.ardakutlu.com/Tik_Manager/stable/tikManager_3.2.001_linux.tar.gz",
     "VersionHistory": "http://www.ardakutlu.com/Tik_Manager/versionCheck/version_history.html"
 }
