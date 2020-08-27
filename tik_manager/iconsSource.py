@@ -4,26 +4,26 @@
 
 try:
     from maya import OpenMayaUI as omui
-    from Qt import QtCore
+    from tik_manager.Qt import QtCore
 except ImportError:
     pass
 
 try:
-    import MaxPlus
-    from Qt import QtCore
+    from pymxs import runtime as rt
+    from tik_manager.Qt import QtCore
 except ImportError:
     pass
 
 try:
     import hou
-    from Qt import QtCore
+    from tik_manager.Qt import QtCore
 
 except ImportError:
     pass
 
 try:
     import nuke
-    from Qt import QtCore
+    from tik_manager.Qt import QtCore
 except ImportError:
     pass
 

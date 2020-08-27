@@ -13,15 +13,26 @@ except ModuleNotFoundError: import winreg as reg
 
 def checkRuninngInstances(sw):
     running = True
-    aborted=False
+    aborted = False
 
     while not aborted and running:
         # closed = not (sw in (p.name() for p in psutil.process_iter()))
-        matchList = [p for p in psutil.process_iter() if p.name().startswith(sw)]
-        if matchList:
-            running = True
-        else:
-            running = False
+        # processes = psutil.process_iter()
+        # matchList = [p for p in processes if p._name.startswith(sw)]
+        # matchList = []
+
+        running = False
+        for p in psutil.process_iter():
+            name = str(p._name)
+            if name:
+                if name.startswith(sw):
+                    running = True
+                    break
+        #
+        # if matchList:
+        #     running = True
+        # else:
+        #     running = False
 
         if running:
             # msg = "%s is running. Exit software and ok to continue" % (sw)

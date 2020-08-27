@@ -36,13 +36,13 @@
 # GET ENVIRONMENT
 # ---------------
 import os, sys
-# import tik_manager._version as _version
-import _version
+import tik_manager._version as _version
+# import _version
 from copy import deepcopy
 import re
 import datetime
-# import tik_manager.compatibility as compat
-import compatibility as compat
+import tik_manager.compatibility as compat
+# import compatibility as compat
 
 
 # Below is the standard dictionary for Scene Manager Standalone
@@ -56,8 +56,8 @@ FORCE_QT5 = False
 # Get Environment and edit the dictionary according to the Environment
 try:
     from maya import OpenMayaUI as omui
-    import Qt
-    from Qt import QtWidgets, QtCore, QtGui
+    from tik_manager import Qt
+    from tik_manager.Qt import QtWidgets, QtCore, QtGui
 
     BoilerDict["Environment"] = "Maya"
     BoilerDict["WindowTitle"] = "Tik Manager Maya v%s" % _version.__version__
@@ -66,9 +66,9 @@ except ImportError:
     pass
 
 try:
-    import MaxPlus
-    import Qt
-    from Qt import QtWidgets, QtCore, QtGui
+    from pymxs import runtime as rt
+    from tik_manager import Qt
+    from tik_manager.Qt import QtWidgets, QtCore, QtGui
 
     BoilerDict["Environment"] = "3dsMax"
     BoilerDict["WindowTitle"] = "Tik Manager 3ds Max v%s" % _version.__version__
@@ -78,8 +78,8 @@ except ImportError:
 
 try:
     import hou
-    import Qt
-    from Qt import QtWidgets, QtCore, QtGui
+    from tik_manager import Qt
+    from tik_manager.Qt import QtWidgets, QtCore, QtGui
 
     BoilerDict["Environment"] = "Houdini"
     BoilerDict["WindowTitle"] = "Tik Manager Houdini v%s" % _version.__version__
@@ -89,8 +89,8 @@ except ImportError:
 
 try:
     import nuke
-    import Qt
-    from Qt import QtWidgets, QtCore, QtGui
+    from tik_manager import Qt
+    from tik_manager.Qt import QtWidgets, QtCore, QtGui
 
     BoilerDict["Environment"] = "Nuke"
     BoilerDict["WindowTitle"] = "Tik Manager Nuke v%s" % _version.__version__
@@ -116,14 +116,14 @@ except ImportError:
 import webbrowser
 
 ## DO NOT REMOVE THIS:
-# import tik_manager.iconsSource as icons
-import iconsSource as icons
+import tik_manager.iconsSource as icons
+# import iconsSource as icons
 ## DO NOT REMOVE THIS:
 
 import pprint
 
-# import tik_manager.ImageViewer as ImageViewer
-import ImageViewer
+import tik_manager.ImageViewer as ImageViewer
+# import ImageViewer
 
 import logging
 
@@ -151,10 +151,11 @@ def getMainWindow():
         else:
             from shiboken2 import wrapInstance
         win = omui.MQtUtil_mainWindow()
-        ptr = wrapInstance(long(win), QtWidgets.QMainWindow)
+        ptr = wrapInstance(int(win), QtWidgets.QMainWindow)
         return ptr
 
     elif BoilerDict["Environment"] == "3dsMax":
+        # http://help.autodesk.com/view/MAXDEV/2021/ENU/?guid=Max_Python_API_creating_python_uis_html
         try:
             mainWindow = MaxPlus.GetQMaxWindow()
         except AttributeError:

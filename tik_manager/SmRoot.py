@@ -52,11 +52,11 @@ try:
 except:
     from urllib import urlopen ## python 2.7 compatibility
 # import tik_manager.pyseq as pyseq
-import pyseq
+from tik_manager import pyseq
 # import tik_manager._version as _version
-import _version
-# import tik_manager.compatibility as compat
-import compatibility as compat
+from tik_manager import _version
+import tik_manager.compatibility as compat
+# import compatibility as compat
 
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Tik Manager Root Functions"

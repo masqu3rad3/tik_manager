@@ -46,9 +46,9 @@ import sys
 # GET ENVIRONMENT
 # ---------------
 # import tik_manager._version as _version
-import _version
+from tik_manager import _version
 # import tik_manager.compatibility as compat
-import compatibility as compat
+from tik_manager import compatibility as compat
 
 BoilerDict = {"Environment": "Standalone",
               "MainWindow": None,
@@ -57,8 +57,8 @@ BoilerDict = {"Environment": "Standalone",
 try:
     from maya import OpenMayaUI as omui
     import maya.cmds as cmds
-    import Qt
-    from Qt import QtWidgets, QtCore, QtGui
+    from tik_manager import Qt
+    from tik_manager.Qt import QtWidgets, QtCore, QtGui
     from tik_manager.coreFunctions.coreFunctions_Maya import MayaCoreFunctions as CoreFunctions
     BoilerDict["Environment"] = "Maya"
     BoilerDict["WindowTitle"] = "Image Viewer Maya v%s" % _version.__version__
@@ -66,9 +66,9 @@ except ImportError:
     pass
 
 try:
-    import MaxPlus
-    import Qt
-    from Qt import QtWidgets, QtCore, QtGui
+    from pymxs import runtime as rt
+    from tik_manager import Qt
+    from tik_manager.Qt import QtWidgets, QtCore, QtGui
     from tik_manager.coreFunctions.coreFunctions_Max import MaxCoreFunctions as CoreFunctions
     BoilerDict["Environment"] = "3dsMax"
     BoilerDict["WindowTitle"] = "Image Viewer 3ds Max v%s" % _version.__version__
@@ -78,8 +78,8 @@ except ImportError:
 
 try:
     import hou
-    import Qt
-    from Qt import QtWidgets, QtCore, QtGui
+    from tik_manager import Qt
+    from tik_manager.Qt import QtWidgets, QtCore, QtGui
     from tik_manager.coreFunctions.coreFunctions_Houdini import HoudiniCoreFunctions as CoreFunctions
     BoilerDict["Environment"] = "Houdini"
     BoilerDict["WindowTitle"] = "Image Viewer Houdini v%s" % _version.__version__
@@ -88,8 +88,8 @@ except ImportError:
 
 try:
     import nuke
-    import Qt
-    from Qt import QtWidgets, QtCore, QtGui
+    from tik_manager import Qt
+    from tik_manager.Qt import QtWidgets, QtCore, QtGui
     from tik_manager.coreFunctions.coreFunctions_Nuke import NukeCoreFunctions as CoreFunctions
     BoilerDict["Environment"] = "Nuke"
     BoilerDict["WindowTitle"] = "Image Viewer Nuke v%s" % _version.__version__
@@ -122,8 +122,8 @@ except ImportError:
 
 
 ## DO NOT REMOVE THIS:
-# import tik_manager.iconsSource as icons
-import iconsSource as icons
+import tik_manager.iconsSource as icons
+# import iconsSource as icons
 ## DO NOT REMOVE THIS:
 
 # PyInstaller and Standalone version compatibility
@@ -144,13 +144,13 @@ import iconsSource as icons
 # from PyQt4 import QtCore, Qt
 # from PyQt4 import QtGui as QtWidgets
 
-# import tik_manager.pyseq as seq
-import pyseq as seq
+import tik_manager.pyseq as seq
+# import pyseq as seq
 
 import datetime
 from shutil import copyfile
-# from tik_manager.SmRoot import RootManager
-from SmRoot import RootManager
+from tik_manager.SmRoot import RootManager
+# from SmRoot import RootManager
 
 
 import logging

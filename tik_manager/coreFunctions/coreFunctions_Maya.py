@@ -3,6 +3,8 @@ import maya.cmds as cmds
 import maya.mel as mel
 import logging
 
+import tik_manager.compatibility as compat
+
 logging.basicConfig()
 logger = logging.getLogger('coreFunctions_Maya')
 logger.setLevel(logging.WARNING)
@@ -315,7 +317,8 @@ class MayaCoreFunctions(object):
         return os.path.normpath(pPath)
 
     def _setProject(self, path):
-        encodedPath = unicode(path).encode("utf-8")
+        # encodedPath = unicode(path).encode("utf-8")
+        encodedPath = compat.encode(path)
         # melCompPath = path.replace("\\", "/") # mel is picky
         melCompPath = encodedPath.replace("\\", "/") # mel is picky
         melCompPath = melCompPath.replace("file:", "/") # compatibility with network paths

@@ -1,6 +1,10 @@
 =============================
 Tik Manager Version History
 =============================
+3.2
+---
+* **Update.000** Maya 2021 Python 3 compatibility
+
 3.1
 ---
 * **New.001** Resolution presets are added to the Create new Project menu
