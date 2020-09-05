@@ -4,7 +4,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING .ISS SCRIPT FILES!
 
 #define appName "Tik Manager"
-#define appVersion "3.2.001"
+#define appVersion "3.2.002"
 
 [Setup]
 AppName={#appName}

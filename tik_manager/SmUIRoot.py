@@ -156,6 +156,8 @@ def getMainWindow():
 
     elif BoilerDict["Environment"] == "3dsMax":
         # http://help.autodesk.com/view/MAXDEV/2021/ENU/?guid=Max_Python_API_creating_python_uis_html
+        try: import MaxPlus
+        except ModuleNotFoundError: return None
         try:
             mainWindow = MaxPlus.GetQMaxWindow()
         except AttributeError:
