@@ -7,6 +7,7 @@ Tik Manager Version History
 * **Update.001** Maya version nicename updates
 * **Fix.001** (Published) Houdini Fps mismatch issue fixed
 * **Fix.002** 3ds Max backward compatibility fix
+* **Fix.003** Python 3.x support for imageViewer, project materials and asset library
 
 3.1
 ---

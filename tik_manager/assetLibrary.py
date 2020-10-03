@@ -41,30 +41,6 @@ class AssetEditor(object):
     def getSwName(self):
         return ""
 
-    # def _getProject(self):
-    #     #     return self.projectDir
-    # 
-    #     # def mergeAsset(self, assetName):
-    #     #     logger.warning("merging Asset is not defined")
-    #     #
-    #     # def importAsset(self, assetName):
-    #     #     logger.warning("importing Asset is not defined")
-    #     #
-    #     # def importObj(self, assetName):
-    #     #     logger.warning("importing obj is not defined")
-    #     #
-    #     # def importAbc(self, assetName):
-    #     #     logger.warning("importing alembic is not defined")
-    #     #
-    #     # def importFbx(self, assetName):
-    #     #     logger.warning("importing fbx is not defined")
-    #     #
-    #     # def loadAsset(self, assetName):
-    #     #     logger.warning("loading Asset is not defined")
-    #     #
-    #     # def saveAsset(self, *args, **kwargs):
-    #     #     logger.warning("saving Asset is not defined")
-
 # ---------------
 # GET ENVIRONMENT
 # ---------------
@@ -90,15 +66,15 @@ except ImportError:
 try:
     from maya import OpenMayaUI as omui
     import maya.cmds as cmds
-    import Qt
-    from Qt import QtWidgets, QtCore, QtGui
+    from tik_manager import Qt
+    from tik_manager.Qt import QtWidgets, QtCore, QtGui
 
     ##
     ## EDITOR CLASS
     # import assetEditorMaya # for dev
     # reload(assetEditorMaya)# for dev
 
-    from assetEditorMaya import AssetEditorMaya as AssetEditor
+    from tik_manager.assetEditorMaya import AssetEditorMaya as AssetEditor
 
 
     BoilerDict["Environment"] = "Maya"
@@ -115,8 +91,8 @@ except ImportError:
 
 try:
     import MaxPlus
-    import Qt
-    from Qt import QtWidgets, QtCore, QtGui
+    from tik_manager import Qt
+    from tik_manger.Qt import QtWidgets, QtCore, QtGui
     from assetEditor3dsMax import AssetEditor3dsMax as AssetEditor
     BoilerDict["Environment"] = "3dsMax"
     BoilerDict["WindowTitle"] = "Asset Library 3ds Max v%s" % _version.__version__
@@ -126,8 +102,8 @@ except ImportError:
 
 try:
     import hou
-    import Qt
-    from Qt import QtWidgets, QtCore, QtGui
+    from tik_manger import Qt
+    from tik_manger.Qt import QtWidgets, QtCore, QtGui
     from assetEditorHoudini import AssetEditorHoudini as AssetEditor
     BoilerDict["Environment"] = "Houdini"
     BoilerDict["WindowTitle"] = "Asset Library Houdini v%s" % _version.__version__
@@ -137,8 +113,8 @@ except ImportError:
 
 try:
     import nuke
-    import Qt
-    from Qt import QtWidgets, QtCore, QtGui
+    from tik_manger import Qt
+    from tik_manger.Qt import QtWidgets, QtCore, QtGui
     BoilerDict["Environment"] = "Nuke"
     BoilerDict["WindowTitle"] = "Asset Library Nuke v%s" % _version.__version__
 except ImportError:
@@ -153,22 +129,6 @@ import datetime
 
 from tik_manager.SmRoot import RootManager
 import tik_manager.iconsSource as icons
-
-# FORCE_QT5 = bool(os.getenv("FORCE_QT5"))
-# FORCE_QT5 = bool(int(os.environ["FORCE_QT5"]))
-
-# Enabele FORCE_QT5 for compiling with pyinstaller
-# FORCE_QT5 = True
-#
-# if FORCE_QT5:
-#     from PyQt4 import QtCore, Qt
-#     from PyQt4 import QtGui as QtWidgets
-# else:
-#     import Qt
-#     from Qt import QtWidgets, QtCore, QtGui
-
-# import Qt
-# from Qt import QtWidgets, QtCore, QtGui
 
 import json
 # import os, fnmatch
@@ -190,7 +150,7 @@ def getMainWindow():
     """This function should be overriden"""
     if BoilerDict["Environment"] == "Maya":
         win = omui.MQtUtil_mainWindow()
-        ptr = wrapInstance(long(win), QtWidgets.QMainWindow)
+        ptr = wrapInstance(int(win), QtWidgets.QMainWindow)
         return ptr
 
     elif BoilerDict["Environment"] == "3dsMax":

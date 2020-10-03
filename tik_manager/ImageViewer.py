@@ -176,7 +176,7 @@ def getMainWindow():
         else:
             from shiboken2 import wrapInstance
         win = omui.MQtUtil_mainWindow()
-        ptr = wrapInstance(long(win), QtWidgets.QMainWindow)
+        ptr = wrapInstance(int(win), QtWidgets.QMainWindow)
         return ptr
 
     elif BoilerDict["Environment"] == "3dsMax":

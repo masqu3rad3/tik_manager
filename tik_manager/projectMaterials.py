@@ -47,8 +47,8 @@ BoilerDict = {"Environment": "Standalone",
 try:
     from maya import OpenMayaUI as omui
     import maya.cmds as cmds
-    import Qt
-    from Qt import QtWidgets, QtCore, QtGui
+    from tik_manager import Qt
+    from tik_manager.Qt import QtWidgets, QtCore, QtGui
     from tik_manager.coreFunctions.coreFunctions_Maya import MayaCoreFunctions as CoreFunctions
 
     BoilerDict["Environment"] = "Maya"
@@ -58,8 +58,8 @@ except ImportError:
 
 try:
     import MaxPlus
-    import Qt
-    from Qt import QtWidgets, QtCore, QtGui
+    from tik_manager import Qt
+    from tik_manager.Qt import QtWidgets, QtCore, QtGui
     from tik_manager.coreFunctions.coreFunctions_Max import MaxCoreFunctions as CoreFunctions
 
     BoilerDict["Environment"] = "3dsMax"
@@ -69,8 +69,8 @@ except ImportError:
 
 try:
     import hou
-    import Qt
-    from Qt import QtWidgets, QtCore, QtGui
+    from tik_manager import Qt
+    from tik_manager.Qt import QtWidgets, QtCore, QtGui
     from tik_manager.coreFunctions.coreFunctions_Houdini import HoudiniCoreFunctions as CoreFunctions
 
     BoilerDict["Environment"] = "Houdini"
@@ -80,8 +80,8 @@ except ImportError:
 
 try:
     import nuke
-    import Qt
-    from Qt import QtWidgets, QtCore, QtGui
+    from tik_manager import Qt
+    from tik_manager.Qt import QtWidgets, QtCore, QtGui
     from tik_manager.coreFunctions.coreFunctions_Nuke import NukeCoreFunctions as CoreFunctions
 
     BoilerDict["Environment"] = "Nuke"
@@ -104,27 +104,9 @@ import sys
 import unicodedata
 from glob import glob
 
-
-
-# FORCE_QT5 = bool(int(os.environ["FORCE_QT5"]))
-
-# Enabele FORCE_QT5 for compiling with pyinstaller
-# FORCE_QT5 = True
-
-# if FORCE_QT5:
-#     from PyQt4 import QtCore, Qt
-#     from PyQt4 import QtGui as QtWidgets
-# else:
-#     import Qt
-#     from Qt import QtWidgets, QtCore, QtGui
-
 from tik_manager.SmRoot import RootManager
 
-# import pyseq as seq
-
-# import json
 import datetime
-# from shutil import copyfile
 import shutil
 import logging
 
@@ -153,15 +135,6 @@ ColorStyleDict = {"Storyboard": "border: 2px solid #ff7b00",
              "Footage": "border: 2px solid #003fff",
              "Other": "border: 2px solid #dc00ff"
              }
-# ColorStyleDict = {"Storyboard": "background: #ff7b00",
-#              "Brief": "background: #faff00",
-#              "Reference": "background: #72ff00",
-#              "Artwork": "background: #00f6ff",
-#              "Footage": "background: #003fff",
-#              "Other": "background: #dc00ff"
-#              }
-
-
 
 
 def getMainWindow():
@@ -174,7 +147,7 @@ def getMainWindow():
         else:
             from shiboken2 import wrapInstance
         win = omui.MQtUtil_mainWindow()
-        ptr = wrapInstance(long(win), QtWidgets.QMainWindow)
+        ptr = wrapInstance(int(win), QtWidgets.QMainWindow)
         return ptr
 
     elif BoilerDict["Environment"] == "3dsMax":
@@ -194,26 +167,6 @@ def getMainWindow():
 
     else:
         return None
-
-
-# class ImageWidget(QtWidgets.QLabel):
-#     """Custom class for thumbnail section. Keeps the aspect ratio when resized."""
-#     def __init__(self, parent=None):
-#         super(ImageWidget, self).__init__(parent)
-#         self.aspectRatio = 1.78
-#         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-#         sizePolicy.setHeightForWidth(True)
-#         self.setSizePolicy(sizePolicy)
-#
-#     def resizeEvent(self, r):
-#         h = self.width()
-#         # self.setFixedHeight(h/self.aspectRatio)
-#         self.set(self.width(), self.width()/self.aspectRatio)
-#         # self.setMinimumHeight(h/self.aspectRatio)
-#         # self.setMaximumHeight(h/self.aspectRatio)
-#         # self.heightForWidth(h/self.aspectRatio)
-#         # self.setBaseSize(50, 50)
-#         # self.set
 
 class QFileAndFolderDialog(QtWidgets.QFileDialog):
     def __init__(self, *args):
@@ -243,18 +196,7 @@ class QFileAndFolderDialog(QtWidgets.QFileDialog):
                         file = str(i.data())
                 except NameError:
                     file = str(i.data())
-                #     str = str
-                #     unicode = unicode
-                #     bytes = str
-                #     basestring = basestring
-
-                # if not type(i.data()) == unicode:
-                #     file = str(i.data().toString())
-                # else:
-                #     # PyQt4 differences...
-                #     file = str(i.data())
                 path = os.path.normpath(os.path.join(dir, file))
-                # encodedPath = path.encode("ascii", )
                 files.append(path)
         self.selectedFiles = files
         self.hide()
@@ -868,13 +810,6 @@ class CopyProgress(QtWidgets.QWidget):
                 else:
                     newNameList.append(c)
         return ''.join(newNameList)
-        # try:
-        #     return ''.join(
-        #         c for c in unicodedata.normalize('NFD', s)
-        #         if unicodedata.category(c) != 'Mn'
-        #     )
-        # except:
-        #     return s
 
 class ProjectMaterials(RootManager, CoreFunctions):
     def __init__(self):
