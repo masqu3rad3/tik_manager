@@ -3,7 +3,7 @@ import maya.cmds as cmds
 import maya.mel as mel
 import logging
 
-import tik_manager.compatibility as compat
+import tik_manager.core.compatibility as compat
 
 logging.basicConfig()
 logger = logging.getLogger('coreFunctions_Maya')
@@ -95,7 +95,6 @@ class MayaCoreFunctions(object):
             return False
 
     def _importVray(self, filePath, importSettings, *args, **kwargs):
-        # cmds.confirmDialog(title='Ongoing development', message="Vray Proxy Import for Maya is under development")
         directory, name = os.path.split(filePath)
         cmds.vrayCreateProxy(node="%s" %name, existing=True, dir=filePath, createProxyNode=True)
 
@@ -259,8 +258,6 @@ class MayaCoreFunctions(object):
         # makeBackup / True False / False
 
 
-
-
         if not cmds.pluginInfo('vrayformaya.mll', l=True, q=True):
             try:
                 cmds.loadPlugin('vrayformaya.mll')
@@ -351,7 +348,6 @@ class MayaCoreFunctions(object):
     def _setTimelineRanges(self, rangeList):
         """Sets the timeline ranges [AnimationStart, Min, Max, AnimationEnd]"""
         # TODO : Make sure the time ranges are INTEGERS
-        print("DB", rangeList)
         cmds.playbackOptions(ast=rangeList[0], min=rangeList[1], max=rangeList[2], aet=rangeList[3])
 
     def _setFPS(self, fps, *args, **kwargs):

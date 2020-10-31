@@ -9,17 +9,16 @@ from shutil import copyfile
 import datetime
 import logging
 
-import tik_manager.Qt as Qt
-from tik_manager.Qt import QtWidgets, QtCore, QtGui
+import tik_manager.ui.Qt as Qt
+from tik_manager.ui.Qt import QtWidgets
+
 if Qt.__binding__ == "PySide":
-    from shiboken import wrapInstance
-    from Qt.QtCore import Signal
+    pass
 elif Qt.__binding__.startswith('PyQt'):
-    from sip import wrapinstance as wrapInstance
-    from Qt.Core import pyqtSignal as Signal
+    pass
 else:
-    from shiboken2 import wrapInstance
-    from Qt.QtCore import Signal
+    pass
+
 
 class SeqCopyProgress(QtWidgets.QWidget):
 

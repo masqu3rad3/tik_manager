@@ -36,7 +36,6 @@
 # GET ENVIRONMENT
 # ---------------
 import tik_manager._version as _version
-import tik_manager.compatibility as compat
 import subprocess
 
 BoilerDict = {"Environment": "Standalone",
@@ -47,9 +46,9 @@ BoilerDict = {"Environment": "Standalone",
 try:
     from maya import OpenMayaUI as omui
     import maya.cmds as cmds
-    from tik_manager import Qt
-    from tik_manager.Qt import QtWidgets, QtCore, QtGui
-    from tik_manager.coreFunctions.coreFunctions_Maya import MayaCoreFunctions as CoreFunctions
+    from tik_manager.ui import Qt
+    from tik_manager.ui.Qt import QtWidgets, QtCore, QtGui
+    from tik_manager.dcc.maya.core_maya import MayaCoreFunctions as CoreFunctions
 
     BoilerDict["Environment"] = "Maya"
     BoilerDict["WindowTitle"] = "Project Materials Maya v%s" % _version.__version__
@@ -59,8 +58,8 @@ except ImportError:
 try:
     import MaxPlus
     from tik_manager import Qt
-    from tik_manager.Qt import QtWidgets, QtCore, QtGui
-    from tik_manager.coreFunctions.coreFunctions_Max import MaxCoreFunctions as CoreFunctions
+    from tik_manager.ui.Qt import QtWidgets, QtCore, QtGui
+    from tik_manager.dcc.max.core_max import MaxCoreFunctions as CoreFunctions
 
     BoilerDict["Environment"] = "3dsMax"
     BoilerDict["WindowTitle"] = "Project Materials 3ds Max v%s" % _version.__version__
@@ -70,8 +69,8 @@ except ImportError:
 try:
     import hou
     from tik_manager import Qt
-    from tik_manager.Qt import QtWidgets, QtCore, QtGui
-    from tik_manager.coreFunctions.coreFunctions_Houdini import HoudiniCoreFunctions as CoreFunctions
+    from tik_manager.ui.Qt import QtWidgets, QtCore, QtGui
+    from tik_manager.dcc.houdini.core_houdini import HoudiniCoreFunctions as CoreFunctions
 
     BoilerDict["Environment"] = "Houdini"
     BoilerDict["WindowTitle"] = "Project Materials Houdini v%s" % _version.__version__
@@ -81,8 +80,8 @@ except ImportError:
 try:
     import nuke
     from tik_manager import Qt
-    from tik_manager.Qt import QtWidgets, QtCore, QtGui
-    from tik_manager.coreFunctions.coreFunctions_Nuke import NukeCoreFunctions as CoreFunctions
+    from tik_manager.ui.Qt import QtWidgets, QtCore, QtGui
+    from tik_manager.dcc.nuke.core_nuke import NukeCoreFunctions as CoreFunctions
 
     BoilerDict["Environment"] = "Nuke"
     BoilerDict["WindowTitle"] = "Project Materials Nuke v%s" % _version.__version__
@@ -104,14 +103,13 @@ import sys
 import unicodedata
 from glob import glob
 
-from tik_manager.SmRoot import RootManager
+from tik_manager.core.sm_root import RootManager
 
 import datetime
 import shutil
 import logging
 
 ## DO NOT REMOVE THIS:
-import tik_manager.iconsSource as icons
 ## DO NOT REMOVE THIS:
 
 logging.basicConfig()
@@ -184,9 +182,7 @@ class QFileAndFolderDialog(QtWidgets.QFileDialog):
         files = []
         for i in inds:
             if i.column() == 0:
-                # files.append(os.path.join(str(self.directory().absolutePath()),str(i.data().toString())))
                 dir = str(self.directory().absolutePath())
-                # file = str((i.data().toString()))
 
                 try:
                     unicode = unicode
@@ -403,7 +399,6 @@ class CopyProgress(QtWidgets.QWidget):
         self.terminated = False
         self.cancelAll = False
         self.errorFlag = False
-        # self.copyfileobj(src=self.src, dst=self.dest)
 
     def build_ui(self):
 
@@ -1020,7 +1015,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         # # Set Stylesheet
         dirname = os.path.dirname(os.path.abspath(__file__))
-        stylesheetFile = os.path.join(dirname, "CSS", "tikManager.qss")
+        stylesheetFile = os.path.join(dirname, "../CSS", "tikManager.qss")
 
         with open(stylesheetFile, "r") as fh:
             self.setStyleSheet(fh.read())
@@ -1710,7 +1705,7 @@ if __name__ == '__main__':
     os.environ["FORCE_QT5"] = "1"
     app = QtWidgets.QApplication(sys.argv)
     selfLoc = os.path.dirname(os.path.abspath(__file__))
-    stylesheetFile = os.path.join(selfLoc, "CSS", "tikManager.qss")
+    stylesheetFile = os.path.join(selfLoc, "../CSS", "tikManager.qss")
 
     with open(stylesheetFile, "r") as fh:
         app.setStyleSheet(fh.read())

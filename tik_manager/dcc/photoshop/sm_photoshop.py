@@ -48,15 +48,7 @@ from coreFunctions.coreFunctions_PS import PsCoreFunctions
 
 from SmUIRoot import MainUI as baseUI
 
-# import tik_manager._version as _version
 import _version
-# import subprocess
-
-# from win32com.client import Dispatch
-# import comtypes.client as ct
-# import win32gui
-
-# import pprint
 import logging
 
 ## DO NOT REMOVE THIS:
@@ -193,40 +185,6 @@ class PsManager(RootManager, PsCoreFunctions):
         else:
             activeDocument = self.psApp.Application.ActiveDocument
         self._saveAs(sceneFile, format=sceneFormat)
-        # openDocs = self.psApp.Application.Documents
-        # if openDocs.Count == 0:
-        #     activeDocument = self.psApp.Documents.Add(2048, 2048, 72)
-        # else:
-        #     activeDocument = self.psApp.Application.ActiveDocument
-        #
-        # if sceneFormat == "psd":
-        #     # PhotoshopSaveOptions=ct.CreateObject("Photoshop.PhotoshopSaveOptions")
-        #     # PhotoshopSaveOptions.AlphaChannels = True
-        #     # PhotoshopSaveOptions.Annotations = True
-        #     # PhotoshopSaveOptions.Layers = True
-        #     # PhotoshopSaveOptions.SpotColors = True
-        #     # activeDocument.SaveAs(sceneFile, PhotoshopSaveOptions, False)
-        #
-        #     desc19 = Dispatch("Photoshop.ActionDescriptor")
-        #     desc20 = Dispatch("Photoshop.ActionDescriptor")
-        #     desc20.PutBoolean(self.psApp.StringIDToTypeID('maximizeCompatibility'), True)
-        #     desc19.PutObject(
-        #         self.psApp.CharIDToTypeID('As  '), self.psApp.CharIDToTypeID('Pht3'), desc20)
-        #     desc19.PutPath(self.psApp.CharIDToTypeID('In  '), sceneFile)
-        #     desc19.PutBoolean(self.psApp.CharIDToTypeID('LwCs'), True)
-        #     self.psApp.ExecuteAction(self.psApp.CharIDToTypeID('save'), desc19, 3)
-        #
-        # else:
-        #
-        #     desc19 = Dispatch("Photoshop.ActionDescriptor")
-        #     desc20 = Dispatch("Photoshop.ActionDescriptor")
-        #     desc20.PutBoolean(self.psApp.StringIDToTypeID('maximizeCompatibility'), True)
-        #
-        #     desc19.PutObject(
-        #         self.psApp.CharIDToTypeID('As  '), self.psApp.CharIDToTypeID('Pht8'), desc20)
-        #     desc19.PutPath(self.psApp.CharIDToTypeID('In  '), sceneFile)
-        #     desc19.PutBoolean(self.psApp.CharIDToTypeID('LwCs'), True)
-        #     self.psApp.ExecuteAction(self.psApp.CharIDToTypeID('save'), desc19, 3)
 
         thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=version)
 
@@ -307,37 +265,6 @@ class PsManager(RootManager, PsCoreFunctions):
 
             # -- Save PSD
             self._saveAs(sceneFile, format=sceneFormat)
-            # if sceneFormat == "psd":
-            #     # activeDocument = psApp.Application.ActiveDocument
-            #     # PhotoshopSaveOptions = ct.CreateObject("Photoshop.PhotoshopSaveOptions")
-            #     # PhotoshopSaveOptions.AlphaChannels = True
-            #     # PhotoshopSaveOptions.Annotations = True
-            #     # PhotoshopSaveOptions.Layers = True
-            #     # PhotoshopSaveOptions.SpotColors = True
-            #     # activeDocument.SaveAs(sceneFile, PhotoshopSaveOptions, False)
-            #
-            #     desc19 = Dispatch("Photoshop.ActionDescriptor")
-            #     desc20 = Dispatch("Photoshop.ActionDescriptor")
-            #     desc20.PutBoolean(self.psApp.StringIDToTypeID('maximizeCompatibility'), True)
-            #
-            #     desc19.PutObject(
-            #         self.psApp.CharIDToTypeID('As  '), self.psApp.CharIDToTypeID('Pht3'), desc20)
-            #     desc19.PutPath(self.psApp.CharIDToTypeID('In  '), sceneFile)
-            #     desc19.PutBoolean(self.psApp.CharIDToTypeID('LwCs'), True)
-            #     self.psApp.ExecuteAction(self.psApp.CharIDToTypeID('save'), desc19, 3)
-            #
-            # else:
-            #
-            #     desc19 = Dispatch("Photoshop.ActionDescriptor")
-            #     desc20 = Dispatch("Photoshop.ActionDescriptor")
-            #     desc20.PutBoolean(self.psApp.StringIDToTypeID('maximizeCompatibility'), True)
-            #
-            #     desc19.PutObject(
-            #         self.psApp.CharIDToTypeID('As  '), self.psApp.CharIDToTypeID('Pht8'), desc20)
-            #     desc19.PutPath(self.psApp.CharIDToTypeID('In  '), sceneFile)
-            #     desc19.PutBoolean(self.psApp.CharIDToTypeID('LwCs'), True)
-            #     self.psApp.ExecuteAction(self.psApp.CharIDToTypeID('save'), desc19, 3)
-
             thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=currentVersion)
 
             jsonInfo["Versions"].append(
@@ -361,11 +288,6 @@ class PsManager(RootManager, PsCoreFunctions):
         self.progressLogger("save", sceneFile)
         return jsonInfo
 
-    # def getTextureVersions(self, baseSceneName):
-    #
-    #     #resolve the available texture versions and return the list
-    #
-    #     pass
     def saveSimple(self):
         """Save the currently open file"""
         logger.debug("Func: saveSimple")
@@ -373,13 +295,7 @@ class PsManager(RootManager, PsCoreFunctions):
         self.progressLogger("save", self.getSceneFile())
 
     def exportSourceimage(self, extension="jpg", textureType="diffuse", asNextRevision=True, revisionNumber=1):
-        # ???
-        # if extension not in self.exportFormats:
-        #     msg = "Format is not valid. Valid formats are:\n\n %s" %self.exportFormats
-        #     self._exception(101, msg)
-        #     return -1, msg
 
-        # resolve path as <sourceImages folder>/<baseName>.<format>
         sceneName = self.getSceneFile()
         if not sceneName:
             msg = "Current document is not a Base Scene File.\n\nSave it as a Base Scene first."
@@ -394,7 +310,6 @@ class PsManager(RootManager, PsCoreFunctions):
 
         # TEMPLATE
         # --------
-        # <sourceImagesPath>/<category>/<subProject(ifAny)/<baseName>_<version>/<baseName>_<type>_<revision>.<extension>
 
         baseName = sceneInfo["shotName"]
         version = sceneInfo["version"]
@@ -529,12 +444,6 @@ class PsManager(RootManager, PsCoreFunctions):
             dupDocument.ResizeCanvas(oWidth, oHeight)
 
             self._exportJPG(thumbPath, quality=6)
-            # jpgSaveOptions = Dispatch("Photoshop.JPEGSaveOptions")
-            # jpgSaveOptions.EmbedColorProfile = True
-            # jpgSaveOptions.FormatOptions = 1  # => psStandardBaseline
-            # jpgSaveOptions.Matte = 1  # => No Matte
-            # jpgSaveOptions.Quality = 6
-            # dupDocument.SaveAs(thumbPath, jpgSaveOptions, True)
             dupDocument.Close(2)  # 2 means without saving
         else:
             print ("something went wrong with thumbnail. Skipping thumbnail")
@@ -544,14 +453,6 @@ class PsManager(RootManager, PsCoreFunctions):
     def preSaveChecklist(self):
         """Checks the scene for inconsistencies"""
         checklist = []
-
-        # TODO check for something?
-        # fpsValue_setting = self.getFPS()
-        # fpsValue_current = nuke.root().fps()
-        #
-        # if fpsValue_setting is not fpsValue_current:
-        #     msg = "FPS values are not matching with the project settings.\n Project FPS => {0}\n scene FPS => {1}\nDo you want to continue?".format(fpsValue_setting, fpsValue_current)
-        #     checklist.append(msg)
 
         return checklist
 
@@ -566,27 +467,6 @@ class PsManager(RootManager, PsCoreFunctions):
         """Checks the currently open scene saved or not"""
         logger.debug("Func: isSceneModified")
         return self._isSceneModified()
-
-    # def loadCategories(self, filePath=None):
-    #     """OVERRIDEN FUNCTION for specific category default of Photoshop"""
-    #     logger.debug("Func: loadCategories")
-    #
-    #     if not filePath:
-    #         filePath = self._pathsDict["categoriesFile"]
-    #
-    #     if os.path.isfile(filePath):
-    #         categoriesData = self._loadJson(filePath)
-    #         if categoriesData == -2:
-    #             return -2
-    #     else:
-    #         categoriesData = self._sceneManagerDefaults["defaultPSCategories"]
-    #         # categoriesData = ["Concept", "Storyboard", "Texture", "Other"]
-    #         self._dumpJson(categoriesData, filePath)
-    #     return categoriesData
-
-
-
-
 
     def _exception(self, code, msg):
         """OVERRIDEN"""
@@ -620,14 +500,6 @@ class PsManager(RootManager, PsCoreFunctions):
         else:
             return False
 
-    # def _question(self, msg):
-    #     """OVERRIDEN METHOD"""
-    #     state = cmds.confirmDialog( title='Manager Question', message=msg, button=['Yes','No'], defaultButton='Yes', cancelButton='No', dismissString='No' )
-    #     if state == "Yes":
-    #         return True
-    #     else:
-    #         return False
-
     def _info(self, msg):
         """OVERRIDEN METHOD"""
         infobox = QtWidgets.QMessageBox()
@@ -646,19 +518,7 @@ class MainUI(baseUI):
     """Main UI Class. Inherits SmUIRoot.py"""
     def __init__(self):
         super(MainUI, self).__init__()
-        # self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.manager = PsManager()
-        # self.manager = self._getManager()
-        # problem, msg = self.manager._checkRequirements()
-        # if problem:
-        #     self.close()
-        #     self.deleteLater()
-
-        # self.windowName = "Tik Manager Photoshop v%s" %_version.__version__
-        # whndl = win32gui.FindWindow(None, "Photoshop.Application")
-
-        # self.setParent(whndl, int(self.winId()))
-
         self.buildUI()
         self.extraMenus()
         self.modify()
@@ -685,9 +545,7 @@ class MainUI(baseUI):
 
         self.export_pushButton.setVisible(True)
         self.export_pushButton.setText("Export Texture")
-        # self.export_pushButton.clicked.connect(self.exportSourceUI)
 
-        # self.mIconPixmap = QtWidgets.QPixmap(os.path.join(self.manager.getIconsDir(), "iconPS.png"))
         self.mIconPixmap = QtGui.QPixmap(":/icons/CSS/rc/iconPS.png")
         self.managerIcon_label.setPixmap(self.mIconPixmap)
         #
@@ -865,10 +723,6 @@ class MainUI(baseUI):
         buttonC.clicked.connect(self.exportTexture_Dialog.reject)
 
         buttonE.clicked.connect(exportCommand)
-        # buttonE.clicked.connect(self.exportTexture_Dialog.accept)
-
-
-
         self.exportTexture_Dialog.show()
 
 
@@ -877,7 +731,7 @@ class MainUI(baseUI):
 if __name__ == '__main__':
     selfLoc = os.path.dirname(os.path.abspath(__file__))
     app = QtWidgets.QApplication(sys.argv)
-    stylesheetFile = os.path.join(selfLoc, "CSS", "tikManager.qss")
+    stylesheetFile = os.path.join(selfLoc, "../../CSS", "tikManager.qss")
     if os.path.isfile(stylesheetFile):
         with open(stylesheetFile, "r") as fh:
             app.setStyleSheet(fh.read())

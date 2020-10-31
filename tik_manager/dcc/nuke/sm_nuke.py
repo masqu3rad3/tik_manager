@@ -33,9 +33,9 @@
 import os
 os.environ["FORCE_QT5"]="0"
 
-from tik_manager.SmUIRoot import MainUI as baseUI
-from tik_manager.SmRoot import RootManager
-from tik_manager.coreFunctions.coreFunctions_Nuke import NukeCoreFunctions
+from tik_manager.ui.SmUIRoot import MainUI as baseUI
+from tik_manager.core.sm_root import RootManager
+from tik_manager.dcc.nuke.core_nuke import NukeCoreFunctions
 
 
 import tik_manager._version as _version
@@ -43,14 +43,11 @@ import shutil
 import nuke
 import datetime
 import socket
-import pprint
 import logging
-from glob import glob
 
-from tik_manager.Qt import QtWidgets, QtCore, QtGui
+from tik_manager.ui.Qt import QtWidgets, QtCore, QtGui
 
 ## DO NOT REMOVE THIS:
-import tik_manager.iconsSource as icons
 ## DO NOT REMOVE THIS:
 
 __author__ = "Arda Kutlu"
@@ -152,7 +149,6 @@ class NukeManager(RootManager, NukeCoreFunctions):
         }
         sceneName = self.resolveSaveName(nameDict, version)
 
-        # sceneName = "{0}_{1}_{2}_v{3}".format(baseName, categoryName, self._usersDict[self.currentUser], str(version).zfill(3))
         sceneFile = os.path.join(shotPath, "{0}.{1}".format(sceneName, sceneFormat))
         ## relativity update
         relSceneFile = os.path.relpath(sceneFile, start=projectPath)
@@ -266,7 +262,6 @@ class NukeManager(RootManager, NukeCoreFunctions):
             }
             sceneName = self.resolveSaveName(nameDict, currentVersion)
 
-            # sceneName = "{0}_{1}_{2}_v{3}".format(jsonInfo["Name"], jsonInfo["Category"], self._usersDict[self.currentUser],
             #                                       str(currentVersion).zfill(3))
             relSceneFile = os.path.join(jsonInfo["Path"], "{0}.{1}".format(sceneName, sceneFormat))
 
@@ -390,17 +385,6 @@ class NukeManager(RootManager, NukeCoreFunctions):
             nuke.delete(reformatNode)
             ####################################################
 
-
-            # # frame = pm.currentTime(query=True)
-            # frame = cmds.currentTime(query=True)
-            # # store = pm.getAttr("defaultRenderGlobals.imageFormat")
-            # store = cmds.getAttr("defaultRenderGlobals.imageFormat")
-            # # pm.setAttr("defaultRenderGlobals.imageFormat", 8)  # This is the value for jpeg
-            # cmds.setAttr("defaultRenderGlobals.imageFormat", 8)  # This is the value for jpeg
-            # # pm.playblast(completeFilename=thumbPath, forceOverwrite=True, format='image', width=221, height=124, showOrnaments=False, frame=[frame], viewer=False, percent=100)
-            # cmds.playblast(completeFilename=thumbPath, forceOverwrite=True, format='image', width=221, height=124, showOrnaments=False, frame=[frame], viewer=False, percent=100)
-            # # pm.setAttr("defaultRenderGlobals.imageFormat", store) #take it back
-            # cmds.setAttr("defaultRenderGlobals.imageFormat", store) #take it back
         except:
             # pm.warning("something went wrong with thumbnail. Skipping thumbnail")
             nuke.warning("something went wrong with thumbnail. Skipping thumbnail")
@@ -418,8 +402,6 @@ class NukeManager(RootManager, NukeCoreFunctions):
         writeNode = nuke.createNode("Write")
         writeNode.setName("tik_tempWrite")
         writeNode['file'].setValue("TEST.jpg")
-        # writeNode['_jpeg_quality'].setValue(1)
-        # writeNode['_jpeg_sub_sampling'].setValue(2)
         r = nuke.createNode("Reformat")
 
         # create reformat node
@@ -435,60 +417,6 @@ class NukeManager(RootManager, NukeCoreFunctions):
         reformatNode.setInput(0, activeNode)
         ####################################################
 
-
-
-        # return ""
-        # logger.debug("Func: createThumbnail")
-        # projectPath = self.projectDir
-        # if useCursorPosition:
-        #     versionInt = self.currentVersionIndex
-        #     dbPath = self.currentDatabasePath
-        # else:
-        #     if not dbPath or not versionInt:
-        #         msg = "Both dbPath and version must be defined if useCursorPosition=False"
-        #         raise Exception ([360, msg])
-        #
-        # versionStr = "v%s" % (str(versionInt).zfill(3))
-        # dbDir, shotNameWithExt = os.path.split(dbPath)
-        # shotName = os.path.splitext(shotNameWithExt)[0]
-        #
-        # thumbPath = "{0}_{1}_thumb.jpg".format(os.path.join(dbDir, shotName), versionStr)
-        # relThumbPath = os.path.relpath(thumbPath, projectPath)
-        #
-        # # create a thumbnail using playblast
-        # thumbDir = os.path.split(thumbPath)[0]
-        # if os.path.exists(thumbDir):
-        #     # frame = pm.currentTime(query=True)
-        #     frame = cmds.currentTime(query=True)
-        #     # store = pm.getAttr("defaultRenderGlobals.imageFormat")
-        #     store = cmds.getAttr("defaultRenderGlobals.imageFormat")
-        #     # pm.setAttr("defaultRenderGlobals.imageFormat", 8)  # This is the value for jpeg
-        #     cmds.setAttr("defaultRenderGlobals.imageFormat", 8)  # This is the value for jpeg
-        #     # pm.playblast(completeFilename=thumbPath, forceOverwrite=True, format='image', width=221, height=124, showOrnaments=False, frame=[frame], viewer=False, percent=100)
-        #     cmds.playblast(completeFilename=thumbPath, forceOverwrite=True, format='image', width=221, height=124, showOrnaments=False, frame=[frame], viewer=False, percent=100)
-        #     # pm.setAttr("defaultRenderGlobals.imageFormat", store) #take it back
-        #     cmds.setAttr("defaultRenderGlobals.imageFormat", store) #take it back
-        # else:
-        #     # pm.warning("something went wrong with thumbnail. Skipping thumbnail")
-        #     cmds.warning("something went wrong with thumbnail. Skipping thumbnail")
-        #     return ""
-        # # return thumbPath
-        # return relThumbPath
-    #
-    # def replaceThumbnail(self, filePath=None ):
-    #     """
-    #     Replaces the thumbnail with given file or current view
-    #     :param filePath: (String)  if a filePath is defined, this image (.jpg or .gif) will be used as thumbnail
-    #     :return: None
-    #     """
-    #     logger.debug("Func: replaceThumbnail")
-    #     if not filePath:
-    #         filePath = self.createThumbnail(useCursorPosition=True)
-    #
-    #     self._currentSceneInfo["Versions"][self.currentVersionIndex-1]["Thumb"]=filePath
-    #
-    #     self._dumpJson(self._currentSceneInfo, self.currentDatabasePath)
-    #
     def compareVersions(self):
         """Compares the versions of current session and database version at cursor position"""
         logger.debug("Func: compareVersions")
@@ -497,8 +425,6 @@ class NukeManager(RootManager, NukeCoreFunctions):
         print(nukeVersion)
         cMajorV = nukeVersion[0]
         cMinorV = nukeVersion[1]
-        # cMajorV = self._getVersion[0]
-        # cMinorV = self._getVersion[1]
         currentVersion = float("{0}.{1}".format(cMajorV, cMinorV))
 
         dbMajorV = self._currentSceneInfo["NukeVersion"][0]
@@ -570,17 +496,6 @@ class NukeManager(RootManager, NukeCoreFunctions):
         inputDir = QtWidgets.QFileDialog.getExistingDirectory()
         return os.path.normpath(inputDir)
 
-    # def _getTimelineRanges(self):
-    #     # TODO : Make sure the time ranges are INTEGERS
-    #     firstFrame = nuke.Root().firstFrame()
-    #     lastFrame = nuke.Root().lastFrame()
-    #     R_ast = firstFrame
-    #     R_min = firstFrame
-    #     R_max = lastFrame
-    #     R_aet = lastFrame
-    #     return [R_ast, R_min, R_max, R_aet]
-
-
 class MainUI(baseUI):
     def __init__(self, callback=None):
         super(MainUI, self).__init__()
@@ -590,10 +505,6 @@ class MainUI(baseUI):
         if problem:
             self.close()
             self.deleteLater()
-
-        # self.callbackIDList=[]
-        # if self.isCallback:
-        #     self.callbackIDList = self.manager._createCallbacks(self.isCallback)
         self.buildUI()
         self.initMainUI(newborn=True)
         self.modify()
@@ -613,6 +524,5 @@ class MainUI(baseUI):
         # idk why this became necessary for nuke..
         self.category_tabWidget.setMaximumSize(QtCore.QSize(16777215, 30))
 
-        # self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "iconNuke.png"))
         self.mIconPixmap = QtGui.QPixmap(":/icons/CSS/rc/iconNuke.png")
         self.managerIcon_label.setPixmap(self.mIconPixmap)

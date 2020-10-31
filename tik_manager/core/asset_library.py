@@ -45,7 +45,7 @@ class AssetEditor(object):
 # GET ENVIRONMENT
 # ---------------
 import tik_manager._version as _version
-import tik_manager.compatibility as compat
+import tik_manager.core.compatibility as compat
 
 BoilerDict = {"Environment": "Standalone",
               "MainWindow": None,
@@ -66,15 +66,15 @@ except ImportError:
 try:
     from maya import OpenMayaUI as omui
     import maya.cmds as cmds
-    from tik_manager import Qt
-    from tik_manager.Qt import QtWidgets, QtCore, QtGui
+    from tik_manager.ui import Qt
+    from tik_manager.ui.Qt import QtWidgets, QtCore, QtGui
 
     ##
     ## EDITOR CLASS
     # import assetEditorMaya # for dev
     # reload(assetEditorMaya)# for dev
 
-    from tik_manager.assetEditorMaya import AssetEditorMaya as AssetEditor
+    from tik_manager.dcc.maya.asset_editor_maya import AssetEditorMaya as AssetEditor
 
 
     BoilerDict["Environment"] = "Maya"
@@ -127,8 +127,7 @@ import shutil
 
 import datetime
 
-from tik_manager.SmRoot import RootManager
-import tik_manager.iconsSource as icons
+from tik_manager.core.sm_root import RootManager
 
 import json
 # import os, fnmatch
@@ -439,7 +438,7 @@ class MainUI(QtWidgets.QMainWindow):
             self.viewOnly = False
         # Set Stylesheet
         dirname = os.path.dirname(os.path.abspath(__file__))
-        stylesheetFile = os.path.join(dirname, "CSS", "tikManager.qss")
+        stylesheetFile = os.path.join(dirname, "../CSS", "tikManager.qss")
 
         with open(stylesheetFile, "r") as fh:
             self.setStyleSheet(fh.read())
@@ -1917,7 +1916,7 @@ if __name__ == '__main__':
     os.environ["FORCE_QT5"] = "1"
     app = QtWidgets.QApplication(sys.argv)
     selfLoc = os.path.dirname(os.path.abspath(__file__))
-    stylesheetFile = os.path.join(selfLoc, "CSS", "tikManager.qss")
+    stylesheetFile = os.path.join(selfLoc, "../CSS", "tikManager.qss")
     if os.path.isfile(stylesheetFile):
         with open(stylesheetFile, "r") as fh:
             app.setStyleSheet(fh.read())

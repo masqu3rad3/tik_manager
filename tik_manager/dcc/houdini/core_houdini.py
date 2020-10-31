@@ -36,9 +36,6 @@ class HoudiniCoreFunctions(object):
         houdiniImp_obj = importSettings["objImportHoudini"]
         niceName = os.path.splitext(os.path.basename(filePath))[0]
 
-        # print "fpath", filePath
-        # print "pPath", self._getProject()
-        # print "anan", self.projectDir
         try: relPath = "$JOB\\%s" % (os.path.relpath(filePath, self.projectDir))
         except ValueError: relPath = filePath #if its on another drive, use absolute path
 
@@ -71,18 +68,6 @@ class HoudiniCoreFunctions(object):
     def _importFbx(self, filePath, importSettings, *args, **kwargs):
         houdiniImp_fbx = importSettings["fbxImportHoudini"]
         niceName = os.path.splitext(os.path.basename(filePath))[0]
-
-        # relPath = "$JOB\\%s" % (os.path.relpath(filePath, self._getProject()))
-        # try: relPath = "$JOB\\%s" % (os.path.relpath(filePath, self.projectDir))
-        # except ValueError: relPath = filePath #if its on another drive, use absolute path
-        # NOTE:
-        # FLAG => "override_scene_frame_range" causes a crash in Houdini 16.5
-        # FLAG => "create_sibling_bones" causes a crash in Houdini 16.5
-        #
-        # print "DEBUG", filePath.replace("\\", "/")
-        # print "DEBUG2", os.path.normpath(filePath)
-        # # ret = hou.hipFile.importFBX(filePath)
-        # return
 
         ret = hou.hipFile.importFBX(filePath.replace(os.sep,'/'),
                               suppress_save_prompt=True,

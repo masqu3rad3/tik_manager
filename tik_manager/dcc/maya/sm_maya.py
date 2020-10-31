@@ -36,28 +36,21 @@ os.environ["FORCE_QT5"]="0"
 # DELETE
 # ------
 
-from tik_manager.SmUIRoot import MainUI as baseUI
-# import SmRoot
-# reload(SmRoot)
-from tik_manager.SmRoot import RootManager
-from tik_manager.coreFunctions.coreFunctions_Maya import MayaCoreFunctions
+from tik_manager.ui.SmUIRoot import MainUI as baseUI
+from tik_manager.core.sm_root import RootManager
+from tik_manager.dcc.maya.core_maya import MayaCoreFunctions
 
 import shutil
 import maya.cmds as cmds
 import maya.mel as mel
-# import pymel.core as pm
 import datetime
 import socket
 import logging
 from glob import glob
 
-import tik_manager.ImMaya as ImMaya
+import tik_manager.dcc.maya.im_maya as ImMaya
 
-# import Qt
-from tik_manager.Qt import QtWidgets, QtGui
-
-## DO NOT REMOVE THIS:
-## DO NOT REMOVE THIS:
+from tik_manager.ui.Qt import QtWidgets, QtGui
 
 logging.basicConfig()
 logger = logging.getLogger('smMaya')
@@ -67,7 +60,6 @@ class MayaManager(RootManager, MayaCoreFunctions):
     def __init__(self):
         super(MayaManager, self).__init__()
         # hard coded format dictionary to pass the format info to cmds
-        # self.formatDict = {"ma": "mayaAscii", "mb": "mayaBinary"}
         self.swName = "Maya"
         self.init_paths(self.swName)
         self.backwardcompatibility()  # DO NOT RUN UNTIL RELEASE
@@ -179,12 +171,9 @@ class MayaManager(RootManager, MayaCoreFunctions):
         }
         sceneName = self.resolveSaveName(nameDict, version)
 
-        # sceneFile = os.path.join(shotPath, "{0}.{1}".format(sceneName, sceneFormat))
         sceneFile = os.path.join(shotPath, "{0}{1}".format(sceneName, ext))
         ## relativity update
         relSceneFile = os.path.relpath(sceneFile, start=projectPath)
-        # killTurtle()
-        # self._saveAs(sceneFile, format=self.formatDict[sceneFormat])
         self._saveAs(sceneFile, format=saveFormat)
 
         thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=version)
@@ -194,7 +183,6 @@ class MayaManager(RootManager, MayaCoreFunctions):
         if makeReference:
             # TODO // Find an elegant solution and add MA compatibility. Can be merged with makeReference function in derived class
             referenceName = "{0}_{1}_forReference".format(baseName, categoryName)
-            # referenceFile = os.path.join(shotPath, "{0}.{1}".format(referenceName, sceneFormat))
             referenceFile = os.path.join(shotPath, "{0}{1}".format(referenceName, ext))
             ## relativity update
             relReferenceFile = os.path.relpath(referenceFile, start=projectPath)
@@ -206,7 +194,6 @@ class MayaManager(RootManager, MayaCoreFunctions):
             jsonInfo["ReferencedVersion"] = None
 
         jsonInfo["ID"] = "SmMayaV03_sceneFile"
-        # jsonInfo["MayaVersion"] = cmds.about(q=True, api=True)
         jsonInfo["MayaVersion"] = self._getVersion()
         jsonInfo["Name"] = baseName
         jsonInfo["Path"] = os.path.relpath(shotPath, start=projectPath)
@@ -283,8 +270,6 @@ class MayaManager(RootManager, MayaCoreFunctions):
             ext = u'.ma'
             saveFormat = "mayaAscii"
 
-        # originalPath = self._getSceneFile()
-
         dump, origExt = os.path.splitext(currentSceneName)
 
         if len(cmds.ls(type="unknown")) > 0 and ext != origExt:
@@ -316,18 +301,15 @@ class MayaManager(RootManager, MayaCoreFunctions):
         }
         sceneName = self.resolveSaveName(nameDict, currentVersion)
 
-        # relSceneFile = os.path.join(jsonInfo["Path"], "{0}.{1}".format(sceneName, sceneFormat))
         relSceneFile = os.path.join(jsonInfo["Path"], "{0}{1}".format(sceneName, ext))
 
         sceneFile = os.path.join(sceneInfo["projectPath"], relSceneFile)
 
-        # self._saveAs(sceneFile, format=self.formatDict[sceneFormat])
         self._saveAs(sceneFile, format=saveFormat)
 
         thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=currentVersion)
 
         jsonInfo["Versions"].append(
-            # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
         # TODO : ref => Dict
             {"RelativePath": relSceneFile,
              "Note": completeNote,
@@ -342,7 +324,6 @@ class MayaManager(RootManager, MayaCoreFunctions):
 
         if makeReference:
             referenceName = "{0}_{1}_forReference".format(jsonInfo["Name"], jsonInfo["Category"])
-            # relReferenceFile = os.path.join(jsonInfo["Path"], "{0}.{1}".format(referenceName, sceneFormat))
             relReferenceFile = os.path.join(jsonInfo["Path"], "{0}{1}".format(referenceName, ext))
             referenceFile = os.path.join(sceneInfo["projectPath"], relReferenceFile)
 
@@ -352,130 +333,6 @@ class MayaManager(RootManager, MayaCoreFunctions):
         self._dumpJson(jsonInfo, jsonFile)
         self.progressLogger("save", sceneFile)
         return jsonInfo
-
-
-
-    # def createPreview(self, previewCam=None, forceSequencer=False, *args, **kwargs):
-    #     """Creates a Playblast preview from currently open scene"""
-    #     logger.debug("Func: createPreview")
-    #
-    #     pbSettings = self.loadPBSettings()
-    #
-    #     openSceneInfo = self.getOpenSceneInfo()
-    #     if not openSceneInfo:
-    #         msg = "This is not a base scene. Scene must be saved as a base scene before playblasting."
-    #         self._exception(360, msg)
-    #         return
-    #
-    #     ## ----------------
-    #     ## VIDEO PROPERTIES
-    #     ## ----------------
-    #     if pbSettings["ConvertMP4"]:
-    #         # TODO // Make it compatible with LINUX and MAC
-    #         if self.currentPlatform == "Windows":
-    #             validFormats = [u'avi']
-    #             validCodecs = [u'none']
-    #             extension = "avi"
-    #         else:
-    #             validFormats = [u'qt']
-    #             validCodecs = [u'png']
-    #             extension = "mov"
-    #
-    #     else:
-    #         validFormats = cmds.playblast(format=True, q=True)
-    #         validCodecs = cmds.playblast(c=True, q=True)
-    #
-    #         if not pbSettings["Format"] in validFormats:
-    #             msg = ("Format specified in project settings is not supported. Install {0}".format(pbSettings["Format"]))
-    #             self._exception(360, msg)
-    #             return
-    #
-    #         if not pbSettings["Codec"] in validCodecs:
-    #             msg = ("Codec specified in project settings is not supported. Install {0}".format(pbSettings["Codec"]))
-    #             self._exception(360, msg)
-    #             return
-    #
-    #         extension = "mov" if pbSettings["Format"] == "qt" else "avi"
-    #
-    #     selection = self._getSelection()
-    #     cmds.select(d=pbSettings["ClearSelection"])
-    #     jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
-    #
-    #     ## ------------------------
-    #     ## GET CAMERA and SEQUENCER
-    #     ## ------------------------
-    #     if previewCam:
-    #         currentCam = previewCam
-    #         validName = previewCam
-    #         sequenceTime = False
-    #     elif forceSequencer:
-    #         currentCam = "persp"
-    #         validName = "Sequencer"
-    #         sequenceTime = True
-    #     else:
-    #         try:
-    #             currentCam = cmds.modelPanel(cmds.getPanel(wf=True), q=True, cam=True)
-    #             validName = currentCam
-    #             sequenceTime = False
-    #         except RuntimeError:
-    #             panel = cmds.getPanel(wf=True)
-    #             if "sequenceEditorPanel" in panel:
-    #                 currentCam = "persp"
-    #                 validName = "Sequence"
-    #                 sequenceTime = True
-    #             else:
-    #                 msg = "Highlighted Pane is not a camera view"
-    #                 self._exception(360, msg)
-    #                 return
-    #     # RENAME
-    #     replaceDict = {"|":"__",
-    #                    " ":"_",
-    #                    ":":"_"}
-    #     for item in replaceDict.items():
-    #         validName = validName.replace(item[0], item[1])
-    #
-    #     if not self.nameCheck(validName):
-    #         msg = "A scene view must be highlighted"
-    #         self._exception(360, msg)
-    #         return
-    #
-    #     versionName = self.getSceneFile()
-    #     relVersionName = os.path.relpath(versionName, start=openSceneInfo["projectPath"])
-    #     playBlastFile = os.path.join(openSceneInfo["previewPath"], "{0}_{1}_PB.{2}".format(self.niceName(versionName), validName, extension))
-    #
-    #     if os.path.isfile(playBlastFile):
-    #         try:
-    #             os.remove(playBlastFile)
-    #         except WindowsError:
-    #             msg = "The file is open somewhere else"
-    #             self._exception(202, msg)
-    #             return
-    #
-    #     ## ---------------------
-    #     ## CREATE A CUSTOM PANEL
-    #     ## ---------------------
-    #     tempWindow = cmds.window(title="SM_Playblast",
-    #                            widthHeight=(pbSettings["Resolution"][0] * 1.1, pbSettings["Resolution"][1] * 1.1),
-    #                            tlc=(0, 0))
-    #     cmds.paneLayout()
-    #
-    #     pbPanel = cmds.modelPanel(camera=currentCam)
-    #     cmds.showWindow(tempWindow)
-    #     cmds.setFocus(pbPanel)
-    #
-    #     cmds.modelEditor(pbPanel, e=1,
-    #                    allObjects=not pbSettings["PolygonOnly"],
-    #                    da="smoothShaded",
-    #                    displayTextures=pbSettings["DisplayTextures"],
-    #                    wireframeOnShaded=pbSettings["WireOnShaded"],
-    #                    grid=pbSettings["ShowGrid"],
-    #                    useDefaultMaterial=pbSettings["UseDefaultMaterial"],
-    #                    polymeshes=True,
-    #                    imagePlane=True,
-    #                    hud=True
-    #                    )
-    #
-    #     cmds.camera(currentCam, e=True, overscan=True, displayFilmGate=False, displayResolution=False)
 
     def tearOffPanel(self, panel=None, camera=None, resolution=[1280, 720], overrideDict={}):
         if not panel:
@@ -555,14 +412,10 @@ class MayaManager(RootManager, MayaCoreFunctions):
         if pbSettings["ConvertMP4"]:
             # TODO // Make it compatible with LINUX and MAC
             if self.currentPlatform == "Windows":
-                # validFormats = [u'avi']
-                # validCodecs = [u'none']
                 pbSettings["Format"] = u'avi'
                 pbSettings["Codec"] = u'none'
                 extension = "avi"
             else:
-                # validFormats = [u'qt']
-                # validCodecs = [u'png']
                 pbSettings["Format"] = u'qt'
                 pbSettings["Codec"] = u'png'
                 extension = "mov"
@@ -584,13 +437,6 @@ class MayaManager(RootManager, MayaCoreFunctions):
                 return
 
             extension = "mov" if pbSettings["Format"] == "qt" else "avi"
-
-            # Quicktime format is missing the final frame all the time. Add an extra frame to compansate
-            # if pbSettings["Format"] == 'qt':
-            #     maxTime = cmds.playbackOptions(q=True, maxTime=True)
-            #     endTime = cmds.playbackOptions(q=True, animationEndTime=True)
-            #     cmds.playbackOptions(maxTime=maxTime + 1)
-            #     cmds.playbackOptions(animationEndTime=endTime + 1)
 
         openSceneInfo = self.getOpenSceneInfo()
         if not openSceneInfo:
@@ -626,8 +472,6 @@ class MayaManager(RootManager, MayaCoreFunctions):
                     self._exception(360, msg)
                     return
 
-        # validName = currentCam
-
         replaceDict = {"|":"__",
                        " ":"_",
                        ":":"_"}
@@ -642,8 +486,6 @@ class MayaManager(RootManager, MayaCoreFunctions):
         versionName = self.getSceneFile()
         relVersionName = os.path.relpath(versionName, start=openSceneInfo["projectPath"])
         playBlastFile = os.path.join(openSceneInfo["previewPath"], "{0}_{1}_PB.{2}".format(self.niceName(versionName), validName, extension))
-        # relPlayBlastFile = os.path.relpath(playBlastFile, start=openSceneInfo["projectPath"])
-
         if os.path.isfile(playBlastFile):
             try:
                 os.remove(playBlastFile)
@@ -712,95 +554,12 @@ class MayaManager(RootManager, MayaCoreFunctions):
 
         tempWindow = self.tearOffPanel(camera=currentCam, resolution=pbSettings["Resolution"], overrideDict=viewportExc)
 
-        # ## CREATE A CUSTOM PANEL WITH DESIRED SETTINGS
-        #
-        # tempWindow = cmds.window(title="SM_Playblast",
-        #                        widthHeight=(pbSettings["Resolution"][0] * 1.1, pbSettings["Resolution"][1] * 1.1),
-        #                        tlc=(0, 0))
-        # # panel = pm.getPanel(wf=True)
-        #
-        # cmds.paneLayout()
-        #
-        # pbPanel = cmds.modelPanel(camera=currentCam)
-        # cmds.showWindow(tempWindow)
-        # cmds.setFocus(pbPanel)
-        #
-        # cmds.modelEditor(pbPanel, e=1,
-        #                allObjects=not pbSettings["PolygonOnly"],
-        #                da="smoothShaded",
-        #                displayTextures=pbSettings["DisplayTextures"],
-        #                wireframeOnShaded=pbSettings["WireOnShaded"],
-        #                grid=pbSettings["ShowGrid"],
-        #                useDefaultMaterial=pbSettings["UseDefaultMaterial"],
-        #                polymeshes=True,
-        #                imagePlane=True,
-        #                hud=True
-        #                )
-        #
-        # cmds.camera(currentCam, e=True, overscan=True, displayFilmGate=False, displayResolution=False)
-        #
-        # ## get previous HUD States and turn them all off
-        # hudPreStates = {}
-        # HUDS = cmds.headsUpDisplay(lh=True)
-        # for hud in HUDS:
-        #     hudPreStates[hud] = cmds.headsUpDisplay(hud, q=True, vis=True)
-        #     cmds.headsUpDisplay(hud, e=True, vis=False)
-        #
-        # ## clear the custom HUDS
-        # customHuds = ['SMFrame', 'SMScene', 'SMCategory', 'SMFPS', 'SMCameraName', 'SMFrange']
-        # for hud in customHuds:
-        #     if cmds.headsUpDisplay(hud, ex=True):
-        #         cmds.headsUpDisplay(hud, rem=True)
-        #
-        # if pbSettings["ShowFrameNumber"]:
-        #     freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-        #     cmds.headsUpDisplay('SMFrame', s=5, b=freeBl, label="Frame", preset="currentFrame", dfs="large",
-        #                       lfs="large")
-        # if pbSettings["ShowSceneName"]:
-        #     freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-        #     cmds.headsUpDisplay('SMScene', s=5, b=freeBl, label="Scene: %s" % (self.niceName(versionName)),
-        #                         lfs="large")
-        # if pbSettings["ShowCategory"]:
-        #     freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-        #     cmds.headsUpDisplay('SMCategory', s=5, b=freeBl, label="Category: %s" % (jsonInfo["Category"]),
-        #                       lfs="large")
-        # if pbSettings["ShowFPS"]:
-        #     freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-        #     cmds.headsUpDisplay('SMFPS', s=5, b=freeBl, label="Time Unit: %s" % (cmds.currentUnit(q=True, time=True)),
-        #                       lfs="large")
-        #
-        # # v1.1 SPECIFIC
-        # try:
-        #     if pbSettings["ShowFrameRange"]:
-        #         freeBl = cmds.headsUpDisplay(nfb=5)  ## this is the next free block on section 5
-        #         cmds.headsUpDisplay('SMFrange', s=5, b=freeBl,
-        #                           label="Frame Range: {} - {}".format(int(cmds.playbackOptions(q=True, minTime=True)),
-        #                                                               int(cmds.playbackOptions(q=True,
-        #                                                                                      maxTime=True))),
-        #                           lfs="large")
-        # except KeyError:
-        #     pass
-        #
-        # freeBl = cmds.headsUpDisplay(nfb=2)
-        # cmds.headsUpDisplay('SMCameraName', s=2, b=freeBl, ba='center', dw=50, pre='cameraNames')
-
-
-
-
-
-#####################################################################
-
-
-
         ## Get the active sound
 
         aPlayBackSliderPython = mel.eval('$tmpVar=$gPlayBackSlider')
         activeSound = cmds.timeControl(aPlayBackSliderPython, q=True, sound=True)
-        # if activeSound == u'':
-        #     actuveSound = False
 
         ## Check here: http://download.autodesk.com/us/maya/2011help/pymel/generated/functions/pymel.core.windows/pymel.core.windows.headsUpDisplay.html
-        # print "playBlastFile", playBlastFile
         normPB = os.path.normpath(playBlastFile)
         cmds.playblast(format=pbSettings["Format"],
                        sequenceTime=sequenceTime,
@@ -815,11 +574,6 @@ class MayaManager(RootManager, MayaCoreFunctions):
                        )
         ## remove window when pb is donw
         cmds.deleteUI(tempWindow)
-
-        # Get back to the original frame range if the codec is Quick Time
-        # if pbSettings["Format"] == 'qt':
-        #     cmds.playbackOptions(maxTime=maxTime)
-        #     cmds.playbackOptions(animationEndTime=endTime)
 
         if not hudsAsItIs:
             ## remove the custom HUdS
@@ -880,22 +634,12 @@ class MayaManager(RootManager, MayaCoreFunctions):
             cmds.error(msg)
             return -1, msg
 
-        # if os.path.isfile(absSceneFile.replace(os.sep, "/")):
-        #     # cmds.file(absSceneFile, o=True, force=force)
-        #     self._load(absSceneFile, force=True)
-        #     return 0
-        # else:
-        #     msg = "File in Scene Manager database doesnt exist"
-        #     cmds.error(msg)
-        #     return -1, msg
-
     def importBaseScene(self):
         """Imports the scene at cursor position"""
         logger.debug("Func: importBaseScene")
         relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"].replace("\\", "/")
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
-            # cmds.file(absSceneFile, i=True)
             self._import(absSceneFile)
             return 0
         else:
@@ -1058,8 +802,6 @@ class MayaManager(RootManager, MayaCoreFunctions):
                        20210000: "v2021"
                        }
 
-        # currentVersion = pm.versions.current()
-        # currentVersion = cmds.about(api=True)
         currentVersion = self._getVersion()
         try:
             niceVName=versionDict[self._currentSceneInfo["MayaVersion"]]
@@ -1132,23 +874,8 @@ class MayaManager(RootManager, MayaCoreFunctions):
 
     def _inputDir(self):
         """OVERRIDEN METHOD"""
-        # Qt File dialog is preferred because it is faster
         inputDir = QtWidgets.QFileDialog.getExistingDirectory()
         return os.path.normpath(inputDir)
-
-    # def _getTimelineRanges(self):
-    #     # TODO : Make sure the time ranges are INTEGERS
-    #     R_ast = cmds.playbackOptions(q=True, ast=True)
-    #     R_min = cmds.playbackOptions(q=True, min=True)
-    #     R_max = cmds.playbackOptions(q=True, max=True)
-    #     R_aet = cmds.playbackOptions(q=True, aet=True)
-    #     return [R_ast, R_min, R_max, R_aet]
-    #
-    # def _setTimelineRanges(self, rangeList):
-    #     """Sets the timeline ranges [AnimationStart, Min, Max, AnimationEnd]"""
-    #     # TODO : Make sure the time ranges are INTEGERS
-    #     cmds.playbackOptions(ast=rangeList[0], min=rangeList[1], max=rangeList[2], aet=rangeList[3])
-
 
     def _createCallbacks(self, handler, parent):
         logger.debug("Func: _createCallbacks")
@@ -1263,7 +990,6 @@ class MainUI(baseUI):
         self.modify()
 
     def modify(self):
-        # self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "iconMaya.png"))
         self.mIconPixmap = QtGui.QPixmap(":/icons/CSS/rc/iconMaya.png")
         self.managerIcon_label.setPixmap(self.mIconPixmap)
         # idk why this became necessary for houdini..

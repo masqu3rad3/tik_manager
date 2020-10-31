@@ -35,13 +35,13 @@
 # ---------------
 # GET ENVIRONMENT
 # ---------------
-import os, sys
+import os
 import tik_manager._version as _version
 # import _version
 from copy import deepcopy
 import re
 import datetime
-import tik_manager.compatibility as compat
+import tik_manager.core.compatibility as compat
 # import compatibility as compat
 
 
@@ -56,8 +56,8 @@ FORCE_QT5 = False
 # Get Environment and edit the dictionary according to the Environment
 try:
     from maya import OpenMayaUI as omui
-    from tik_manager import Qt
-    from tik_manager.Qt import QtWidgets, QtCore, QtGui
+    from tik_manager.ui import Qt
+    from tik_manager.ui.Qt import QtWidgets, QtCore, QtGui
 
     BoilerDict["Environment"] = "Maya"
     BoilerDict["WindowTitle"] = "Tik Manager Maya v%s" % _version.__version__
@@ -68,7 +68,7 @@ except ImportError:
 try:
     from pymxs import runtime as rt
     from tik_manager import Qt
-    from tik_manager.Qt import QtWidgets, QtCore, QtGui
+    from tik_manager.ui.Qt import QtWidgets, QtCore, QtGui
 
     BoilerDict["Environment"] = "3dsMax"
     BoilerDict["WindowTitle"] = "Tik Manager 3ds Max v%s" % _version.__version__
@@ -79,7 +79,7 @@ except ImportError:
 try:
     import hou
     from tik_manager import Qt
-    from tik_manager.Qt import QtWidgets, QtCore, QtGui
+    from tik_manager.ui.Qt import QtWidgets, QtCore, QtGui
 
     BoilerDict["Environment"] = "Houdini"
     BoilerDict["WindowTitle"] = "Tik Manager Houdini v%s" % _version.__version__
@@ -90,7 +90,7 @@ except ImportError:
 try:
     import nuke
     from tik_manager import Qt
-    from tik_manager.Qt import QtWidgets, QtCore, QtGui
+    from tik_manager.ui.Qt import QtWidgets, QtCore, QtGui
 
     BoilerDict["Environment"] = "Nuke"
     BoilerDict["WindowTitle"] = "Tik Manager Nuke v%s" % _version.__version__
@@ -116,13 +116,12 @@ except ImportError:
 import webbrowser
 
 ## DO NOT REMOVE THIS:
-import tik_manager.iconsSource as icons
 # import iconsSource as icons
 ## DO NOT REMOVE THIS:
 
 import pprint
 
-import tik_manager.ImageViewer as ImageViewer
+import tik_manager.imageviewer.ImageViewer as ImageViewer
 # import ImageViewer
 
 import logging
@@ -196,7 +195,7 @@ class MainUI(QtWidgets.QMainWindow):
         # Set Stylesheet
 
         dirname = os.path.dirname(os.path.abspath(__file__))
-        stylesheetFile = os.path.join(dirname, "CSS", "tikManager.qss")
+        stylesheetFile = os.path.join(dirname, "../CSS", "tikManager.qss")
 
         try:
             with open(stylesheetFile, "r") as fh:

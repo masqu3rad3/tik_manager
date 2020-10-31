@@ -1,11 +1,10 @@
-from tik_manager import assetLibrary
-reload(assetLibrary)
-import pprint
-import time
+from tik_manager.core import asset_library
+
+reload(asset_library)
 pathList = ["E:\\backup\\_CharactersLibrary", "E:\\backup\\_BalikKrakerAssetLibrary", "E:\\backup\\_AssetLibrary", "M:\\Projects\\_CharactersLibrary", "M:\\Projects\\_BalikKrakerAssetLibrary", "M:\\Projects\\_AssetLibrary"]
 
 for path in pathList:
-    lib = assetLibrary.AssetLibrary(path)
+    lib = asset_library.AssetLibrary(path)
     lib.scanAssets()
     for item in lib.assetsList:
         data = lib._getData(item)

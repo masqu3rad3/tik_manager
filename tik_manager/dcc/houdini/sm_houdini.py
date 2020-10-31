@@ -33,62 +33,71 @@
 import os
 os.environ["FORCE_QT5"]="0"
 
-from tik_manager.SmUIRoot import MainUI as baseUI
-from tik_manager.SmRoot import RootManager
-from tik_manager.coreFunctions.coreFunctions_Max import MaxCoreFunctions
-import shutil
+from tik_manager.ui.SmUIRoot import MainUI as baseUI
+from tik_manager.core.sm_root import RootManager
+from tik_manager.dcc.houdini.core_houdini import HoudiniCoreFunctions
 
-# import MaxPlus
-# from MaxPlus import FileManager as fManager
-# from MaxPlus import PathManager as pManager
-from pymxs import runtime as rt
+
+import tik_manager._version as _version
+import shutil
 
 import datetime
 import socket
 import logging
-# from glob import glob
+import hou
+import toolutils
 
-from Qt import QtWidgets, QtCore, QtGui
+import subprocess
+import platform
 
-import tik_manager._version as _version
-
-## DO NOT REMOVE THIS:
-import tik_manager.iconsSource as icons
-## DO NOT REMOVE THIS:
-
+from tik_manager.ui.Qt import QtWidgets, QtCore, QtGui
 
 
 __author__ = "Arda Kutlu"
-__copyright__ = "Copyright 2018, Scene Manager for 3dsMax Projects"
+__copyright__ = "Copyright 2018, Scene Manager for Maya Project"
 __credits__ = []
-__version__ = "2.0.0"
+__version__ = _version.__version__
 __license__ = "GPL"
 __maintainer__ = "Arda Kutlu"
 __email__ = "ardakutlu@gmail.com"
 __status__ = "Development"
 
-SM_Version = "Scene Manager 3ds Max v%s" %_version.__version__
+SM_Version = "Scene Manager Houdini v%s" %_version.__version__
 
 logging.basicConfig()
-logger = logging.getLogger('sm3dsMax')
+logger = logging.getLogger('smMaya')
 logger.setLevel(logging.WARNING)
 
 
-class MaxManager(RootManager, MaxCoreFunctions):
-    def __init__(self):
-        super(MaxManager, self).__init__()
-        self.swName = "3dsMax"
-        self.init_paths(self.swName)
-        # self.backwardcompatibility()  # DO NOT RUN UNTIL RELEASE
-        self.init_database()
 
+class HoudiniManager(RootManager, HoudiniCoreFunctions):
+    def __init__(self):
+        super(HoudiniManager, self).__init__()
+
+        self.swName = "Houdini"
+        self.init_paths(self.swName)
+        self.init_database()
+        if self.currentPlatform == "Windows":
+            self._setEnvVariable("HOUDINI_ACCESS_METHOD", "1")
+        self.setProject(self.projectDir)
 
     def getSceneFile(self):
         """Overriden function"""
         return self._getSceneFile()
 
+    def setProject(self, path):
+        """Sets the project"""
+        logger.debug("Func: setProject")
+        projectsDict = self.loadProjects()
+        if not projectsDict:
+            projectsDict = {self.swName: path}
+        else:
+            projectsDict[self.swName] = path
+        self.saveProjects(projectsDict)
+        self.projectDir = path
+        self._setProject(path)
 
-    def saveBaseScene(self, categoryName, baseName, subProjectIndex=0, makeReference=True, versionNotes="", sceneFormat="max", *args, **kwargs):
+    def saveBaseScene(self, categoryName, baseName, subProjectIndex=0, makeReference=False, versionNotes="", sceneFormat="hip", *args, **kwargs):
         """
         Saves the scene with formatted name and creates a json file for the scene
         Args:
@@ -105,9 +114,10 @@ class MaxManager(RootManager, MaxCoreFunctions):
         Returns: Scene DB Dictionary
 
         """
+        if hou.isApprentice():
+            sceneFormat="hipnc"
+        logger.debug("Func: saveBaseScene")
 
-
-        # fullName = self.userList.keys()[self.userList.values().index(userName)]
         now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
         completeNote = "[%s] on %s\n%s\n" % (self.currentUser, now, versionNotes)
 
@@ -118,7 +128,6 @@ class MaxManager(RootManager, MaxCoreFunctions):
                 msg = ("Base Scene Name is not unique!\nABORTING")
                 self._exception(360, msg)
                 return -1, msg
-
 
         projectPath = self.projectDir
         databaseDir = self._pathsDict["databaseDir"]
@@ -133,18 +142,15 @@ class MaxManager(RootManager, MaxCoreFunctions):
             shotPath = os.path.normpath(os.path.join(subProjectPath, baseName))
             self._folderCheck(shotPath)
 
-
             jsonCategoryPath = os.path.normpath(os.path.join(databaseDir, categoryName))
             self._folderCheck(jsonCategoryPath)
             jsonCategorySubPath = os.path.normpath(os.path.join(jsonCategoryPath, self._subProjectsList[subProjectIndex]))
             self._folderCheck(jsonCategorySubPath)
             jsonFile = os.path.join(jsonCategorySubPath, "{}.json".format(baseName))
 
-
         else:
             shotPath = os.path.normpath(os.path.join(categoryPath, baseName))
             self._folderCheck(shotPath)
-
 
             jsonCategoryPath = os.path.normpath(os.path.join(databaseDir, categoryName))
             self._folderCheck(jsonCategoryPath)
@@ -163,46 +169,40 @@ class MaxManager(RootManager, MaxCoreFunctions):
         sceneName = self.resolveSaveName(nameDict, version)
 
         # sceneName = "{0}_{1}_{2}_v{3}".format(baseName, categoryName, self._usersDict[self.currentUser], str(version).zfill(3))
-
-        sceneFile = os.path.join(shotPath, "{0}.{1}".format(sceneName, sceneFormat))
+        absSceneFile = os.path.join(shotPath, "{0}.{1}".format(sceneName, sceneFormat))
+        # houdini opens the scene with "\" paths but cannot resolve some inside paths. So convert them to "/"
+        absSceneFile = absSceneFile.replace('\\', '/')
         ## relativity update
-        relSceneFile = os.path.relpath(sceneFile, start=projectPath)
+        relSceneFile = os.path.relpath(absSceneFile, start=projectPath)
+        # killTurtle()
 
-        # fManager.Save(sceneFile)
-        self._saveAs(sceneFile)
+        # hou.hipFile.save(file_name=absSceneFile)
+        self._saveAs(absSceneFile)
 
         thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=version)
 
         jsonInfo = {}
 
         if makeReference:
+            # TODO // Find an elegant solution and add MA compatibility. Can be merged with makeReference function in derived class
             referenceName = "{0}_{1}_forReference".format(baseName, categoryName)
             referenceFile = os.path.join(shotPath, "{0}.{1}".format(referenceName, sceneFormat))
             ## relativity update
             relReferenceFile = os.path.relpath(referenceFile, start=projectPath)
-            shutil.copyfile(sceneFile, referenceFile)
+            shutil.copyfile(absSceneFile, referenceFile)
             jsonInfo["ReferenceFile"] = relReferenceFile
             jsonInfo["ReferencedVersion"] = version
         else:
             jsonInfo["ReferenceFile"] = None
             jsonInfo["ReferencedVersion"] = None
 
-        # version serialization:
-        # version, api, sdk = rt.maxversion()
-        versionInfo = self._getVersion()
-        # vInfo = [version, api, sdk]
-        vInfo = [versionInfo[0], versionInfo[1], versionInfo[2]]
-
-        jsonInfo["ID"] = "Sm3dsMaxV02_sceneFile"
-        # jsonInfo["3dsMaxVersion"] = os.path.basename(os.path.split(pManager.GetMaxSysRootDir())[0])
-        jsonInfo["3dsMaxVersion"] = vInfo
+        jsonInfo["ID"] = "SmHoudiniV02_sceneFile"
+        jsonInfo["HoudiniVersion"] = [self._getVersion(), hou.isApprentice()]
         jsonInfo["Name"] = baseName
         jsonInfo["Path"] = os.path.relpath(shotPath, start=projectPath)
         jsonInfo["Category"] = categoryName
         jsonInfo["Creator"] = self.currentUser
         jsonInfo["CreatorHost"] = (socket.gethostname())
-        # jsonInfo["Versions"] = [ # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
-        #     [relSceneFile, completeNote,  self._usersDict[self.currentUser], socket.gethostname(), {}, thumbPath]]
         jsonInfo["Versions"] = [ # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
             {"RelativePath": relSceneFile,
              "Note": completeNote,
@@ -216,10 +216,10 @@ class MaxManager(RootManager, MaxCoreFunctions):
         jsonInfo["SubProject"] = self._subProjectsList[subProjectIndex]
         self._dumpJson(jsonInfo, jsonFile)
         # return jsonInfo
-        self.progressLogger("save", sceneFile)
+        self.progressLogger("save", absSceneFile)
         return [0, ""]
 
-    def saveVersion(self, makeReference=True, versionNotes="", sceneFormat="max", insertTo=None, *args, **kwargs):
+    def saveVersion(self, makeReference=False, versionNotes="", sceneFormat="hip", insertTo=None, *args, **kwargs):
         """
         Saves a version for the predefined scene. The scene json file must be present at the /data/[Category] folder.
         Args:
@@ -232,6 +232,10 @@ class MaxManager(RootManager, MaxCoreFunctions):
         Returns: Scene DB Dictionary
 
         """
+        logger.debug("Func: saveVersion")
+
+        if hou.isApprentice():
+            sceneFormat="hipnc"
 
         now = datetime.datetime.now().strftime("%d/%m/%Y-%H:%M")
         completeNote = "[%s] on %s\n%s\n" % (self.currentUser, now, versionNotes)
@@ -266,9 +270,6 @@ class MaxManager(RootManager, MaxCoreFunctions):
         if sceneInfo: ## getCurrentJson returns None if the resolved json path is missing
             jsonFile = sceneInfo["jsonFile"]
             jsonInfo = self._loadJson(jsonFile)
-            if jsonInfo == -1:
-                msg = "Database file is corrupted"
-                return -1, msg
 
             currentVersion = len(jsonInfo["Versions"]) + 1
             ## Naming Dictionary
@@ -285,13 +286,24 @@ class MaxManager(RootManager, MaxCoreFunctions):
             #                                       str(currentVersion).zfill(3))
             relSceneFile = os.path.join(jsonInfo["Path"], "{0}.{1}".format(sceneName, sceneFormat))
 
-            sceneFile = os.path.join(sceneInfo["projectPath"], relSceneFile)
+            absSceneFile = os.path.join(sceneInfo["projectPath"], relSceneFile)
+            # print "absSceneFile", absSceneFile
+            # houdini opens the scene with "\" paths but cannot resolve some inside paths. So convert them to "/"
+            absSceneFile = absSceneFile.replace('\\', '/')
 
-            self._saveAs(sceneFile)
+            # killTurtle()
+            # hou.hipFile.save(file_name=absSceneFile)
+            self._saveAs(absSceneFile)
 
             thumbPath = self.createThumbnail(dbPath=jsonFile, versionInt=currentVersion)
 
+
+            # thumbPath = ""
+
             jsonInfo["Versions"].append(
+                # PATH => Notes => User Initials => Machine ID => Playblast => Thumbnail
+                # [relSceneFile, completeNote, self._usersDict[self.currentUser], (socket.gethostname()), {}, thumbPath])
+            # TODO : ref => Dict
                 {"RelativePath": relSceneFile,
                  "Note": completeNote,
                  "User": self._usersDict[self.currentUser],
@@ -307,237 +319,149 @@ class MaxManager(RootManager, MaxCoreFunctions):
                 relReferenceFile = os.path.join(jsonInfo["Path"], "{0}.{1}".format(referenceName, sceneFormat))
                 referenceFile = os.path.join(sceneInfo["projectPath"], relReferenceFile)
 
-                shutil.copyfile(sceneFile, referenceFile)
+                shutil.copyfile(absSceneFile, referenceFile)
                 jsonInfo["ReferenceFile"] = relReferenceFile
                 jsonInfo["ReferencedVersion"] = currentVersion
             self._dumpJson(jsonInfo, jsonFile)
         else:
             msg = "This is not a base scene (Json file cannot be found)"
-            logger.warning(msg)
             return -1, msg
-        self.progressLogger("save", sceneFile)
+        self.progressLogger("save", absSceneFile)
         return jsonInfo
 
 
     def createPreview(self, *args, **kwargs):
         """Creates a Playblast preview from currently open scene"""
-        # rt = pymxs.runtime
+        logger.debug("Func: createPreview")
+
+
+
+        #
+        pbSettings = self.loadPBSettings()
+        #
+        extension = "jpg"
 
         openSceneInfo = self.getOpenSceneInfo()
         if not openSceneInfo:
             msg = "This is not a base scene. Scene must be saved as a base scene before playblasting."
-            # raise Exception([360, msg])
             self._exception(360, msg)
             return
-            # logger.warning(msg)
-            # return -1, msg
 
-        # get view info
-        viewportType = rt.viewport.getType()
-        if str(viewportType) == "view_camera":
-            currentCam = str(rt.getActiveCamera().name)
+        selection = self._getSelection()
+        hou.clearAllSelected()
+        jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
+        #
+
+        scene_view = toolutils.sceneViewer()
+        viewport = scene_view.curViewport()
+        cam = viewport.camera()
+        if cam:
+            currentCam = cam.name()
         else:
-            currentCam = str(viewportType)
+            currentCam = 'persp'
 
-        validName = currentCam.replace("|", "__").replace(" ", "_")
-        extension = "avi"
+        flip_options = scene_view.flipbookSettings().stash()
 
-        # versionName = rt.getFilenameFile(rt.maxFileName) #
-        versionName = rt.maxFilePath + rt.maxFileName # abs path of the filename with extension
-        relVersionName = os.path.relpath(versionName, start=openSceneInfo["projectPath"]) # relative path of filename with ext
 
-        if not os.path.isdir(os.path.normpath(openSceneInfo["previewPath"])):
-            os.makedirs(os.path.normpath(openSceneInfo["previewPath"]))
-        playBlastFile = os.path.join(openSceneInfo["previewPath"], "{0}_{1}_PB.{2}".format(self.niceName(versionName), validName, extension))
-        relPlayBlastFile = os.path.relpath(playBlastFile, start=openSceneInfo["projectPath"])
 
+        versionName = self.getSceneFile()
+        relVersionName = os.path.relpath(versionName, start=openSceneInfo["projectPath"])
+        playBlastDir = os.path.join(openSceneInfo["previewPath"], openSceneInfo["version"])
+        self._folderCheck(playBlastDir)
+        playBlastFile = os.path.join(playBlastDir, "{0}_{1}_PB_$F4.{2}".format(self.niceName(versionName), currentCam, extension))
+        # relPlayBlastFile = os.path.relpath(playBlastFile, start=openSceneInfo["projectPath"])
+        #
         if os.path.isfile(playBlastFile):
             try:
                 os.remove(playBlastFile)
             except WindowsError:
                 msg = "The file is open somewhere else"
-                logger.warning(msg)
-                return -1, msg
+                self._exception(202, msg)
+                return
 
-        jsonInfo = self._loadJson(openSceneInfo["jsonFile"])
-        if jsonInfo == -1:
-            msg = "Database file is corrupted"
-            return -1, msg
-        # returns 0,"" if everything is ok, -1,msg if error
+        flip_options.output(playBlastFile)
 
-        pbSettings = self.loadPBSettings()
-        originalValues = {"width": rt.renderWidth,
-                        "height": rt.renderHeight
-                        }
-
-        originalSelection = rt.execute("selection as array")
-
-
-
-        # change the render settings temporarily
-        rt.renderWidth = pbSettings["Resolution"][0]
-        rt.renderHeight = pbSettings["Resolution"][1]
-
-        if pbSettings["PolygonOnly"]:
-            dspGeometry = True
-            dspShapes = False
-            dspLights = False
-            dspCameras = False
-            dspHelpers = False
-            dspParticles = False
-            dspBones = False
-        else:
-            dspGeometry = True
-            dspShapes = True
-            dspLights = True
-            dspCameras = True
-            dspHelpers = True
-            dspParticles = True
-            dspBones = True
-
-        dspGrid = pbSettings["ShowGrid"]
-        dspFrameNums = pbSettings["ShowFrameNumber"]
-        percentSize = pbSettings["Percent"]
-
-        if pbSettings["WireOnShaded"]:
-            rndLevel = rt.execute("#litwireframe")
-        else:
-            rndLevel = rt.execute("#smoothhighlights")
-
-        if pbSettings["ClearSelection"]:
-            rt.clearSelection()
-
-
-        # find the path of where the avi file be created
-        # if rt.maxFilePath:
-        #     previewname = rt.getFilenameFile(rt.maxFileName)
-        # else:
-        #     previewname = "Untitled"
-
-        # sourceClip = rt.GetDir(rt.execute("#preview")) + "\_scene.avi"
-
-
-        # if os.path.isfile(sourceClip):
-        #     try:
-        #         os.remove(sourceClip)
-        #     except WindowsError:
-        #         msg = "Cannot continue creating preview.\n Close '%s' and try again" %sourceClip
-        #         logger.error(msg)
-        #         return -1, msg
-
-        test = rt.createPreview(filename=playBlastFile, percentSize=percentSize, dspGeometry=dspGeometry,
-                         dspShapes=dspShapes, dspLights=dspLights,
-                         dspCameras=dspCameras, dspHelpers=dspHelpers,
-                         dspParticles=dspParticles, dspBones=dspBones,
-                         dspGrid=dspGrid, dspFrameNums=dspFrameNums,
-                         rndLevel=rndLevel)
-
-        # prior to version 2020, filename flag is not working
-        if not os.path.isfile(playBlastFile):
-        # find the path of where the avi file be created
-            if rt.maxFilePath:
-                previewname = rt.getFilenameFile(rt.maxFileName)
-            else:
-                previewname = "Untitled"
-
-            sourceClip = rt.GetDir(rt.execute("#preview")) + "\_scene.avi"
-            shutil.copy(sourceClip, playBlastFile)
-
-            # if os.path.isfile(sourceClip):
-            #     try:
-            #         os.remove(sourceClip)
-            #     except WindowsError:
-            #         msg = "Cannot continue creating preview.\n Close '%s' and try again" %sourceClip
-            #         logger.error(msg)
-            #         return -1, msg
-
-        # return
-        # return the render width and height to original:
-        rt.renderWidth = originalValues["width"]
-        rt.renderHeight = originalValues["height"]
-
-        rt.select(originalSelection)
-
-        # shutil.copy(sourceClip, playBlastFile)
+        ranges = self._getTimelineRanges()
+        flip_options.frameRange((ranges[1], ranges[2]))
+        flip_options.outputToMPlay(not pbSettings["ConvertMP4"])
+        flip_options.useResolution(True)
+        flip_options.resolution((pbSettings["Resolution"][0], pbSettings["Resolution"][1]))
+        scene_view.flipbook(viewport, flip_options)
 
         if pbSettings["ConvertMP4"]:
-            convertedFile = self._convertPreview(playBlastFile, overwrite=True, deleteAfter=False, crf=pbSettings["CrfValue"])
+            nonVarPBfile = playBlastFile.replace("_$F4", "_0001")
+            convertedFile = self._convertPreview(nonVarPBfile, overwrite=True, deleteAfter=True, crf=pbSettings["CrfValue"])
             relPlayBlastFile = os.path.relpath(convertedFile, start=openSceneInfo["projectPath"])
-            # os.startfile(convertedFile)
+            os.startfile(convertedFile)
         else:
             relPlayBlastFile = os.path.relpath(playBlastFile, start=openSceneInfo["projectPath"])
 
-        ## find this version in the json data
 
+        ## find this version in the json data
         for version in jsonInfo["Versions"]:
             if relVersionName == version["RelativePath"]:
+                # replace the houdini variable with first frame
+                nonVarPBfile = relPlayBlastFile.replace("_$F4", "_0001")
+                # version["Preview"][currentCam] = nonVarPBfile
                 version["Preview"][currentCam] = relPlayBlastFile
 
         self._dumpJson(jsonInfo, openSceneInfo["jsonFile"])
-        return 0, ""
+        # return 0, ""
 
+
+    def playPreview(self, camera):
+        """OVERRIDEN - Runs the playblast at cursor position"""
+
+        absPath = os.path.join(self.projectDir, self._currentPreviewsDict[camera])
+
+        if self.currentPlatform == "Windows":
+            ext = os.path.splitext(absPath)[1]
+            if ext == ".mp4":
+                os.startfile(absPath)
+                return
+            try:
+                subprocess.check_call(["mplay", absPath], shell=True)
+                # subprocess.check_call(["mplay", "-viewer", absPath], shell=True)
+            except WindowsError:
+                return -1, ["Cannot Find Playblast", "Playblast File is missing", "Do you want to remove it from the Database?"]
+        # TODO something to play the file in linux
+        return
 
     def loadBaseScene(self, force=False):
         """Loads the scene at cursor position"""
+        logger.debug("Func: loadBaseScene")
+        # TODO : ref => Dict
         relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"]
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
-            # fManager.Open(absSceneFile)
-            self._load(absSceneFile)
+            # houdini opens the scene with "\" paths but cannot resolve some inside paths. So convert them to "/"
+            absSceneFile = absSceneFile.replace('\\', '/')
+            # hou.hipFile.load(absSceneFile, suppress_save_prompt=force, ignore_load_warnings=False)
+            self._load(absSceneFile, force=force)
             self.progressLogger("load", absSceneFile)
             return 0
         else:
             msg = "File in Scene Manager database doesnt exist"
-            logger.error(msg)
+            # cmds.error(msg)
             return -1, msg
 
     def importBaseScene(self):
         """Imports the scene at cursor position"""
+        logger.debug("Func: importBaseScene")
+        # TODO : ref => Dict
         relSceneFile = self._currentSceneInfo["Versions"][self._currentVersionIndex-1]["RelativePath"]
         absSceneFile = os.path.join(self.projectDir, relSceneFile)
         if os.path.isfile(absSceneFile):
-            # fManager.Merge(absSceneFile, mergeAll=True, selectMerged=True)
-            # fManager.Merge(absSceneFile)
+            absSceneFile = absSceneFile.replace('\\', '/')
             self._import(absSceneFile)
-            # cmds.file(absSceneFile, i=True)
             return 0
         else:
             msg = "File in Scene Manager database doesnt exist"
-            logger.error(msg)
             return -1, msg
 
-    def referenceBaseScene(self, set_ranges="ask"):
-        """Creates reference from the scene at cursor position"""
-
-        projectPath = self.projectDir
-        relReferenceFile = self._currentSceneInfo["ReferenceFile"]
-
-
-        if relReferenceFile:
-            referenceFile = os.path.join(projectPath, relReferenceFile)
-
-            # software specific
-            # Xrefobjs = rt.getMAXFileObjectNames(referenceFile)
-            # rt.xrefs.addNewXRefObject(referenceFile, Xrefobjs)
-            self._reference(referenceFile)
-            if set_ranges == "ask":
-                try:
-                    ranges = self._currentSceneInfo["Versions"][self._currentSceneInfo["ReferencedVersion"]-1]["Ranges"]
-                    q = self._question("Do You want to set the Time ranges same with the reference?")
-                    if q:
-                        self._setTimelineRanges(ranges)
-                except KeyError:
-                    pass
-            elif set_ranges == "yes":
-                try:
-                    ranges = self._currentSceneInfo["Versions"][self._currentSceneInfo["ReferencedVersion"]-1]["Ranges"]
-                    self._setTimelineRanges(ranges)
-                except KeyError:
-                    pass
-            else:
-                pass
-        else:
-            logger.warning("There is no reference set for this scene. Nothing changed")
+    def referenceBaseScene(self):
+        """Not implemented for Houdini"""
+        logger.debug("Func: referenceBaseScene")
 
 
     def createThumbnail(self, useCursorPosition=False, dbPath = None, versionInt = None):
@@ -547,13 +471,16 @@ class MaxManager(RootManager, MaxCoreFunctions):
         :param version: (integer) if defined this version number will be used instead currently open scene version.
         :return: (String) Relative path of the thumbnail file
         """
+
+        logger.debug("Func: createThumbnail")
         projectPath = self.projectDir
         if useCursorPosition:
             versionInt = self.currentVersionIndex
             dbPath = self.currentDatabasePath
         else:
             if not dbPath or not versionInt:
-                logger.warning (("Both dbPath and version must be defined if useCursorPosition=False"))
+                msg = "Both dbPath and version must be defined if useCursorPosition=False"
+                raise Exception ([360, msg])
 
         versionStr = "v%s" % (str(versionInt).zfill(3))
         dbDir, shotNameWithExt = os.path.split(dbPath)
@@ -562,45 +489,26 @@ class MaxManager(RootManager, MaxCoreFunctions):
         thumbPath = "{0}_{1}_thumb.jpg".format(os.path.join(dbDir, shotName), versionStr)
         relThumbPath = os.path.relpath(thumbPath, projectPath)
 
-        ## Software specific section
-        # rt = pymxs.runtime
-        oWidth = 221
-        oHeight = 124
+        # create a thumbnail using playblast
+        thumbDir = os.path.split(thumbPath)[0]
+        if os.path.exists(thumbDir):
 
-        grab = rt.gw.getViewportDib()
+            # frame = hou.frame()
+            frame = self._getCurrentFrame()
+            cur_desktop = hou.ui.curDesktop()
+            scene = cur_desktop.paneTabOfType(hou.paneTabType.SceneViewer)
+            flip_options = scene.flipbookSettings().stash()
+            flip_options.frameRange((frame, frame))
+            flip_options.outputToMPlay(False)
+            flip_options.output(thumbPath)
+            flip_options.useResolution(True)
+            flip_options.resolution((221, 124))
+            scene.flipbook(scene.curViewport(), flip_options)
 
-        ratio = float(grab.width)/float(grab.height)
-
-        if ratio <= 1.782:
-            new_width = oHeight * ratio
-            new_height = oHeight
         else:
-            new_width = oWidth
-            new_height = oWidth / ratio
-
-        resizeFrame = rt.bitmap(new_width, new_height, color = rt.color(0,0,0))
-        rt.copy(grab, resizeFrame)
-        thumbFrame = rt.bitmap(oWidth, oHeight, color = rt.color(0,0,0))
-        xOffset = (oWidth - resizeFrame.width) /2
-        yOffset = (oHeight - resizeFrame.height) /2
-
-        rt.pasteBitmap(resizeFrame, thumbFrame, rt.point2(0, 0), rt.point2(xOffset, yOffset))
-
-        # rt.display(thumbFrame)
-
-        thumbFrame.filename = thumbPath
-        rt.save(thumbFrame)
-        rt.close(thumbFrame)
-
-
-
-        # img = rt.gw.getViewportDib()
-        # img.fileName = thumbPath
-        # rt.save(img)
-        # rt.close(img)
-
+            print ("something went wrong with thumbnail. Skipping thumbnail")
+            return ""
         return relThumbPath
-
 
     def replaceThumbnail(self, filePath=None ):
         """
@@ -612,111 +520,99 @@ class MaxManager(RootManager, MaxCoreFunctions):
             filePath = self.createThumbnail(useCursorPosition=True)
 
         self._currentSceneInfo["Versions"][self.currentVersionIndex-1]["Thumb"]=filePath
-
-
-        # try:
-        #     self._currentSceneInfo["Versions"][self.currentVersionIndex-1][5]=filePath
-        # except IndexError: # if this is an older file without thumbnail
-        #     self._currentSceneInfo["Versions"][self.currentVersionIndex-1].append(filePath)
-
         self._dumpJson(self._currentSceneInfo, self.currentDatabasePath)
 
     def compareVersions(self):
+
+        # // TODO : Find a BETTER way to compare versions.
+        # // TODO : You may question each individual scen file for version insteas of base scene database
+
         """Compares the versions of current session and database version at cursor position"""
-        # return 0, ""
-        if not self._currentSceneInfo["3dsMaxVersion"]:
-            logger.warning("Cursor is not on a base scene")
-            return
-        versionDict = {11000: "v2009",
-                       12000: "v2010",
-                       13000: "v2011",
-                       14000: "v2012",
-                       15000: "v2013",
-                       16000: "v2014",
-                       17000: "v2015",
-                       18000: "v2016",
-                       19000: "v2017",
-                       20000: "v2018"
-                       }
+        logger.debug("Func: compareVersions")
 
-        #version serialization:
-        # version, api, sdk = rt.maxversion()
-        versionInfo = self._getVersion()
-        # currentVersion = [version, api, sdk]
-        currentVersion = [versionInfo[0], versionInfo[1], versionInfo[2]]
-        logger.debug("currentversion %s" %currentVersion)
-        baseSceneVersion = self._currentSceneInfo["3dsMaxVersion"]
-        logger.debug("baseVersion %s" % baseSceneVersion)
+        # version serialization:
+        vTup = self._getVersion()
+        vIsApprentice = hou.isApprentice()
+        currentVersion = float("%s.%s%s" % (vTup[0], vTup[1], vTup[2]))
 
-        try:
-            niceVName = versionDict[currentVersion[0]]
-        except KeyError:
-            niceVName = str(currentVersion[0])
+        dbVersionAsTuple = self._currentSceneInfo["HoudiniVersion"][0]
+        dbIsApprentice = self._currentSceneInfo["HoudiniVersion"][1]
+        baseSceneVersion = float("%s.%s%s" % (dbVersionAsTuple[0], dbVersionAsTuple[1], dbVersionAsTuple[2]))
+
+        messageList = []
+
+        if vIsApprentice and not dbIsApprentice:
+            msg = "Base Scene Created with Commercial License. Current Houdini session is Apprentice. Are you sure you want to continue?"
+            messageList.append(msg)
+
+        if not vIsApprentice and dbIsApprentice:
+            msg = "Base Scene Created with Apprentice License. Current Houdini session is Commercial. Are you sure you want to continue?"
+            messageList.append(msg)
 
         if currentVersion == baseSceneVersion:
-            msg = ""
-            return 0, msg
+            pass
 
-        if currentVersion[0] > baseSceneVersion[0]: # max version compare
-            message = "Base Scene is created with a LOWER 3ds Max version ({0}). Are you sure you want to continue?".format(niceVName)
+        if currentVersion < baseSceneVersion: # version compare
+            message = "Base Scene is created with a HIGHER Houdini version ({0}). Are you sure you want to continue?".format(baseSceneVersion)
+            messageList.append(message)
+
+        if currentVersion > baseSceneVersion:
+            message = "Base Scene is created with a LOWER Houdini version ({0}). Are you sure you want to continue?".format(baseSceneVersion)
+            messageList.append(message)
+
+        # old or corrupted databasek       return 0, ""  # skip
+        message=""
+        for x in messageList:
+            message = message + "\n" + str(x)
+
+        if messageList == []:
+            return 0, message
+        else:
             return -1, message
-
-        if currentVersion[0] < baseSceneVersion[0]:
-            message = "Base Scene is created with a HIGHER 3ds Max version ({0}). Are you sure you want to continue?".format(niceVName)
-            return -1, message
-
-        if currentVersion[1] > baseSceneVersion[1]: # max Api
-            message = "Base Scene is created with a LOWER Build ({0}). Are you sure you want to continue?".format(niceVName)
-            return -1, message
-
-        if currentVersion[1] < baseSceneVersion[1]:
-            message = "Base Scene is created with a HIGHER Build ({0}). Are you sure you want to continue?".format(niceVName)
-            return -1, message
-
-        # old or corrupted database
-        return 0, ""  # skip
 
 
     def isSceneModified(self):
         """Checks the currently open scene saved or not"""
         return self._isSceneModified()
 
+
     def saveSimple(self):
         """Save the currently open file"""
-        # fManager.Save()
+        logger.debug("Func: saveSimple")
         self._save()
         self.progressLogger("save", self.getSceneFile())
 
     def getFormatsAndCodecs(self):
         """Returns the codecs which can be used in current workstation"""
-        # TODO : Write Get Formats and Codecs for 3ds max (if applicable)
-        logger.warning ("getFormatsAndCodecs Function not yet implemented")
-
+        pass
 
     def preSaveChecklist(self):
         """Checks the scene for inconsistencies"""
         checklist = []
+
         fpsValue_setting = self.getFPS()
-        fpsValue_current = rt.framerate
-        if fpsValue_setting is not fpsValue_current:
+        fpsValue_current = int(hou.fps())
+        if int(fpsValue_setting) is not fpsValue_current:
             msg = "FPS values are not matching with the project settings.\n Project FPS => {0}\n scene FPS => {1}\nDo you want to continue?".format(fpsValue_setting, fpsValue_current)
             checklist.append(msg)
 
         return checklist
 
-    def _exception(self, code, msg, *args, **kwargs):
+    def _exception(self, code, msg):
         """Overriden Function"""
 
-        rt.messageBox(msg, title=self.errorCodeDict[code])
+        hou.ui.displayMessage(msg, title=self.errorCodeDict[code])
         if (200 >= code < 210):
             raise Exception(code, msg)
 
-    def _question(self, msg, *args, **kwargs):
-        state = rt.queryBox( msg, title='Manager Question')
+    def _question(self, msg):
+        """OVERRIDEN METHOD"""
+        state = hou.ui.displayConfirmation(msg, title='Manager Question')
         return state
 
-    def _info(self, msg, *args, **kwargs):
-        rt.messageBox(msg, title='Info')
+    def _info(self, msg):
+        """OVERRIDEN METHOD"""
+        hou.ui.displayMessage(msg)
 
     def _inputDir(self):
         """OVERRIDEN METHOD"""
@@ -724,28 +620,31 @@ class MaxManager(RootManager, MaxCoreFunctions):
         inputDir = QtWidgets.QFileDialog.getExistingDirectory()
         return os.path.normpath(inputDir)
 
-    # def _getTimelineRanges(self):
-    #     R_ast = int(rt.animationRange.start)
-    #     R_min = int(rt.animationRange.start)
-    #     R_max = int(rt.animationRange.end)
-    #     R_aet = int(rt.animationRange.end)
-    #     return [R_ast, R_min, R_max, R_aet]
-    #
-    # def _setTimelineRanges(self, rangeList):
-    #     """Sets the timeline ranges [AnimationStart, Min, Max, AnimationEnd]"""
-    #     rt.animationRange = rt.interval(rangeList[0], rangeList[-1])
-
     def _createCallbacks(self, handler):
-        logger.warning("_createCallbacks Function yet implemented")
+        pass
+
 
     def _killCallbacks(self, callbackIDList):
-        logger.warning("_killCallbacks Function not yet implemented")
+        pass
+
+    def _checkRequirements(self):
+        """OVERRIDEN METHOD"""
+        logger.debug("Func: _checkRequirements")
+
+        ## check platform
+        currentOs = platform.system()
+        if currentOs != "Linux" and currentOs != "Windows":
+            self._exception(210, "Operating System is not supported\nCurrently only Windows and Linux supported")
+            return -1, ["OS Error", "Operating System is not supported",
+                        "Scene Manager only supports Windows and Linux Operating Systems"]
+
+        return None, None
 
 class MainUI(baseUI):
     def __init__(self):
         super(MainUI, self).__init__()
 
-        self.manager = MaxManager()
+        self.manager = HoudiniManager()
         problem, msg = self.manager._checkRequirements()
         if problem:
             self.close()
@@ -756,34 +655,21 @@ class MainUI(baseUI):
         self.extraMenus()
         self.modify()
 
+
     def extraMenus(self):
-        self.scenes_rcItem_0.setText('Merge Scene')
+        pass
 
     def modify(self):
-        # self.mIconPixmap = QtGui.QPixmap(os.path.join(self.manager.getIconsDir(), "iconMax.png"))
-        self.mIconPixmap = QtGui.QPixmap(":/icons/CSS/rc/iconMax.png")
+        # make sure load mode is checked and hidden
+        self.load_radioButton.setChecked(True)
+        self.load_radioButton.setVisible(False)
+        self.reference_radioButton.setChecked(False)
+        self.reference_radioButton.setVisible(False)
+        self.makeReference_pushButton.setVisible(False)
+        # idk why this became necessary for houdini..
+        self.category_tabWidget.setMaximumSize(QtCore.QSize(16777215, 30))
+
+        self.mIconPixmap = QtGui.QPixmap(":/icons/CSS/rc/iconHoudini.png")
         self.managerIcon_label.setPixmap(self.mIconPixmap)
-
-    def onModeChange(self):
-        """OVERRIDEN METHOD - This method is overriden to make the color changing compatible with 3ds max"""
-        self._vEnableDisable()
-
-        if self.load_radioButton.isChecked():
-            self.loadScene_pushButton.setText("Load Scene")
-            self.scenes_listWidget.setProperty("reference_pyside", False)
-            self.multi_reference_cb.setHidden(True)
-            self.scenes_listWidget.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-            self.scenes_rcItem_6.setVisible(True)
-        else:
-            self.loadScene_pushButton.setText("Reference Scene")
-            self.scenes_listWidget.setProperty("reference_pyside", True)
-            self.multi_reference_cb.setHidden(False)
-            self.scenes_listWidget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-            self.scenes_rcItem_6.setVisible(False)
-
-        self.scenes_listWidget.setStyleSheet("")
-        self.populateBaseScenes()
-
-
 
 

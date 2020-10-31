@@ -4,26 +4,26 @@
 
 try:
     from maya import OpenMayaUI as omui
-    from tik_manager.Qt import QtCore
+    from tik_manager.ui.Qt import QtCore
 except ImportError:
     pass
 
 try:
     from pymxs import runtime as rt
-    from tik_manager.Qt import QtCore
+    from tik_manager.ui.Qt import QtCore
 except ImportError:
     pass
 
 try:
     import hou
-    from tik_manager.Qt import QtCore
+    from tik_manager.ui.Qt import QtCore
 
 except ImportError:
     pass
 
 try:
     import nuke
-    from tik_manager.Qt import QtCore
+    from tik_manager.ui.Qt import QtCore
 except ImportError:
     pass
 

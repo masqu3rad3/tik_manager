@@ -46,17 +46,13 @@ import re
 # import ctypes
 import socket
 
-# import urllib
 try:
     from urllib.request import urlopen
 except:
     from urllib import urlopen ## python 2.7 compatibility
-# import tik_manager.pyseq as pyseq
 from tik_manager import pyseq
-# import tik_manager._version as _version
 from tik_manager import _version
-import tik_manager.compatibility as compat
-# import compatibility as compat
+import tik_manager.core.compatibility as compat
 
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Tik Manager Root Functions"
@@ -145,7 +141,7 @@ class RootManager(object):
         self._pathsDict["sceneManagerDefaults"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "sceneManagerDefaults.json"))
         self._pathsDict["tikConventions"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "tikConventions.json"))
         self._pathsDict["adminPass"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "adminPass.psw"))
-        self._pathsDict["iconsDir"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "CSS", "rc")
+        self._pathsDict["iconsDir"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../CSS", "rc")
         ## FFMPEG conversion paths
         self._pathsDict["conversionLUTFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "conversionLUT.json"))
 
@@ -1423,8 +1419,6 @@ User(s): {7}
         if len(curCategories) == 1:
             # Last category cannot be removed
             msg = "Last Category cannot be removed"
-            # logger.warning(msg)
-            # raise Exception([360, msg])
             self._exception(360, msg)
             return
 
@@ -1435,8 +1429,6 @@ User(s): {7}
                 if baseScenes:
                     # if it in not empty abort
                     msg = "Category is not empty. Aborting..."
-                    # logger.warning(msg)
-                    # raise Exception([360, msg])
                     self._exception(360, msg)
                     return
 
@@ -2266,7 +2258,7 @@ User(s): {7}
     def checkFFMPEG(self):
         platform = self.getPlatform()
         if platform == "Windows":
-            ffmpeg = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ffmpeg.exe")
+            ffmpeg = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../ffmpeg.exe")
             if not os.path.isfile(ffmpeg):
                 return False
             else:

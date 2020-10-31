@@ -27,7 +27,8 @@ tik_imageViewer = IvMaya.MainUI().show()
 # V2 COMMANDS:
 # ------------
 
-from tik_manager import SmMaya as tm
+from tik_manager.dcc.maya import sm_maya as tm
+
 reload(tm)
 
 11
@@ -38,7 +39,8 @@ import sys
 sys.path.append("C:\\Users\\kutlu\\Documents\\maya\\scripts\\tik_manager")
 sys.path.append("C:\\Users\\Arda\\Documents\\maya\\scripts\\tik_manager")
 sys.path.append("C:\\Users\\user\\Documents\\maya\\scripts\\dev\\tik_manager")
-from tik_manager import Sm3dsMax as man
+from tik_manager.dcc.max import sm_max as man
+
 reload(man)
 r=man.MainUI().show()
 
@@ -49,8 +51,9 @@ r=man.MainUI().show()
 import sys
 sys.path.append("C:\\Users\\user\\Documents\\maya\\scripts\\dev\\tik_manager")
 
-from tik_manager import SmHoudini
-reload(SmHoudini)
+from tik_manager.dcc.houdini import sm_houdini
 
-r = SmHoudini.MainUI()
+reload(sm_houdini)
+
+r = sm_houdini.MainUI()
 r.show()

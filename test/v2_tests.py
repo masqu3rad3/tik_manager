@@ -3,7 +3,8 @@
 # maya.standalone.initialize()
 # from tik_manager import SmMaya
 
-from tik_manager import SmMaya as tm
+from tik_manager.dcc.maya import sm_maya as tm
+
 reload(tm)
 
 # initializer

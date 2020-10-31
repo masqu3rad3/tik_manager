@@ -48,7 +48,7 @@ import sys
 # import tik_manager._version as _version
 from tik_manager import _version
 # import tik_manager.compatibility as compat
-from tik_manager import compatibility as compat
+from tik_manager.core import compatibility as compat
 
 BoilerDict = {"Environment": "Standalone",
               "MainWindow": None,
@@ -57,9 +57,9 @@ BoilerDict = {"Environment": "Standalone",
 try:
     from maya import OpenMayaUI as omui
     import maya.cmds as cmds
-    from tik_manager import Qt
-    from tik_manager.Qt import QtWidgets, QtCore, QtGui
-    from tik_manager.coreFunctions.coreFunctions_Maya import MayaCoreFunctions as CoreFunctions
+    from tik_manager.ui import Qt
+    from tik_manager.ui.Qt import QtWidgets, QtCore, QtGui
+    from tik_manager.dcc.maya.core_maya import MayaCoreFunctions as CoreFunctions
     BoilerDict["Environment"] = "Maya"
     BoilerDict["WindowTitle"] = "Image Viewer Maya v%s" % _version.__version__
 except ImportError:
@@ -68,8 +68,8 @@ except ImportError:
 try:
     from pymxs import runtime as rt
     from tik_manager import Qt
-    from tik_manager.Qt import QtWidgets, QtCore, QtGui
-    from tik_manager.coreFunctions.coreFunctions_Max import MaxCoreFunctions as CoreFunctions
+    from tik_manager.ui.Qt import QtWidgets, QtCore, QtGui
+    from tik_manager.dcc.max.core_max import MaxCoreFunctions as CoreFunctions
     BoilerDict["Environment"] = "3dsMax"
     BoilerDict["WindowTitle"] = "Image Viewer 3ds Max v%s" % _version.__version__
 
@@ -79,8 +79,8 @@ except ImportError:
 try:
     import hou
     from tik_manager import Qt
-    from tik_manager.Qt import QtWidgets, QtCore, QtGui
-    from tik_manager.coreFunctions.coreFunctions_Houdini import HoudiniCoreFunctions as CoreFunctions
+    from tik_manager.ui.Qt import QtWidgets, QtCore, QtGui
+    from tik_manager.dcc.houdini.core_houdini import HoudiniCoreFunctions as CoreFunctions
     BoilerDict["Environment"] = "Houdini"
     BoilerDict["WindowTitle"] = "Image Viewer Houdini v%s" % _version.__version__
 except ImportError:
@@ -89,8 +89,8 @@ except ImportError:
 try:
     import nuke
     from tik_manager import Qt
-    from tik_manager.Qt import QtWidgets, QtCore, QtGui
-    from tik_manager.coreFunctions.coreFunctions_Nuke import NukeCoreFunctions as CoreFunctions
+    from tik_manager.ui.Qt import QtWidgets, QtCore, QtGui
+    from tik_manager.dcc.nuke.core_nuke import NukeCoreFunctions as CoreFunctions
     BoilerDict["Environment"] = "Nuke"
     BoilerDict["WindowTitle"] = "Image Viewer Nuke v%s" % _version.__version__
 except ImportError:
@@ -109,7 +109,7 @@ try:
     from PyQt5 import QtWidgets, QtCore, QtGui
     FORCE_QT5 = True
     if bool(os.getenv("PS_APP")):  # if the request is coming from the SmPhotoshop
-        from tik_manager.coreFunctions.coreFunctions_PS import PsCoreFunctions as CoreFunctions
+        from tik_manager.dcc.photoshop.core_photoshop import PsCoreFunctions as CoreFunctions
         BoilerDict["Environment"] = "Photoshop"  # technically it is still standalone...
         BoilerDict["WindowTitle"] = "Image Viewer Photoshop v%s" % _version.__version__
     else:
@@ -122,7 +122,6 @@ except ImportError:
 
 
 ## DO NOT REMOVE THIS:
-import tik_manager.iconsSource as icons
 # import iconsSource as icons
 ## DO NOT REMOVE THIS:
 
@@ -149,7 +148,7 @@ import tik_manager.pyseq as seq
 
 import datetime
 from shutil import copyfile
-from tik_manager.SmRoot import RootManager
+from tik_manager.core.sm_root import RootManager
 # from SmRoot import RootManager
 
 
@@ -265,7 +264,7 @@ class MainUI(QtWidgets.QMainWindow):
 
         # Set Stylesheet
         dirname = os.path.dirname(os.path.abspath(__file__))
-        stylesheetFile = os.path.join(dirname, "CSS", "tikManager.qss")
+        stylesheetFile = os.path.join(dirname, "../CSS", "tikManager.qss")
 
         with open(stylesheetFile, "r") as fh:
             self.setStyleSheet(fh.read())
@@ -994,7 +993,7 @@ class SeqCopyProgress(QtWidgets.QWidget, RootManager):
         self.currentPlatform = self.getPlatform()
 
         dirname = os.path.dirname(os.path.abspath(__file__))
-        stylesheetFile = os.path.join(dirname, "CSS", "tikManager.qss")
+        stylesheetFile = os.path.join(dirname, "../CSS", "tikManager.qss")
 
         with open(stylesheetFile, "r") as fh:
             self.setStyleSheet(fh.read())
@@ -1180,7 +1179,7 @@ if __name__ == '__main__':
     # os.environ["FORCE_QT5"] = "True"
     app = QtWidgets.QApplication(sys.argv)
     selfLoc = os.path.dirname(os.path.abspath(__file__))
-    stylesheetFile = os.path.join(selfLoc, "CSS", "tikManager.qss")
+    stylesheetFile = os.path.join(selfLoc, "../CSS", "tikManager.qss")
 
     with open(stylesheetFile, "r") as fh:
         app.setStyleSheet(fh.read())

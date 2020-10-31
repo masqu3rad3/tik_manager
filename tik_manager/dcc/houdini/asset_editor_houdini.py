@@ -35,7 +35,7 @@ import os
 import hou
 # from shutil import copyfile
 
-from tik_manager.coreFunctions.coreFunctions_Houdini import HoudiniCoreFunctions
+from tik_manager.dcc.houdini.core_houdini import HoudiniCoreFunctions
 
 
 class AssetEditorHoudini(HoudiniCoreFunctions):
@@ -72,44 +72,8 @@ class AssetEditorHoudini(HoudiniCoreFunctions):
             else:
                 return
 
-        # if hou.isApprentice():
-        #     sceneFormat="hipnc"
-
-        # if self._isSceneModified():
-        #     msg = "Current scene is modified. It must be saved before continue.\nDo you wish to save?"
-        #     state = hou.ui.displayConfirmation(msg, title='Save?')
-        #     if not state:
-        #         return
-
-
         originalPath = self._getSceneFile()
 
-
-        # if sceneFormat == "mb":
-        #     ext = u'.mb'
-        #     saveFormat = "mayaBinary"
-        # else:
-        #     ext = u'.ma'
-        #     saveFormat = "mayaAscii"
-        #
-        #
-        # dump, origExt = os.path.splitext(originalPath)
-        #
-        # if len(cmds.ls(type="unknown")) > 0 and ext != origExt:
-        #     msg = "There are unknown nodes in the scene. Cannot proceed with %s extension.\n\nDo you want to continue with %s?" %(ext, origExt)
-        #     state = cmds.confirmDialog(title='Cannot Continue', message=msg, button=['Ok', 'Cancel'])
-        #     # cmds.warning("There are unknown nodes in the scene. Cannot proceed with %s extension. Do you want to proceed with %s?" %(ext, origExt))
-        #     if state == "Ok":
-        #         if origExt == u'.mb':
-        #             ext = u'.mb'
-        #             saveFormat = "mayaBinary"
-        #         else:
-        #             ext = u'.ma'
-        #             saveFormat = "mayaAscii"
-        #
-        #     elif state == "Cancel":
-        #         return
-        #
         assetDirectory = os.path.join(self.directory, assetName)
         #
         assetAbsPath = os.path.join(assetDirectory, "%s.%s" %(assetName, sceneFormat))
@@ -127,15 +91,6 @@ class AssetEditorHoudini(HoudiniCoreFunctions):
         if not os.path.exists(assetDirectory):
             os.mkdir(assetDirectory)
 
-        # # GET TEXTURES
-        # # ------------
-        #
-        # possibleFileHolders = cmds.listRelatives(selection, ad=True, type=["mesh", "nurbsSurface"], fullPath=True)
-        # allFileNodes = self._getFileNodes(possibleFileHolders)
-        #
-        # textureDatabase = [x for x in self._buildPathDatabase(allFileNodes, assetDirectory)]
-        #
-        # self._copyTextures(textureDatabase)
         #
         # CREATE PREVIEWS
         # ---------------
@@ -143,16 +98,7 @@ class AssetEditorHoudini(HoudiniCoreFunctions):
         #
         # # CREATE UV SNAPSHOTS
         # # ----------------
-        # if exportUV:
-        #     self._uvSnaps(assetName)
-        #
-        # SAVE SOURCE
-        # -----------
-        # cmds.file(assetAbsPath, type=saveFormat, exportSelected=True, force=True)
-        # p = selection[0].parent()
-        # p.saveChildrenToFile(selection,"",assetAbsPath)
-        # p.saveChildrenToFile(selection,"",assetAbsPath)
-        # p.saveItemsToFile(selection, assetAbsPath)
+
         node = hou.node('/obj')
         subnet = node.collapseIntoSubnet(selection)
         hda_node = subnet.createDigitalAsset("TM_%s" %assetName, hda_file_name=assetAbsPath, description="TM_%s" %assetName, min_num_inputs=0, max_num_inputs=0)
@@ -203,11 +149,6 @@ class AssetEditorHoudini(HoudiniCoreFunctions):
         else:
             abcName = "N/A"
 
-        # # NUMERIC DATA
-        # # ------------
-        # cmds.select(hi=True)
-        # polyCount = cmds.polyEvaluate(f=True)
-        # tiangleCount = cmds.polyEvaluate(t=True)
         #
         # DATABASE
         # --------
@@ -221,24 +162,14 @@ class AssetEditorHoudini(HoudiniCoreFunctions):
         dataDict['abcPath'] = abcName
         dataDict['sourcePath'] = os.path.basename(assetAbsPath)
         dataDict['thumbPath'] = os.path.basename(thumbPath)
-        # dataDict['thumbPath'] = ""
         dataDict['ssPath'] = os.path.basename(ssPath)
-        # dataDict['ssPath'] = ""
         dataDict['swPath'] = os.path.basename(swPath)
-        # dataDict['swPath'] = ""
-        # dataDict['textureFiles'] = [x["Texture"] for x in textureDatabase]
         dataDict['textureFiles'] = ""
-        # dataDict['Faces/Triangles'] = ("%s/%s" % (str(polyCount), str(tiangleCount)))
         dataDict['Faces/Triangles'] = ""
         dataDict['origin'] = originalPath
         dataDict['notes'] = notes
 
         self._setData(assetName, dataDict)
-
-        # cmds.select(d=True)
-        # self._returnOriginal(textureDatabase)
-
-        # self.scanAssets() # scanning issued at populate function on ui class
 
         hou.ui.displayMessage("Asset Created Successfully")
 
@@ -301,65 +232,6 @@ class AssetEditorHoudini(HoudiniCoreFunctions):
         scene.flipbook(scene.curViewport(), flip_options)
 
         tmplset.setShadedMode(originalDisplayMode)
-        #
-        #
-        # ## CREATE A CUSTOM PANEL WITH DESIRED SETTINGS
-        #
-        # try:
-        #     currentCam = cmds.modelPanel(cmds.getPanel(wf=True), q=True, cam=True)
-        #     vRenderer = cmds.modelEditor(cmds.getPanel(wf=True), q=True, rnm=True)
-        # except RuntimeError:
-        #     currentCam = u'persp'
-        #     vRenderer = 'vp2Renderer'
-        #
-        # tempWindow = cmds.window(title="AssetLibrary_SS",
-        #                        widthHeight=(ssResolution * 1.1, ssResolution * 1.1),
-        #                        tlc=(0, 0))
-        #
-        # cmds.paneLayout()
-        # pbPanel = cmds.modelPanel(camera=currentCam)
-        # cmds.showWindow(tempWindow)
-        # cmds.setFocus(pbPanel)
-        # cmds.modelEditor(pbPanel, edit=True, rendererName=vRenderer)
-        #
-        # ########################################
-        #
-        #
-        # cmds.modelEditor(pbPanel, e=1, allObjects=1)
-        # cmds.modelEditor(pbPanel, e=1, da="smoothShaded")
-        # cmds.modelEditor(pbPanel, e=1, displayTextures=1)
-        # cmds.modelEditor(pbPanel, e=1, wireframeOnShaded=0)
-        # if viewFit:
-        #     cmds.viewFit()
-        #
-        # if selectionOnly:
-        #     cmds.isolateSelect(pbPanel, state=1)
-        #     cmds.isolateSelect(pbPanel, addSelected=True)
-        # # temporarily deselect
-        # cmds.select(d=True)
-        #
-        # cmds.setAttr("defaultRenderGlobals.imageFormat", 8)  # This is the value for jpeg
-        #
-        # frame = cmds.currentTime(query=True)
-        # # thumb
-        # cmds.playblast(completeFilename=thumbPath, forceOverwrite=True, format='image', width=200, height=200,
-        #              showOrnaments=False, frame=[frame], viewer=False)
-        #
-        # # screenshot
-        # cmds.playblast(completeFilename=SSpath, forceOverwrite=True, format='image', width=1600, height=1600,
-        #              showOrnaments=False, frame=[frame], viewer=False)
-        #
-        # # Wireframe
-        # cmds.modelEditor(pbPanel, e=1, displayTextures=0)
-        # cmds.modelEditor(pbPanel, e=1, wireframeOnShaded=1)
-        # cmds.playblast(completeFilename=WFpath, forceOverwrite=True, format='image', width=1600, height=1600,
-        #              showOrnaments=False, frame=[frame], viewer=False)
-        #
-        # ## remove window when pb is donw
-        # cmds.deleteUI(tempWindow)
-        #
-        # # print panel
-        # cmds.select(selection)
         return thumbPath, SSpath, WFpath
 
     def replaceWithCurrentView(self, assetName):
@@ -386,8 +258,6 @@ class AssetEditorHoudini(HoudiniCoreFunctions):
 
     def _mergeAsset(self, assetName):
         hou.ui.displayMessage("This Function is not available yet", title="Not yet available")
-
-
 
     def uniqueList(self, fList):
         keys = {}

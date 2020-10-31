@@ -39,7 +39,7 @@ from shutil import copyfile
 # import json
 # import logging
 # from SmMaya import MayaCoreFunctions
-from tik_manager.coreFunctions.coreFunctions_Maya import MayaCoreFunctions
+from tik_manager.dcc.maya.core_maya import MayaCoreFunctions
 
 
 class AssetEditorMaya(MayaCoreFunctions):
@@ -135,17 +135,10 @@ class AssetEditorMaya(MayaCoreFunctions):
         # -----------
         cmds.file(assetAbsPath, type=saveFormat, exportSelected=True, force=True)
 
-        # if selectionOnly:
-        #     cmds.file(assetPath, type=saveFormat, exportSelected=True)
-        # else:
-        #     cmds.file(rename=assetPath)
-        #     cmds.file(save=True, type=saveFormat)
-
         # EXPORT OBJ
         # ----------
 
         if exportOBJ:
-            # objSettings = self.exportSettings["objExportMaya"]
             objFilePath = os.path.join(assetDirectory, "%s.obj" %assetName)
             if self._exportObj(objFilePath, exportSettings=self.exportSettings):
                 objName = "{0}.obj".format(assetName)
@@ -158,9 +151,7 @@ class AssetEditorMaya(MayaCoreFunctions):
         # EXPORT FBX
         # ----------
         if exportFBX:
-            # fbxSettings = self.exportSettings["fbxExportMaya"]
             fbxFilePath = os.path.join(assetDirectory, "%s.fbx" % assetName)
-            # frame = cmds.currentTime(query=True)
             frame = self._getCurrentFrame()
 
             if self._exportFbx(fbxFilePath, exportSettings=self.exportSettings, timeRange=[frame, frame]):
@@ -175,9 +166,7 @@ class AssetEditorMaya(MayaCoreFunctions):
         # --------------
 
         if exportABC:
-            # abcSettings = self.exportSettings["alembicExportMaya"]
             abcFilePath = os.path.join(assetDirectory, "%s.abc" % assetName)
-            # frame = cmds.currentTime(query=True)
             frame = self._getCurrentFrame()
 
             if self._exportAlembic(abcFilePath, exportSettings=self.exportSettings, timeRange=[frame, frame]):
@@ -218,8 +207,6 @@ class AssetEditorMaya(MayaCoreFunctions):
         cmds.select(d=True)
         self._returnOriginal(textureDatabase)
 
-        # self.scanAssets() # scanning issued at populate function on ui class
-
         cmds.confirmDialog(title="Success", message="Asset Created Successfully", button=['Ok'])
 
     def _createThumbnail(self, assetName, selectionOnly=True, viewFit=True):
@@ -258,13 +245,6 @@ class AssetEditorMaya(MayaCoreFunctions):
         cmds.modelEditor(pbPanel, edit=True, rendererName=vRenderer)
 
         ########################################
-
-        # make sure the viewport display is suitable
-        # panel = cmds.getPanel(wf=True)
-        #
-        # if cmds.getPanel(to=panel) != "modelPanel":
-        #     panel = cmds.getPanel(wl="Persp View")
-
 
         cmds.modelEditor(pbPanel, e=1, allObjects=1)
         cmds.modelEditor(pbPanel, e=1, da="smoothShaded")
@@ -463,154 +443,6 @@ class AssetEditorMaya(MayaCoreFunctions):
 
                     copyfile(path, newPath)
                     cmds.setAttr("%s.fileTextureName" %file, newPath, type="string")
-
-    # def importAsset(self, assetName):
-    #     assetData = self._getData(assetName)
-    #     if not self._checkVersionMatch(assetData["version"]):
-    #         return
-    #     absSourcePath = os.path.join(self.directory, assetName, assetData["sourcePath"])
-    #
-    #     cmds.file(absSourcePath, i=True)
-    #
-    # def importObj(self, assetName):
-    #     assetData = self._getData(assetName)
-    #     absObjPath = os.path.join(self.directory, assetName, assetData["objPath"])
-    #     if os.path.isfile(absObjPath):
-    #         # cmds.file(absObjPath, i=True)
-    #         self._importObj(absObjPath, self.importSettings)
-    #
-    # def importAbc(self, assetName):
-    #     assetData = self._getData(assetName)
-    #     absAbcPath = os.path.join(self.directory, assetName, assetData["abcPath"])
-    #     if os.path.isfile(absAbcPath):
-    #         # cmds.AbcImport(absAbcPath)
-    #         self._importAlembic(absAbcPath, self.importSettings)
-    #
-    # def importFbx(self, assetName):
-    #     assetData = self._getData(assetName)
-    #     absFbxPath = os.path.join(self.directory, assetName, assetData["fbxPath"])
-    #     if os.path.isfile(absFbxPath):
-    #         # cmds.file(absFbxPath, i=True)
-    #         self._importFbx(absFbxPath, self.importSettings)
-
-    # def exportObj(self, exportPath, exportSettings, exportSelected=True):
-    #     if not cmds.pluginInfo('objExport', l=True, q=True):
-    #         try:
-    #             cmds.loadPlugin('objExport')
-    #         except:
-    #             msg = "Wavefront(Obj) Export Plugin cannot be initialized. Skipping Obj export"
-    #             cmds.confirmDialog(title='Plugin Error', message=msg)
-    #             return False
-    #
-    #     opFlag = "groups={0}; ptgroups={1}; materials={2}; smoothing={3}; normals={4}".format(
-    #         exportSettings["SmoothingGroups"],
-    #         exportSettings["SmoothingGroups"],
-    #         0,
-    #         exportSettings["SmoothingGroups"],
-    #         exportSettings["Normals"]
-    #     )
-    #     try:
-    #         cmds.file(exportPath, pr=True, force=True, typ="OBJexport", es=exportSelected, op=opFlag)
-    #         return True
-    #     except:
-    #         msg = "Cannot export OBJ for unknown reason. Skipping OBJ export"
-    #         cmds.confirmDialog(title='Unknown Error', message=msg)
-    #         return False
-    #
-    # def exportAlembic(self, exportPath, exportSettings, exportSelected=True):
-    #     if not cmds.pluginInfo('AbcExport.mll', l=True, q=True):
-    #         try:
-    #             cmds.loadPlugin('AbcExport.mll')
-    #         except:
-    #             msg = "Alembic Export Plugin cannot be initialized. Skipping Alembic export"
-    #             cmds.confirmDialog(title='Plugin Error', message=msg)
-    #             return False
-    #
-    #     if exportSelected:
-    #         root = ""
-    #         selection = cmds.ls(sl=True)
-    #         for x in selection:
-    #             root = "%s-root %s " % (root, x)
-    #         root = root[:-1]
-    #     else:
-    #         root = ""
-    #
-    #     file = "-file %s" %exportPath
-    #     dataFormat = "-dataFormat '%s'" %exportSettings["ArchiveType"]
-    #     frameRange = "-frameRange %s %s" %(exportSettings["StartFrame"], exportSettings["EndFrame"])
-    #     noNormal = "" if exportSettings["Normals"] else "-noNormals"
-    #     renderableOnly  = "" if exportSettings["Hidden"] else "-renderableOnly"
-    #     step = "-step %s" %float(exportSettings["SamplesPerFrame"])
-    #     # selection = "-selection" if exportSelected else ""
-    #     selection = ""
-    #     uv = "-uvWrite" if exportSettings["UVs"] else ""
-    #     visibility = "-writeVisibility" if exportSettings["Visibility"] else ""
-    #
-    #     command = "{0} {1} {3} {4} {5} {6} {7} {8} {9}".format(file,
-    #                                                            dataFormat,
-    #                                                            frameRange,
-    #                                                            noNormal,
-    #                                                            renderableOnly,
-    #                                                            step,
-    #                                                            selection,
-    #                                                            uv,
-    #                                                            visibility,
-    #                                                            root)
-    #
-    #     # print command
-    #     #
-    #     # command = "-frameRange 1 1 -uvWrite -worldSpace {0} -file {1}".format(root, exportPath)
-    #
-    #     try:
-    #         cmds.AbcExport(j=command)
-    #         return True
-    #     except:
-    #         msg = "Cannot export Alembic for unknown reason. Skipping Alembic export"
-    #         cmds.confirmDialog(title='Unknown Error', message=msg)
-    #         return False
-    #
-    #
-    # def exportFbx(self, exportPath, exportSettings, exportSelected=True):
-    #     if not cmds.pluginInfo('fbxmaya', l=True, q=True):
-    #         try:
-    #             cmds.loadPlugin('fbxmaya')
-    #         except:
-    #             msg = "FBX Export Plugin cannot be initialized. Skipping FBX export"
-    #             cmds.confirmDialog(title='Plugin Error', message=msg)
-    #             return False
-    #
-    #     opFlag = ""
-    #     for item in exportSettings.items():
-    #         if type(item[1]) == bool:
-    #             opFlag += "%s=%s; " % (item[0], int(item[1]))
-    #         elif type(item[1]) == str:
-    #             opFlag += "%s='%s'; " % (item[0], item[1])
-    #         else:
-    #             opFlag += "%s=%s; " % (item[0], item[1])
-    #     opFlag = opFlag[:-2]
-    #
-    #     try:
-    #         cmds.file(exportPath, force=True, op=opFlag, typ="FBX export", pr=True, es=exportSelected, pmt=False)
-    #         return True
-    #     except:
-    #         msg = "Cannot export FBX for unknown reason. Skipping FBX export"
-    #         cmds.confirmDialog(title='Unknown Error', message=msg)
-    #         return False
-
-
-    # def loadAsset(self, assetName):
-    #     assetData = self._getData(assetName)
-    #     absSourcePath = os.path.join(self.directory, assetName, assetData["sourcePath"])
-    #     isSceneModified = cmds.file(q=True, modified=True)
-    #     if isSceneModified:
-    #         state = cmds.confirmDialog(title='Scene Modified', message="Save Changes to", button=['Yes', 'No'])
-    #         if state == "Yes":
-    #             cmds.file(save=True)
-    #         elif state == "No":
-    #             pass
-    #
-    #     if os.path.isfile(absSourcePath):
-    #         cmds.file(absSourcePath, o=True, force=True)
 
     def uniqueList(self, fList):
         keys = {}
