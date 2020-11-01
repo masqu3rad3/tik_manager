@@ -376,7 +376,7 @@ class StandaloneManager(RootManager):
         self._pathsDict["adminPass"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "adminPass.psw"))
         # self._pathsDict["exportSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "exportSettings.json"))
         # self._pathsDict["importSettingsFile"] = os.path.normpath(os.path.join(self._pathsDict["sharedSettingsDir"], "importSettings.json"))
-        self._pathsDict["iconsDir"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "CSS", "rc")
+        self._pathsDict["iconsDir"] = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../CSS", "rc")
 
 
     def init_database(self):
@@ -754,7 +754,7 @@ class MainUI(baseUI):
 if __name__ == '__main__':
     selfLoc = os.path.dirname(os.path.abspath(__file__))
     app = QtWidgets.QApplication(sys.argv)
-    stylesheetFile = os.path.join(selfLoc, "CSS", "tikManager.qss")
+    stylesheetFile = os.path.join(selfLoc, "../../CSS", "tikManager.qss")
     if os.path.isfile(stylesheetFile):
         with open(stylesheetFile, "r") as fh:
             app.setStyleSheet(fh.read())

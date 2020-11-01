@@ -33,7 +33,7 @@
 import os
 os.environ["FORCE_QT5"]="0"
 
-from tik_manager.ui.SmUIRoot import MainUI as baseUI
+from tik_manager.ui.sm_ui import MainUI as baseUI
 from tik_manager.core.sm_root import RootManager
 from tik_manager.dcc.max.core_max import MaxCoreFunctions
 import shutil
@@ -47,7 +47,7 @@ import logging
 
 from Qt import QtWidgets, QtGui
 
-import tik_manager._version as _version
+import tik_manager.core._version as _version
 
 __author__ = "Arda Kutlu"
 __copyright__ = "Copyright 2018, Scene Manager for 3dsMax Projects"
@@ -58,7 +58,7 @@ __maintainer__ = "Arda Kutlu"
 __email__ = "ardakutlu@gmail.com"
 __status__ = "Development"
 
-SM_Version = "Scene Manager 3ds Max v%s" %_version.__version__
+SM_Version = "Scene Manager 3ds Max v%s" % _version.__version__
 
 logging.basicConfig()
 logger = logging.getLogger('sm3dsMax')

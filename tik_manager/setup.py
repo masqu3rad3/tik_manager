@@ -4,7 +4,7 @@ import sys, getopt
 import os
 import shutil
 import psutil
-import tik_manager._version as _version
+import tik_manager.core._version as _version
 import json
 try: import _winreg as reg
 except ModuleNotFoundError: import winreg as reg

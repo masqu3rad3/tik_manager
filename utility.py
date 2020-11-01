@@ -1,14 +1,11 @@
 # for auto compilation and clean-up purposes
 import sys, os
-import py_compile
 # from shutil import copyfile, rmtree
 import shutil
 import subprocess
-import tik_manager._version as versionInfo
+import tik_manager.core._version as versionInfo
 import tarfile
 import ftplib
-import datetime
-import socket, io
 import configparser
 import json
 import docutils.core

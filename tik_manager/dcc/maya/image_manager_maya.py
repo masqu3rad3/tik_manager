@@ -38,7 +38,7 @@ Double Clicking on warnings open up the related dialog.
 """
 
 
-import tik_manager._version as _version
+import tik_manager.core._version as _version
 # import pymel.core as pm
 import maya.cmds as cmds
 import os
@@ -70,7 +70,7 @@ __maintainer__ = "Arda Kutlu"
 __email__ = "ardakutlu@gmail.com"
 __status__ = "Development"
 
-windowName = "Image Manager v%s" %_version.__version__
+windowName = "Image Manager v%s" % _version.__version__
 
 logging.basicConfig()
 logger = logging.getLogger('imMaya')

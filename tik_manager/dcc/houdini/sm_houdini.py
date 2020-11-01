@@ -33,12 +33,12 @@
 import os
 os.environ["FORCE_QT5"]="0"
 
-from tik_manager.ui.SmUIRoot import MainUI as baseUI
+from tik_manager.ui.sm_ui import MainUI as baseUI
 from tik_manager.core.sm_root import RootManager
 from tik_manager.dcc.houdini.core_houdini import HoudiniCoreFunctions
 
 
-import tik_manager._version as _version
+import tik_manager.core._version as _version
 import shutil
 
 import datetime
@@ -62,7 +62,7 @@ __maintainer__ = "Arda Kutlu"
 __email__ = "ardakutlu@gmail.com"
 __status__ = "Development"
 
-SM_Version = "Scene Manager Houdini v%s" %_version.__version__
+SM_Version = "Scene Manager Houdini v%s" % _version.__version__
 
 logging.basicConfig()
 logger = logging.getLogger('smMaya')

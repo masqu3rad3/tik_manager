@@ -36,7 +36,7 @@ os.environ["FORCE_QT5"]="0"
 # DELETE
 # ------
 
-from tik_manager.ui.SmUIRoot import MainUI as baseUI
+from tik_manager.ui.sm_ui import MainUI as baseUI
 from tik_manager.core.sm_root import RootManager
 from tik_manager.dcc.maya.core_maya import MayaCoreFunctions
 
@@ -48,7 +48,7 @@ import socket
 import logging
 from glob import glob
 
-import tik_manager.dcc.maya.im_maya as ImMaya
+import tik_manager.dcc.maya.image_manager_maya as ImMaya
 
 from tik_manager.ui.Qt import QtWidgets, QtGui
 

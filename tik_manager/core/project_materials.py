@@ -35,7 +35,7 @@
 # ---------------
 # GET ENVIRONMENT
 # ---------------
-import tik_manager._version as _version
+import tik_manager.core._version as _version
 import subprocess
 
 BoilerDict = {"Environment": "Standalone",

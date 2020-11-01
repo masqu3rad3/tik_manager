@@ -44,7 +44,7 @@ class AssetEditor(object):
 # ---------------
 # GET ENVIRONMENT
 # ---------------
-import tik_manager._version as _version
+import tik_manager.core._version as _version
 import tik_manager.core.compatibility as compat
 
 BoilerDict = {"Environment": "Standalone",
@@ -92,7 +92,7 @@ except ImportError:
 try:
     import MaxPlus
     from tik_manager import Qt
-    from tik_manger.Qt import QtWidgets, QtCore, QtGui
+    from tik_manager.ui.Qt import QtWidgets, QtCore, QtGui
     from assetEditor3dsMax import AssetEditor3dsMax as AssetEditor
     BoilerDict["Environment"] = "3dsMax"
     BoilerDict["WindowTitle"] = "Asset Library 3ds Max v%s" % _version.__version__
@@ -102,8 +102,8 @@ except ImportError:
 
 try:
     import hou
-    from tik_manger import Qt
-    from tik_manger.Qt import QtWidgets, QtCore, QtGui
+    from tik_manager import Qt
+    from tik_manager.ui.Qt import QtWidgets, QtCore, QtGui
     from assetEditorHoudini import AssetEditorHoudini as AssetEditor
     BoilerDict["Environment"] = "Houdini"
     BoilerDict["WindowTitle"] = "Asset Library Houdini v%s" % _version.__version__
@@ -113,8 +113,8 @@ except ImportError:
 
 try:
     import nuke
-    from tik_manger import Qt
-    from tik_manger.Qt import QtWidgets, QtCore, QtGui
+    from tik_manager import Qt
+    from tik_manager.ui.Qt import QtWidgets, QtCore, QtGui
     BoilerDict["Environment"] = "Nuke"
     BoilerDict["WindowTitle"] = "Asset Library Nuke v%s" % _version.__version__
 except ImportError:

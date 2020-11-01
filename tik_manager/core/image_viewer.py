@@ -46,9 +46,8 @@ import sys
 # GET ENVIRONMENT
 # ---------------
 # import tik_manager._version as _version
-from tik_manager import _version
 # import tik_manager.compatibility as compat
-from tik_manager.core import compatibility as compat
+from tik_manager.core import compatibility as compat, _version
 
 BoilerDict = {"Environment": "Standalone",
               "MainWindow": None,

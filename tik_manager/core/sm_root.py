@@ -35,7 +35,6 @@ import subprocess
 import datetime
 import os
 import logging
-# import pprint
 import hashlib
 
 import shutil
@@ -43,7 +42,6 @@ from glob import glob
 import json
 import filecmp
 import re
-# import ctypes
 import socket
 
 try:
@@ -51,7 +49,7 @@ try:
 except:
     from urllib import urlopen ## python 2.7 compatibility
 from tik_manager import pyseq
-from tik_manager import _version
+from tik_manager.core import _version
 import tik_manager.core.compatibility as compat
 
 __author__ = "Arda Kutlu"
@@ -63,7 +61,7 @@ __email__ = "ardakutlu@gmail.com"
 __status__ = "Development"
 
 logging.basicConfig()
-logger = logging.getLogger('smRoot')
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 
 
@@ -2234,7 +2232,7 @@ User(s): {7}
 
         print(current_version, downloadPath, whatsNewPath)
 
-        majorV, minorV, patch = map(lambda x: int(x) ,_version.__version__.split("."))
+        majorV, minorV, patch = map(lambda x: int(x), _version.__version__.split("."))
 
         if majorV_remote > majorV:
             vMsg = "New major version!\nTik Manager v{0} is now available".format(current_version)
