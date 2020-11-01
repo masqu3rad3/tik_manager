@@ -8,9 +8,10 @@ ENV_DATA = get_environment_data()
 
 # import Qt module depending on the DCC
 from importlib import import_module
-QtWidgets = import_module("%s.QtWidgets" % ENV_DATA["qt_module"])
-QtCore = import_module("%s.QtCore" % ENV_DATA["qt_module"])
-QtGui = import_module("%s.QtGui" % ENV_DATA["qt_module"])
+if ENV_DATA["dcc"] == "standalone" or ENV_DATA["dcc"] == "photoshop":
+    from PyQt5 import QtWidgets, QtCore, QtGui
+else:
+    from tik_manager.ui.Qt import QtWidgets, QtCore, QtGui
 
 FORCE_QT5 = True if ENV_DATA["dcc"] == "standalone" or ENV_DATA["dcc"] == "photoshop" else False
 
@@ -18,7 +19,16 @@ FORCE_QT5 = True if ENV_DATA["dcc"] == "standalone" or ENV_DATA["dcc"] == "photo
 
 class SettingsUI(object):
     def __init__(self):
-        super(SettingsUI, self).__init__()
+        # super(SettingsUI, self).__init__()
+
+        dirname = os.path.dirname(os.path.abspath(__file__))
+        stylesheetFile = os.path.join(dirname, "../CSS", "tikManager.qss")
+
+        try:
+            with open(stylesheetFile, "r") as fh:
+                self.setStyleSheet(fh.read())
+        except IOError:
+            pass
 
     def settingsUI(self):
         self.allSettingsDict = Settings()
@@ -267,7 +277,7 @@ class SettingsUI(object):
                 self.allSettingsDict.add("categories_%s" % niceName, categoryData, filePath)
         else:
             currentCategories = self.manager.loadCategories()
-            self.allSettingsDict.add("categories_%s" % self.manager.swName, currentCategories,
+            self.allSettingsDict.add("categories_%s" % self.manager.dcc, currentCategories,
                                      self.manager._pathsDict["categoriesFile"])
 
         self._categoriesContent()

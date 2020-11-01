@@ -38,7 +38,7 @@ class AssetEditor(object):
         super(AssetEditor, self).__init__()
         pass
 
-    def getSwName(self):
+    def get_dcc(self):
         return ""
 
 # ---------------
@@ -201,8 +201,8 @@ class AssetLibrary(AssetEditor, RootManager):
 
         self.assetsList=[]
         self._pathsDict={}
-        self.swName = self.getSwName()
-        self.init_paths(self.swName)
+        self.dcc = self.get_dcc()
+        self.init_paths(self.dcc)
         self.init_database()
 
         # print self.getProjectDir()
@@ -229,7 +229,7 @@ class AssetLibrary(AssetEditor, RootManager):
         if self._pathsDict["sharedSettingsDir"] == -1:
             self._exception(201, "Cannot Continue Without Common Database")
             return -1
-        if self.swName:
+        if self.dcc:
             _softwarePathsDict = self.getSoftwarePaths()
 
             self._pathsDict["projectDir"] = self.getProjectDir()
@@ -787,7 +787,7 @@ class LibraryTab(QtWidgets.QWidget):
 
         self.library = AssetLibrary(directory)
 
-        if not self.library.swName:
+        if not self.library.dcc:
             self.currentProject = ""
         else:
             self.currentProject = self.library.projectDir

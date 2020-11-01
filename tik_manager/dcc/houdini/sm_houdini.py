@@ -74,8 +74,8 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
     def __init__(self):
         super(HoudiniManager, self).__init__()
 
-        self.swName = "Houdini"
-        self.init_paths(self.swName)
+        self.dcc = "Houdini"
+        self.init_paths(self.dcc)
         self.init_database()
         if self.currentPlatform == "Windows":
             self._setEnvVariable("HOUDINI_ACCESS_METHOD", "1")
@@ -90,9 +90,9 @@ class HoudiniManager(RootManager, HoudiniCoreFunctions):
         logger.debug("Func: setProject")
         projectsDict = self.loadProjects()
         if not projectsDict:
-            projectsDict = {self.swName: path}
+            projectsDict = {self.dcc: path}
         else:
-            projectsDict[self.swName] = path
+            projectsDict[self.dcc] = path
         self.saveProjects(projectsDict)
         self.projectDir = path
         self._setProject(path)

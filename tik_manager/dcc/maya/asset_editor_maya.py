@@ -48,7 +48,7 @@ class AssetEditorMaya(MayaCoreFunctions):
         self.directory=""
 
 
-    def getSwName(self):
+    def get_dcc(self):
         return "Maya"
 
     def saveAsset(self, assetName, exportUV=True, exportOBJ=True, exportFBX=True, exportABC=True, selectionOnly=True, sceneFormat="mb", notes="N/A", **info):

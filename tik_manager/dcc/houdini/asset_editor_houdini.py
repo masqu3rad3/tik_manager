@@ -43,7 +43,7 @@ class AssetEditorHoudini(HoudiniCoreFunctions):
         super(AssetEditorHoudini, self).__init__()
         self.directory=""
 
-    def getSwName(self):
+    def get_dcc(self):
         return "Houdini"
 
     def _load(self, filePath, *args, **kwargs):

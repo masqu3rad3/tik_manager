@@ -93,8 +93,8 @@ class ImageManager(RootManager, MayaCoreFunctions):
     def __init__(self):
         super(ImageManager, self).__init__()
 
-        self.swName = "Maya"
-        self.init_paths(self.swName)
+        self.dcc = "Maya"
+        self.init_paths(self.dcc)
         self.init_database()
 
         self.sceneInfo = self.getOpenSceneInfo()

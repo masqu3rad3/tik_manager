@@ -206,15 +206,15 @@ class RootManager(object):
 
         ## If there is no database, create one with current project and return
         if not projectsDict:
-            projectsDict = {self.swName: currentProject}
+            projectsDict = {self.dcc: currentProject}
             self.saveProjects(projectsDict)
             return currentProject
         # get the project defined in the database file
         try:
-            dbProject = projectsDict[self.swName]
+            dbProject = projectsDict[self.dcc]
         except KeyError:
             # if the software is not in the database create the key, dump db and return
-            projectsDict[self.swName] = currentProject
+            projectsDict[self.dcc] = currentProject
             self.saveProjects(projectsDict)
             return currentProject
 
@@ -223,12 +223,12 @@ class RootManager(object):
             return currentProject
 
         # make an exception for maya. Maya returns the currently set project always
-        if self.swName == "Maya":
-            projectsDict[self.swName] = currentProject
+        if self.dcc == "Maya":
+            projectsDict[self.dcc] = currentProject
             self.saveProjects(projectsDict)
             return currentProject
         else:
-            projectsDict[self.swName] = dbProject
+            projectsDict[self.dcc] = dbProject
             self.saveProjects(projectsDict)
             return dbProject
 
@@ -238,9 +238,9 @@ class RootManager(object):
         path = path.replace("file:", "\\")
         projectsDict = self.loadProjects()
         if not projectsDict:
-            projectsDict = {self.swName: path}
+            projectsDict = {self.dcc: path}
         else:
-            projectsDict[self.swName] = path
+            projectsDict[self.dcc] = path
         self.saveProjects(projectsDict)
         self.projectDir = path
 
@@ -249,7 +249,7 @@ class RootManager(object):
         logger.debug("Func: getSoftwarePaths")
         softwareDatabaseFile = os.path.normpath(os.path.join(self.getSharedSettingsDir(), "softwareDatabase.json"))
         softwareDB = self._loadJson(softwareDatabaseFile)
-        return softwareDB[self.swName]
+        return softwareDB[self.dcc]
 
     def getSceneFile(self):
         """This method must be overridden to return the full scene path ('' for unsaved) of current scene"""
@@ -1986,12 +1986,12 @@ User(s): {7}
             self._dumpJson(defaultNameConventions, self._pathsDict["tikConventions"])
             return defaultNameConventions
 
-    def loadCategories(self, filePath=None, swName=None):
+    def loadCategories(self, filePath=None, dcc=None):
         """Load Categories from file"""
         logger.debug("Func: loadCategories")
 
-        if not swName:
-            swName = self.swName
+        if not dcc:
+            dcc = self.dcc
 
         if not filePath:
             filePath = self._pathsDict["categoriesFile"]
@@ -2001,7 +2001,7 @@ User(s): {7}
             if categoriesData == -2:
                 return -2
         else:
-            categoriesData = self._sceneManagerDefaults["defaultCategories"][swName]
+            categoriesData = self._sceneManagerDefaults["defaultCategories"][dcc]
             self._dumpJson(categoriesData, filePath)
         return categoriesData
 

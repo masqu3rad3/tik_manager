@@ -68,8 +68,8 @@ logger.setLevel(logging.WARNING)
 class MaxManager(RootManager, MaxCoreFunctions):
     def __init__(self):
         super(MaxManager, self).__init__()
-        self.swName = "3dsMax"
-        self.init_paths(self.swName)
+        self.dcc = "3dsMax"
+        self.init_paths(self.dcc)
         self.init_database()
 
 

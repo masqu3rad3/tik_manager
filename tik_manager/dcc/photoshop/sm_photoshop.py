@@ -78,8 +78,8 @@ class PsManager(RootManager, PsCoreFunctions):
         self.exportFormats8Bit =["png", "jpg", "tif", "tga", "bmp", "psd"]
         self.exportFormats16Bit =["png", "jpg", "tif", "psd"]
         self.exportFormats32Bit =["exr", "tif", "hdr", "psd"]
-        self.swName = "Photoshop"
-        self.init_paths(self.swName)
+        self.dcc = "Photoshop"
+        self.init_paths(self.dcc)
         self.init_database()
         self.textureTypes = self._sceneManagerDefaults["exportTextureTypes"]
         self.psApp = self.comLink()

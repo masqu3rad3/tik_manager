@@ -70,8 +70,8 @@ logger.setLevel(logging.WARNING)
 class NukeManager(RootManager, NukeCoreFunctions):
     def __init__(self):
         super(NukeManager, self).__init__()
-        self.swName = "Nuke"
-        self.init_paths(self.swName)
+        self.dcc = "Nuke"
+        self.init_paths(self.dcc)
         self.init_database()
 
 

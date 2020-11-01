@@ -76,18 +76,18 @@ class SwViewer(RootManager):
     This dictionary(s) defined in the StandaloneManager class
     """
 
-    def __init__(self, swDict, projectDir, commonFolder):
+    def __init__(self, dccDict, projectDir, commonFolder):
         super(SwViewer, self).__init__()
-        self.swDict = swDict
-        self.swName = swDict["niceName"]
+        self.dccDict = dccDict
+        self.dcc = dccDict["niceName"]
         self.projectDir = projectDir
 
-        self.init_paths(swDict["niceName"])
+        self.init_paths(dccDict["niceName"])
         self.init_database()
 
     def getSoftwarePaths(self):
         """Overriden function"""
-        return self.swDict
+        return self.dccDict
 
     def getProjectDir(self):
         """Overriden function"""
@@ -133,7 +133,7 @@ class SwViewer(RootManager):
         if software:
             try:
                 # lookupDict = {software: softwareDictionary[software]}
-                lookupDict = {software: self.swDict}
+                lookupDict = {software: self.dccDict}
             except KeyError:
                 self._exception(360, "Incorrect Software name")
                 return
@@ -173,7 +173,7 @@ class SwViewer(RootManager):
         ID = self._currentSceneInfo["ID"]
 
 
-        swID = self.swDict["niceName"]
+        swID = self.dccDict["niceName"]
 
         executables = self.getAvailableExecutables(software=swID)
         if not executables:
@@ -326,8 +326,8 @@ class StandaloneManager(RootManager):
     def __init__(self):
         super(StandaloneManager, self).__init__()
 
-        self.swName = ""
-        self.swList = []
+        self.dcc = ""
+        self.dccList = []
         self.init_paths("Standalone")
         self.init_database()
 
@@ -442,11 +442,11 @@ class StandaloneManager(RootManager):
 
     def initSoftwares(self):
         # We need to get which softwares are used in the current project
-        self.swList = []
+        self.dccList = []
         dbFolder = self._pathsDict["masterDir"]
         if not os.path.isdir(dbFolder):
-            self.swList = [] # empty software list
-            return self.swList#this is not a sceneManager project
+            self.dccList = [] # empty software list
+            return self.dccList#this is not a sceneManager project
         # for swDict in self.swDictList:
         #     searchPath = (os.path.join(self.projectDir, "smDatabase", swDict["databaseDir"]))
         #     if os.path.isdir(searchPath):
@@ -460,9 +460,9 @@ class StandaloneManager(RootManager):
                 if len(filesInFolders) > 1:
                     # create a new software viewer object with the accessed project path
                     # and append it to the list of valid softwares for the current project
-                    self.swList.append(SwViewer(value, self.projectDir, self._pathsDict["sharedSettingsDir"]))
+                    self.dccList.append(SwViewer(value, self.projectDir, self._pathsDict["sharedSettingsDir"]))
 
-        return self.swList
+        return self.dccList
 
     @property
     def currentSwIndex(self):
@@ -472,11 +472,11 @@ class StandaloneManager(RootManager):
     @currentSwIndex.setter
     def currentSwIndex(self, indexData):
         """Moves the cursor to the given software index"""
-        if not 0 <= indexData < len(self.swList):
+        if not 0 <= indexData < len(self.dccList):
             msg="Software index is out of range!"
             raise Exception([101, msg])
         if indexData == self.currentSwIndex:
-            self.swList[indexData].cursorInfo()
+            self.dccList[indexData].cursorInfo()
             return
         self._setCurrents("currentSwIndex", indexData)
         pass
@@ -640,7 +640,7 @@ class MainUI(baseUI):
         self._initSoftwares()
 
 
-        if self.manager.swList == []:
+        if self.manager.dccList == []:
             self._zero()
             return
 
@@ -673,7 +673,7 @@ class MainUI(baseUI):
 
     def _getManager(self):
         """OVERRIDEN to select different software managers"""
-        swList = self.manager.swList
+        swList = self.manager.dccList
         swIndex = self.software_comboBox.currentIndex()
         try:
             manager = swList[swIndex]
@@ -686,10 +686,10 @@ class MainUI(baseUI):
         self.software_comboBox.blockSignals(True)
 
         self.software_comboBox.clear()
-        for x in self.manager.swList:
-            self.software_comboBox.addItem(x.swName)
+        for x in self.manager.dccList:
+            self.software_comboBox.addItem(x.dcc)
         # print self.manager.getColorCoding(niceName="standalone")
-        if self.manager.swList:
+        if self.manager.dccList:
             self.addSubProject_pushButton.setEnabled(True)
         else:
             self.addSubProject_pushButton.setEnabled(False)

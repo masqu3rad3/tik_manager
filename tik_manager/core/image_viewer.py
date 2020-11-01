@@ -200,8 +200,8 @@ class ImageViewer(RootManager, CoreFunctions):
         super(ImageViewer, self).__init__()
 
         # self.swName = "" if BoilerDict["Environment"] == "Standalone" else BoilerDict["Environment"]
-        self.swName = BoilerDict["Environment"]
-        self.init_paths(self.swName)
+        self.dcc = BoilerDict["Environment"]
+        self.init_paths(self.dcc)
         self.init_database()
 
     def init_paths(self, nicename):

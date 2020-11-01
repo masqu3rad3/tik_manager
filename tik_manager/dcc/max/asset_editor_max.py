@@ -44,7 +44,7 @@ class AssetEditor3dsMax(MaxCoreFunctions):
         super(AssetEditor3dsMax, self).__init__()
         self.directory=""
 
-    def getSwName(self):
+    def get_dcc(self):
         return "3dsMax"
 
     def saveAsset(self, assetName, exportUV=True, exportOBJ=True, exportFBX=True, exportABC=True, selectionOnly=True, sceneFormat="max", notes="N/A", **info):
