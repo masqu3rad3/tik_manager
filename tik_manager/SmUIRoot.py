@@ -94,7 +94,7 @@ try:
 
     BoilerDict["Environment"] = "Nuke"
     BoilerDict["WindowTitle"] = "Tik Manager Nuke v%s" % _version.__version__
-    BoilerDict["SceneFormats"] = ["nk"]
+    BoilerDict["SceneFormats"] = ["nk", "nkind"]
 except ImportError:
     pass
 
