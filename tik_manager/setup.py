@@ -4,7 +4,9 @@ import sys, getopt
 import os
 import shutil
 import psutil
+# import tik_manager._version as _version
 import tik_manager._version as _version
+
 import json
 try: import _winreg as reg
 except ModuleNotFoundError: import winreg as reg
@@ -400,7 +402,7 @@ def mayaSetup(prompt=True):
         -style "iconOnly" 
         -marginWidth 1
         -marginHeight 1
-        -command "\\nfrom tik_manager import SmMaya\\nreload(SmMaya)\\ntik_sceneManager = SmMaya.MainUI(callback=\\"tik_sceneManager\\")\\ntik_sceneManager.show()\\n" 
+        -command "\\nfrom tik_manager import SmMaya\\ntik_sceneManager = SmMaya.MainUI(callback=\\"tik_sceneManager\\")\\ntik_sceneManager.show()\\n" 
         -sourceType "python" 
         -commandRepeatable 1
         -flat 1
@@ -677,7 +679,6 @@ def houdiniSetup(prompt=True):
 
   <tool name="tikManager" label="Tik Manager" icon="%s">
     <script scriptType="python"><![CDATA[from tik_manager import SmHoudini
-reload(SmHoudini)
 SmHoudini.MainUI().show()]]></script>
   </tool>
 
@@ -894,7 +895,6 @@ ButtonText: "Make Preview"
 icon: #("SceneManager",5)
 (
 	python.Execute "from tik_manager import Sm3dsMax"
-	python.Execute "reload(Sm3dsMax)"
 	python.Execute "Sm3dsMax.MaxManager().createPreview()"
 )"""
         projectMaterials = """
