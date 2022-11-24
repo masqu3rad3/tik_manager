@@ -150,7 +150,7 @@ def getMainWindow():
             from sip import wrapinstance as wrapInstance
         else:
             from shiboken2 import wrapInstance
-        win = omui.MQtUtil_mainWindow()
+        win = omui.MQtUtil.mainWindow()
         ptr = wrapInstance(int(win), QtWidgets.QMainWindow)
         return ptr
 
