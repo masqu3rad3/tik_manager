@@ -176,7 +176,11 @@ def nukeSetup(prompt=True):
     print("Starting Nuke Setup")
     print("Checking files...")
 
-    networkDir = os.path.dirname(os.path.abspath(__file__))
+    # networkDir = os.path.dirname(os.path.abspath(__file__))
+    if getattr(sys, 'frozen', False):
+        networkDir = os.path.dirname(sys.executable)
+    else:
+        networkDir = os.path.dirname(os.path.abspath(__file__))
     fileList = ["__init__.py",
                 "_version.py",
                 "ImageViewer.py",
@@ -280,7 +284,11 @@ def mayaSetup(prompt=True):
     # Check file integrity
     print("Starting Maya Setup")
     print("Checking files...")
-    networkDir = os.path.dirname(os.path.abspath(__file__))
+    if getattr(sys, 'frozen', False):
+        networkDir = os.path.dirname(sys.executable)
+    else:
+        networkDir = os.path.dirname(os.path.abspath(__file__))
+
     fileList = ["__init__.py",
                 "_version.py",
                 "ImMaya.py",
@@ -588,7 +596,11 @@ def houdiniSetup(prompt=True):
     # Check file integrity
     print("Starting Houdini Setup")
     print("Checking files...")
-    networkDir = os.path.dirname(os.path.abspath(__file__))
+    if getattr(sys, 'frozen', False):
+        networkDir = os.path.dirname(sys.executable)
+    else:
+        networkDir = os.path.dirname(os.path.abspath(__file__))
+
     fileList = ["__init__.py",
                 "_version.py",
                 "pyseq.py",
@@ -743,7 +755,11 @@ def maxSetup(prompt=True):
     # TODO Prevent installation for unsupported versions
     print("Starting 3ds Max Setup")
     print("Checking files...")
-    networkDir = os.path.dirname(os.path.abspath(__file__))
+    if getattr(sys, 'frozen', False):
+        networkDir = os.path.dirname(sys.executable)
+    else:
+        networkDir = os.path.dirname(os.path.abspath(__file__))
+
     upNetworkDir = os.path.abspath(os.path.join(networkDir, os.pardir))
     fileList = ["__init__.py",
                 "_version.py",
@@ -962,7 +978,11 @@ def photoshopSetup(prompt=True):
             shutil.rmtree(to_path)
         shutil.copytree(from_path, to_path)
 
-    sourceDir = os.path.dirname(os.path.abspath(__file__))
+    if getattr(sys, 'frozen', False):
+        sourceDir = os.path.dirname(sys.executable)
+    else:
+        sourceDir = os.path.dirname(os.path.abspath(__file__))
+
     extensionSourceDir = os.path.join(sourceDir, "setupFiles", "Photoshop", "extensionFolder", "tikManager")
     if not os.path.isdir(extensionSourceDir):
         print("Photoshop installation error.\nCannot locate the extension folder.")
@@ -1061,7 +1081,10 @@ def installAll():
 
 def prepareCommonFolder(targetCommonFolderPath):
     """Copy common files to the common folder if they are not already exist"""
-    currentCommonPath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "TikManager_Commons")
+    if getattr(sys, 'frozen', False):
+        currentCommonPath = os.path.join(os.path.dirname(sys.executable), "TikManager_Commons")
+    else:
+        currentCommonPath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "TikManager_Commons")
 
     # if the initial install folder will be used as common folder:
     if os.path.normpath(currentCommonPath) == os.path.normpath(targetCommonFolderPath):
@@ -1116,8 +1139,25 @@ def decideNetworkPath():
     """Yes/No question terminal"""
     yes = {'yes', 'y', 'ye', ''}
     no = {'no', 'n'}
-
-    currentCommonPath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "TikManager_Commons")
+    frozen = 'not'
+    if getattr(sys, 'frozen', False):
+        # we are running in a bundle
+        frozen = 'ever so'
+        bundle_dir = sys._MEIPASS
+    else:
+        # we are running in a normal Python environment
+        bundle_dir = os.path.dirname(os.path.abspath(__file__))
+    # print('we are', frozen, 'frozen')
+    # print('bundle dir is', bundle_dir)
+    # print('sys.argv[0] is', sys.argv[0])
+    # print('sys.executable is', sys.executable)
+    # print('os.getcwd is', os.getcwd())
+    # currentCommonPath = os.path.join(os.path.dirname(os.path.realpath(sys.executable)), "TikManager_Commons")
+    if getattr(sys, 'frozen', False):
+        currentCommonPath = os.path.join(os.path.dirname(sys.executable), "TikManager_Commons")
+    else:
+        currentCommonPath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "TikManager_Commons")
+    # currentCommonPath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "TikManager_Commons")
 
     print("""
 Select Common Folder

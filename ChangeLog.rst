@@ -9,6 +9,7 @@ Tik Manager Version History
 * **Fix.002** 3ds Max backward compatibility fix
 * **Fix.003** Python 3.x support for imageViewer, project materials and asset library
 * **Fix.004** Asset Library hotfix for Houdini / Max / Nuke
+* **Fix.005** Hotfix for Maya 2024 / deprecated MQtUtil_mainWindow()
 
 3.1
 ---

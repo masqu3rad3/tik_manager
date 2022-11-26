@@ -875,7 +875,11 @@ class MainUI(baseUI):
 
 
 if __name__ == '__main__':
-    selfLoc = os.path.dirname(os.path.abspath(__file__))
+    if getattr(sys, 'frozen', False):
+        selfLoc = os.path.dirname(sys.executable)
+    else:
+        selfLoc = os.path.dirname(os.path.abspath(__file__))
+
     app = QtWidgets.QApplication(sys.argv)
     stylesheetFile = os.path.join(selfLoc, "CSS", "tikManager.qss")
     if os.path.isfile(stylesheetFile):
