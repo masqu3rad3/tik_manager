@@ -405,8 +405,8 @@ def main(argv):
     utility = TMUtility()
     utility.innoSetupCompile()
     utility.prepareLinuxTar()
-    # utility.buildBin() # this is running in innoSetupCompile
-    # utility.remoteUpload(distributionType="stable")
+
+    utility.remoteUpload(distributionType="stable")
 
 if __name__ == "__main__":
     main(sys.argv[1:])

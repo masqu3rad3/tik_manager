@@ -6318,11 +6318,13 @@ class ImageWidget(QtWidgets.QLabel):
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHeightForWidth(True)
         self.setSizePolicy(sizePolicy)
+        self.resizeEvent("a")
 
     def resizeEvent(self, r):
         h = self.width()
-        self.setMinimumHeight(h / self.aspectRatio)
-        self.setMaximumHeight(h / self.aspectRatio)
+        # keep the aspect ratio
+        self.setMinimumHeight(int(h / self.aspectRatio))
+        self.setMaximumHeight(int(h / self.aspectRatio))
 
 
 class DropListWidget(QtWidgets.QListWidget):

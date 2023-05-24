@@ -2,5 +2,8 @@
     "CurrentVersion": "3.2.004",
     "WindowsDownloadPath": "http://www.ardakutlu.com/Tik_Manager/stable/TikManager_v3.2.004.exe",
     "LinuxDownloadPath": "http://www.ardakutlu.com/Tik_Manager/stable/tikManager_3.2.004_linux.tar.gz",
+    "CurrentVersion": "3.2.005",
+    "WindowsDownloadPath": "http://www.ardakutlu.com/Tik_Manager/stable/TikManager_v3.2.005.exe",
+    "LinuxDownloadPath": "http://www.ardakutlu.com/Tik_Manager/stable/tikManager_3.2.005_linux.tar.gz",
     "VersionHistory": "http://www.ardakutlu.com/Tik_Manager/versionCheck/version_history.html"
 }
