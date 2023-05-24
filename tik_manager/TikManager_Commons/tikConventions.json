@@ -1,6 +1,6 @@
 {
-    "templateFolder": "", 
-    "newProjectName": "<brandName>_<projectName>_<clientName>_<yy><mm><dd>", 
-    "warningSizeLimit": 200, 
+    "templateFolder": "",
+    "newProjectName": "<projectName>_<yy><mm><dd>",
+    "warningSizeLimit": 200,
     "fileName": "<baseName>_<categoryName>_<userInitials>"
 }
