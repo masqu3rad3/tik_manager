@@ -31,6 +31,7 @@
 # -----------------------------------------------------------------------------
 
 import os
+import six
 os.environ["FORCE_QT5"]="0"
 
 # DELETE
@@ -537,7 +538,7 @@ class MayaManager(RootManager, MayaCoreFunctions):
                 value = overrideDict[key]
             else:
                 value = item[1]
-            if type(value) == unicode or type(value) == str:
+            if isinstance(value, six.string_types):
                 eval ("cmds.modelEditor(pbPanel, e=True, %s='%s')" % (key, value))
             else:
                 eval ("cmds.modelEditor(pbPanel, e=True, %s=%s)" % (key, value))

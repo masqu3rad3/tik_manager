@@ -10,6 +10,7 @@ Tik Manager Version History
 * **Fix.003** Python 3.x support for imageViewer, project materials and asset library
 * **Fix.004** Asset Library hotfix for Houdini / Max / Nuke
 * **Fix.005** Hotfix for Maya 2024 / deprecated MQtUtil_mainWindow()
+* **Fix.006** Hotfix for Maya 2022+ / string compatibility issue
 
 3.1
 ---
