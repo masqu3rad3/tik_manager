@@ -1,3 +1,9 @@
+## :exclamation::exclamation::exclamation:This repository won't get new updates:exclamation::exclamation::exclamation:
+ 
+## **Please check the [Tik Manager 4](https://github.com/masqu3rad3/tik_manager4) repository for latest updates.**
+
+Tik Manager 4 is not backward compatible but can be used simultaneously with v3
+
 # TIK Manager
 
 ** Latest Build **
